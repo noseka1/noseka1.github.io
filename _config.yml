@@ -2,10 +2,10 @@
 #      Main Configs       #
 # ----------------------- #
 
-url: http://noseka1.github.io
-title: My Octopress Blog
-subtitle: A blogging framework for hackers.
-author: Your Name
+url: http://alesnosek.com
+title: Ales Nosek - The Software Practitioner
+subtitle: Practicing to make software perfect.
+author: Ales Nosek
 simple_search: https://www.google.com/search
 description:
 
@@ -74,7 +74,7 @@ twitter_user:
 twitter_tweet_button: true
 
 # Google +1
-google_plus_one: false
+google_plus_one: true
 google_plus_one_size: medium
 
 # Google Plus Profile
@@ -91,11 +91,11 @@ delicious_user:
 delicious_count: 3
 
 # Disqus Comments
-disqus_short_name:
+disqus_short_name: alesnosekcom
 disqus_show_comment_count: false
 
 # Google Analytics
-google_analytics_tracking_id:
+google_analytics_tracking_id: UA-61965164-1
 
 # Facebook Like
-facebook_like: false
+facebook_like: true
