@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
-  <link href="http://alesnosek.com/atom.xml" rel="self"/>
+  <title><![CDATA[Category: git | Ales Nosek - The Software Practitioner]]></title>
+  <link href="http://alesnosek.com/blog/categories/git/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
   <updated>2015-04-18T21:15:05-07:00</updated>
   <id>http://alesnosek.com/</id>
@@ -22,28 +22,25 @@
 
 <h2>1) Introduce yourself to Git</h2>
 
-<p>When searching through the commit history your fellow developers would like to recognize that this particular awesome commit was created by you. Before your first commit, please, introduce yourself to Git. Tell Git your name and email address:</p>
-
+<p>When searching through the commit history your fellow developers would like to recognize that this particular awesome commit was created by you. Before your first commit, please, introduce yourself to Git. Tell Git your name and email address:
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>git config --global user.name <span class="s2">&quot;Ales Nosek&quot;</span>
-</span><span class='line'>git config --global user.email <span class="s2">&quot;anosek@verimatrix.com&quot;</span>
-</span></code></pre></td></tr></table></div></figure>
-
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>git config <span class="p">&amp;</span>ndash<span class="p">;</span>global user.name <span class="p">&amp;</span>ldquo<span class="p">;</span>Ales Nosek<span class="p">&amp;</span>rdquo<span class="p">;</span>
+</span><span class='line'>git config <span class="p">&amp;</span>ndash<span class="p">;</span>global user.email <span class="p">&amp;</span>ldquo<span class="p">;</span>&lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#109;&amp;#97;&amp;#105;&amp;#x6c;&amp;#x74;&amp;#111;&amp;#58;&amp;#97;&amp;#x6e;&amp;#111;&amp;#115;&amp;#x65;&amp;#x6b;&amp;#x40;&amp;#118;&amp;#x65;&amp;#114;&amp;#105;&amp;#x6d;&amp;#97;&amp;#116;&amp;#x72;&amp;#x69;&amp;#x78;&amp;#x2e;&amp;#x63;&amp;#x6f;&amp;#x6d;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#x61;&amp;#x6e;&amp;#111;&amp;#x73;&amp;#x65;&amp;#107;&amp;#64;&amp;#x76;&amp;#101;&amp;#x72;&amp;#x69;&amp;#x6d;&amp;#x61;&amp;#116;&amp;#114;&amp;#105;&amp;#x78;&amp;#x2e;&amp;#99;&amp;#111;&amp;#x6d;&lt;/a&gt;&amp;rdquo;</span>
+</span></code></pre></td></tr></table></div></figure></p>
 
 <h2>2) Commit message formatting</h2>
 
 <p>Respect the conventions for Git commit message formatting. The first line of the commit message is a short (50 chars or less) summary. The first letter of the summary is capitalized and there&rsquo;s no dot at the end of the summary. The summary begins with a reference to the issue in your bug tracking system if available. Use imperative in your summary line as you&rsquo;d be commanding your code to do something, i.e. write &ldquo;Remove obsolete code&rdquo; instead of &ldquo;Removed obsolete code&rdquo; or &ldquo;Removes obsolete code&rdquo;. More detailed explanatory text comes after a blank line. Here is a model Git commit message:</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>PROJXREF-27 Remove obsolete code in component X
-</span><span class='line'>    
-</span><span class='line'>The logging functionality in component X is not needed anymore.
-</span><span class='line'>Component Y took over the logging responsibility.</span></code></pre></td></tr></table></div></figure>
-
+</pre></td><td class='code'><pre><code class=''><span class='line'>PROJXREF-27 Remove obsolete code in component X&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;p>The logging functionality in component X is not needed anymore.
+</span><span class='line'>Component Y took over the logging responsibility.</span></code></pre></td></tr></table></div></figure></p>
 
 <p>See also this <a href="http://chris.beams.io/posts/git-commit/" title="How to Write a Git Commit Message">article</a> for more detailed explanation and examples.</p>
 
@@ -53,39 +50,34 @@
 
 <h2>4) git diff <code>--</code>cached</h2>
 
-<p>Before commiting <em>always</em> check your code changes. Make sure that your commit includes only the changes you intended to commit. Let your debug code and test modifications not flow into the production code base. Before committing double-check your changes with:</p>
-
+<p>Before commiting <em>always</em> check your code changes. Make sure that your commit includes only the changes you intended to commit. Let your debug code and test modifications not flow into the production code base. Before committing double-check your changes with:
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>git diff --cached</span></code></pre></td></tr></table></div></figure>
-
+</pre></td><td class='code'><pre><code class=''><span class='line'>git diff &ndash;cached</span></code></pre></td></tr></table></div></figure></p>
 
 <h2>5) Trailing whitespaces</h2>
 
 <p>Whitespace changes in the commit diffs decrease the readability of the commit diffs and make code review less fun. You can configure your editor to remove the trailing whitespaces for you on file save. Perhaps a better option though is to instruct Git to clean up the trailing white spaces automatically before comitting. You can use the commit hook <a href="http://stackoverflow.com/questions/591923/make-git-automatically-remove-trailing-whitespace-before-committing/3516525#3516525" title="Make git automatically remove trailing whitespace before committing">here</a> to do exactly that. Save the commit hook as file named <code>pre-commit</code>. Install the <code>pre-commit</code> script into your Git repository:</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>cp pre-commit my_existing_repo/.git/hooks
-</span><span class='line'>chmod 755 my_existing_repo/.git/hooks/pre-commit</span></code></pre></td></tr></table></div></figure>
-
+</span><span class='line'>chmod 755 my_existing_repo/.git/hooks/pre-commit</span></code></pre></td></tr></table></div></figure></p>
 
 <p>The pre-commit hook will run only before the commit in this particular Git repository. If you&rsquo;d like Git to install the pre-commit hook to every newly created/cloned repository you&rsquo;ll need to add the hook file into your template directory. First tell Git where is your template directory located by adding the following into your <code>~/.gitconfig</code> file:</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>[init]
-</span><span class='line'>        templatedir = ~/.gittemplate</span></code></pre></td></tr></table></div></figure>
-
+</span><span class='line'>        templatedir = ~/.gittemplate</span></code></pre></td></tr></table></div></figure></p>
 
 <p>Now you can create your Git template directory and copy the <code>pre-commit</code> hook file into it:</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>mkdir -p ~/.gittemplate/hooks
 </span><span class='line'>cp pre-commit ~/.gittemplate/hooks
-</span><span class='line'>chmod 755 ~/.gittemplate/hooks/pre-commit</span></code></pre></td></tr></table></div></figure>
-
+</span><span class='line'>chmod 755 ~/.gittemplate/hooks/pre-commit</span></code></pre></td></tr></table></div></figure></p>
 
 <p>From now on whenever you create/clone a Git repository you should find the <code>pre-commit</code> hook file installed at <code>.git/hooks/pre-commit</code>. Git will clean up trailing whitespaces for you before you commit.</p>
 ]]></content>
