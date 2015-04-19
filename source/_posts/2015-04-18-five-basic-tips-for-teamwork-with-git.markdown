@@ -3,7 +3,7 @@ layout: post
 title: "Five Basic Tips for Teamwork with Git"
 date: 2015-04-18 16:51:08 -0700
 comments: true
-categories: Development Git
+categories: development git
 ---
 Do you care about how your Git commits look like? A great software practitioner does, indeed. Let's review a couple of basic tips for developers that make the Git commit log look good and teamwork with Git source control more fun.
 <!-- more -->
