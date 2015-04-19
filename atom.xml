@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2015-04-18T21:15:05-07:00</updated>
+  <updated>2015-04-18T21:27:37-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -19,6 +19,9 @@
     <updated>2015-04-18T16:51:08-07:00</updated>
     <id>http://alesnosek.com/blog/2015/04/18/five-basic-tips-for-teamwork-with-git</id>
     <content type="html"><![CDATA[<p>Do you care about how your Git commits look like? A great software practitioner does, indeed. Let&rsquo;s review a couple of basic tips for developers that make the Git commit log look good and teamwork with Git source control more fun.</p>
+
+<!-- more -->
+
 
 <h2>1) Introduce yourself to Git</h2>
 
