@@ -6,6 +6,7 @@ comments: true
 categories: Development Git
 ---
 Do you care about how your Git commits look like? A great software practitioner does, indeed. Let's review a couple of basic tips for developers that make the Git commit log look good and teamwork with Git source control more fun.
+<!-- more -->
 
 1) Introduce yourself to Git
 ----------------------------
