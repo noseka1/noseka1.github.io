@@ -4,7 +4,7 @@
   <title><![CDATA[Category: cloud | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/cloud/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2015-04-26T13:30:35-07:00</updated>
+  <updated>2015-04-26T13:48:36-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -27,7 +27,7 @@
 
 <p><a href="https://cloudinit.readthedocs.org/en/latest/" title="Cloud-Init documentation">Cloud-Init</a> is a tool that handles early initialization of a cloud instance. The <code>cloud-init</code> RPM package should be installed on the disk image which the cloud instance is going to boot up from. The package installs init scripts into <code>/etc/rc.d/init.d</code> that makes Cloud-Init run early during the system initialization. Cloud-Init obtains user data passed to it by the cloud software and executes them. User data contains a set of configuration tasks for the cloud instance. For example, Cloud-Init can update machine&rsquo;s hostname, configure <code>/etc/hosts</code>, create users, configure SSH authorized keys, resize filesystems, manage disk mounts, run user-defined scripts and <a href="https://cloudinit.readthedocs.org/en/latest/topics/examples.html" title="Cloud config examples">much more</a>.</p>
 
-<p><blockquote><p>Even if you&rsquo;re not running your virtual machines in the cloud environment it&rsquo;s worth to deploy Clout-Init.</p></blockquote></p>
+<p><blockquote><p>Even if you&rsquo;re not running your virtual machines in the cloud environment it&rsquo;s worth it to deploy Clout-Init.</p></blockquote></p>
 
 <p>Every cloud software comes with its own mechanism of how to pass the user data to the cloud instance. For example, EC2 provides a <em>magic IP</em> from which the instance can download its user data. OpenStack cloud attaches a special <em>config drive</em> to the cloud instance containing the user data to be consumed by Clout-Init. In order to pass the user data to our virtual machine let&rsquo;s go the OpenStack way and assemble a minimum config drive.</p>
 
@@ -178,7 +178,7 @@
 </span></code></pre></td></tr></table></div></figure>
 If everything went fine you can watch the console output of the booting virtual machine at <code>/tmp/CentOS-6.log</code>. Cloud-Init will print out the IP address obtained by the virtual machine (192.168.122.165 in my case) where we can login as root using the generated private key:
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>ssh -i testkey &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#109;&amp;#97;&amp;#x69;&amp;#x6c;&amp;#116;&amp;#111;&amp;#x3a;&amp;#114;&amp;#111;&amp;#x6f;&amp;#x74;&amp;#x40;&amp;#x31;&amp;#x39;&amp;#50;&amp;#46;&amp;#x31;&amp;#54;&amp;#56;&amp;#46;&amp;#49;&amp;#x32;&amp;#x32;&amp;#x2e;&amp;#49;&amp;#54;&amp;#x35;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#114;&amp;#111;&amp;#111;&amp;#x74;&amp;#x40;&amp;#49;&amp;#57;&amp;#50;&amp;#x2e;&amp;#49;&amp;#x36;&amp;#x38;&amp;#x2e;&amp;#49;&amp;#50;&amp;#50;&amp;#46;&amp;#49;&amp;#54;&amp;#53;&lt;/a&gt;</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>ssh -i testkey &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#x6d;&amp;#97;&amp;#105;&amp;#108;&amp;#x74;&amp;#x6f;&amp;#58;&amp;#x72;&amp;#111;&amp;#x6f;&amp;#x74;&amp;#x40;&amp;#x31;&amp;#57;&amp;#x32;&amp;#x2e;&amp;#49;&amp;#x36;&amp;#x38;&amp;#46;&amp;#x31;&amp;#50;&amp;#50;&amp;#46;&amp;#49;&amp;#54;&amp;#53;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#x72;&amp;#x6f;&amp;#x6f;&amp;#116;&amp;#64;&amp;#49;&amp;#57;&amp;#50;&amp;#x2e;&amp;#x31;&amp;#54;&amp;#56;&amp;#x2e;&amp;#x31;&amp;#x32;&amp;#50;&amp;#x2e;&amp;#x31;&amp;#54;&amp;#53;&lt;/a&gt;</span>
 </span></code></pre></td></tr></table></div></figure>
 Congratulations, your virtual machine has just been configured by Cloud-Init the same way as any other virtual machine running in the cloud environment.</p>
 ]]></content>
