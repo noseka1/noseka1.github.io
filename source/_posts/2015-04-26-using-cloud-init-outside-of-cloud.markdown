@@ -83,7 +83,7 @@ e2label disk.config config-2
 
 Cloud-Init in action
 --------------------
-On my Linux host I'm running [libvirt](http://libvirt.org/ "Libvirt - The virtualization API") to ease the management of virtual machines. You can install it by running `sudo yum install libvirt`. There is a handy command-line utility `virsh` coming with libvirt in the extra package `libvirt-client`.
+On my Linux host I'm running [libvirt](http://libvirt.org/ "Libvirt - The virtualization API") to ease the management of virtual machines. You can install it by running `sudo yum install libvirt`. There is a handy command-line utility `virsh` which comes  with libvirt in the extra package `libvirt-client`.
 
 Let's create a virtual machine with the config drive attached. As a virtual machine boot image I'm using a CentOS-6 image from [cloud.centos.org](http://cloud.centos.org/centos/6/images/ "CentOS-6 cloud images") which comes with Cloud-Init built in. Make sure that your virtual machine boot image has Cloud-Init installed. Following is a virtual machine definition file for the CentoOS-6 virtual machine. You might need to change the location of the disk image files and save it as `CentOS-6.xml`:
 
@@ -115,7 +115,7 @@ Let's create a virtual machine with the config drive attached. As a virtual mach
 </domain>
 {% endcodeblock %}
 
-Okay, everything ready, let's launch our Cloud-Init enabled CentOS-6 virtual machine:
+Okay, everything is ready, let's launch our Cloud-Init enabled CentOS-6 virtual machine:
 {% codeblock lang:sh %}
 sudo virsh define CentOS-6.xml
 sudo virsh start CentOS-6
