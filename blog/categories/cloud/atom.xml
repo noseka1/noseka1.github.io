@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
-  <link href="http://alesnosek.com/atom.xml" rel="self"/>
+  <title><![CDATA[Category: cloud | Ales Nosek - The Software Practitioner]]></title>
+  <link href="http://alesnosek.com/blog/categories/cloud/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
   <updated>2015-04-26T13:30:35-07:00</updated>
   <id>http://alesnosek.com/</id>
@@ -27,8 +27,7 @@
 
 <p><a href="https://cloudinit.readthedocs.org/en/latest/" title="Cloud-Init documentation">Cloud-Init</a> is a tool that handles early initialization of a cloud instance. The <code>cloud-init</code> RPM package should be installed on the disk image which the cloud instance is going to boot up from. The package installs init scripts into <code>/etc/rc.d/init.d</code> that makes Cloud-Init run early during the system initialization. Cloud-Init obtains user data passed to it by the cloud software and executes them. User data contains a set of configuration tasks for the cloud instance. For example, Cloud-Init can update machine&rsquo;s hostname, configure <code>/etc/hosts</code>, create users, configure SSH authorized keys, resize filesystems, manage disk mounts, run user-defined scripts and <a href="https://cloudinit.readthedocs.org/en/latest/topics/examples.html" title="Cloud config examples">much more</a>.</p>
 
-<blockquote><p>Even if you&#8217;re not running your virtual machines in the cloud environment it&#8217;s worth to deploy Clout-Init.</p></blockquote>
-
+<p><blockquote><p>Even if you&rsquo;re not running your virtual machines in the cloud environment it&rsquo;s worth to deploy Clout-Init.</p></blockquote></p>
 
 <p>Every cloud software comes with its own mechanism of how to pass the user data to the cloud instance. For example, EC2 provides a <em>magic IP</em> from which the instance can download its user data. OpenStack cloud attaches a special <em>config drive</em> to the cloud instance containing the user data to be consumed by Clout-Init. In order to pass the user data to our virtual machine let&rsquo;s go the OpenStack way and assemble a minimum config drive.</p>
 
@@ -36,7 +35,7 @@
 
 <p>First, we&rsquo;re going to prepare the following file structure for our config drive:</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -47,44 +46,40 @@
 </span><span class='line'>config_drive/openstack/latest
 </span><span class='line'>config_drive/openstack/2012-08-10
 </span><span class='line'>config_drive/openstack/2012-08-10/meta_data.json
-</span><span class='line'>config_drive/openstack/2012-08-10/user_data</span></code></pre></td></tr></table></div></figure>
-
+</span><span class='line'>config_drive/openstack/2012-08-10/user_data</span></code></pre></td></tr></table></div></figure></p>
 
 <p>Start by creating directories and the <code>latest</code> symbolic link like this:</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>mkdir config_drive
 </span><span class='line'>mkdir -p config_drive/openstack/2012-08-10
-</span><span class='line'>ln -s 2012-08-10 config_drive/openstack/latest</span></code></pre></td></tr></table></div></figure>
-
+</span><span class='line'>ln -s 2012-08-10 config_drive/openstack/latest</span></code></pre></td></tr></table></div></figure></p>
 
 <p>Next create a minimum metadata file required by Cloud-Init. I&rsquo;m using a fully qualified domain name of the virtual machine as its UUID:</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
 <span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>cat &gt; config_drive/openstack/latest/meta_data.json <span class="s">&lt;&lt; EOF</span>
-</span><span class='line'><span class="s">{</span>
-</span><span class='line'><span class="s">    &quot;uuid&quot;: &quot;myinstance.mydomain.com&quot;</span>
-</span><span class='line'><span class="s">}</span>
-</span><span class='line'><span class="s">EOF</span>
-</span></code></pre></td></tr></table></div></figure>
-
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>cat &gt; config_drive/openstack/latest/meta_data.json <span class="p">&amp;</span>lt<span class="p">;&amp;</span>lt<span class="p">;</span> EOF
+</span><span class='line'><span class="o">{</span>
+</span><span class='line'>    <span class="p">&amp;</span>ldquo<span class="p">;</span>uuid<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span>myinstance.mydomain.com<span class="p">&amp;</span>rdquo<span class="p">;</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>EOF
+</span></code></pre></td></tr></table></div></figure></p>
 
 <p>Cloud-Init supports many <a href="https://cloudinit.readthedocs.org/en/latest/topics/format.html" title="Cloud-Init user data formats">formats</a> for scripts within user data. One of the most popular formats is the <em>cloud-config</em> file format. Let&rsquo;s create a cloud-config script that adds our SSH public key to the authorized keys for the user <code>root</code> on the virtual machine. We can then login into the virtual machine as user root without using a password. If you don&rsquo;t have a public-private SSH key pair you can quickly generate it using <code>ssh-keygen</code> command:</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='sh'><span class='line'>ssh-keygen -f mykey
-</span></code></pre></td></tr></table></div></figure>
-
+</span></code></pre></td></tr></table></div></figure></p>
 
 <p>Now create a <code>user_data</code> file with the configuration instructions for Cloud-Init. In the following code block replace the value of the <code>ssh-authorized-keys</code> field with the content of your generated <code>mykey.pub</code> file:</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -92,30 +87,30 @@
 <span class='line-number'>6</span>
 <span class='line-number'>7</span>
 <span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>cat &gt; config_drive/openstack/latest/user_data <span class="s">&lt;&lt; EOF</span>
-</span><span class='line'><span class="s">#cloud-config</span>
-</span><span class='line'><span class="s">fqdn: myinstance.mydomain.com</span>
-</span><span class='line'><span class="s">users:</span>
-</span><span class='line'><span class="s">  - name: root</span>
-</span><span class='line'><span class="s">    ssh-authorized-keys:</span>
-</span><span class='line'><span class="s">      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDNH8Qwn4raGR1f9fvjbZe/GXM2N9Mh+eWlsFoYpcU4H5qf5YxT5CUo7BaTOgeE5geHyzxJQmCQlvoxcW3qkcjBJvVgEsTrrnX7KYS8BszvT4AMIuG2Za8f7myubXd6zYfj74XYhutUsPz7x2TEp9ZqbVkWcaElrQFxF2AzF7dV1RGntpPKyISqem70En8RYpGY514OLZ9TQDBYjbw8tfPuDd9mznXnWOZ34fPtP7+QDvOMFuA4tXsBpHj99/cbC0ViwzZtvb1QtY7dv9OFDgCRadw81+SKtzXctQ2rCYkb0huc0BCE7kLzinzlO62Znd+N1d+tpLAwP6i8Z5ZMXIJj user@machine</span>
-</span><span class='line'><span class="s">EOF</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>cat &gt; config_drive/openstack/latest/user_data <span class="p">&amp;</span>lt<span class="p">;&amp;</span>lt<span class="p">;</span> EOF&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;h1&gt;cloud-config&lt;/h1&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;fqdn: myinstance.mydomain.com
+</span><span class='line'>users:
+</span><span class='line'>  - name: root
+</span><span class='line'>    ssh-authorized-keys:
+</span><span class='line'>      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDNH8Qwn4raGR1f9fvjbZe/GXM2N9Mh+eWlsFoYpcU4H5qf5YxT5CUo7BaTOgeE5geHyzxJQmCQlvoxcW3qkcjBJvVgEsTrrnX7KYS8BszvT4AMIuG2Za8f7myubXd6zYfj74XYhutUsPz7x2TEp9ZqbVkWcaElrQFxF2AzF7dV1RGntpPKyISqem70En8RYpGY514OLZ9TQDBYjbw8tfPuDd9mznXnWOZ34fPtP7+QDvOMFuA4tXsBpHj99/cbC0ViwzZtvb1QtY7dv9OFDgCRadw81+SKtzXctQ2rCYkb0huc0BCE7kLzinzlO62Znd+N1d+tpLAwP6i8Z5ZMXIJj user@machine
+</span><span class='line'>EOF
+</span></code></pre></td></tr></table></div></figure></p>
 
 <p>The file structure for our config drive is ready. Let&rsquo;s generate an ext2 filesystem and copy the files to it. The <code>virt-make-fs</code> utility from the <code>libguestfs-tools</code> package can help us with that:</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='sh'><span class='line'>virt-make-fs config_drive disk.config
-</span></code></pre></td></tr></table></div></figure>
+</span></code></pre></td></tr></table></div></figure></p>
 
-
-<p>In order for Cloud-Init to detect the attached drive as config drive the filesystem on the config drive needs to be labeled <code>config-2</code>. You can use <code>e2label</code> command from the <code>e2fsprogs</code> package to label your config drive:</p>
-
+<p>In order for Cloud-Init to detect the attached drive as config drive the filesystem on the config drive needs to be labeled <code>config-2</code>. You can use <code>e2label</code> command from the <code>e2fsprogs</code> package to label your config drive:
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='sh'><span class='line'>e2label disk.config config-2
-</span></code></pre></td></tr></table></div></figure>
-
+</span></code></pre></td></tr></table></div></figure></p>
 
 <h2>Cloud-Init in action</h2>
 
@@ -123,7 +118,7 @@
 
 <p>Let&rsquo;s create a virtual machine with the config drive attached. As a virtual machine boot image I&rsquo;m using a CentOS-6 image from <a href="http://cloud.centos.org/centos/6/images/" title="CentOS-6 cloud images">cloud.centos.org</a> which comes with Cloud-Init built in. Make sure that your virtual machine boot image has Cloud-Init installed. Following is a virtual machine definition file for the CentoOS-6 virtual machine. You might need to change the location of the disk image files and save it as <code>CentOS-6.xml</code>:</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -173,107 +168,19 @@
 </span><span class='line'>    <span class="nt">&lt;/serial&gt;</span>
 </span><span class='line'>  <span class="nt">&lt;/devices&gt;</span>
 </span><span class='line'><span class="nt">&lt;/domain&gt;</span>
-</span></code></pre></td></tr></table></div></figure>
+</span></code></pre></td></tr></table></div></figure></p>
 
-
-<p>Okay, everything ready, let&rsquo;s launch our Cloud-Init enabled CentOS-6 virtual machine:</p>
-
+<p>Okay, everything ready, let&rsquo;s launch our Cloud-Init enabled CentOS-6 virtual machine:
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 </pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo virsh define CentOS-6.xml
 </span><span class='line'>sudo virsh start CentOS-6
 </span></code></pre></td></tr></table></div></figure>
-
-
-<p>If everything went fine you can watch the console output of the booting virtual machine at <code>/tmp/CentOS-6.log</code>. Cloud-Init will print out the IP address obtained by the virtual machine (192.168.122.165 in my case) where we can login as root using the generated private key:</p>
-
+If everything went fine you can watch the console output of the booting virtual machine at <code>/tmp/CentOS-6.log</code>. Cloud-Init will print out the IP address obtained by the virtual machine (192.168.122.165 in my case) where we can login as root using the generated private key:
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>ssh -i testkey root@192.168.122.165
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>ssh -i testkey &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#109;&amp;#97;&amp;#x69;&amp;#x6c;&amp;#116;&amp;#111;&amp;#x3a;&amp;#114;&amp;#111;&amp;#x6f;&amp;#x74;&amp;#x40;&amp;#x31;&amp;#x39;&amp;#50;&amp;#46;&amp;#x31;&amp;#54;&amp;#56;&amp;#46;&amp;#49;&amp;#x32;&amp;#x32;&amp;#x2e;&amp;#49;&amp;#54;&amp;#x35;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#114;&amp;#111;&amp;#111;&amp;#x74;&amp;#x40;&amp;#49;&amp;#57;&amp;#50;&amp;#x2e;&amp;#49;&amp;#x36;&amp;#x38;&amp;#x2e;&amp;#49;&amp;#50;&amp;#50;&amp;#46;&amp;#49;&amp;#54;&amp;#53;&lt;/a&gt;</span>
 </span></code></pre></td></tr></table></div></figure>
-
-
-<p>Congratulations, your virtual machine has just been configured by Cloud-Init the same way as any other virtual machine running in the cloud environment.</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Five Basic Tips for Teamwork with Git]]></title>
-    <link href="http://alesnosek.com/blog/2015/04/18/five-basic-tips-for-teamwork-with-git/"/>
-    <updated>2015-04-18T16:51:08-07:00</updated>
-    <id>http://alesnosek.com/blog/2015/04/18/five-basic-tips-for-teamwork-with-git</id>
-    <content type="html"><![CDATA[<p>Do you care about how your Git commits look like? A great software practitioner does, indeed. Let&rsquo;s review a couple of basic tips for developers that make the Git commit log look good and teamwork with Git source control more fun.</p>
-
-<!-- more -->
-
-
-<h2>1) Introduce yourself to Git</h2>
-
-<p>When searching through the commit history your fellow developers would like to recognize that this particular awesome commit was created by you. Before your first commit, please, introduce yourself to Git. Tell Git your name and email address:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>git config --global user.name <span class="s2">&quot;Ales Nosek&quot;</span>
-</span><span class='line'>git config --global user.email <span class="s2">&quot;anosek@verimatrix.com&quot;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>2) Commit message formatting</h2>
-
-<p>Respect the conventions for Git commit message formatting. The first line of the commit message is a short (50 chars or less) summary. The first letter of the summary is capitalized and there&rsquo;s no dot at the end of the summary. The summary begins with a reference to the issue in your bug tracking system if available. Use imperative in your summary line as you&rsquo;d be commanding your code to do something, i.e. write &ldquo;Remove obsolete code&rdquo; instead of &ldquo;Removed obsolete code&rdquo; or &ldquo;Removes obsolete code&rdquo;. More detailed explanatory text comes after a blank line. Here is a model Git commit message:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>PROJXREF-27 Remove obsolete code in component X
-</span><span class='line'>    
-</span><span class='line'>The logging functionality in component X is not needed anymore.
-</span><span class='line'>Component Y took over the logging responsibility.</span></code></pre></td></tr></table></div></figure>
-
-
-<p>See also this <a href="http://chris.beams.io/posts/git-commit/" title="How to Write a Git Commit Message">article</a> for more detailed explanation and examples.</p>
-
-<h2>3) One commit per unit of work</h2>
-
-<p>Create one commit per unit of work. A combined commit like &ldquo;Add method X, correct indention, clean up whitespaces&rdquo; is harder to review. Break your changes down into multiple commits, e.g. three commits &ldquo;Add method X&rdquo;, &ldquo;Correct indention&rdquo; and &ldquo;Clean up whitespaces&rdquo;.</p>
-
-<h2>4) git diff <code>--</code>cached</h2>
-
-<p>Before commiting <em>always</em> check your code changes. Make sure that your commit includes only the changes you intended to commit. Let your debug code and test modifications not flow into the production code base. Before committing double-check your changes with:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>git diff --cached</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>5) Trailing whitespaces</h2>
-
-<p>Whitespace changes in the commit diffs decrease the readability of the commit diffs and make code review less fun. You can configure your editor to remove the trailing whitespaces for you on file save. Perhaps a better option though is to instruct Git to clean up the trailing white spaces automatically before comitting. You can use the commit hook <a href="http://stackoverflow.com/questions/591923/make-git-automatically-remove-trailing-whitespace-before-committing/3516525#3516525" title="Make git automatically remove trailing whitespace before committing">here</a> to do exactly that. Save the commit hook as file named <code>pre-commit</code>. Install the <code>pre-commit</code> script into your Git repository:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>cp pre-commit my_existing_repo/.git/hooks
-</span><span class='line'>chmod 755 my_existing_repo/.git/hooks/pre-commit</span></code></pre></td></tr></table></div></figure>
-
-
-<p>The pre-commit hook will run only before the commit in this particular Git repository. If you&rsquo;d like Git to install the pre-commit hook to every newly created/cloned repository you&rsquo;ll need to add the hook file into your template directory. First tell Git where is your template directory located by adding the following into your <code>~/.gitconfig</code> file:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>[init]
-</span><span class='line'>        templatedir = ~/.gittemplate</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Now you can create your Git template directory and copy the <code>pre-commit</code> hook file into it:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>mkdir -p ~/.gittemplate/hooks
-</span><span class='line'>cp pre-commit ~/.gittemplate/hooks
-</span><span class='line'>chmod 755 ~/.gittemplate/hooks/pre-commit</span></code></pre></td></tr></table></div></figure>
-
-
-<p>From now on whenever you create/clone a Git repository you should find the <code>pre-commit</code> hook file installed at <code>.git/hooks/pre-commit</code>. Git will clean up trailing whitespaces for you before you commit.</p>
+Congratulations, your virtual machine has just been configured by Cloud-Init the same way as any other virtual machine running in the cloud environment.</p>
 ]]></content>
   </entry>
   

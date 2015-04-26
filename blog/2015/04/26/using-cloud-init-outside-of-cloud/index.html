@@ -1,24 +1,103 @@
-<?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
-  <link href="http://alesnosek.com/atom.xml" rel="self"/>
-  <link href="http://alesnosek.com/"/>
-  <updated>2015-04-26T13:30:35-07:00</updated>
-  <id>http://alesnosek.com/</id>
-  <author>
-    <name><![CDATA[Ales Nosek]]></name>
-    
-  </author>
-  <generator uri="http://octopress.org/">Octopress</generator>
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Using Cloud-Init Outside of Cloud - Ales Nosek - The Software Practitioner</title>
+  <meta name="author" content="Ales Nosek">
 
   
-  <entry>
-    <title type="html"><![CDATA[Using Cloud-Init Outside of Cloud]]></title>
-    <link href="http://alesnosek.com/blog/2015/04/26/using-cloud-init-outside-of-cloud/"/>
-    <updated>2015-04-26T13:04:25-07:00</updated>
-    <id>http://alesnosek.com/blog/2015/04/26/using-cloud-init-outside-of-cloud</id>
-    <content type="html"><![CDATA[<p>In EC2 and OpenStack cloud environments <em>user data</em> can be passed to the cloud instance to customize the cloud instance on the first boot. But what if your virtual machine doesn&rsquo;t run in the cloud environment? In this article we&rsquo;re going to configure our virtual machines with user data regardless if they&rsquo;re running in the cloud or not.</p>
+  <meta name="description" content="In EC2 and OpenStack cloud environments user data can be passed to the cloud instance to customize the cloud instance on the first boot. But what if &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://alesnosek.com/blog/2015/04/26/using-cloud-init-outside-of-cloud/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Ales Nosek - The Software Practitioner" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-61965164-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <img src="/images/computers.png" align="right">
+  <h1><a href="/">Ales Nosek - The Software Practitioner</a></h1>
+  
+    <h2>Practicing to make software perfect.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="alesnosek.com">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Using Cloud-Init Outside of Cloud</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-04-26T13:04:25-07:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>26</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>1:04 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>In EC2 and OpenStack cloud environments <em>user data</em> can be passed to the cloud instance to customize the cloud instance on the first boot. But what if your virtual machine doesn&rsquo;t run in the cloud environment? In this article we&rsquo;re going to configure our virtual machines with user data regardless if they&rsquo;re running in the cloud or not.</p>
 
 <!-- more -->
 
@@ -193,88 +272,150 @@
 
 
 <p>Congratulations, your virtual machine has just been configured by Cloud-Init the same way as any other virtual machine running in the cloud environment.</p>
-]]></content>
-  </entry>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
   
-  <entry>
-    <title type="html"><![CDATA[Five Basic Tips for Teamwork with Git]]></title>
-    <link href="http://alesnosek.com/blog/2015/04/18/five-basic-tips-for-teamwork-with-git/"/>
-    <updated>2015-04-18T16:51:08-07:00</updated>
-    <id>http://alesnosek.com/blog/2015/04/18/five-basic-tips-for-teamwork-with-git</id>
-    <content type="html"><![CDATA[<p>Do you care about how your Git commits look like? A great software practitioner does, indeed. Let&rsquo;s review a couple of basic tips for developers that make the Git commit log look good and teamwork with Git source control more fun.</p>
 
-<!-- more -->
+<span class="byline author vcard">Posted by <span class="fn">Ales Nosek</span></span>
+
+      
 
 
-<h2>1) Introduce yourself to Git</h2>
-
-<p>When searching through the commit history your fellow developers would like to recognize that this particular awesome commit was created by you. Before your first commit, please, introduce yourself to Git. Tell Git your name and email address:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>git config --global user.name <span class="s2">&quot;Ales Nosek&quot;</span>
-</span><span class='line'>git config --global user.email <span class="s2">&quot;anosek@verimatrix.com&quot;</span>
-</span></code></pre></td></tr></table></div></figure>
 
 
-<h2>2) Commit message formatting</h2>
+<time class='entry-date' datetime='2015-04-26T13:04:25-07:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>26</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>1:04 pm</span></time>
+      
 
-<p>Respect the conventions for Git commit message formatting. The first line of the commit message is a short (50 chars or less) summary. The first letter of the summary is capitalized and there&rsquo;s no dot at the end of the summary. The summary begins with a reference to the issue in your bug tracking system if available. Use imperative in your summary line as you&rsquo;d be commanding your code to do something, i.e. write &ldquo;Remove obsolete code&rdquo; instead of &ldquo;Removed obsolete code&rdquo; or &ldquo;Removes obsolete code&rdquo;. More detailed explanatory text comes after a blank line. Here is a model Git commit message:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>PROJXREF-27 Remove obsolete code in component X
-</span><span class='line'>    
-</span><span class='line'>The logging functionality in component X is not needed anymore.
-</span><span class='line'>Component Y took over the logging responsibility.</span></code></pre></td></tr></table></div></figure>
-
-
-<p>See also this <a href="http://chris.beams.io/posts/git-commit/" title="How to Write a Git Commit Message">article</a> for more detailed explanation and examples.</p>
-
-<h2>3) One commit per unit of work</h2>
-
-<p>Create one commit per unit of work. A combined commit like &ldquo;Add method X, correct indention, clean up whitespaces&rdquo; is harder to review. Break your changes down into multiple commits, e.g. three commits &ldquo;Add method X&rdquo;, &ldquo;Correct indention&rdquo; and &ldquo;Clean up whitespaces&rdquo;.</p>
-
-<h2>4) git diff <code>--</code>cached</h2>
-
-<p>Before commiting <em>always</em> check your code changes. Make sure that your commit includes only the changes you intended to commit. Let your debug code and test modifications not flow into the production code base. Before committing double-check your changes with:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>git diff --cached</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>5) Trailing whitespaces</h2>
-
-<p>Whitespace changes in the commit diffs decrease the readability of the commit diffs and make code review less fun. You can configure your editor to remove the trailing whitespaces for you on file save. Perhaps a better option though is to instruct Git to clean up the trailing white spaces automatically before comitting. You can use the commit hook <a href="http://stackoverflow.com/questions/591923/make-git-automatically-remove-trailing-whitespace-before-committing/3516525#3516525" title="Make git automatically remove trailing whitespace before committing">here</a> to do exactly that. Save the commit hook as file named <code>pre-commit</code>. Install the <code>pre-commit</code> script into your Git repository:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>cp pre-commit my_existing_repo/.git/hooks
-</span><span class='line'>chmod 755 my_existing_repo/.git/hooks/pre-commit</span></code></pre></td></tr></table></div></figure>
-
-
-<p>The pre-commit hook will run only before the commit in this particular Git repository. If you&rsquo;d like Git to install the pre-commit hook to every newly created/cloned repository you&rsquo;ll need to add the hook file into your template directory. First tell Git where is your template directory located by adding the following into your <code>~/.gitconfig</code> file:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>[init]
-</span><span class='line'>        templatedir = ~/.gittemplate</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Now you can create your Git template directory and copy the <code>pre-commit</code> hook file into it:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>mkdir -p ~/.gittemplate/hooks
-</span><span class='line'>cp pre-commit ~/.gittemplate/hooks
-</span><span class='line'>chmod 755 ~/.gittemplate/hooks/pre-commit</span></code></pre></td></tr></table></div></figure>
-
-
-<p>From now on whenever you create/clone a Git repository you should find the <code>pre-commit</code> hook file installed at <code>.git/hooks/pre-commit</code>. Git will clean up trailing whitespaces for you before you commit.</p>
-]]></content>
-  </entry>
+<span class="categories">
   
-</feed>
+    <a class='category' href='/blog/categories/cloud/'>cloud</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://alesnosek.com/blog/2015/04/26/using-cloud-init-outside-of-cloud/" data-via="" data-counturl="http://alesnosek.com/blog/2015/04/26/using-cloud-init-outside-of-cloud/" >Tweet</a>
+  
+  
+  <div class="g-plusone" data-size="medium"></div>
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2015/04/18/five-basic-tips-for-teamwork-with-git/" title="Previous Post: Five Basic Tips for Teamwork with Git">&laquo; Five Basic Tips for Teamwork with Git</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2015/04/26/using-cloud-init-outside-of-cloud/">Using Cloud-Init Outside of Cloud</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/04/18/five-basic-tips-for-teamwork-with-git/">Five Basic Tips for Teamwork with Git</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2015 - Ales Nosek -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'alesnosekcom';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://alesnosek.com/blog/2015/04/26/using-cloud-init-outside-of-cloud/';
+        var disqus_url = 'http://alesnosek.com/blog/2015/04/26/using-cloud-init-outside-of-cloud/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
