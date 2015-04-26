@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2015-04-26T13:48:36-07:00</updated>
+  <updated>2015-04-26T14:16:49-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -119,7 +119,7 @@
 
 <h2>Cloud-Init in action</h2>
 
-<p>On my Linux host I&rsquo;m running <a href="http://libvirt.org/" title="Libvirt - The virtualization API">libvirt</a> to ease the management of virtual machines. You can install it by running <code>sudo yum install libvirt</code>. There is a handy command-line utility <code>virsh</code> coming with libvirt in the extra package <code>libvirt-client</code>.</p>
+<p>On my Linux host I&rsquo;m running <a href="http://libvirt.org/" title="Libvirt - The virtualization API">libvirt</a> to ease the management of virtual machines. You can install it by running <code>sudo yum install libvirt</code>. There is a handy command-line utility <code>virsh</code> which comes  with libvirt in the extra package <code>libvirt-client</code>.</p>
 
 <p>Let&rsquo;s create a virtual machine with the config drive attached. As a virtual machine boot image I&rsquo;m using a CentOS-6 image from <a href="http://cloud.centos.org/centos/6/images/" title="CentOS-6 cloud images">cloud.centos.org</a> which comes with Cloud-Init built in. Make sure that your virtual machine boot image has Cloud-Init installed. Following is a virtual machine definition file for the CentoOS-6 virtual machine. You might need to change the location of the disk image files and save it as <code>CentOS-6.xml</code>:</p>
 
@@ -176,7 +176,7 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>Okay, everything ready, let&rsquo;s launch our Cloud-Init enabled CentOS-6 virtual machine:</p>
+<p>Okay, everything is ready, let&rsquo;s launch our Cloud-Init enabled CentOS-6 virtual machine:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
