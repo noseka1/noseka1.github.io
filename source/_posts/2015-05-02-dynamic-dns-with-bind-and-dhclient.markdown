@@ -1,12 +1,11 @@
 ---
 layout: post
 title: "Dynamic DNS with BIND and dhclient"
-date: 2015-04-28 07:21:43 -0700
+date: 2015-05-02 19:21:43 -0700
 comments: true
-categories: 
-published: false
+categories: devops
 ---
-In this blogpost we're going to configure the BIND server to accept dynamic updates. The client machines themselves will send the updates to the DNS server instead of letting DHCP server update the DNS. A great setup for situations where the DHCP server is not in your control.
+In this blogpost we're going to configure the BIND server to accept dynamic updates. Client machines themselves will send the updates to the DNS server instead of letting DHCP server update the DNS. A great setup for situations where the DHCP server is not in your control.
 
 <!-- more -->
 
@@ -39,7 +38,7 @@ host somehost.somedomain.com ns.somedomain.com
 {% endcodeblock %}
 You should see the IP address `192.168.100.200` in the command output. When on the DNS server you can dump the zone data into `/var/named/data/cache_dump.db` file for inspection:
 {% codeblock lang:sh %}
-rndc dumpdb -zones
+rndc dumpdb -all
 {% endcodeblock %}
 
 Updating DNS after IP acquisition
@@ -82,6 +81,6 @@ runcmd:
   - reason=BOUND /etc/dhcp/dhclient-eth0-up-hooks # DNS registration on first boot
 {% endcodeblock %}
 
-Upon the very first execution of the hook the machine's network setup is not yet complete. There's no `/etc/resolv.conf` file written yet and the default route is not configured. The condition `if host $NAMESERVER; then ...` skips the DNS update in this case. Later in the initialization process the `runcmd` part of the cloud-config script gets executed. At this time the network configuration is complete and so we execute the update hook manually. This is the first time that the virtual machine registers itself with DNS. Cloud-Init executes the `runcmd` section only on the very first boot. Subsequent boots won't execute the `runcmd` code.
+Upon the very first execution of the hook the machine's network setup is not complete yet. There's no `/etc/resolv.conf` file written yet and the default route is not configured. The condition `if host $NAMESERVER; then ...` skips the DNS update in this case. Later in the initialization process the `runcmd` part of the cloud-config script gets executed. At this time the network configuration is complete and so we execute the update hook manually. This is the first time that the virtual machine registers itself with DNS. Cloud-Init executes the `runcmd` section only on the very first boot. Subsequent boots won't execute the `runcmd` code.
 
 Note that we're parsing the `/var/lib/dhclient/dhclient-eth0.leases` file to obtain the acquired IP address and the lease time. The host name registration in the DNS is then set to be valid for the period equal to the IP lease time. Whenever the virtual machine renews its IP lease the DNS entry gets updated accordingly.
