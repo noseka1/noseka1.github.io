@@ -1,0 +1,374 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Dynamic DNS with BIND and dhclient - Ales Nosek - The Software Practitioner</title>
+  <meta name="author" content="Ales Nosek">
+
+  
+  <meta name="description" content="In this blogpost we&rsquo;re going to configure the BIND server to accept dynamic updates. Client machines themselves will send the updates to the &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://alesnosek.com/blog/2015/05/02/dynamic-dns-with-bind-and-dhclient/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Ales Nosek - The Software Practitioner" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-61965164-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <img src="/images/computers.png" align="right">
+  <h1><a href="/">Ales Nosek - The Software Practitioner</a></h1>
+  
+    <h2>Practicing to make software perfect.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="alesnosek.com">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Dynamic DNS with BIND and dhclient</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-05-02T19:21:43-07:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>2</span><span class='date-suffix'>nd</span>, <span class='date-year'>2015</span></span> <span class='time'>7:21 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>In this blogpost we&rsquo;re going to configure the BIND server to accept dynamic updates. Client machines themselves will send the updates to the DNS server instead of letting DHCP server update the DNS. A great setup for situations where the DHCP server is not in your control.</p>
+
+<!-- more -->
+
+
+<p>Examples in this article work on RHEL6 that comes with BIND 9. You&rsquo;ll need to have <code>bind</code> and <code>bind-utils</code> RPM packages installed. In the following, the BIND server with host name <code>ns.somedomain.com</code> is an authoritative DNS server for the fictive zone <code>somedomain.com</code>.</p>
+
+<h2>Dynamic DNS with BIND</h2>
+
+<p>In our example we&rsquo;re going to configure the BIND server to accept DNS updates for <code>somedomain.com</code> zone from any client. In production environment you&rsquo;d use encryption keys to secure the access to the DNS server. You can read more on the secure configuration in <a href="http://linux.yyz.us/nsupdate/" title="nsupdate: Painless Dynamic DNS">this</a> excellent article. To allow any client to update the <code>somedomain.com</code> zone add the <code>allow-update { 0/0; };</code> option into your <code>/etc/named.conf</code> file:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>zone "somedomain.com" in {
+</span><span class='line'>        type master;
+</span><span class='line'>        file "db.somedomain.com";
+</span><span class='line'>        allow-update { 0/0; };
+</span><span class='line'>};</span></code></pre></td></tr></table></div></figure>
+
+
+<p>After restarting the DNS server with <code>sudo /etc/init.d/named restart</code> we can test that the DNS updates are working. Let&rsquo;s ask the DNS server <code>ns.somedomain.com</code> to register a host <code>somehost.somedomain.com</code> with IP address <code>192.168.100.200</code>:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>nsupdate -d <span class="s">&lt;&lt; EOF</span>
+</span><span class='line'><span class="s">server ns.somedomain.com</span>
+</span><span class='line'><span class="s">update add somehost.somedomain.com 300 A 192.168.100.200</span>
+</span><span class='line'><span class="s">send</span>
+</span><span class='line'><span class="s">EOF</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>If everything worked fine you should see <code>status: NOERROR</code> in the reply from update query. The DNS server created a new record in its database pairing the <code>somehost.somedomain.com</code> host name with the IP address <code>192.168.100.200</code>. Let&rsquo;s check that the host name resolution works by issuing:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>host somehost.somedomain.com ns.somedomain.com
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see the IP address <code>192.168.100.200</code> in the command output. When on the DNS server you can dump the zone data into <code>/var/named/data/cache_dump.db</code> file for inspection:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>rndc dumpdb -all
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Updating DNS after IP acquisition</h2>
+
+<p>Our virtual machines obtain their IP addresses via DHCP. Whenever the virtual machine obtains a new IP address or renews the lease we&rsquo;d like it to update the DNS accordingly. This way the DNS is always kept up to date and we&rsquo;re able to access the virtual machine using its host name.</p>
+
+<p>The IP address acquisition is managed by the DHCP client <code>dhclient</code> running on the virtual machine. The <code>dhclient</code> can be extended by custom hooks. We are going to prepare a script that updates the DNS database whenever the virtual machine acquires an IP address. Our DNS update hook must be saved at <code>/etc/dhcp/dhclient-eth0-up-hooks</code>. The <code>/sbin/dhclient-script</code> shell script that comes with the <code>dhclient</code> package will execute the hook. Upon execution the hook is passed a <code>reason</code> variable describing the event.</p>
+
+<p>To install the update hook on the virtual machine let&rsquo;s make use of Cloud-Init tool that I talked about in the <a href="/blog/2015/04/26/using-cloud-init-outside-of-cloud/" title="Using Cloud-Init Outside of Cloud">previous blogpost</a>. The cloud-config script to be consumed by Cloud-Init looks as follows:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="c1">#cloud-config</span>
+</span><span class='line'><span class="l-Scalar-Plain">fqdn</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">somehost.somedomain.com</span>
+</span><span class='line'><span class="l-Scalar-Plain">write_files</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">path</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">/etc/dhcp/dhclient-eth0-up-hooks</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">permissions</span><span class="p-Indicator">:</span> <span class="s">&#39;0755&#39;</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">content</span><span class="p-Indicator">:</span> <span class="p-Indicator">|</span>
+</span><span class='line'>      <span class="no">#!/bin/bash</span>
+</span><span class='line'>      <span class="no">INTERFACE=eth0</span>
+</span><span class='line'>      <span class="no">LEASE_FILE=/var/lib/dhclient/dhclient-$INTERFACE.leases</span>
+</span><span class='line'>      <span class="no">LEASE_TIME=$(sed -n -e &#39;s/.*option dhcp-lease-time \([0-9]\+\).*/\1/p&#39; $LEASE_FILE | tail -1)</span>
+</span><span class='line'>      <span class="no">HOST_ADDR=$(sed -n -e &#39;s/.*fixed-address \([0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+\).*/\1/p&#39; $LEASE_FILE | tail -1)</span>
+</span><span class='line'>      <span class="no">HOST_NAME=$(hostname)</span>
+</span><span class='line'>      <span class="no">NAMESERVER=ns.somedomain.com</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="no">if host $NAMESERVER 1&gt;/dev/null 2&gt;&amp;1; then</span>
+</span><span class='line'>        <span class="no">case $reason in</span>
+</span><span class='line'>          <span class="no">BOUND|RENEW|REBIND|REBOOT)</span>
+</span><span class='line'>            <span class="no">nsupdate &lt;&lt; EOF</span>
+</span><span class='line'>              <span class="no">server $NAMESERVER</span>
+</span><span class='line'>              <span class="no">update delete $HOST_NAME A</span>
+</span><span class='line'>              <span class="no">update add $HOST_NAME $LEASE_TIME A $HOST_ADDR</span>
+</span><span class='line'>              <span class="no">send</span>
+</span><span class='line'>      <span class="no">EOF</span>
+</span><span class='line'>          <span class="no">;;</span>
+</span><span class='line'>        <span class="no">esac</span>
+</span><span class='line'>      <span class="no">fi</span>
+</span><span class='line'><span class="l-Scalar-Plain">runcmd</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">hostname somehost.somedomain.com</span> <span class="c1"># fix the hostname incorrectly set up by cloud-init</span>
+</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">reason=BOUND /etc/dhcp/dhclient-eth0-up-hooks</span> <span class="c1"># DNS registration on first boot</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Upon the very first execution of the hook the machine&rsquo;s network setup is not complete yet. There&rsquo;s no <code>/etc/resolv.conf</code> file written yet and the default route is not configured. The condition <code>if host $NAMESERVER; then ...</code> skips the DNS update in this case. Later in the initialization process the <code>runcmd</code> part of the cloud-config script gets executed. At this time the network configuration is complete and so we execute the update hook manually. This is the first time that the virtual machine registers itself with DNS. Cloud-Init executes the <code>runcmd</code> section only on the very first boot. Subsequent boots won&rsquo;t execute the <code>runcmd</code> code.</p>
+
+<p>Note that we&rsquo;re parsing the <code>/var/lib/dhclient/dhclient-eth0.leases</code> file to obtain the acquired IP address and the lease time. The host name registration in the DNS is then set to be valid for the period equal to the IP lease time. Whenever the virtual machine renews its IP lease the DNS entry gets updated accordingly.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Ales Nosek</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2015-05-02T19:21:43-07:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>2</span><span class='date-suffix'>nd</span>, <span class='date-year'>2015</span></span> <span class='time'>7:21 pm</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/devops/'>devops</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://alesnosek.com/blog/2015/05/02/dynamic-dns-with-bind-and-dhclient/" data-via="" data-counturl="http://alesnosek.com/blog/2015/05/02/dynamic-dns-with-bind-and-dhclient/" >Tweet</a>
+  
+  
+  <div class="g-plusone" data-size="medium"></div>
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2015/04/26/using-cloud-init-outside-of-cloud/" title="Previous Post: Using Cloud-Init Outside of Cloud">&laquo; Using Cloud-Init Outside of Cloud</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2015/05/02/dynamic-dns-with-bind-and-dhclient/">Dynamic DNS with BIND and dhclient</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/04/26/using-cloud-init-outside-of-cloud/">Using Cloud-Init Outside of Cloud</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/04/18/five-basic-tips-for-teamwork-with-git/">Five Basic Tips for Teamwork with Git</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2015 - Ales Nosek -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'alesnosekcom';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://alesnosek.com/blog/2015/05/02/dynamic-dns-with-bind-and-dhclient/';
+        var disqus_url = 'http://alesnosek.com/blog/2015/05/02/dynamic-dns-with-bind-and-dhclient/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

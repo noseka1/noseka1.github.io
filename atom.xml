@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2015-04-26T14:16:49-07:00</updated>
+  <updated>2015-05-02T19:48:48-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,138 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Dynamic DNS with BIND and dhclient]]></title>
+    <link href="http://alesnosek.com/blog/2015/05/02/dynamic-dns-with-bind-and-dhclient/"/>
+    <updated>2015-05-02T19:21:43-07:00</updated>
+    <id>http://alesnosek.com/blog/2015/05/02/dynamic-dns-with-bind-and-dhclient</id>
+    <content type="html"><![CDATA[<p>In this blogpost we&rsquo;re going to configure the BIND server to accept dynamic updates. Client machines themselves will send the updates to the DNS server instead of letting DHCP server update the DNS. A great setup for situations where the DHCP server is not in your control.</p>
+
+<!-- more -->
+
+
+<p>Examples in this article work on RHEL6 that comes with BIND 9. You&rsquo;ll need to have <code>bind</code> and <code>bind-utils</code> RPM packages installed. In the following, the BIND server with host name <code>ns.somedomain.com</code> is an authoritative DNS server for the fictive zone <code>somedomain.com</code>.</p>
+
+<h2>Dynamic DNS with BIND</h2>
+
+<p>In our example we&rsquo;re going to configure the BIND server to accept DNS updates for <code>somedomain.com</code> zone from any client. In production environment you&rsquo;d use encryption keys to secure the access to the DNS server. You can read more on the secure configuration in <a href="http://linux.yyz.us/nsupdate/" title="nsupdate: Painless Dynamic DNS">this</a> excellent article. To allow any client to update the <code>somedomain.com</code> zone add the <code>allow-update { 0/0; };</code> option into your <code>/etc/named.conf</code> file:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>zone "somedomain.com" in {
+</span><span class='line'>        type master;
+</span><span class='line'>        file "db.somedomain.com";
+</span><span class='line'>        allow-update { 0/0; };
+</span><span class='line'>};</span></code></pre></td></tr></table></div></figure>
+
+
+<p>After restarting the DNS server with <code>sudo /etc/init.d/named restart</code> we can test that the DNS updates are working. Let&rsquo;s ask the DNS server <code>ns.somedomain.com</code> to register a host <code>somehost.somedomain.com</code> with IP address <code>192.168.100.200</code>:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>nsupdate -d <span class="s">&lt;&lt; EOF</span>
+</span><span class='line'><span class="s">server ns.somedomain.com</span>
+</span><span class='line'><span class="s">update add somehost.somedomain.com 300 A 192.168.100.200</span>
+</span><span class='line'><span class="s">send</span>
+</span><span class='line'><span class="s">EOF</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>If everything worked fine you should see <code>status: NOERROR</code> in the reply from update query. The DNS server created a new record in its database pairing the <code>somehost.somedomain.com</code> host name with the IP address <code>192.168.100.200</code>. Let&rsquo;s check that the host name resolution works by issuing:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>host somehost.somedomain.com ns.somedomain.com
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see the IP address <code>192.168.100.200</code> in the command output. When on the DNS server you can dump the zone data into <code>/var/named/data/cache_dump.db</code> file for inspection:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>rndc dumpdb -all
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Updating DNS after IP acquisition</h2>
+
+<p>Our virtual machines obtain their IP addresses via DHCP. Whenever the virtual machine obtains a new IP address or renews the lease we&rsquo;d like it to update the DNS accordingly. This way the DNS is always kept up to date and we&rsquo;re able to access the virtual machine using its host name.</p>
+
+<p>The IP address acquisition is managed by the DHCP client <code>dhclient</code> running on the virtual machine. The <code>dhclient</code> can be extended by custom hooks. We are going to prepare a script that updates the DNS database whenever the virtual machine acquires an IP address. Our DNS update hook must be saved at <code>/etc/dhcp/dhclient-eth0-up-hooks</code>. The <code>/sbin/dhclient-script</code> shell script that comes with the <code>dhclient</code> package will execute the hook. Upon execution the hook is passed a <code>reason</code> variable describing the event.</p>
+
+<p>To install the update hook on the virtual machine let&rsquo;s make use of Cloud-Init tool that I talked about in the <a href="http://alesnosek.com/blog/2015/04/26/using-cloud-init-outside-of-cloud/" title="Using Cloud-Init Outside of Cloud">previous blogpost</a>. The cloud-config script to be consumed by Cloud-Init looks as follows:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="c1">#cloud-config</span>
+</span><span class='line'><span class="l-Scalar-Plain">fqdn</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">somehost.somedomain.com</span>
+</span><span class='line'><span class="l-Scalar-Plain">write_files</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">path</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">/etc/dhcp/dhclient-eth0-up-hooks</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">permissions</span><span class="p-Indicator">:</span> <span class="s">&#39;0755&#39;</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">content</span><span class="p-Indicator">:</span> <span class="p-Indicator">|</span>
+</span><span class='line'>      <span class="no">#!/bin/bash</span>
+</span><span class='line'>      <span class="no">INTERFACE=eth0</span>
+</span><span class='line'>      <span class="no">LEASE_FILE=/var/lib/dhclient/dhclient-$INTERFACE.leases</span>
+</span><span class='line'>      <span class="no">LEASE_TIME=$(sed -n -e &#39;s/.*option dhcp-lease-time \([0-9]\+\).*/\1/p&#39; $LEASE_FILE | tail -1)</span>
+</span><span class='line'>      <span class="no">HOST_ADDR=$(sed -n -e &#39;s/.*fixed-address \([0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+\).*/\1/p&#39; $LEASE_FILE | tail -1)</span>
+</span><span class='line'>      <span class="no">HOST_NAME=$(hostname)</span>
+</span><span class='line'>      <span class="no">NAMESERVER=ns.somedomain.com</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="no">if host $NAMESERVER 1&gt;/dev/null 2&gt;&amp;1; then</span>
+</span><span class='line'>        <span class="no">case $reason in</span>
+</span><span class='line'>          <span class="no">BOUND|RENEW|REBIND|REBOOT)</span>
+</span><span class='line'>            <span class="no">nsupdate &lt;&lt; EOF</span>
+</span><span class='line'>              <span class="no">server $NAMESERVER</span>
+</span><span class='line'>              <span class="no">update delete $HOST_NAME A</span>
+</span><span class='line'>              <span class="no">update add $HOST_NAME $LEASE_TIME A $HOST_ADDR</span>
+</span><span class='line'>              <span class="no">send</span>
+</span><span class='line'>      <span class="no">EOF</span>
+</span><span class='line'>          <span class="no">;;</span>
+</span><span class='line'>        <span class="no">esac</span>
+</span><span class='line'>      <span class="no">fi</span>
+</span><span class='line'><span class="l-Scalar-Plain">runcmd</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">hostname somehost.somedomain.com</span> <span class="c1"># fix the hostname incorrectly set up by cloud-init</span>
+</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">reason=BOUND /etc/dhcp/dhclient-eth0-up-hooks</span> <span class="c1"># DNS registration on first boot</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Upon the very first execution of the hook the machine&rsquo;s network setup is not complete yet. There&rsquo;s no <code>/etc/resolv.conf</code> file written yet and the default route is not configured. The condition <code>if host $NAMESERVER; then ...</code> skips the DNS update in this case. Later in the initialization process the <code>runcmd</code> part of the cloud-config script gets executed. At this time the network configuration is complete and so we execute the update hook manually. This is the first time that the virtual machine registers itself with DNS. Cloud-Init executes the <code>runcmd</code> section only on the very first boot. Subsequent boots won&rsquo;t execute the <code>runcmd</code> code.</p>
+
+<p>Note that we&rsquo;re parsing the <code>/var/lib/dhclient/dhclient-eth0.leases</code> file to obtain the acquired IP address and the lease time. The host name registration in the DNS is then set to be valid for the period equal to the IP lease time. Whenever the virtual machine renews its IP lease the DNS entry gets updated accordingly.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Using Cloud-Init Outside of Cloud]]></title>
