@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2015-05-02T19:48:48-07:00</updated>
+  <updated>2015-05-10T08:29:24-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -116,10 +116,10 @@
 </span><span class='line'>      <span class="no">#!/bin/bash</span>
 </span><span class='line'>      <span class="no">INTERFACE=eth0</span>
 </span><span class='line'>      <span class="no">LEASE_FILE=/var/lib/dhclient/dhclient-$INTERFACE.leases</span>
-</span><span class='line'>      <span class="no">LEASE_TIME=$(sed -n -e &#39;s/.*option dhcp-lease-time \([0-9]\+\).*/\1/p&#39; $LEASE_FILE | tail -1)</span>
 </span><span class='line'>      <span class="no">HOST_ADDR=$(sed -n -e &#39;s/.*fixed-address \([0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+\).*/\1/p&#39; $LEASE_FILE | tail -1)</span>
 </span><span class='line'>      <span class="no">HOST_NAME=$(hostname)</span>
 </span><span class='line'>      <span class="no">NAMESERVER=ns.somedomain.com</span>
+</span><span class='line'>      <span class="no">TTL=300</span>
 </span><span class='line'>
 </span><span class='line'>      <span class="no">if host $NAMESERVER 1&gt;/dev/null 2&gt;&amp;1; then</span>
 </span><span class='line'>        <span class="no">case $reason in</span>
@@ -127,7 +127,7 @@
 </span><span class='line'>            <span class="no">nsupdate &lt;&lt; EOF</span>
 </span><span class='line'>              <span class="no">server $NAMESERVER</span>
 </span><span class='line'>              <span class="no">update delete $HOST_NAME A</span>
-</span><span class='line'>              <span class="no">update add $HOST_NAME $LEASE_TIME A $HOST_ADDR</span>
+</span><span class='line'>              <span class="no">update add $HOST_NAME $TTL A $HOST_ADDR</span>
 </span><span class='line'>              <span class="no">send</span>
 </span><span class='line'>      <span class="no">EOF</span>
 </span><span class='line'>          <span class="no">;;</span>
@@ -141,7 +141,7 @@
 
 <p>Upon the very first execution of the hook the machine&rsquo;s network setup is not complete yet. There&rsquo;s no <code>/etc/resolv.conf</code> file written yet and the default route is not configured. The condition <code>if host $NAMESERVER; then ...</code> skips the DNS update in this case. Later in the initialization process the <code>runcmd</code> part of the cloud-config script gets executed. At this time the network configuration is complete and so we execute the update hook manually. This is the first time that the virtual machine registers itself with DNS. Cloud-Init executes the <code>runcmd</code> section only on the very first boot. Subsequent boots won&rsquo;t execute the <code>runcmd</code> code.</p>
 
-<p>Note that we&rsquo;re parsing the <code>/var/lib/dhclient/dhclient-eth0.leases</code> file to obtain the acquired IP address and the lease time. The host name registration in the DNS is then set to be valid for the period equal to the IP lease time. Whenever the virtual machine renews its IP lease the DNS entry gets updated accordingly.</p>
+<p>Note that we&rsquo;re parsing the <code>/var/lib/dhclient/dhclient-eth0.leases</code> file to obtain the acquired IP address. Should the virtual machine obtain different IP address in the future the DNS entry gets updated accordingly.</p>
 ]]></content>
   </entry>
   
