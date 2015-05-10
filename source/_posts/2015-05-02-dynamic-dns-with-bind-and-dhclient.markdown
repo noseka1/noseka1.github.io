@@ -59,10 +59,10 @@ write_files:
       #!/bin/bash
       INTERFACE=eth0
       LEASE_FILE=/var/lib/dhclient/dhclient-$INTERFACE.leases
-      LEASE_TIME=$(sed -n -e 's/.*option dhcp-lease-time \([0-9]\+\).*/\1/p' $LEASE_FILE | tail -1)
       HOST_ADDR=$(sed -n -e 's/.*fixed-address \([0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+\).*/\1/p' $LEASE_FILE | tail -1)
       HOST_NAME=$(hostname)
       NAMESERVER=ns.somedomain.com
+      TTL=300
 
       if host $NAMESERVER 1>/dev/null 2>&1; then
         case $reason in
@@ -70,7 +70,7 @@ write_files:
             nsupdate << EOF
               server $NAMESERVER
               update delete $HOST_NAME A
-              update add $HOST_NAME $LEASE_TIME A $HOST_ADDR
+              update add $HOST_NAME $TTL A $HOST_ADDR
               send
       EOF
           ;;
@@ -83,4 +83,4 @@ runcmd:
 
 Upon the very first execution of the hook the machine's network setup is not complete yet. There's no `/etc/resolv.conf` file written yet and the default route is not configured. The condition `if host $NAMESERVER; then ...` skips the DNS update in this case. Later in the initialization process the `runcmd` part of the cloud-config script gets executed. At this time the network configuration is complete and so we execute the update hook manually. This is the first time that the virtual machine registers itself with DNS. Cloud-Init executes the `runcmd` section only on the very first boot. Subsequent boots won't execute the `runcmd` code.
 
-Note that we're parsing the `/var/lib/dhclient/dhclient-eth0.leases` file to obtain the acquired IP address and the lease time. The host name registration in the DNS is then set to be valid for the period equal to the IP lease time. Whenever the virtual machine renews its IP lease the DNS entry gets updated accordingly.
+Note that we're parsing the `/var/lib/dhclient/dhclient-eth0.leases` file to obtain the acquired IP address. Should the virtual machine obtain different IP address in the future the DNS entry gets updated accordingly.
