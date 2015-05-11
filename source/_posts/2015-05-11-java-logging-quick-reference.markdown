@@ -216,6 +216,8 @@ ERROR StatusLogger No log4j2 configuration file found. Using default configurati
 </Configuration>
 {% endcodeblock %}
 
+Run the application with:
+
 {%codeblock lang:sh %}
 java -cp .:slf4j-api-1.7.12.jar:log4j-core-2.2.jar:log4j-api-2.2.jar:log4j-slf4j-impl-2.2.jar -Dlog4j.configurationFile=/tmp/log4j2.stdout.xml LogApp
 {% endcodeblock %}
