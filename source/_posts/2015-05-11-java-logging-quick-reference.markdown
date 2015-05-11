@@ -52,7 +52,7 @@ SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further detail
 SLF4J Simple logger
 -------------------
 
-The SLF4J comes with a Simple logger implemenation. Simple logger provides only basic functionality. It read its configuration from a `simplelogger.properties` file that must be included on the classpath. There's no way to specify different location of the configuration file.
+The SLF4J comes with a Simple logger implemenation. Simple logger provides only basic functionality. It read its configuration from a `simplelogger.properties` file that must be included on the classpath. There's no way to specify a different location of the configuration file.
 
 {% codeblock lang:properties simplelogger.properties - Output to console %}
 org.slf4j.simpleLogger.logFile=System.out
