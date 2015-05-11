@@ -4,7 +4,7 @@
   <title><![CDATA[Category: cloud | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/cloud/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2015-05-10T08:29:24-07:00</updated>
+  <updated>2015-05-11T00:17:34-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -178,7 +178,7 @@
 </span></code></pre></td></tr></table></div></figure>
 If everything went fine you can watch the console output of the booting virtual machine at <code>/tmp/CentOS-6.log</code>. Cloud-Init will print out the IP address obtained by the virtual machine (192.168.122.165 in my case) where we can login as root using the generated private key:
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>ssh -i testkey &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#109;&amp;#x61;&amp;#105;&amp;#x6c;&amp;#116;&amp;#x6f;&amp;#58;&amp;#x72;&amp;#111;&amp;#111;&amp;#x74;&amp;#x40;&amp;#49;&amp;#x39;&amp;#x32;&amp;#x2e;&amp;#49;&amp;#x36;&amp;#56;&amp;#x2e;&amp;#x31;&amp;#50;&amp;#50;&amp;#46;&amp;#x31;&amp;#54;&amp;#x35;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#x72;&amp;#x6f;&amp;#x6f;&amp;#116;&amp;#64;&amp;#49;&amp;#57;&amp;#x32;&amp;#x2e;&amp;#x31;&amp;#x36;&amp;#56;&amp;#46;&amp;#49;&amp;#x32;&amp;#x32;&amp;#46;&amp;#49;&amp;#54;&amp;#x35;&lt;/a&gt;</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>ssh -i testkey &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#x6d;&amp;#97;&amp;#x69;&amp;#108;&amp;#116;&amp;#x6f;&amp;#58;&amp;#114;&amp;#x6f;&amp;#111;&amp;#x74;&amp;#x40;&amp;#x31;&amp;#x39;&amp;#x32;&amp;#46;&amp;#x31;&amp;#54;&amp;#x38;&amp;#x2e;&amp;#x31;&amp;#50;&amp;#x32;&amp;#x2e;&amp;#x31;&amp;#x36;&amp;#x35;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#x72;&amp;#x6f;&amp;#111;&amp;#116;&amp;#64;&amp;#x31;&amp;#x39;&amp;#50;&amp;#x2e;&amp;#49;&amp;#54;&amp;#56;&amp;#46;&amp;#x31;&amp;#x32;&amp;#x32;&amp;#46;&amp;#49;&amp;#54;&amp;#53;&lt;/a&gt;</span>
 </span></code></pre></td></tr></table></div></figure>
 Congratulations, your virtual machine has just been configured by Cloud-Init the same way as any other virtual machine running in the cloud environment.</p>
 ]]></content>
