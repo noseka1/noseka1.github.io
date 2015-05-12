@@ -204,7 +204,7 @@ ERROR StatusLogger No log4j2 configuration file found. Using default configurati
 {% codeblock lang:sh log4j2.file.xml - Output to file %}
 <Configuration>
     <Appenders>
-        <File name="file" fileName="/tmp/logger.out" immediateFlush="false" append="true">
+        <File name="file" fileName="/tmp/logger.out" append="true">
             <PatternLayout pattern="%d{HH:mm:ss} [%t] %-5p %c{1}:%L - %m%n"/>
         </File>
     </Appenders>
