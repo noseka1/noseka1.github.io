@@ -32,7 +32,7 @@ public class LogApp {
 You can compile the LogApp code with:
 
 {% codeblock lang:sh %}
-javac -cp slf4j-api-1.7.12.jar LogApp.java`
+javac -cp slf4j-api-1.7.12.jar LogApp.java
 {% endcodeblock %}
 
 And run the LogApp with:
@@ -41,7 +41,7 @@ And run the LogApp with:
 java -cp .:slf4j-api-1.7.12.jar LogApp
 {% endcodeblock %}
 
-The output shows that SLF4J is missing a logger implementation. In the following we'll demonstrate how to plug-in different logging backends. The principle is always the same: include the logging framework implementation jars on the classpath, include the respective SLF4J adaptor jar on the classpath and provide a configuration file specific to the logging framework.
+The output shows that SLF4J is missing a logger implementation. In the following we'll demonstrate how to plug in different logging backends. The principle is always the same: include the logging framework implementation jars on the classpath, include the respective SLF4J adaptor jar on the classpath and provide a configuration file specific to the logging framework.
 {% codeblock %}
 SLF4J: Failed to load class "org.slf4j.impl.StaticLoggerBinder".
 SLF4J: Defaulting to no-operation (NOP) logger implementation
