@@ -4,7 +4,7 @@
   <title><![CDATA[Category: development | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/development/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2015-05-11T00:28:51-07:00</updated>
+  <updated>2015-05-11T21:56:45-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -64,7 +64,7 @@
 <p>You can compile the LogApp code with:</p>
 
 <p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>javac -cp slf4j-api-1.7.12.jar LogApp.java<span class="sb">`</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>javac -cp slf4j-api-1.7.12.jar LogApp.java
 </span></code></pre></td></tr></table></div></figure></p>
 
 <p>And run the LogApp with:</p>
@@ -73,7 +73,7 @@
 </pre></td><td class='code'><pre><code class='sh'><span class='line'>java -cp .:slf4j-api-1.7.12.jar LogApp
 </span></code></pre></td></tr></table></div></figure></p>
 
-<p>The output shows that SLF4J is missing a logger implementation. In the following we&rsquo;ll demonstrate how to plug-in different logging backends. The principle is always the same: include the logging framework implementation jars on the classpath, include the respective SLF4J adaptor jar on the classpath and provide a configuration file specific to the logging framework.
+<p>The output shows that SLF4J is missing a logger implementation. In the following we&rsquo;ll demonstrate how to plug in different logging backends. The principle is always the same: include the logging framework implementation jars on the classpath, include the respective SLF4J adaptor jar on the classpath and provide a configuration file specific to the logging framework.
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
@@ -320,7 +320,7 @@
 <span class='line-number'>12</span>
 </pre></td><td class='code'><pre><code class='sh'><span class='line'>&lt;Configuration&gt;
 </span><span class='line'>    &lt;Appenders&gt;
-</span><span class='line'>        &lt;File <span class="nv">name</span><span class="o">=</span><span class="s2">&quot;file&quot;</span> <span class="nv">fileName</span><span class="o">=</span><span class="s2">&quot;/tmp/logger.out&quot;</span> <span class="nv">immediateFlush</span><span class="o">=</span><span class="s2">&quot;false&quot;</span> <span class="nv">append</span><span class="o">=</span><span class="s2">&quot;true&quot;</span>&gt;
+</span><span class='line'>        &lt;File <span class="nv">name</span><span class="o">=</span><span class="s2">&quot;file&quot;</span> <span class="nv">fileName</span><span class="o">=</span><span class="s2">&quot;/tmp/logger.out&quot;</span> <span class="nv">append</span><span class="o">=</span><span class="s2">&quot;true&quot;</span>&gt;
 </span><span class='line'>            &lt;PatternLayout <span class="nv">pattern</span><span class="o">=</span><span class="s2">&quot;%d{HH:mm:ss} [%t] %-5p %c{1}:%L - %m%n&quot;</span>/&gt;
 </span><span class='line'>        &lt;/File&gt;
 </span><span class='line'>    &lt;/Appenders&gt;
@@ -356,7 +356,7 @@
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 </pre></td><td class='code'><pre><code class='sh'><span class='line'>git config <span class="p">&amp;</span>ndash<span class="p">;</span>global user.name <span class="p">&amp;</span>ldquo<span class="p">;</span>Ales Nosek<span class="p">&amp;</span>rdquo<span class="p">;</span>
-</span><span class='line'>git config <span class="p">&amp;</span>ndash<span class="p">;</span>global user.email <span class="p">&amp;</span>ldquo<span class="p">;</span>&lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#109;&amp;#97;&amp;#x69;&amp;#x6c;&amp;#116;&amp;#x6f;&amp;#x3a;&amp;#x61;&amp;#110;&amp;#111;&amp;#115;&amp;#101;&amp;#107;&amp;#64;&amp;#x76;&amp;#x65;&amp;#114;&amp;#105;&amp;#x6d;&amp;#x61;&amp;#x74;&amp;#114;&amp;#105;&amp;#x78;&amp;#46;&amp;#x63;&amp;#111;&amp;#x6d;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#97;&amp;#110;&amp;#x6f;&amp;#115;&amp;#101;&amp;#x6b;&amp;#x40;&amp;#x76;&amp;#101;&amp;#x72;&amp;#105;&amp;#109;&amp;#x61;&amp;#116;&amp;#x72;&amp;#105;&amp;#120;&amp;#46;&amp;#x63;&amp;#111;&amp;#109;&lt;/a&gt;&amp;rdquo;</span>
+</span><span class='line'>git config <span class="p">&amp;</span>ndash<span class="p">;</span>global user.email <span class="p">&amp;</span>ldquo<span class="p">;</span>&lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#109;&amp;#97;&amp;#x69;&amp;#108;&amp;#116;&amp;#111;&amp;#58;&amp;#x61;&amp;#x6e;&amp;#111;&amp;#115;&amp;#x65;&amp;#107;&amp;#x40;&amp;#x76;&amp;#x65;&amp;#114;&amp;#x69;&amp;#x6d;&amp;#97;&amp;#116;&amp;#x72;&amp;#105;&amp;#120;&amp;#46;&amp;#x63;&amp;#x6f;&amp;#109;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#x61;&amp;#110;&amp;#111;&amp;#115;&amp;#101;&amp;#x6b;&amp;#64;&amp;#118;&amp;#x65;&amp;#114;&amp;#x69;&amp;#109;&amp;#97;&amp;#x74;&amp;#114;&amp;#105;&amp;#x78;&amp;#x2e;&amp;#x63;&amp;#x6f;&amp;#109;&lt;/a&gt;&amp;rdquo;</span>
 </span></code></pre></td></tr></table></div></figure></p>
 
 <h2>2) Commit message formatting</h2>

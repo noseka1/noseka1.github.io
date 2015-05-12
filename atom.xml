@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2015-05-11T00:28:51-07:00</updated>
+  <updated>2015-05-11T21:56:45-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -62,7 +62,7 @@
 <p>You can compile the LogApp code with:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>javac -cp slf4j-api-1.7.12.jar LogApp.java<span class="sb">`</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>javac -cp slf4j-api-1.7.12.jar LogApp.java
 </span></code></pre></td></tr></table></div></figure>
 
 
@@ -73,7 +73,7 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>The output shows that SLF4J is missing a logger implementation. In the following we&rsquo;ll demonstrate how to plug-in different logging backends. The principle is always the same: include the logging framework implementation jars on the classpath, include the respective SLF4J adaptor jar on the classpath and provide a configuration file specific to the logging framework.</p>
+<p>The output shows that SLF4J is missing a logger implementation. In the following we&rsquo;ll demonstrate how to plug in different logging backends. The principle is always the same: include the logging framework implementation jars on the classpath, include the respective SLF4J adaptor jar on the classpath and provide a configuration file specific to the logging framework.</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -342,7 +342,7 @@
 <span class='line-number'>12</span>
 </pre></td><td class='code'><pre><code class='sh'><span class='line'>&lt;Configuration&gt;
 </span><span class='line'>    &lt;Appenders&gt;
-</span><span class='line'>        &lt;File <span class="nv">name</span><span class="o">=</span><span class="s2">&quot;file&quot;</span> <span class="nv">fileName</span><span class="o">=</span><span class="s2">&quot;/tmp/logger.out&quot;</span> <span class="nv">immediateFlush</span><span class="o">=</span><span class="s2">&quot;false&quot;</span> <span class="nv">append</span><span class="o">=</span><span class="s2">&quot;true&quot;</span>&gt;
+</span><span class='line'>        &lt;File <span class="nv">name</span><span class="o">=</span><span class="s2">&quot;file&quot;</span> <span class="nv">fileName</span><span class="o">=</span><span class="s2">&quot;/tmp/logger.out&quot;</span> <span class="nv">append</span><span class="o">=</span><span class="s2">&quot;true&quot;</span>&gt;
 </span><span class='line'>            &lt;PatternLayout <span class="nv">pattern</span><span class="o">=</span><span class="s2">&quot;%d{HH:mm:ss} [%t] %-5p %c{1}:%L - %m%n&quot;</span>/&gt;
 </span><span class='line'>        &lt;/File&gt;
 </span><span class='line'>    &lt;/Appenders&gt;
