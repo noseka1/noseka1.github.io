@@ -4,7 +4,7 @@
   <title><![CDATA[Category: java | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/java/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2015-05-11T21:56:45-07:00</updated>
+  <updated>2015-05-17T19:09:44-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -318,18 +318,18 @@
 <span class='line-number'>10</span>
 <span class='line-number'>11</span>
 <span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>&lt;Configuration&gt;
-</span><span class='line'>    &lt;Appenders&gt;
-</span><span class='line'>        &lt;File <span class="nv">name</span><span class="o">=</span><span class="s2">&quot;file&quot;</span> <span class="nv">fileName</span><span class="o">=</span><span class="s2">&quot;/tmp/logger.out&quot;</span> <span class="nv">append</span><span class="o">=</span><span class="s2">&quot;true&quot;</span>&gt;
-</span><span class='line'>            &lt;PatternLayout <span class="nv">pattern</span><span class="o">=</span><span class="s2">&quot;%d{HH:mm:ss} [%t] %-5p %c{1}:%L - %m%n&quot;</span>/&gt;
-</span><span class='line'>        &lt;/File&gt;
-</span><span class='line'>    &lt;/Appenders&gt;
-</span><span class='line'>    &lt;Loggers&gt;
-</span><span class='line'>        &lt;Root <span class="nv">level</span><span class="o">=</span><span class="s2">&quot;debug&quot;</span>&gt;
-</span><span class='line'>            &lt;AppenderRef <span class="nv">ref</span><span class="o">=</span><span class="s2">&quot;file&quot;</span> /&gt;
-</span><span class='line'>        &lt;/Root&gt;
-</span><span class='line'>    &lt;/Loggers&gt;
-</span><span class='line'>&lt;/Configuration&gt;
+</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;Configuration&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;Appenders&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;File</span> <span class="na">name=</span><span class="s">&quot;file&quot;</span> <span class="na">fileName=</span><span class="s">&quot;/tmp/logger.out&quot;</span> <span class="na">append=</span><span class="s">&quot;true&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>            <span class="nt">&lt;PatternLayout</span> <span class="na">pattern=</span><span class="s">&quot;%d{HH:mm:ss} [%t] %-5p %c{1}:%L - %m%n&quot;</span><span class="nt">/&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;/File&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;/Appenders&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;Loggers&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;Root</span> <span class="na">level=</span><span class="s">&quot;debug&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>            <span class="nt">&lt;AppenderRef</span> <span class="na">ref=</span><span class="s">&quot;file&quot;</span> <span class="nt">/&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;/Root&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;/Loggers&gt;</span>
+</span><span class='line'><span class="nt">&lt;/Configuration&gt;</span>
 </span></code></pre></td></tr></table></div></figure></p>
 
 <p>Run the application with:</p>
