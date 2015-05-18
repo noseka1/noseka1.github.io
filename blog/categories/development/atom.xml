@@ -4,7 +4,7 @@
   <title><![CDATA[Category: development | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/development/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2015-05-17T19:09:44-07:00</updated>
+  <updated>2015-05-18T01:14:27-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,398 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Five Basic Tips for Logging in Java]]></title>
+    <link href="http://alesnosek.com/blog/2015/05/18/five-basic-tips-for-logging-in-java/"/>
+    <updated>2015-05-18T01:11:47-07:00</updated>
+    <id>http://alesnosek.com/blog/2015/05/18/five-basic-tips-for-logging-in-java</id>
+    <content type="html"><![CDATA[<p>Where do you look when your server application doesn&rsquo;t work as expected? Application logs can provide invaluable information when the systems in production misbehave. That&rsquo;s why a great software practitioner desings the application logs carefully. Let&rsquo;s review couple of basic tips for great logging in Java.</p>
+
+<!-- more -->
+
+
+<h2>1) Use SLF4J logging facade</h2>
+
+<p>There are different Java logging frameworks out there: java.util.logging, Log4j, Log4j2 and Logback to name the most popular ones. <a href="http://www.slf4j.org/" title="Simple Logging Facade for Java (SLF4J)">SLF4J</a> is a thin facade that can talk to all of these logging frameworks. You can write your code using the SLF4J API and plugin-in the desired logging framework at deployment time. Instead of tying yourself to Log4j framework like this code example does:</p>
+
+<p><figure class='code'><figcaption><span>Log4jApp.java </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">import</span> <span class="nn">org.apache.log4j.Logger</span><span class="o">;&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="kd">public</span> <span class="kd">class</span> <span class="nc">Log4jApp</span> <span class="o">{&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">Logger</span> <span class="n">log</span> <span class="o">=</span> <span class="n">Logger</span><span class="o">.</span><span class="na">getLogger</span><span class="o">(</span><span class="n">Log4jApp</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="s">&quot;Application using Log4j directly&quot;</span><span class="o">);</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;}</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Write your application using the SLF4J API:</p>
+
+<p><figure class='code'><figcaption><span>Slf4jApp.java </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">import</span> <span class="nn">org.slf4j.Logger</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">org.slf4j.LoggerFactory</span><span class="o">;&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="kd">public</span> <span class="kd">class</span> <span class="nc">Slf4jApp</span> <span class="o">{&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">Logger</span> <span class="n">log</span> <span class="o">=</span> <span class="n">LoggerFactory</span><span class="o">.</span><span class="na">getLogger</span><span class="o">(</span><span class="n">LogApp</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="s">&quot;Application using SLF4J facade&quot;</span><span class="o">);</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;}</span>
+</span></code></pre></td></tr></table></div></figure>
+In the second example you can see no <code>org.apache.log4j</code> package dependencies. At deployment time you can indeed plug-in Log4j framework as a logging backend but you can also opt for some of the other logging alternatives. You can refer to my <a href="/blog/2015/05/11/java-logging-quick-reference/" title="Java Logging Quick Reference">previous article</a> on how to configure SLF4J with different logging frameworks.</p>
+
+<p>If you&rsquo;re writing a library and need to do logging you should definitely consider using SLF4J. Having your library depend on a particular logging framework will not make your users happy if they prefer to deploy a different logging framework. Even when writing a stand-alone application you might come to the point when you need to break it up into libraries when it gets bigger. Save your time and use SLF4J up front.</p>
+
+<h2>2) Keep the logging performance in mind</h2>
+
+<p>You can improve the performance of your logging code by embracing the following programming idioms.</p>
+
+<p>Instead of concatenating strings to form the logging message let the logging framework do it for you. In the following example assume that the log level was set to <code>info</code> therefore debug messages won&rsquo;t be logged at all. The code at line 5 is concatenating five string objects in order to create one temporary string object which is not used anyway. You should instead follow the example at line 8. The formatting of the log message is done by the logging framework which is optimized to do the formatting only if the resulting message will actually be logged. Besides that the code at line 8 is more readable than the variant at line 5.
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">String</span> <span class="n">foo</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="o">;</span><span class="n">foo</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="o">;;</span>
+</span><span class='line'><span class="n">String</span> <span class="n">bar</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="o">;</span><span class="n">bar</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="o">;;&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="c1">// don&amp;rsquo;t do this!</span>
+</span><span class='line'><span class="n">log</span><span class="o">.</span><span class="na">debug</span><span class="o">(&amp;</span><span class="n">ldquo</span><span class="o">;</span><span class="n">Value</span> <span class="n">of</span> <span class="n">foo</span> <span class="n">is</span> <span class="o">&amp;</span><span class="n">rdquo</span><span class="o">;</span> <span class="o">+</span> <span class="n">foo</span> <span class="o">+</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="o">;.</span> <span class="n">Value</span> <span class="n">of</span> <span class="n">bar</span> <span class="n">is</span> <span class="o">&amp;</span><span class="n">rdquo</span><span class="o">;</span> <span class="o">+</span> <span class="n">bar</span> <span class="o">+</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="o">;.&amp;</span><span class="n">rdquo</span><span class="o">;);&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="c1">// do this instead</span>
+</span><span class='line'><span class="n">log</span><span class="o">.</span><span class="na">debug</span><span class="o">(&amp;</span><span class="n">ldquo</span><span class="o">;</span><span class="n">Value</span> <span class="n">of</span> <span class="n">foo</span> <span class="n">is</span> <span class="o">{}.</span> <span class="n">Value</span> <span class="n">of</span> <span class="n">bar</span> <span class="n">is</span> <span class="o">{}.&amp;</span><span class="n">rdquo</span><span class="o">;,</span> <span class="n">foo</span><span class="o">,</span> <span class="n">bar</span><span class="o">);</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>If it is expensive to obtain the data to be logged make sure that the log level is high enough before you go to retrieve the data. The example below fetches the debug data from the database only if the current log level is <code>debug</code>:
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="k">if</span> <span class="o">(</span><span class="n">log</span><span class="o">.</span><span class="na">isDebugEnabled</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">String</span> <span class="n">data</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="c1">// ...</span>
+</span><span class='line'><span class="c1">// fetch the data from the database</span>
+</span><span class='line'><span class="c1">// ...</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">log</span><span class="o">.</span><span class="na">debug</span><span class="o">(</span><span class="s">&quot;Data from the database: &quot;</span> <span class="o">+</span> <span class="n">data</span><span class="o">);</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;}</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<h2>3) Log Java exceptions</h2>
+
+<p>Even if you&rsquo;d like to ignore Java exceptions at some places do at least log it before you ignore it. Logging frameworks can log the stack trace of the Java exception nicely. The code in the following example catches and logs a <code>NullPointerException</code>:
+<figure class='code'><figcaption><span>LogException.java </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">import</span> <span class="nn">org.slf4j.Logger</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">org.slf4j.LoggerFactory</span><span class="o">;&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="kd">public</span> <span class="kd">class</span> <span class="nc">LogException</span> <span class="o">{&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">Logger</span> <span class="n">log</span> <span class="o">=</span> <span class="n">LoggerFactory</span><span class="o">.</span><span class="na">getLogger</span><span class="o">(</span><span class="n">LogException</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="kd">private</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">exceptionalMethod</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>    <span class="k">throw</span> <span class="k">new</span> <span class="nf">NullPointerException</span><span class="o">(</span><span class="s">&quot;My exception to be logged&quot;</span><span class="o">);</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'><span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">exceptionalMethod</span><span class="o">();</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>    <span class="k">catch</span> <span class="o">(</span><span class="n">Exception</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">log</span><span class="o">.</span><span class="na">error</span><span class="o">(</span><span class="s">&quot;Something went wrong&quot;</span><span class="o">,</span> <span class="n">e</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+This produces the following output in your logs:
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>22:16:58.677 [main] ERROR LogException - Something went wrong
+</span><span class='line'>java.lang.NullPointerException: My exception to be logged
+</span><span class='line'>    at LogException.exceptionalMethod(LogException.java:9) ~[bin/:na]
+</span><span class='line'>    at LogException.main(LogException.java:13) ~[bin/:na]</span></code></pre></td></tr></table></div></figure></p>
+
+<h2>4) Mark and filter your log messages</h2>
+
+<p>Java logging frameworks allow you to filter log messages based on the logger name and the message log level. Logback and Log4j2 frameworks come with an additional filtering facility: Markers. You can tag your log messages with user-defined markers in order to filter them later on. In our example, we want to store the timing messages in a separate log file for later processing. In order to accomplish this we&rsquo;ll mark timing messages with the <code>time</code> marker. You can see the definition of the <code>time</code> marker at line 19 and logging of the marked message at line 20:</p>
+
+<p><figure class='code'><figcaption><span>MarkerApp.java </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">mport</span> <span class="n">org</span><span class="o">.</span><span class="na">slf4j</span><span class="o">.</span><span class="na">Logger</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">org.slf4j.LoggerFactory</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">org.slf4j.Marker</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">org.slf4j.MarkerFactory</span><span class="o">;&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="kd">public</span> <span class="kd">class</span> <span class="nc">MarkerApp</span> <span class="o">{&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">Logger</span> <span class="n">log</span> <span class="o">=</span> <span class="n">LoggerFactory</span><span class="o">.</span><span class="na">getLogger</span><span class="o">(</span><span class="n">MarkerApp</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="kd">static</span> <span class="kt">void</span> <span class="nf">processRequest</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="s">&quot;Log info message&quot;</span><span class="o">);</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="kt">long</span> <span class="n">startTime</span> <span class="o">=</span> <span class="n">System</span><span class="o">.</span><span class="na">nanoTime</span><span class="o">();</span>
+</span><span class='line'>    <span class="n">processRequest</span><span class="o">();</span>
+</span><span class='line'>    <span class="kt">long</span> <span class="n">endTime</span> <span class="o">=</span> <span class="n">System</span><span class="o">.</span><span class="na">nanoTime</span><span class="o">();</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">Marker</span> <span class="n">timeMarker</span> <span class="o">=</span> <span class="n">MarkerFactory</span><span class="o">.</span><span class="na">getMarker</span><span class="o">(</span><span class="s">&quot;time&quot;</span><span class="o">);</span>
+</span><span class='line'>    <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="n">timeMarker</span><span class="o">,</span> <span class="s">&quot;Request processing took {} ms&quot;</span><span class="o">,</span> <span class="o">(</span><span class="n">endTime</span> <span class="o">-</span> <span class="n">startTime</span><span class="o">)/</span><span class="mi">1</span><span class="n">e6</span><span class="o">);</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;}</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>In the logging configuration file we&rsquo;ll create two log appenders. The console appender sends all logging messages to the console output. In addition to it the file appender enhanced with a marker filter logs only the messages marked with the <code>time</code> marker into the <code>/tmp/logger.out</code> log file.</p>
+
+<p><figure class='code'><figcaption><span>log4j2.marker.xml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;Configuration&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;Appenders&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;Console</span> <span class="na">name=</span><span class="s">&quot;console&quot;</span> <span class="na">target=</span><span class="s">&quot;SYSTEM_OUT&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>            <span class="nt">&lt;PatternLayout</span> <span class="na">pattern=</span><span class="s">&quot;%d{HH:mm:ss} [%t] %-5p %c{1}:%L - %m%n&quot;</span> <span class="nt">/&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;/Console&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;File</span> <span class="na">name=</span><span class="s">&quot;file&quot;</span> <span class="na">fileName=</span><span class="s">&quot;/tmp/logger.out&quot;</span> <span class="na">append=</span><span class="s">&quot;true&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>            <span class="nt">&lt;PatternLayout</span> <span class="na">pattern=</span><span class="s">&quot;%d{HH:mm:ss} [%t] %-5p %c{1}:%L - %m%n&quot;</span><span class="nt">/&gt;</span>
+</span><span class='line'>            <span class="nt">&lt;Filters&gt;</span>
+</span><span class='line'>                <span class="nt">&lt;MarkerFilter</span> <span class="na">marker=</span><span class="s">&quot;time&quot;</span> <span class="na">onMatch=</span><span class="s">&quot;ACCEPT&quot;</span> <span class="na">onMismatch=</span><span class="s">&quot;DENY&quot;</span><span class="nt">/&gt;</span>
+</span><span class='line'>            <span class="nt">&lt;/Filters&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;/File&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;/Appenders&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;Loggers&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;Root</span> <span class="na">level=</span><span class="s">&quot;debug&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>            <span class="nt">&lt;AppenderRef</span> <span class="na">ref=</span><span class="s">&quot;console&quot;</span> <span class="nt">/&gt;</span>
+</span><span class='line'>            <span class="nt">&lt;AppenderRef</span> <span class="na">ref=</span><span class="s">&quot;file&quot;</span> <span class="nt">/&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;/Root&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;/Loggers&gt;</span>
+</span><span class='line'><span class="nt">&lt;/Configuration&gt;</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>If you run the example you&rsquo;ll see the following output on your console:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>22:55:48 [main] INFO  MarkerApp:11 - Log info message
+</span><span class='line'>22:55:48 [main] INFO  MarkerApp:20 - Request processing took 12.09897 ms</span></code></pre></td></tr></table></div></figure></p>
+
+<p>You will find only the marked timing message in the <code>/tmp/logger.out</code> log file:
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>22:55:48 [main] INFO  MarkerApp:20 - Request processing took 12.09897 ms</span></code></pre></td></tr></table></div></figure></p>
+
+<h2>5) Leverage diagnostic context in multithreaded applications</h2>
+
+<p>Most server applications need to handle multiple clients simultaneously. Typically, server application allocates a separate thread to handle a single client request. In such a system different threads handle different client requests in parallel and the log messages wrote by the threads interleave. In order to differentiate log messages from different threads from each other a diagnostic context comes in handy. Diagnostic context is a map associated with a particular thread. Each thread maintains its own map. You can store arbitraty key-value pairs in the map and in turn lay out your log messages to include the values from the map.</p>
+
+<p>In the following example we want to log the name of the user on behalf of which we&rsquo;re doing some processing. In order to accomplish this we store the name of the user in the map under the key <code>user</code> before we start the processing. After the processing is complete we clear the map to get it ready for the next user.</p>
+
+<p><figure class='code'><figcaption><span>MdcApp.java </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">import</span> <span class="nn">org.slf4j.Logger</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">org.slf4j.LoggerFactory</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">org.slf4j.MDC</span><span class="o">;&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="kd">public</span> <span class="kd">class</span> <span class="nc">MdcApp</span> <span class="o">{&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">Logger</span> <span class="n">log</span> <span class="o">=</span> <span class="n">LoggerFactory</span><span class="o">.</span><span class="na">getLogger</span><span class="o">(</span><span class="n">MdcApp</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="kd">static</span> <span class="kt">void</span> <span class="nf">process</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="s">&quot;Processing 1&quot;</span><span class="o">);</span>
+</span><span class='line'>    <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="s">&quot;Processing 2&quot;</span><span class="o">);</span>
+</span><span class='line'>    <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="s">&quot;Processing 3&quot;</span><span class="o">);</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">MDC</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="s">&quot;user&quot;</span><span class="o">,</span> <span class="s">&quot;Joe&quot;</span><span class="o">);</span>
+</span><span class='line'>    <span class="n">process</span><span class="o">();</span>
+</span><span class='line'>    <span class="n">MDC</span><span class="o">.</span><span class="na">clear</span><span class="o">();</span>
+</span><span class='line'>    <span class="n">MDC</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="s">&quot;user&quot;</span><span class="o">,</span> <span class="s">&quot;Eleonora&quot;</span><span class="o">);</span>
+</span><span class='line'>    <span class="n">process</span><span class="o">();</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;}</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>In the logging configuration we need to configure the <code>PatternLayout</code> to include the <code>user</code> value from the map. The <code>%X{user}</code> formatting sequence does exactly that.</p>
+
+<p><figure class='code'><figcaption><span>log4j2.mdc.xml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;Configuration&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;Appenders&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;Console</span> <span class="na">name=</span><span class="s">&quot;console&quot;</span> <span class="na">target=</span><span class="s">&quot;SYSTEM_OUT&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>            <span class="nt">&lt;PatternLayout</span> <span class="na">pattern=</span><span class="s">&quot;%d{HH:mm:ss} [%t] [%X{user}] %p %m%n&quot;</span> <span class="nt">/&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;/Console&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;/Appenders&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;Loggers&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;Root</span> <span class="na">level=</span><span class="s">&quot;debug&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>            <span class="nt">&lt;AppenderRef</span> <span class="na">ref=</span><span class="s">&quot;console&quot;</span> <span class="nt">/&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;/Root&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;/Loggers&gt;</span>
+</span><span class='line'><span class="nt">&lt;/Configuration&gt;</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>When you run the <code>MdcApp</code> application you&rsquo;ll see the following output on your console:
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>00:01:30 [main] [Joe] INFO Processing 1
+</span><span class='line'>00:01:30 [main] [Joe] INFO Processing 2
+</span><span class='line'>00:01:30 [main] [Joe] INFO Processing 3
+</span><span class='line'>00:01:30 [main] [Eleonora] INFO Processing 1
+</span><span class='line'>00:01:30 [main] [Eleonora] INFO Processing 2
+</span><span class='line'>00:01:30 [main] [Eleonora] INFO Processing 3</span></code></pre></td></tr></table></div></figure>
+Now you can tell the name of the user for whom you did the processing.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Java Logging Quick Reference]]></title>
@@ -356,7 +748,7 @@
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 </pre></td><td class='code'><pre><code class='sh'><span class='line'>git config <span class="p">&amp;</span>ndash<span class="p">;</span>global user.name <span class="p">&amp;</span>ldquo<span class="p">;</span>Ales Nosek<span class="p">&amp;</span>rdquo<span class="p">;</span>
-</span><span class='line'>git config <span class="p">&amp;</span>ndash<span class="p">;</span>global user.email <span class="p">&amp;</span>ldquo<span class="p">;</span>&lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#109;&amp;#97;&amp;#x69;&amp;#x6c;&amp;#116;&amp;#111;&amp;#x3a;&amp;#97;&amp;#110;&amp;#x6f;&amp;#115;&amp;#101;&amp;#107;&amp;#64;&amp;#118;&amp;#101;&amp;#x72;&amp;#x69;&amp;#x6d;&amp;#97;&amp;#x74;&amp;#114;&amp;#x69;&amp;#120;&amp;#x2e;&amp;#x63;&amp;#111;&amp;#109;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#97;&amp;#110;&amp;#x6f;&amp;#x73;&amp;#x65;&amp;#107;&amp;#64;&amp;#x76;&amp;#101;&amp;#x72;&amp;#x69;&amp;#x6d;&amp;#97;&amp;#x74;&amp;#x72;&amp;#105;&amp;#x78;&amp;#x2e;&amp;#99;&amp;#x6f;&amp;#109;&lt;/a&gt;&amp;rdquo;</span>
+</span><span class='line'>git config <span class="p">&amp;</span>ndash<span class="p">;</span>global user.email <span class="p">&amp;</span>ldquo<span class="p">;</span>&lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#109;&amp;#97;&amp;#x69;&amp;#x6c;&amp;#x74;&amp;#x6f;&amp;#58;&amp;#x61;&amp;#x6e;&amp;#x6f;&amp;#115;&amp;#101;&amp;#x6b;&amp;#64;&amp;#118;&amp;#x65;&amp;#x72;&amp;#x69;&amp;#109;&amp;#x61;&amp;#116;&amp;#114;&amp;#105;&amp;#120;&amp;#x2e;&amp;#99;&amp;#x6f;&amp;#109;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#97;&amp;#x6e;&amp;#111;&amp;#x73;&amp;#x65;&amp;#x6b;&amp;#64;&amp;#118;&amp;#x65;&amp;#114;&amp;#105;&amp;#109;&amp;#97;&amp;#116;&amp;#114;&amp;#x69;&amp;#120;&amp;#46;&amp;#99;&amp;#x6f;&amp;#x6d;&lt;/a&gt;&amp;rdquo;</span>
 </span></code></pre></td></tr></table></div></figure></p>
 
 <h2>2) Commit message formatting</h2>
