@@ -201,7 +201,7 @@ ERROR StatusLogger No log4j2 configuration file found. Using default configurati
 </Configuration>
 {% endcodeblock %}
 
-{% codeblock lang:sh log4j2.file.xml - Output to file %}
+{% codeblock lang:xml log4j2.file.xml - Output to file %}
 <Configuration>
     <Appenders>
         <File name="file" fileName="/tmp/logger.out" append="true">
