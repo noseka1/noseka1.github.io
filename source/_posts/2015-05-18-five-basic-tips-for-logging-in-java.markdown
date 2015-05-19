@@ -5,13 +5,13 @@ date: 2015-05-18 01:11:47 -0700
 comments: true
 categories: development java
 ---
-Where do you look when your server application doesn't work as expected? Application logs can provide invaluable information when the systems in production misbehave. That's why a great software practitioner desings the application logs carefully. Let's review couple of basic tips for great logging in Java.
+Where do you look when your server application doesn't work as expected? Application logs can provide invaluable information when the systems in production misbehave. That's why a great software practitioner desings the application logs carefully. Let's review a couple of basic tips for great logging in Java.
 
 <!-- more -->
 
 1) Use SLF4J logging facade
 ---------------------------
-There are different Java logging frameworks out there: java.util.logging, Log4j, Log4j2 and Logback to name the most popular ones. [SLF4J](http://www.slf4j.org/ "Simple Logging Facade for Java (SLF4J)") is a thin facade that can talk to all of these logging frameworks. You can write your code using the SLF4J API and plugin-in the desired logging framework at deployment time. Instead of tying yourself to Log4j framework like this code example does:
+There are different Java logging frameworks out there: java.util.logging, Log4j, Log4j2 and Logback to name the most popular ones. [SLF4J](http://www.slf4j.org/ "Simple Logging Facade for Java (SLF4J)") is a thin facade that can talk to all of these logging frameworks. You can write your code using the SLF4J API and plugin in the desired logging framework at deployment time. Instead of tying yourself to Log4j framework like this code example does:
 
 {% codeblock lang:java Log4jApp.java %}
 import org.apache.log4j.Logger;
@@ -50,7 +50,7 @@ If you're writing a library and need to do logging you should definitely conside
 ---------------------------------------
 You can improve the performance of your logging code by embracing the following programming idioms.
 
-Instead of concatenating strings to form the logging message let the logging framework do it for you. In the following example assume that the log level was set to `info` therefore debug messages won't be logged at all. The code at line 5 is concatenating five string objects in order to create one temporary string object which is not used anyway. You should instead follow the example at line 8. The formatting of the log message is done by the logging framework which is optimized to do the formatting only if the resulting message will actually be logged. Besides that the code at line 8 is more readable than the variant at line 5.
+Instead of concatenating strings to form the logging message let the logging framework do it for you. In the following example assume that the log level was set to `info`, therefore debug messages won't be logged at all. The code at line 5 is concatenating five string objects in order to create one temporary string object which is not used anyway. You should instead follow the example at line 8. The formatting of the log message is done by the logging framework which is optimized to do the formatting only if the resulting message will actually be logged. Besides that, the code at line 8 is more readable than the variant at line 5.
 {% codeblock lang:java %}
 String foo = "foo";
 String bar = "bar";
@@ -77,7 +77,7 @@ if (log.isDebugEnabled()) {
 
 3) Log Java exceptions
 ----------------------
-Even if you'd like to ignore Java exceptions at some places do at least log it before you ignore it. Logging frameworks can log the stack trace of the Java exception nicely. The code in the following example catches and logs a `NullPointerException`:
+Even if you'd like to ignore Java exceptions at some places, do at least log it before you ignore it. Logging frameworks can log the stack trace of the Java exception nicely. The code in the following example catches and logs a `NullPointerException`:
 {% codeblock lang:java LogException.java %}
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -135,7 +135,7 @@ public class MarkerApp {
 }
 {% endcodeblock %}
 
-In the logging configuration file we'll create two log appenders. The console appender sends all logging messages to the console output. In addition to it the file appender enhanced with a marker filter logs only the messages marked with the `time` marker into the `/tmp/logger.out` log file.
+In the logging configuration file we'll create two log appenders. The console appender sends all logging messages to the console output. In addition, the file appender logs only the messages marked with the `time` marker into the `/tmp/logger.out` log file.
 
 {% codeblock lang:xml log4j2.marker.xml %}
 <Configuration>
@@ -173,7 +173,7 @@ You will find only the marked timing message in the `/tmp/logger.out` log file:
 
 5) Leverage diagnostic context in multithreaded applications
 ------------------------------------------------------------
-Most server applications need to handle multiple clients simultaneously. Typically, server application allocates a separate thread to handle a single client request. In such a system different threads handle different client requests in parallel and the log messages wrote by the threads interleave. In order to differentiate log messages from different threads from each other a diagnostic context comes in handy. Diagnostic context is a map associated with a particular thread. Each thread maintains its own map. You can store arbitraty key-value pairs in the map and in turn lay out your log messages to include the values from the map.
+Most server applications need to handle multiple clients simultaneously. Typically, server application allocates a separate thread to handle a single client request. In such a system different threads handle different client requests in parallel and the log messages wrote by the threads interleave. In order to differentiate log messages from different threads from each other a diagnostic context comes in handy. Diagnostic context is a map associated with a particular thread. Each thread maintains its own map. You can store arbitrary key-value pairs in the map and in turn lay out your log messages to include the values from the map.
 
 In the following example we want to log the name of the user on behalf of which we're doing some processing. In order to accomplish this we store the name of the user in the map under the key `user` before we start the processing. After the processing is complete we clear the map to get it ready for the next user.
 
