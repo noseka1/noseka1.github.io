@@ -97,14 +97,14 @@
   </header>
 
 
-<div class="entry-content"><p>Where do you look when your server application doesn&rsquo;t work as expected? Application logs can provide invaluable information when the systems in production misbehave. That&rsquo;s why a great software practitioner desings the application logs carefully. Let&rsquo;s review couple of basic tips for great logging in Java.</p>
+<div class="entry-content"><p>Where do you look when your server application doesn&rsquo;t work as expected? Application logs can provide invaluable information when the systems in production misbehave. That&rsquo;s why a great software practitioner desings the application logs carefully. Let&rsquo;s review a couple of basic tips for great logging in Java.</p>
 
 <!-- more -->
 
 
 <h2>1) Use SLF4J logging facade</h2>
 
-<p>There are different Java logging frameworks out there: java.util.logging, Log4j, Log4j2 and Logback to name the most popular ones. <a href="http://www.slf4j.org/" title="Simple Logging Facade for Java (SLF4J)">SLF4J</a> is a thin facade that can talk to all of these logging frameworks. You can write your code using the SLF4J API and plugin-in the desired logging framework at deployment time. Instead of tying yourself to Log4j framework like this code example does:</p>
+<p>There are different Java logging frameworks out there: java.util.logging, Log4j, Log4j2 and Logback to name the most popular ones. <a href="http://www.slf4j.org/" title="Simple Logging Facade for Java (SLF4J)">SLF4J</a> is a thin facade that can talk to all of these logging frameworks. You can write your code using the SLF4J API and plugin in the desired logging framework at deployment time. Instead of tying yourself to Log4j framework like this code example does:</p>
 
 <figure class='code'><figcaption><span>Log4jApp.java </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -168,7 +168,7 @@
 
 <p>You can improve the performance of your logging code by embracing the following programming idioms.</p>
 
-<p>Instead of concatenating strings to form the logging message let the logging framework do it for you. In the following example assume that the log level was set to <code>info</code> therefore debug messages won&rsquo;t be logged at all. The code at line 5 is concatenating five string objects in order to create one temporary string object which is not used anyway. You should instead follow the example at line 8. The formatting of the log message is done by the logging framework which is optimized to do the formatting only if the resulting message will actually be logged. Besides that the code at line 8 is more readable than the variant at line 5.</p>
+<p>Instead of concatenating strings to form the logging message let the logging framework do it for you. In the following example assume that the log level was set to <code>info</code>, therefore debug messages won&rsquo;t be logged at all. The code at line 5 is concatenating five string objects in order to create one temporary string object which is not used anyway. You should instead follow the example at line 8. The formatting of the log message is done by the logging framework which is optimized to do the formatting only if the resulting message will actually be logged. Besides that, the code at line 8 is more readable than the variant at line 5.</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -214,7 +214,7 @@
 
 <h2>3) Log Java exceptions</h2>
 
-<p>Even if you&rsquo;d like to ignore Java exceptions at some places do at least log it before you ignore it. Logging frameworks can log the stack trace of the Java exception nicely. The code in the following example catches and logs a <code>NullPointerException</code>:</p>
+<p>Even if you&rsquo;d like to ignore Java exceptions at some places, do at least log it before you ignore it. Logging frameworks can log the stack trace of the Java exception nicely. The code in the following example catches and logs a <code>NullPointerException</code>:</p>
 
 <figure class='code'><figcaption><span>LogException.java </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -320,7 +320,7 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>In the logging configuration file we&rsquo;ll create two log appenders. The console appender sends all logging messages to the console output. In addition to it the file appender enhanced with a marker filter logs only the messages marked with the <code>time</code> marker into the <code>/tmp/logger.out</code> log file.</p>
+<p>In the logging configuration file we&rsquo;ll create two log appenders. The console appender sends all logging messages to the console output. In addition, the file appender logs only the messages marked with the <code>time</code> marker into the <code>/tmp/logger.out</code> log file.</p>
 
 <figure class='code'><figcaption><span>log4j2.marker.xml </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -380,7 +380,7 @@
 
 <h2>5) Leverage diagnostic context in multithreaded applications</h2>
 
-<p>Most server applications need to handle multiple clients simultaneously. Typically, server application allocates a separate thread to handle a single client request. In such a system different threads handle different client requests in parallel and the log messages wrote by the threads interleave. In order to differentiate log messages from different threads from each other a diagnostic context comes in handy. Diagnostic context is a map associated with a particular thread. Each thread maintains its own map. You can store arbitraty key-value pairs in the map and in turn lay out your log messages to include the values from the map.</p>
+<p>Most server applications need to handle multiple clients simultaneously. Typically, server application allocates a separate thread to handle a single client request. In such a system different threads handle different client requests in parallel and the log messages wrote by the threads interleave. In order to differentiate log messages from different threads from each other a diagnostic context comes in handy. Diagnostic context is a map associated with a particular thread. Each thread maintains its own map. You can store arbitrary key-value pairs in the map and in turn lay out your log messages to include the values from the map.</p>
 
 <p>In the following example we want to log the name of the user on behalf of which we&rsquo;re doing some processing. In order to accomplish this we store the name of the user in the map under the key <code>user</code> before we start the processing. After the processing is complete we clear the map to get it ready for the next user.</p>
 
