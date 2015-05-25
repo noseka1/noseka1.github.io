@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2015-05-25T12:05:26-07:00</updated>
+  <updated>2015-05-25T12:10:20-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -56,7 +56,7 @@ The possible choices of notification driver are briefly described in <a href="ht
 
 <p>Internally, Nova uses <a href="https://kombu.readthedocs.org/en/latest/" title="Kombu Documentation">Kombu</a> messaging library to connect to the RabbitMQ message broker. Let&rsquo;s use this Python library in our notifications subscriber to avoid the need to install additional libraries.</p>
 
-<p>Nova sends out notification messages to a <em>topic</em> exchange called <code>nova</code> with the routing key <code>notifications.info</code>. In order to receive notification messages our client application needs to create a queue and bind it to the <code>nova</code> exchange. The binding key used to bind the queue to the <code>nova</code> exchange must match the routing key used by Nova to send out notification messages. Whenever there&rsquo;s a new message in the queue the Kombu library will invoke the <code>on_message</code> callback on our client to handle the message. The complete code of our notification subscriber looks as follows:</p>
+<p>Nova sends out notification messages to a <em>topic</em> exchange called <code>nova</code> with the routing key <code>notifications.info</code>. In order to receive notification messages our client application needs to create a queue and bind it to the <code>nova</code> exchange. The binding key used to bind the queue to the <code>nova</code> exchange must match the routing key used by Nova to send out notification messages. Whenever there&rsquo;s a new message in the queue the Kombu library will invoke the <code>on_message</code> callback on our client to handle the message. The complete code of our notifications subscriber looks as follows:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
