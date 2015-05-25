@@ -36,7 +36,7 @@ Implement Nova notifications subscriber
 ------------------------------------
 Internally, Nova uses [Kombu](https://kombu.readthedocs.org/en/latest/ "Kombu Documentation") messaging library to connect to the RabbitMQ message broker. Let's use this Python library in our notifications subscriber to avoid the need to install additional libraries.
 
-Nova sends out notification messages to a *topic* exchange called `nova` with the routing key `notifications.info`. In order to receive notification messages our client application needs to create a queue and bind it to the `nova` exchange. The binding key used to bind the queue to the `nova` exchange must match the routing key used by Nova to send out notification messages. Whenever there's a new message in the queue the Kombu library will invoke the `on_message` callback on our client to handle the message. The complete code of our notification subscriber looks as follows:
+Nova sends out notification messages to a *topic* exchange called `nova` with the routing key `notifications.info`. In order to receive notification messages our client application needs to create a queue and bind it to the `nova` exchange. The binding key used to bind the queue to the `nova` exchange must match the routing key used by Nova to send out notification messages. Whenever there's a new message in the queue the Kombu library will invoke the `on_message` callback on our client to handle the message. The complete code of our notifications subscriber looks as follows:
 
 {% codeblock lang:python %}
 #!/usr/bin/env python
