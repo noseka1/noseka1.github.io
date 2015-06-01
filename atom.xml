@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2015-05-31T23:36:29-07:00</updated>
+  <updated>2015-05-31T23:37:37-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -18,7 +18,7 @@
     <link href="http://alesnosek.com/blog/2015/05/31/openstack-dynamic-dns-updates/"/>
     <updated>2015-05-31T22:49:39-07:00</updated>
     <id>http://alesnosek.com/blog/2015/05/31/openstack-dynamic-dns-updates</id>
-    <content type="html"><![CDATA[<p>Our todays user story is: As a private cloud user I&rsquo;d like to have virtual machines registered with internal DNS. Let&rsquo;s look at how a software practitioner solves this problem in a truly agile way.</p>
+    <content type="html"><![CDATA[<p>Our today&rsquo;s user story is: As a private cloud user I&rsquo;d like to have virtual machines registered with internal DNS. Let&rsquo;s look at how a software practitioner solves this problem in a truly agile way.</p>
 
 <!-- more -->
 
