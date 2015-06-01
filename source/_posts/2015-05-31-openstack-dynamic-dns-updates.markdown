@@ -6,7 +6,7 @@ comments: true
 categories: devops cloud
 ---
 
-Our todays user story is: As a private cloud user I'd like to have virtual machines registered with internal DNS. Let's look at how a software practitioner solves this problem in a truly agile way.
+Our today's user story is: As a private cloud user I'd like to have virtual machines registered with internal DNS. Let's look at how a software practitioner solves this problem in a truly agile way.
 
 <!-- more -->
 
