@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2015-06-03T22:46:03-07:00</updated>
+  <updated>2015-06-07T12:19:10-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,281 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Seven Tips for Better Code]]></title>
+    <link href="http://alesnosek.com/blog/2015/06/06/seven-tips-for-better-code/"/>
+    <updated>2015-06-06T21:04:36-07:00</updated>
+    <id>http://alesnosek.com/blog/2015/06/06/seven-tips-for-better-code</id>
+    <content type="html"><![CDATA[<p>It&rsquo;s a pleasure to read and maintain your code, right? Software practice teaches that code is written once but read many times. Your teammates will appreciate it if you put your effort into writing a good looking and understandable code. Needless to say that when you&rsquo;ll read your code one year later you&rsquo;ll appreciate it, too. Let&rsquo;s discuss a couple of basic guidelines to write a better code.</p>
+
+<!-- more -->
+
+
+<h2>1) Respect the pre-existing coding style</h2>
+
+<p>You&rsquo;ve just joined a software project that run for a while. The coding conventions used on the project are weird and you really don&rsquo;t like them. Perhaps, they force you to put parenthesis on a new line or let you write variable names with the first letter in capital while you&rsquo;d prefer a small letter. They even violate the existing Java or C# language conventions. And the <a href="http://en.wikipedia.org/wiki/Hungarian_notation" title="Hungarian notation">Hungarian notation</a> looks just awful!</p>
+
+<p>As a professional software developer, you&rsquo;ll find yourself in this situation many times. Unless you can reformat the code of the entire project it&rsquo;s better to stick with the coding style that&rsquo;s already in place. In other words, you should follow the already established coding style regardless whether  you like it or not. Perhaps, you can propose a change of coding style to your teammates when you&rsquo;re starting to work on a new project.</p>
+
+<h2>2) Tabs versus spaces</h2>
+
+<p>Is it better to use tabs or spaces to indent your code? Well, pick one but stick with it throughout your entire project. I prefer spaces because they let my code look the same in all editors. My editor is configured to convert tabs into spaces so that I don&rsquo;t have to tap on the space bar too much when indenting.</p>
+
+<h2>3) Break your code down into methods</h2>
+
+<p>It&rsquo;s a good practice to break down a complicated program logic into multiple methods. By doing so, you make it easier for the reader to understand the purpose of your code. Look at the following code example. Can you explain what the code is doing?</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'>    <span class="c1">// Bloated program logic, don&#39;t do this!</span>
+</span><span class='line'>    <span class="n">String</span> <span class="nf">retrieveData</span><span class="o">(</span><span class="n">String</span> <span class="n">key</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">String</span> <span class="n">data</span> <span class="o">=</span> <span class="n">cache</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">key</span><span class="o">);</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">data</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">BufferedReader</span> <span class="n">br</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>            <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">br</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">BufferedReader</span><span class="o">(</span><span class="k">new</span> <span class="nf">FileReader</span><span class="o">(</span><span class="s">&quot;file.txt&quot;</span><span class="o">));</span>
+</span><span class='line'>                <span class="n">data</span> <span class="o">=</span> <span class="n">br</span><span class="o">.</span><span class="na">readLine</span><span class="o">();</span>
+</span><span class='line'>            <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">IOException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">e</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();</span>
+</span><span class='line'>            <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
+</span><span class='line'>                <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>                    <span class="k">if</span> <span class="o">(</span><span class="n">br</span> <span class="o">!=</span> <span class="kc">null</span> <span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                        <span class="n">br</span><span class="o">.</span><span class="na">close</span><span class="o">();</span>
+</span><span class='line'>                    <span class="o">}</span>
+</span><span class='line'>                <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">IOException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                    <span class="n">e</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();</span>
+</span><span class='line'>                <span class="o">}</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>            <span class="n">cache</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">key</span><span class="o">,</span> <span class="n">data</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">data</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The aim of the code is pretty simple. When retrieving data, look if the requested data is in the cache first and if not fetch it from the file. If the data was read from the file, put it into the cache to speed up the succeeding lookups. Let&rsquo;s rewrite the code example to make this logic apparent to the reader:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'>    <span class="n">String</span> <span class="nf">retrieveData</span><span class="o">(</span><span class="n">String</span> <span class="n">key</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">String</span> <span class="n">data</span> <span class="o">=</span> <span class="n">cache</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">key</span><span class="o">);</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">data</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">data</span> <span class="o">=</span> <span class="n">readDataFromFile</span><span class="o">(</span><span class="n">key</span><span class="o">);</span>
+</span><span class='line'>            <span class="n">cache</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">key</span><span class="o">,</span> <span class="n">data</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">data</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">String</span> <span class="nf">readDataFromFile</span><span class="o">(</span><span class="n">String</span> <span class="n">key</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">String</span> <span class="n">data</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>        <span class="n">BufferedReader</span> <span class="n">br</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>        <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">br</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">BufferedReader</span><span class="o">(</span><span class="k">new</span> <span class="nf">FileReader</span><span class="o">(</span><span class="s">&quot;file.txt&quot;</span><span class="o">));</span>
+</span><span class='line'>            <span class="n">data</span> <span class="o">=</span> <span class="n">br</span><span class="o">.</span><span class="na">readLine</span><span class="o">();</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">IOException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">e</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>                <span class="k">if</span> <span class="o">(</span><span class="n">br</span> <span class="o">!=</span> <span class="kc">null</span> <span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                    <span class="n">br</span><span class="o">.</span><span class="na">close</span><span class="o">();</span>
+</span><span class='line'>                <span class="o">}</span>
+</span><span class='line'>            <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">IOException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">e</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">data</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The caching logic is now separate from the details of how to read the data from the file. Splitting the logic up into two methods greatly increased readability.</p>
+
+<h2>4) Avoid excessive access to your instance variables</h2>
+
+<p>Object-oriented programming introduced a <em>class</em> abstraction. Class groups the data with the code that can modify the data. Instead of using global variables that are accessible from any part of your program you can encapsulate your data with the code into a class. The scope where your data is accessible is now limited to the class members. However, your data is accessible by <em>any</em> class member. Assuming a very large class definition with a lot of members the data members can start feeling as a new form of global variables. It&rsquo;s a good practice to avoid excessive access to your data members. Look at the following example:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">class</span> <span class="nc">Number</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">private</span> <span class="kt">int</span> <span class="n">number</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+</span><span class='line'>    <span class="kd">private</span> <span class="kt">int</span> <span class="n">increment</span> <span class="o">=</span> <span class="mi">1</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">public</span> <span class="kt">int</span> <span class="nf">increment</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">incrementNumber</span><span class="o">();</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">number</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">private</span> <span class="kt">void</span> <span class="nf">incrementNumber</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="c1">// direct access to instance variable &quot;number&quot;. Not too good.</span>
+</span><span class='line'>        <span class="n">number</span> <span class="o">=</span> <span class="n">number</span> <span class="o">+</span> <span class="n">increment</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>In the code above the instance variable <code>number</code> is accessed from within two methods: <code>increment</code> and <code>incrementNumber</code>. Should it happen that the instance variable <code>number</code> is not set to the value you expected you&rsquo;ll need to review both methods because they&rsquo;re both accessing the problematic variable <code>number</code>.</p>
+
+<p>The following version of the same code accesses the instance variable <code>number</code> only from within the method <code>increment</code>. The method <code>incrementNumber</code> is working only with a copy of the <code>number</code> variable created on the stack. When searching for a problem you&rsquo;ll start reviewing the <code>increment</code> method and possibly follow the data flow into the <code>incrementNumber</code> method when needed. Also, if you&rsquo;d like to reuse the code of the method <code>incrementNumber</code> it&rsquo;s easier to do now. The method <code>incrementNumber</code> doesn&rsquo;t access any instance variables and so you can separate it out into a <em>class</em> method right away.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">class</span> <span class="nc">Number</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">private</span> <span class="kt">int</span> <span class="n">number</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+</span><span class='line'>    <span class="kd">private</span> <span class="kt">int</span> <span class="n">increment</span> <span class="o">=</span> <span class="mi">1</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">public</span> <span class="kt">int</span> <span class="nf">increment</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">number</span> <span class="o">=</span> <span class="n">incrementNumber</span><span class="o">(</span><span class="n">number</span><span class="o">,</span> <span class="n">increment</span><span class="o">);</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">number</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">private</span> <span class="kt">int</span> <span class="nf">incrementNumber</span><span class="o">(</span><span class="kt">int</span> <span class="n">num</span><span class="o">,</span> <span class="kt">int</span> <span class="n">inc</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="c1">// no access to instance variables</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">num</span> <span class="o">+</span> <span class="n">inc</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>5) Prevent maintenance issues</h2>
+
+<p>Look at the following code. Can you see a problem?</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">value</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;=</span> <span class="mi">10</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">value</span><span class="o">++;</span>
+</span><span class='line'>    <span class="k">else</span>
+</span><span class='line'>        <span class="n">value</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+</span><span class='line'>        <span class="n">log</span><span class="o">.</span><span class="na">error</span><span class="o">(</span><span class="s">&quot;Value overflow&quot;</span><span class="o">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The intention of the maintainer was to add an error message for the case that the value overflowed number 10. However, the code as it is written will log the error message in any case. When coding think about the future maintenance and use parenthesis to make very clear what the <code>if</code> and <code>else</code> parts are:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">value</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;=</span> <span class="mi">10</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">value</span><span class="o">++;</span>
+</span><span class='line'>    <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">value</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>When the maintainer tries to add an error message to this code he cannot introduce the bug illustrated in the previous code example. Out of curiosity, the Linux kernel project advocates no parenthesis around the if-else statement if not necessary. As always, the existing coding conventions take precedence.</p>
+
+<h2>6) Use braces to make expressions more readable</h2>
+
+<p>Programming languages define operator precedence and it&rsquo;s great that you&rsquo;re aware of it. Not every programmer has mastered the operator precedence and associativity table, though. Be kind and code your expressions very clearly. Braces can help you:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="c1">// relying on operator precedence</span>
+</span><span class='line'><span class="k">if</span> <span class="o">(</span><span class="n">a</span> <span class="o">&amp;&amp;</span> <span class="n">b</span> <span class="o">||</span> <span class="n">a</span> <span class="o">&amp;&amp;</span> <span class="n">c</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="c1">// ...</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// making very clear how the expression is evaluated</span>
+</span><span class='line'><span class="k">if</span> <span class="o">((</span><span class="n">a</span> <span class="o">&amp;&amp;</span> <span class="n">b</span><span class="o">)</span> <span class="o">||</span> <span class="o">(</span><span class="n">a</span> <span class="o">&amp;&amp;</span> <span class="n">c</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>    <span class="c1">// ...</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>7) Learn your programming language idioms</h2>
+
+<p>There&rsquo;s no perfect programming language. Idioms get invented to work around the quirks of a specific programming language. Using idioms improves the maintanability of the code. You should learn and use them wherever possible. For Java idioms you can refer to <a href="http://c2.com/ppr/wiki/JavaIdioms/JavaIdioms.html" title="Java Idioms">Java Idioms</a> and <a href="http://www.nayuki.io/page/good-java-idioms" title="Good Java Idioms">Good Java Idioms</a>.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[OpenStack Dynamic DNS Updates]]></title>
