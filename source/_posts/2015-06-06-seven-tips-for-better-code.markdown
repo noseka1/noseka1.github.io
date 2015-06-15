@@ -88,7 +88,7 @@ The caching logic is now separate from the details of how to read the data from 
 4) Avoid excessive access to your instance variables
 ----------------------------------------------------
 
-Object-oriented programming introduced a *class* abstraction. Class groups the data with the code that can modify the data. Instead of using global variables that are accessible from any part of your program you can encapsulate your data with the code into a class. The scope where your data is accessible is now limited to the class members. However, your data is accessible by *any* class member. Assuming a very large class definition with a lot of members the data members can start feeling as a new form of global variables. It's a good practice to avoid excessive access to your data members. Look at the following example:
+Object-oriented programming introduced a *class* abstraction. Class groups the data with the code that can modify the data. Instead of using global variables that are accessible from any part of your program you can encapsulate your data with the code into a class. The scope where your data is accessible is now limited to the class members. However, your data is accessible by *any* class member. Assuming a very large class definition with a lot of members the data members can start feeling as a new form of global variables. I'd like to suggest to you avoiding excessive access to your data members. Look at the following example:
 
 {% codeblock lang:java %}
 class Number {
