@@ -18,9 +18,9 @@ Doxygen sample project
 To get started, I read a [very useful article](http://svenax.net/site/2013/07/creating-user-documentation-with-doxygen/ "Creating user documentation with Doxygen") describing how to enable support of plain Markdown files in Doxygen and a couple of gotchas one might encounter. Gotchas? No worries! In record time I was able to create a sample technical documentation. As a sample content I used a couple of articles from my blog which were also coded in Markdown. Now I'd like to share the project with you:
 
 * [Source code on GitHub](https://github.com/noseka1/tech-doc-with-doxygen "tech-doc-with-doxygen")
-* [The generated HTML output](http://alesnosek.com/tech-doc-with-doxygen/)
-* [The generated PDF output](http://alesnosek.com/tech-doc-with-doxygen/refman.pdf)
-* [The generated RTF output](http://alesnosek.com/tech-doc-with-doxygen/refman.rtf)
+* [The generated HTML output](http://noseka1.github.com/tech-doc-with-doxygen/)
+* [The generated PDF output](http://noseka1.githum.com/tech-doc-with-doxygen/refman.pdf)
+* [The generated RTF output](http://noseka1.githum.com/tech-doc-with-doxygen/refman.rtf)
 
 The project shows a basic document structure. If you want to learn more about Doxygen I recommend to download the Doxygen source distribution [tarball](http://www.stack.nl/~dimitri/doxygen/download.html) or clone the Doxygen's project [Git repository](https://github.com/doxygen/doxygen). After extracting the tar archive go to the `doc` directory where you can find the sources of the Doxygen's [webpage](http://www.stack.nl/~dimitri/doxygen/index.html "Doxygen"). You can learn a lot by reading through them.
 
