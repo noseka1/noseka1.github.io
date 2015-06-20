@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2015-06-15T19:07:10-07:00</updated>
+  <updated>2015-06-20T10:34:11-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -32,8 +32,8 @@
 <ul>
 <li><a href="https://github.com/noseka1/tech-doc-with-doxygen" title="tech-doc-with-doxygen">Source code on GitHub</a></li>
 <li><a href="http://noseka1.github.com/tech-doc-with-doxygen/">The generated HTML output</a></li>
-<li><a href="http://noseka1.githum.com/tech-doc-with-doxygen/refman.pdf">The generated PDF output</a></li>
-<li><a href="http://noseka1.githum.com/tech-doc-with-doxygen/refman.rtf">The generated RTF output</a></li>
+<li><a href="http://noseka1.github.com/tech-doc-with-doxygen/refman.pdf">The generated PDF output</a></li>
+<li><a href="http://noseka1.github.com/tech-doc-with-doxygen/refman.rtf">The generated RTF output</a></li>
 </ul>
 
 
