@@ -19,8 +19,8 @@ To get started, I read a [very useful article](http://svenax.net/site/2013/07/cr
 
 * [Source code on GitHub](https://github.com/noseka1/tech-doc-with-doxygen "tech-doc-with-doxygen")
 * [The generated HTML output](http://noseka1.github.com/tech-doc-with-doxygen/)
-* [The generated PDF output](http://noseka1.githum.com/tech-doc-with-doxygen/refman.pdf)
-* [The generated RTF output](http://noseka1.githum.com/tech-doc-with-doxygen/refman.rtf)
+* [The generated PDF output](http://noseka1.github.com/tech-doc-with-doxygen/refman.pdf)
+* [The generated RTF output](http://noseka1.github.com/tech-doc-with-doxygen/refman.rtf)
 
 The project shows a basic document structure. If you want to learn more about Doxygen I recommend downloading the Doxygen source distribution [tarball](http://www.stack.nl/~dimitri/doxygen/download.html) or clone the Doxygen's project [Git repository](https://github.com/doxygen/doxygen). After extracting the tar archive go to the `doc` directory where you can find the sources of the Doxygen's [webpage](http://www.stack.nl/~dimitri/doxygen/index.html "Doxygen"). You can learn a lot by reading through them.
 
