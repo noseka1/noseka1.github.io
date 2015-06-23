@@ -30,7 +30,7 @@ The page hierarchy is created by the repetitive use of the Doxygen tag `@subpage
 
 A larger software project typically consists of multiple modules. Module implements a particular project functionality. Doxygen cannot know which classes, files or namespaces belong to which module in your project. If you want to structure your documentation based on modules you'll need to tag each class, file or namespace with the module name. This allows Doxygen to understand your modularized design and generate the documentation accordingly.
 
-You can start with definition of your modules and their parent-child relationship in a separate Doxygen file. A module is defined using `@defgroup` Doxygen tag. In our example, we're defining a parent module `My Project Modules` with two submodules `Math library` and `Misc library`:
+You can start with a definition of your modules and their parent-child relationship in a separate Doxygen file. A module is defined using `@defgroup` Doxygen tag. In our example, we're defining a parent module `My Project Modules` with two submodules `Math library` and `Misc library`:
 
 {% codeblock lang:c doxygen/group_defs.dox %}
 /**
