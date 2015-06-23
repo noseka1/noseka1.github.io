@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2015-06-22T22:41:55-07:00</updated>
+  <updated>2015-06-22T22:52:38-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -44,7 +44,7 @@ The page hierarchy is created by the repetitive use of the Doxygen tag <code>@su
 
 <h2>Doxygen modules</h2>
 
-<p>A larger software project typically consists of multiple modules. Module implements a particular project functionality. Doxygen cannot know which classes, files or namespaces belong to which module in your project. If you want to structure your documentation based on modules you&rsquo;ll need to tag each class, file or namespace with the module name. This allows Doxygen to understand your modularized design and generate the documentation accordingly.</p>
+<p>A larger software project typically consists of multiple modules. A module implements a particular project functionality. Doxygen cannot know which classes, files or namespaces belong to which module in your project. If you want to structure your documentation based on modules you&rsquo;ll need to tag each class, file or namespace with the module name. This allows Doxygen to understand your modularized design and generate the documentation accordingly.</p>
 
 <p>You can start with a definition of your modules and their parent-child relationship in a separate Doxygen file. A module is defined using <code>@defgroup</code> Doxygen tag. In our example, we&rsquo;re defining a parent module <code>My Project Modules</code> with two submodules <code>Math library</code> and <code>Misc library</code>:</p>
 
