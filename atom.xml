@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2015-06-20T10:34:11-07:00</updated>
+  <updated>2015-06-22T22:30:57-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,75 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[The Structure of Doxygen Documentation]]></title>
+    <link href="http://alesnosek.com/blog/2015/06/21/the-structure-of-doxygen-documentation/"/>
+    <updated>2015-06-21T17:48:59-07:00</updated>
+    <id>http://alesnosek.com/blog/2015/06/21/the-structure-of-doxygen-documentation</id>
+    <content type="html"><![CDATA[<p>Let&rsquo;s review some basic means that Doxygen provides to structure your documentation. If you&rsquo;re a newcomer to Doxygen this blogpost might be useful for you.</p>
+
+<!-- more -->
+
+
+<p>In order to demonstrate Doxygen features I created a sample project. You can check out the project source code and the generated HTML ouput at:</p>
+
+<ul>
+<li><a href="https://github.com/noseka1/structure-of-doxygen-doc" title="structure-of-doxygen-doc">Source code on GitHub</a></li>
+<li><a href="http://noseka1.github.com/structure-of-doxygen-doc/">The generated HTML output</a></li>
+</ul>
+
+
+<p>The tree view in the generated HTML output looks as follows:</p>
+
+<p><img class="center" src="http://alesnosek.com/images/posts/doxygen_treeview.png"></p>
+
+<h2>Doxygen pages</h2>
+
+<p>Pages in Doxygen are used for documentation that is not directly attached to the source code entity like class, file or member. They will typically contain a longer description of your project. You can refer to any source code entity from within the page if required.</p>
+
+<p>There&rsquo;s always a project main page created by the Doxygen tag <code>@mainpage</code>. In our example, the title of the main page is <code>My Project</code>. All other pages listed under the main page are created using the Doxygen tag <code>@page</code>. In our example, we&rsquo;re using Markdown files where the <code>@page</code> tag is assumed and you&rsquo;re not required to write it. Doxygen automatically generates a page for every file with the <code>.markdown</code> extension. We talked about Markdown support in Doxygen in my <a href="http://alesnosek.com/blog/2015/06/14/technical-documentation-with-doxygen/" title="Technical Documentation with Doxygen">previous blogpost</a>.
+The page hierarchy is created by the repetitive use of the Doxygen tag <code>@subpage</code>. The <code>@subpage</code> tag creates a parent-child relationship between two pages. It generates a reference (link) to the subpage at the same time.</p>
+
+<h2>Doxygen modules</h2>
+
+<p>A larger software project typically consists of multiple modules. Module implements a particular project functionality. Doxygen cannot know which classes, files or namespaces belong to which module in your project. If you want to structure your documentation based on modules you&rsquo;ll need to tag each class, file or namespace with the module name. This allows Doxygen to understand your modularized design and generate the documentation accordingly.</p>
+
+<p>You can start with definition of your modules and their parent-child relationship in a separate Doxygen file. A module is defined using <code>@defgroup</code> Doxygen tag. In our example, we&rsquo;re defining a parent module <code>My Project Modules</code> with two submodules <code>Math library</code> and <code>Misc library</code>:</p>
+
+<figure class='code'><figcaption><span>doxygen/group_defs.dox </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="cm">/**</span>
+</span><span class='line'><span class="cm"> * @defgroup group_main My Project Modules</span>
+</span><span class='line'><span class="cm"> * @brief All project modules</span>
+</span><span class='line'><span class="cm"> *</span>
+</span><span class='line'><span class="cm"> * @{</span>
+</span><span class='line'><span class="cm"> */</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">/** @defgroup group_math Math library */</span>
+</span><span class='line'><span class="cm">/** @defgroup group_misc Misc library */</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">/** @} */</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Later in the source code, you can associate a class, file or a namespace with a module by using a Doxygen tag <code>@ingroup</code>.</p>
+
+<h2>Namespaces, classes and files</h2>
+
+<p>Doxygen automatically generates a list of namespaces, classes and files for you.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Technical Documentation with Doxygen]]></title>
