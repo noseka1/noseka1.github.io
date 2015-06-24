@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2015-06-22T22:52:38-07:00</updated>
+  <updated>2015-06-23T21:57:47-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -40,7 +40,19 @@
 <p>Pages in Doxygen are used for documentation that is not directly attached to the source code entity like class, file or member. They will typically contain a longer description of your project. You can refer to any source code entity from within the page if required.</p>
 
 <p>There&rsquo;s always a project main page created by the Doxygen tag <code>@mainpage</code>. In our example, the title of the main page is <code>My Project</code>. All other pages listed under the main page are created using the Doxygen tag <code>@page</code>. In our example, we&rsquo;re using Markdown files where the <code>@page</code> tag is assumed and you&rsquo;re not required to write it. Doxygen automatically generates a page for every file with the <code>.markdown</code> extension. We talked about Markdown support in Doxygen in my <a href="http://alesnosek.com/blog/2015/06/14/technical-documentation-with-doxygen/" title="Technical Documentation with Doxygen">previous blogpost</a>.
-The page hierarchy is created by the repetitive use of the Doxygen tag <code>@subpage</code>. The <code>@subpage</code> tag creates a parent-child relationship between two pages. It generates a reference (link) to the subpage at the same time.</p>
+The page hierarchy is created by the repetitive use of the Doxygen tag <code>@subpage</code>. The <code>@subpage</code> tag creates a parent-child relationship between two pages. It generates a reference (link) to the subpage at the same time. Example:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># The List of subpages:
+</span><span class='line'>
+</span><span class='line'>* Page @subpage subpage_1
+</span><span class='line'>* Page @subpage subpage_2
+</span><span class='line'>* Page @subpage subpage_3</span></code></pre></td></tr></table></div></figure>
+
 
 <h2>Doxygen modules</h2>
 
@@ -74,7 +86,35 @@ The page hierarchy is created by the repetitive use of the Doxygen tag <code>@su
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>Later in the source code, you can associate a class, file or a namespace with a module by using a Doxygen tag <code>@ingroup</code>.</p>
+<p>Later in the source code, you can associate a class, file or a namespace with a module by using a Doxygen tag <code>@ingroup</code>:</p>
+
+<figure class='code'><figcaption><span>src/math/factorial.h </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="cp">#ifndef MYPROJECT_MATH_FACTORIAL_H</span>
+</span><span class='line'><span class="cp">#define MYPROJECT_MATH_FACTORIAL_H</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">/** @ingroup group_math */</span>
+</span><span class='line'><span class="n">namespace</span> <span class="n">myproject</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">namespace</span> <span class="n">math</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="cm">/** @ingroup group_math */</span>
+</span><span class='line'>        <span class="kt">int</span> <span class="n">fact</span><span class="p">(</span><span class="kt">int</span> <span class="n">n</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="cp">#endif</span>
+</span></code></pre></td></tr></table></div></figure>
+
 
 <h2>Namespaces, classes and files</h2>
 
