@@ -4,7 +4,7 @@
   <title><![CDATA[Category: devops | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/devops/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2015-06-29T23:47:14-07:00</updated>
+  <updated>2015-07-05T12:01:31-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,111 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Running Wine within Docker]]></title>
+    <link href="http://alesnosek.com/blog/2015/07/04/running-wine-within-docker/"/>
+    <updated>2015-07-04T22:46:55-07:00</updated>
+    <id>http://alesnosek.com/blog/2015/07/04/running-wine-within-docker</id>
+    <content type="html"><![CDATA[<p>After upgrading to Debian Jessie, my Windows application running under Wine stopped working. In this article we&rsquo;ll use Docker to restore the Wine environment from Debian Wheezy. We&rsquo;ll run the Windows application inside this Docker container.</p>
+
+<!-- more -->
+
+
+<p>Docker is not part of the stable Jessie distribution, however, you can install it from the <a href="http://backports.debian.org/" title="Debian Backports">Debian Backports</a> repositories.</p>
+
+<h2>Creating a Docker image</h2>
+
+<p>We start off with creating a Docker image based on the <code>debian:wheezy</code> image from the official Docker repositories. We&rsquo;ll install the 32-bit Wine package on it. The Wine application is a graphical application and hence requires access to the X server. Setting the environmet variable <code>DISPLAY=:0</code> instructs the application to access the local X server. The complete <code>Dockerfile</code> to build our Wine image looks as follows:</p>
+
+<p><figure class='code'><figcaption><span>Dockerfile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>FROM debian:wheezy
+</span><span class='line'>RUN dpkg <span class="p">&amp;</span>ndash<span class="p">;</span>add-architecture i386
+</span><span class='line'>RUN apt-get update
+</span><span class='line'>RUN apt-get install <span class="p">&amp;</span>ndash<span class="p">;</span>no-install-recommends <span class="p">&amp;</span>ndash<span class="p">;</span>assume-yes wine
+</span><span class='line'>ENV DISPLAY :0
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>You can kick off the build of the <code>wine1.4</code> image with:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>docker build <span class="p">&amp;</span>ndash<span class="p">;</span>rm -t wine1.4 .
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>After a minute or two the build is complete and the resulting image is stored locally on your Docker host. You can take a look using the <code>docker images</code> command:
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>docker images <span class="p">|</span> grep wine1.4
+</span><span class='line'>wine1.4                   latest              b300b8573303        About a minute ago   271.3 MB
+</span></code></pre></td></tr></table></div></figure></p>
+
+<h2>Running Wine within a Docker container</h2>
+
+<p>To test our <code>wine1.4</code> Docker image, we&rsquo;ll run the <code>notepad</code> application which comes with Wine:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>docker run <span class="p">&amp;</span>ndash<span class="p">;</span>rm wine1.4 wine <span class="p">&amp;</span>ldquo<span class="p">;</span>C:<span class="se">\w</span>indows<span class="se">\s</span>ystem32<span class="se">\n</span>otepad.exe<span class="p">&amp;</span>rdquo<span class="p">;</span>
+</span><span class='line'>wine: created the configuration directory <span class="p">&amp;</span>lsquo<span class="p">;</span>/root/.wine<span class="p">&amp;</span>rsquo<span class="p">;</span>
+</span><span class='line'>Application tried to create a window, but no driver could be loaded.
+</span><span class='line'>Make sure that your X server is running and that <span class="nv">$DISPLAY</span> is <span class="nb">set </span>correctly.
+</span><span class='line'>err:systray:initialize_systray Could not create tray window
+</span><span class='line'>Application tried to create a window, but no driver could be loaded.
+</span><span class='line'>Make sure that your X server is running and that <span class="nv">$DISPLAY</span> is <span class="nb">set </span>correctly.
+</span><span class='line'>Application tried to create a window, but no driver could be loaded.
+</span><span class='line'>Make sure that your X server is running and that <span class="nv">$DISPLAY</span> is <span class="nb">set </span>correctly.
+</span><span class='line'>Application tried to create a window, but no driver could be loaded.
+</span><span class='line'>Make sure that your X server is running and that <span class="nv">$DISPLAY</span> is <span class="nb">set </span>correctly.&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;<span class="p">&amp;</span>hellip<span class="p">;</span>.
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>The <code>notepad</code> application doesn&rsquo;t really start. From the generated error output we can see that our application is unable to access the X server. Well, there&rsquo;s no X server running inside the container. In order to allow the application running inside the container to access the X server running on the Docker host, we&rsquo;ll expose the host&rsquo;s X server UNIX domain socket inside the container. We can ask Docker to bind mount the <code>/tmp/.X11-unix/X0</code> UNIX socket to the same location inside the container using the <code>--volume</code> parameter:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>docker run <span class="p">&amp;</span>ndash<span class="p">;</span>rm <span class="p">&amp;</span>ndash<span class="p">;</span>volume /tmp/.X11-unix/X0:/tmp/.X11-unix/X0 wine1.4 wine <span class="p">&amp;</span>ldquo<span class="p">;</span>C:<span class="se">\w</span>indows<span class="se">\s</span>ystem32<span class="se">\n</span>otepad.exe<span class="p">&amp;</span>rdquo<span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>When we run the above command, Wine starts up successfully and the notepad application opens up. Inside the Docker container Wine runs as user root and starts from scratch with no existing configuration, though:</p>
+
+<p><img class="center" src="/images/posts/wine.png"></p>
+
+<p>We would like Wine running inside the Docker container to use the existing Wine configuration stored on the Docker host. Let&rsquo;s copy the existing Wine configuration on the host to a new directory which we&rsquo;ll in turn expose inside the Docker container:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span><span class="nb">cd</span> ~
+</span><span class='line'><span class="nv">$ </span>cp -a .wine .wine.docker
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>The <code>.wine.docker</code> directory can be exposed inside the Docker container  with the command-line parameter <code>--volume /home/anosek/.wine.docker:/home/anosek/.wine</code>. The Wine configuration in <code>.wine.docker</code> is in my case owned by the user <code>anosek</code>. We want Docker to run as user <code>anosek</code> instead of the default <code>root</code> user. In order to accomplish this, two additional parameters to the Docker <code>run</code> command are needed: <code>--volume /etc/passwd:/etc/passwd</code> and <code>--user anosek</code>. We&rsquo;re bind mounting the <code>/etc/passwd</code> file including the definition of user <code>anosek</code> inside the Docker container and asking Docker to run as user <code>anosek</code>.</p>
+
+<p>The complete command to run Wine inside the Docker container as user <code>anosek</code> and using the existing Wine configuration found in the <code>/home/anosek/.wine.docker</code> directory on the host looks as follows:
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>docker run <span class="p">&amp;</span>ndash<span class="p">;</span>rm <span class="p">&amp;</span>ndash<span class="p">;</span>volume /tmp/.X11-unix/X0:/tmp/.X11-unix/X0 <span class="p">&amp;</span>ndash<span class="p">;</span>volume /home/anosek/.wine.docker:/home/anosek/.wine <span class="p">&amp;</span>ndash<span class="p">;</span>volume /etc/passwd:/etc/passwd <span class="p">&amp;</span>ndash<span class="p">;</span>user anosek wine1.4 wine <span class="p">&amp;</span>ldquo<span class="p">;</span>C:<span class="se">\w</span>indows<span class="se">\s</span>ystem32<span class="se">\n</span>otepad.exe<span class="p">&amp;</span>rdquo<span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<h2>Conclusion</h2>
+
+<p>One can leverage the modern Docker technology to create a specific Wine environment on any Linux system. To achieve this a little bit of configuration is required, though. In case of Wine you might be better off using some of the specialized tools for Wine management. For instance, <a href="https://www.playonlinux.com/" title="PlayOnLinux">PlayOnLinux</a> can manage different versions of Wine as well as different prefixes (<code>WINEPREFIX</code> environment variable).</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[OpenStack Dynamic DNS Updates]]></title>
@@ -498,7 +603,7 @@ You should see the IP address <code>192.168.100.200</code> in the command output
 </span></code></pre></td></tr></table></div></figure>
 If everything went fine you can watch the console output of the booting virtual machine at <code>/tmp/CentOS-6.log</code>. Cloud-Init will print out the IP address obtained by the virtual machine (192.168.122.165 in my case) where we can login as root using the generated private key:
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>ssh -i testkey &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#x6d;&amp;#x61;&amp;#105;&amp;#108;&amp;#116;&amp;#111;&amp;#x3a;&amp;#114;&amp;#x6f;&amp;#x6f;&amp;#x74;&amp;#x40;&amp;#x31;&amp;#57;&amp;#x32;&amp;#x2e;&amp;#49;&amp;#54;&amp;#x38;&amp;#x2e;&amp;#49;&amp;#x32;&amp;#x32;&amp;#x2e;&amp;#49;&amp;#54;&amp;#53;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#114;&amp;#111;&amp;#111;&amp;#x74;&amp;#64;&amp;#x31;&amp;#x39;&amp;#50;&amp;#46;&amp;#49;&amp;#x36;&amp;#56;&amp;#x2e;&amp;#49;&amp;#x32;&amp;#x32;&amp;#x2e;&amp;#x31;&amp;#54;&amp;#x35;&lt;/a&gt;</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>ssh -i testkey &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#x6d;&amp;#97;&amp;#105;&amp;#x6c;&amp;#116;&amp;#x6f;&amp;#58;&amp;#114;&amp;#111;&amp;#111;&amp;#x74;&amp;#x40;&amp;#49;&amp;#57;&amp;#50;&amp;#46;&amp;#x31;&amp;#54;&amp;#56;&amp;#46;&amp;#49;&amp;#50;&amp;#x32;&amp;#x2e;&amp;#x31;&amp;#x36;&amp;#x35;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#114;&amp;#111;&amp;#111;&amp;#116;&amp;#x40;&amp;#x31;&amp;#x39;&amp;#50;&amp;#x2e;&amp;#49;&amp;#54;&amp;#56;&amp;#46;&amp;#x31;&amp;#x32;&amp;#x32;&amp;#x2e;&amp;#x31;&amp;#x36;&amp;#x35;&lt;/a&gt;</span>
 </span></code></pre></td></tr></table></div></figure>
 Congratulations, your virtual machine has just been configured by Cloud-Init the same way as any other virtual machine running in the cloud environment.</p>
 ]]></content>

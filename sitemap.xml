@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>http://alesnosek.com/blog/2015/07/04/running-wine-within-docker/</loc>
+    <lastmod>2015-07-04T22:46:55-07:00</lastmod>
+  </url>
+  <url>
     <loc>http://alesnosek.com/blog/2015/06/28/diagrams-and-images-in-doxygen/</loc>
     <lastmod>2015-06-28T21:54:54-07:00</lastmod>
   </url>
