@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2015-07-05T12:01:31-07:00</updated>
+  <updated>2015-07-05T19:40:11-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -99,7 +99,7 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>When we run the above command, Wine starts up successfully and the notepad application opens up. Inside the Docker container Wine runs as user root and starts from scratch with no existing configuration, though:</p>
+<p>When we run the above command, Wine starts up successfully and the notepad application opens up. Inside the Docker container Wine runs as user root and starts from scratch with no existing configuration:</p>
 
 <p><img class="center" src="http://alesnosek.com/images/posts/wine.png"></p>
 
