@@ -62,7 +62,7 @@ The `notepad` application doesn't really start. From the generated error output 
 $ docker run --rm --volume /tmp/.X11-unix/X0:/tmp/.X11-unix/X0 wine1.4 wine "C:\windows\system32\notepad.exe"
 {% endcodeblock %}
 
-When we run the above command, Wine starts up successfully and the notepad application opens up. Inside the Docker container Wine runs as user root and starts from scratch with no existing configuration, though:
+When we run the above command, Wine starts up successfully and the notepad application opens up. Inside the Docker container Wine runs as user root and starts from scratch with no existing configuration:
 
 {% img center /images/posts/wine.png %}
 
