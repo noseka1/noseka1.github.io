@@ -4,7 +4,7 @@
   <title><![CDATA[Category: development | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/development/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2015-07-20T19:26:39-07:00</updated>
+  <updated>2015-07-20T21:40:30-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -18,14 +18,14 @@
     <link href="http://alesnosek.com/blog/2015/07/19/browsing-docker-source-using-eclipse/"/>
     <updated>2015-07-19T20:59:12-07:00</updated>
     <id>http://alesnosek.com/blog/2015/07/19/browsing-docker-source-using-eclipse</id>
-    <content type="html"><![CDATA[<p>Do you like Docker technology and want to learn more about it? There&rsquo;s no better way to learn than reading the source code. In this article, we&rsquo;ll install Go programming language, download the latest Docker source code and navigate it in Eclipse.</p>
+    <content type="html"><![CDATA[<p>Do you like Docker technology and want to learn more about it? There&rsquo;s no better way to learn than reading the source code. In this article, we&rsquo;ll install the Go programming language, download the latest Docker source code and navigate through it in Eclipse.</p>
 
 <!-- more -->
 
 
 <h2>Installing the Go programming language</h2>
 
-<p>The Go programming language is relatively young and sees a lot of development. Within the past two years there was a major release available every half a year. To keep up with the latest state of art it&rsquo;s better to install Go packages directly from the project&rsquo;s <a href="https://golang.org/dl/" title="Go Downloads">download site</a> instead of trying to make use of the packages coming with your Linux distribution. Currently, Docker requires Go version 1.4 or later. Before you start the installation, make sure that there are no Go packages installed on your system. Following command will uninstall all Go packages from your Debian-based Linux:</p>
+<p>The Go programming language is relatively young and sees a lot of development. Within the past two years there was a major release available every half a year. To keep up with the latest state of art it&rsquo;s better to install Go packages directly from the project&rsquo;s <a href="https://golang.org/dl/" title="Go Downloads">download site</a> instead of trying to make use of the packages coming with your Linux distribution. Currently, Docker requires Go version 1.4 or later. Before you start the installation, make sure that there are no Go packages installed on your system. The following command will uninstall all Go packages from your Debian-based Linux:</p>
 
 <p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo apt-get purge golang*
@@ -72,13 +72,13 @@
 
 <h2>Building Docker from source</h2>
 
-<p>We&rsquo;ve defined the location of our Go workspace so far. Now we&rsquo;re going to download the latest Docker code and build it. The Go tool can directly download the Docker Git repository and save it into our workspace:</p>
+<p>So far, we&rsquo;ve defined the location of our Go workspace. Now we&rsquo;re going to download the latest Docker code and build it. The Go tool can directly download the Docker Git repository and save it into our workspace:</p>
 
 <p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='sh'><span class='line'>go get -d github.com/docker/docker
 </span></code></pre></td></tr></table></div></figure></p>
 
-<p>Now we can change into the cloned Git repository and start the build:</p>
+<p>Now we can change our directory to the cloned Git repository and start the build:</p>
 
 <p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -96,13 +96,13 @@
 
 <p><img class="center" src="/images/posts/eclipse_go1.png"></p>
 
-<p>Instead of using default location, let Eclipse create the project in your Go workspace. After your Go project has been created go to <code>Window -&gt; Preferences</code> and find the tab with the Go configuration. You want to set the location of your Go language installation to the standard <code>/usr/local/go</code> directory. Make sure you set the <code>GOOS</code> and <code>GOARCH</code> fields, too. You&rsquo;ll also have to add the path to the Docker&rsquo;s <code>vendor</code> directory into the <code>GOPATH</code> field.</p>
+<p>Instead of using the default location, let Eclipse create the project in your Go workspace. After your Go project has been created, go to <code>Window -&gt; Preferences</code> and find the tab with the Go configuration. You want to set the location of your Go language installation to the standard <code>/usr/local/go</code> directory. Make sure you set the <code>GOOS</code> and <code>GOARCH</code> fields, too. You&rsquo;ll also have to add the path to the Docker&rsquo;s <code>vendor</code> directory into the <code>GOPATH</code> field.</p>
 
 <p><img class="center" src="/images/posts/eclipse_go2.png"></p>
 
-<h2>Code navigation and autocompletion</h2>
+<h2>Code navigation and auto-completion</h2>
 
-<p>In this final section, we&rsquo;re going to make navigation and autocompletion in Eclipse work. The <code>Open Definition</code> navigation in Eclipse (keyboard shorcut F3) requires the Go <code>oracle</code> tool to be installed. Whenever you open the definition of the entity under the cursor Eclipse will call the <code>oracle</code> tool in order to obtain the information about the navigation target.</p>
+<p>In this final section, we&rsquo;re going to make navigation and auto-completion in Eclipse work. The <code>Open Definition</code> navigation in Eclipse (keyboard shorcut F3) requires the Go <code>oracle</code> tool to be installed. Whenever you open the definition of the entity under the cursor, Eclipse will call the <code>oracle</code> tool in order to obtain the information about the navigation target.</p>
 
 <p>The <code>oracle</code> tool is part of a bigger Go toolset located <a href="https://github.com/golang/tools" title="Golang tools">here</a>. You can easily install the <code>oracle</code> tool using the <code>go</code> command. Type this in your console:</p>
 
@@ -116,7 +116,7 @@
 </pre></td><td class='code'><pre><code class='sh'><span class='line'>oracle <span class="p">&amp;</span>ndash<span class="p">;</span><span class="nb">help</span>
 </span></code></pre></td></tr></table></div></figure></p>
 
-<p>The source code navigation in Eclipse using the F3 keyboard shortcut should start working. Let&rsquo;s focus on the code autocompletion (Ctrl+Space) next. In order to make the autocompletion work, we need to install an autocompletion daemon for the Go programming language <a href="https://github.com/nsf/gocode" title="gocode">gocode</a>. The installation with the <code>go</code> tool is pretty simple:</p>
+<p>The source code navigation in Eclipse using the F3 keyboard shortcut should start working. Let&rsquo;s focus on the code auto-completion (Ctrl+Space) next. In order to make the auto-completion work, we need to install an auto-completion daemon for the Go programming language <a href="https://github.com/nsf/gocode" title="gocode">gocode</a>. The installation with the <code>go</code> tool is pretty simple:</p>
 
 <p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='sh'><span class='line'>go get github.com/nsf/gocode
@@ -128,7 +128,7 @@
 </pre></td><td class='code'><pre><code class='sh'><span class='line'>gocode <span class="p">&amp;</span>ndash<span class="p">;</span><span class="nb">help</span>
 </span></code></pre></td></tr></table></div></figure></p>
 
-<p>Eclipse provides a configuration dialog for Go tools under <code>Window -&gt; Preferences</code>. There&rsquo;s even buttons to click &amp; install the <code>oracle</code> and <code>gocode</code> tools from within Eclipse. We did this installation on the command-line.</p>
+<p>Eclipse provides a configuration dialog for Go tools under <code>Window -&gt; Preferences</code>. There are even buttons to click and install the <code>oracle</code> and <code>gocode</code> tools from within Eclipse. We did this installation on the command-line.</p>
 
 <p><img class="center" src="/images/posts/eclipse_go3.png"></p>
 
