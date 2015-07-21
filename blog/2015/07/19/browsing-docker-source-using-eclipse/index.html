@@ -1,0 +1,383 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Browsing Docker Source using Eclipse - Ales Nosek - The Software Practitioner</title>
+  <meta name="author" content="Ales Nosek">
+
+
+  <meta name="description" content="Do you like Docker technology and want to learn more about it? There&rsquo;s no better way to learn than reading the source code. In this article, we &hellip;">
+
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <link rel="canonical" href="http://alesnosek.com/blog/2015/07/19/browsing-docker-source-using-eclipse/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Ales Nosek - The Software Practitioner" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-61965164-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <img src="/images/computers.png" align="right">
+  <h1><a href="/">Ales Nosek - The Software Practitioner</a></h1>
+
+    <h2>Practicing to make software perfect.</h2>
+
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+
+</ul>
+
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="alesnosek.com">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+
+  <header>
+
+      <h1 class="entry-title">Browsing Docker Source using Eclipse</h1>
+
+
+      <p class="meta">
+
+
+
+
+
+<time class='entry-date' datetime='2015-07-19T20:59:12-07:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>8:59 pm</span></time>
+
+      </p>
+
+  </header>
+
+
+<div class="entry-content"><p>Do you like Docker technology and want to learn more about it? There&rsquo;s no better way to learn than reading the source code. In this article, we&rsquo;ll install Go programming language, download the latest Docker source code and navigate it in Eclipse.</p>
+
+<!-- more -->
+
+
+<h2>Installing the Go programming language</h2>
+
+<p>The Go programming language is relatively young and sees a lot of development. Within the past two years there was a major release available every half a year. To keep up with the latest state of art it&rsquo;s better to install Go packages directly from the project&rsquo;s <a href="https://golang.org/dl/" title="Go Downloads">download site</a> instead of trying to make use of the packages coming with your Linux distribution. Currently, Docker requires Go version 1.4 or later. Before you start the installation, make sure that there are no Go packages installed on your system. Following command will uninstall all Go packages from your Debian-based Linux:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo apt-get purge golang*
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>After you&rsquo;ve downloaded the Go binary distribution tarball your can install it with:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo tar -C /usr/local -xzf go1.4.2.linux-amd64.tar.gz
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This will extract the archive into the <code>/usr/local/go</code> directory. The Go distributions assume they will be installed in <code>/usr/local/go</code>. If you install Go into a different location you&rsquo;ll have to set the <code>GOROOT</code> environment variable. For more information on the Go installation refer to the Go&rsquo;s <a href="http://golang.org/doc/install" title="Getting Started">Getting Started</a> page.</p>
+
+<p>The <code>/usr/local/go/bin</code> includes the Go tool (the <code>go</code> command). We&rsquo;ll use this tool to download and compile Docker. You want to have the Go tool available on your path:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nb">export </span><span class="nv">PATH</span><span class="o">=</span><span class="nv">$PATH</span>:/usr/local/go/bin
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Creating a Go workspace</h2>
+
+<p>The Go <em>workspace</em> is a directory with three subdirectories:</p>
+
+<ul>
+<li><code>src</code> is where the source code resides</li>
+<li><code>pkg</code> is where the libraries are stored</li>
+<li><code>bin</code> is where the executables reside</li>
+</ul>
+
+
+<p>Typically, Go programmers keep <em>all</em> their source code and dependencies (libraries) in a single workspace. It means that all your Go projects are located in a single workspace.</p>
+
+<p>The workspace can be created at an arbitrary location. In order for Go tool to find the available workspaces, you must list them in the <code>GOPATH</code> environment variable. We&rsquo;ll define a single workspace under the current user&rsquo;s home directory:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nb">export </span><span class="nv">GOPATH</span><span class="o">=</span><span class="nv">$HOME</span>/go
+</span><span class='line'><span class="nb">export </span><span class="nv">PATH</span><span class="o">=</span><span class="nv">$PATH</span>:<span class="nv">$GOPATH</span>/bin
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>At the same time, we&rsquo;ve included the workspace&rsquo;s <code>bin</code> directory into our path variable. Whenever we build an executable it&rsquo;ll be instantly available for us to use. Note that the workspace directory doesn&rsquo;t exist yet. Go tool will automatically create it when we download the Docker source code.</p>
+
+<p>Furher information on the Go code organization and workspaces can be found <a href="http://golang.org/doc/code.html" title="How to Write Go Code">here</a>.</p>
+
+<h2>Building Docker from source</h2>
+
+<p>We&rsquo;ve defined the location of our Go workspace so far. Now we&rsquo;re going to download the latest Docker code and build it. The Go tool can directly download the Docker Git repository and save it into our workspace:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>go get -d github.com/docker/docker
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now we can change into the cloned Git repository and start the build:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nb">cd</span> <span class="nv">$HOME</span>/go/src/github.com/docker/docker
+</span><span class='line'><span class="nv">GOPATH</span><span class="o">=</span><span class="nv">$HOME</span>/go:<span class="nv">$HOME</span>/go/src/github.com/docker/docker/vendor ./hack/make.sh dynbinary
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Docker comes with a set of dependencies directly checked into the Docker Git repository. You can find them in the <code>vendor</code> directory. This directory is actually a Go workspace which we only needed to include in our <code>GOPATH</code> when we triggered the build. If everything went fine, you can find some generated source files in the <code>autogen</code> directory and the freshly built Docker executables in the <code>bundles</code> directory.</p>
+
+<h2>Creating an Eclipse project</h2>
+
+<p>In this section, we&rsquo;re going to install a Go language plug-in into Eclipse IDE and create a Docker project. The <a href="https://github.com/GoClipse/goclipse" title="GoClipse">GoClipse</a> plug-in brings Go language support into Eclipse. The minimum installation requirements for this plug-in are: Eclipse 4.5 (Mars) running on Java 8 or later. You can follow the installation instructions available <a href="https://github.com/GoClipse/goclipse/blob/latest/documentation/Installation.md" title="GoClipse installation">here</a> to get the plug-in installed.</p>
+
+<p>After the successful plug-in installation and restart of Eclipse select <code>File -&gt; New -&gt; Project ...</code>. Choose <code>Go Project</code> in the dialog box. You&rsquo;ll be presented with a window similar to:</p>
+
+<p><img class="center" src="/images/posts/eclipse_go1.png"></p>
+
+<p>Instead of using default location, let Eclipse create the project in your Go workspace. After your Go project has been created go to <code>Window -&gt; Preferences</code> and find the tab with the Go configuration. You want to set the location of your Go language installation to the standard <code>/usr/local/go</code> directory. Make sure you set the <code>GOOS</code> and <code>GOARCH</code> fields, too. You&rsquo;ll also have to add the path to the Docker&rsquo;s <code>vendor</code> directory into the <code>GOPATH</code> field.</p>
+
+<p><img class="center" src="/images/posts/eclipse_go2.png"></p>
+
+<h2>Code navigation and autocompletion</h2>
+
+<p>In this final section, we&rsquo;re going to make navigation and autocompletion in Eclipse work. The <code>Open Definition</code> navigation in Eclipse (keyboard shorcut F3) requires the Go <code>oracle</code> tool to be installed. Whenever you open the definition of the entity under the cursor Eclipse will call the <code>oracle</code> tool in order to obtain the information about the navigation target.</p>
+
+<p>The <code>oracle</code> tool is part of a bigger Go toolset located <a href="https://github.com/golang/tools" title="Golang tools">here</a>. You can easily install the <code>oracle</code> tool using the <code>go</code> command. Type this in your console:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>go get golang.org/x/tools/cmd/oracle
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You can run this command to confirm that the <code>oracle</code> tool was installed successfully:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>oracle --help
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The source code navigation in Eclipse using the F3 keyboard shortcut should start working. Let&rsquo;s focus on the code autocompletion (Ctrl+Space) next. In order to make the autocompletion work, we need to install an autocompletion daemon for the Go programming language <a href="https://github.com/nsf/gocode" title="gocode">gocode</a>. The installation with the <code>go</code> tool is pretty simple:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>go get github.com/nsf/gocode
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>To confirm that the <code>gocode</code> tool was installed successfully type:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>gocode --help
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Eclipse provides a configuration dialog for Go tools under <code>Window -&gt; Preferences</code>. There&rsquo;s even buttons to click &amp; install the <code>oracle</code> and <code>gocode</code> tools from within Eclipse. We did this installation on the command-line.</p>
+
+<p><img class="center" src="/images/posts/eclipse_go3.png"></p>
+
+<p>Now that you&rsquo;re all set I wish you happy browsing through the Docker source code!</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+
+
+
+<span class="byline author vcard">Posted by <span class="fn">Ales Nosek</span></span>
+
+
+
+
+
+
+<time class='entry-date' datetime='2015-07-19T20:59:12-07:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>8:59 pm</span></time>
+
+
+<span class="categories">
+
+    <a class='category' href='/blog/categories/development/'>development</a>
+
+</span>
+
+
+    </p>
+
+      <div class="sharing">
+
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://alesnosek.com/blog/2015/07/19/browsing-docker-source-using-eclipse/" data-via="" data-counturl="http://alesnosek.com/blog/2015/07/19/browsing-docker-source-using-eclipse/" >Tweet</a>
+
+
+  <div class="g-plusone" data-size="medium"></div>
+
+
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+
+</div>
+
+
+    <p class="meta">
+
+        <a class="basic-alignment left" href="/blog/2015/07/04/running-wine-within-docker/" title="Previous Post: Running Wine within Docker">&laquo; Running Wine within Docker</a>
+
+
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+
+      <li class="post">
+        <a href="/blog/2015/07/19/browsing-docker-source-using-eclipse/">Browsing Docker Source using Eclipse</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2015/07/04/running-wine-within-docker/">Running Wine within Docker</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2015/06/28/diagrams-and-images-in-doxygen/">Diagrams and Images in Doxygen</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2015/06/21/the-structure-of-doxygen-documentation/">The Structure of Doxygen Documentation</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2015/06/14/technical-documentation-with-doxygen/">Technical Documentation with Doxygen</a>
+      </li>
+
+  </ul>
+</section>
+
+
+
+
+
+
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2015 - Ales Nosek -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'alesnosekcom';
+
+
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://alesnosek.com/blog/2015/07/19/browsing-docker-source-using-eclipse/';
+        var disqus_url = 'http://alesnosek.com/blog/2015/07/19/browsing-docker-source-using-eclipse/';
+        var disqus_script = 'embed.js';
+
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

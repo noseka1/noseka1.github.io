@@ -4,15 +4,138 @@
   <title><![CDATA[Category: development | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/development/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2015-07-05T19:40:11-07:00</updated>
+  <updated>2015-07-20T19:26:39-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
-    
+
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
-  
+
+  <entry>
+    <title type="html"><![CDATA[Browsing Docker Source using Eclipse]]></title>
+    <link href="http://alesnosek.com/blog/2015/07/19/browsing-docker-source-using-eclipse/"/>
+    <updated>2015-07-19T20:59:12-07:00</updated>
+    <id>http://alesnosek.com/blog/2015/07/19/browsing-docker-source-using-eclipse</id>
+    <content type="html"><![CDATA[<p>Do you like Docker technology and want to learn more about it? There&rsquo;s no better way to learn than reading the source code. In this article, we&rsquo;ll install Go programming language, download the latest Docker source code and navigate it in Eclipse.</p>
+
+<!-- more -->
+
+
+<h2>Installing the Go programming language</h2>
+
+<p>The Go programming language is relatively young and sees a lot of development. Within the past two years there was a major release available every half a year. To keep up with the latest state of art it&rsquo;s better to install Go packages directly from the project&rsquo;s <a href="https://golang.org/dl/" title="Go Downloads">download site</a> instead of trying to make use of the packages coming with your Linux distribution. Currently, Docker requires Go version 1.4 or later. Before you start the installation, make sure that there are no Go packages installed on your system. Following command will uninstall all Go packages from your Debian-based Linux:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo apt-get purge golang*
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>After you&rsquo;ve downloaded the Go binary distribution tarball your can install it with:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo tar -C /usr/local -xzf go1.4.2.linux-amd64.tar.gz
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>This will extract the archive into the <code>/usr/local/go</code> directory. The Go distributions assume they will be installed in <code>/usr/local/go</code>. If you install Go into a different location you&rsquo;ll have to set the <code>GOROOT</code> environment variable. For more information on the Go installation refer to the Go&rsquo;s <a href="http://golang.org/doc/install" title="Getting Started">Getting Started</a> page.</p>
+
+<p>The <code>/usr/local/go/bin</code> includes the Go tool (the <code>go</code> command). We&rsquo;ll use this tool to download and compile Docker. You want to have the Go tool available on your path:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nb">export </span><span class="nv">PATH</span><span class="o">=</span><span class="nv">$PATH</span>:/usr/local/go/bin
+</span></code></pre></td></tr></table></div></figure></p>
+
+<h2>Creating a Go workspace</h2>
+
+<p>The Go <em>workspace</em> is a directory with three subdirectories:</p>
+
+<ul>
+<li><code>src</code> is where the source code resides</li>
+<li><code>pkg</code> is where the libraries are stored</li>
+<li><code>bin</code> is where the executables reside</li>
+</ul>
+
+
+<p>Typically, Go programmers keep <em>all</em> their source code and dependencies (libraries) in a single workspace. It means that all your Go projects are located in a single workspace.</p>
+
+<p>The workspace can be created at an arbitrary location. In order for Go tool to find the available workspaces, you must list them in the <code>GOPATH</code> environment variable. We&rsquo;ll define a single workspace under the current user&rsquo;s home directory:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nb">export </span><span class="nv">GOPATH</span><span class="o">=</span><span class="nv">$HOME</span>/go
+</span><span class='line'><span class="nb">export </span><span class="nv">PATH</span><span class="o">=</span><span class="nv">$PATH</span>:<span class="nv">$GOPATH</span>/bin
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>At the same time, we&rsquo;ve included the workspace&rsquo;s <code>bin</code> directory into our path variable. Whenever we build an executable it&rsquo;ll be instantly available for us to use. Note that the workspace directory doesn&rsquo;t exist yet. Go tool will automatically create it when we download the Docker source code.</p>
+
+<p>Furher information on the Go code organization and workspaces can be found <a href="http://golang.org/doc/code.html" title="How to Write Go Code">here</a>.</p>
+
+<h2>Building Docker from source</h2>
+
+<p>We&rsquo;ve defined the location of our Go workspace so far. Now we&rsquo;re going to download the latest Docker code and build it. The Go tool can directly download the Docker Git repository and save it into our workspace:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>go get -d github.com/docker/docker
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Now we can change into the cloned Git repository and start the build:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nb">cd</span> <span class="nv">$HOME</span>/go/src/github.com/docker/docker
+</span><span class='line'><span class="nv">GOPATH</span><span class="o">=</span><span class="nv">$HOME</span>/go:<span class="nv">$HOME</span>/go/src/github.com/docker/docker/vendor ./hack/make.sh dynbinary
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Docker comes with a set of dependencies directly checked into the Docker Git repository. You can find them in the <code>vendor</code> directory. This directory is actually a Go workspace which we only needed to include in our <code>GOPATH</code> when we triggered the build. If everything went fine, you can find some generated source files in the <code>autogen</code> directory and the freshly built Docker executables in the <code>bundles</code> directory.</p>
+
+<h2>Creating an Eclipse project</h2>
+
+<p>In this section, we&rsquo;re going to install a Go language plug-in into Eclipse IDE and create a Docker project. The <a href="https://github.com/GoClipse/goclipse" title="GoClipse">GoClipse</a> plug-in brings Go language support into Eclipse. The minimum installation requirements for this plug-in are: Eclipse 4.5 (Mars) running on Java 8 or later. You can follow the installation instructions available <a href="https://github.com/GoClipse/goclipse/blob/latest/documentation/Installation.md" title="GoClipse installation">here</a> to get the plug-in installed.</p>
+
+<p>After the successful plug-in installation and restart of Eclipse select <code>File -&gt; New -&gt; Project ...</code>. Choose <code>Go Project</code> in the dialog box. You&rsquo;ll be presented with a window similar to:</p>
+
+<p><img class="center" src="/images/posts/eclipse_go1.png"></p>
+
+<p>Instead of using default location, let Eclipse create the project in your Go workspace. After your Go project has been created go to <code>Window -&gt; Preferences</code> and find the tab with the Go configuration. You want to set the location of your Go language installation to the standard <code>/usr/local/go</code> directory. Make sure you set the <code>GOOS</code> and <code>GOARCH</code> fields, too. You&rsquo;ll also have to add the path to the Docker&rsquo;s <code>vendor</code> directory into the <code>GOPATH</code> field.</p>
+
+<p><img class="center" src="/images/posts/eclipse_go2.png"></p>
+
+<h2>Code navigation and autocompletion</h2>
+
+<p>In this final section, we&rsquo;re going to make navigation and autocompletion in Eclipse work. The <code>Open Definition</code> navigation in Eclipse (keyboard shorcut F3) requires the Go <code>oracle</code> tool to be installed. Whenever you open the definition of the entity under the cursor Eclipse will call the <code>oracle</code> tool in order to obtain the information about the navigation target.</p>
+
+<p>The <code>oracle</code> tool is part of a bigger Go toolset located <a href="https://github.com/golang/tools" title="Golang tools">here</a>. You can easily install the <code>oracle</code> tool using the <code>go</code> command. Type this in your console:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>go get golang.org/x/tools/cmd/oracle
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>You can run this command to confirm that the <code>oracle</code> tool was installed successfully:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>oracle <span class="p">&amp;</span>ndash<span class="p">;</span><span class="nb">help</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>The source code navigation in Eclipse using the F3 keyboard shortcut should start working. Let&rsquo;s focus on the code autocompletion (Ctrl+Space) next. In order to make the autocompletion work, we need to install an autocompletion daemon for the Go programming language <a href="https://github.com/nsf/gocode" title="gocode">gocode</a>. The installation with the <code>go</code> tool is pretty simple:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>go get github.com/nsf/gocode
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>To confirm that the <code>gocode</code> tool was installed successfully type:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>gocode <span class="p">&amp;</span>ndash<span class="p">;</span><span class="nb">help</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Eclipse provides a configuration dialog for Go tools under <code>Window -&gt; Preferences</code>. There&rsquo;s even buttons to click &amp; install the <code>oracle</code> and <code>gocode</code> tools from within Eclipse. We did this installation on the command-line.</p>
+
+<p><img class="center" src="/images/posts/eclipse_go3.png"></p>
+
+<p>Now that you&rsquo;re all set I wish you happy browsing through the Docker source code!</p>
+]]></content>
+  </entry>
+
   <entry>
     <title type="html"><![CDATA[The Structure of Doxygen Documentation]]></title>
     <link href="http://alesnosek.com/blog/2015/06/21/the-structure-of-doxygen-documentation/"/>
@@ -142,7 +265,7 @@ The page hierarchy is created by the repetitive use of the Doxygen tag <code>@su
 <p>Doxygen automatically generates a list of namespaces, classes and files for you.</p>
 ]]></content>
   </entry>
-  
+
   <entry>
     <title type="html"><![CDATA[Technical Documentation with Doxygen]]></title>
     <link href="http://alesnosek.com/blog/2015/06/14/technical-documentation-with-doxygen/"/>
@@ -183,7 +306,7 @@ The page hierarchy is created by the repetitive use of the Doxygen tag <code>@su
 
 ]]></content>
   </entry>
-  
+
   <entry>
     <title type="html"><![CDATA[Seven Tips for Better Code]]></title>
     <link href="http://alesnosek.com/blog/2015/06/06/seven-tips-for-better-code/"/>
@@ -462,7 +585,7 @@ When the maintainer tries to add an error message to this code he cannot introdu
 <p>There&rsquo;s no perfect programming language. Idioms get invented to work around the quirks of a specific programming language. Using idioms improves the maintanability of the code. You should learn and use them wherever possible. For Java idioms you can refer to <a href="http://c2.com/ppr/wiki/JavaIdioms/JavaIdioms.html" title="Java Idioms">Java Idioms</a> and <a href="http://www.nayuki.io/page/good-java-idioms" title="Good Java Idioms">Good Java Idioms</a>.</p>
 ]]></content>
   </entry>
-  
+
   <entry>
     <title type="html"><![CDATA[Five Basic Tips for Logging in Java]]></title>
     <link href="http://alesnosek.com/blog/2015/05/18/five-basic-tips-for-logging-in-java/"/>
@@ -854,332 +977,5 @@ This produces the following output in your logs:
 Now you can tell the name of the user for whom you did the processing.</p>
 ]]></content>
   </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Java Logging Quick Reference]]></title>
-    <link href="http://alesnosek.com/blog/2015/05/11/java-logging-quick-reference/"/>
-    <updated>2015-05-11T00:13:09-07:00</updated>
-    <id>http://alesnosek.com/blog/2015/05/11/java-logging-quick-reference</id>
-    <content type="html"><![CDATA[<p>The Simple Logging Facade for Java (SLF4J) serves as a simple abstraction for various logging frameworks. Let&rsquo;s look at how to configure SLF4J to work with SLF4J Simple logger, JDK 1.4 logger, Log4j, Logback and Log4j2 framework.</p>
 
-<!-- more -->
-
-
-<p>Following is a Java code of our logging application <code>LogApp</code>. Note that it uses SLF4J API classes to do the logging. The jar file <code>slf4j-api-1.7.12.jar</code> is the only compile time dependency.
-<figure class='code'><figcaption><span>LogApp.java </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">import</span> <span class="nn">org.slf4j.Logger</span><span class="o">;</span>
-</span><span class='line'><span class="kn">import</span> <span class="nn">org.slf4j.LoggerFactory</span><span class="o">;&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="kd">public</span> <span class="kd">class</span> <span class="nc">LogApp</span> <span class="o">{&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">Logger</span> <span class="n">log</span> <span class="o">=</span> <span class="n">LoggerFactory</span><span class="o">.</span><span class="na">getLogger</span><span class="o">(</span><span class="n">LogApp</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
-</span><span class='line'>
-</span><span class='line'><span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>    <span class="n">log</span><span class="o">.</span><span class="na">trace</span><span class="o">(</span><span class="s">&quot;Trace message&quot;</span><span class="o">);</span>
-</span><span class='line'>    <span class="n">log</span><span class="o">.</span><span class="na">debug</span><span class="o">(</span><span class="s">&quot;Debug message&quot;</span><span class="o">);</span>
-</span><span class='line'>    <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="s">&quot;Info message&quot;</span><span class="o">);</span>
-</span><span class='line'>    <span class="n">log</span><span class="o">.</span><span class="na">warn</span><span class="o">(</span><span class="s">&quot;Warning message&quot;</span><span class="o">);</span>
-</span><span class='line'>    <span class="n">log</span><span class="o">.</span><span class="na">error</span><span class="o">(</span><span class="s">&quot;Error message&quot;</span><span class="o">);</span>
-</span><span class='line'><span class="o">}</span>
-</span><span class='line'><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;}</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>You can compile the LogApp code with:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>javac -cp slf4j-api-1.7.12.jar LogApp.java
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>And run the LogApp with:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>java -cp .:slf4j-api-1.7.12.jar LogApp
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>The output shows that SLF4J is missing a logger implementation. In the following we&rsquo;ll demonstrate how to plug in different logging backends. The principle is always the same: include the logging framework implementation jars on the classpath, include the respective SLF4J adaptor jar on the classpath and provide a configuration file specific to the logging framework.
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>SLF4J: Failed to load class &ldquo;org.slf4j.impl.StaticLoggerBinder&rdquo;.
-</span><span class='line'>SLF4J: Defaulting to no-operation (NOP) logger implementation
-</span><span class='line'>SLF4J: See &lt;a href="http://www.slf4j.org/codes.html#StaticLoggerBinder">http://www.slf4j.org/codes.html#StaticLoggerBinder&lt;/a> for further details.</span></code></pre></td></tr></table></div></figure></p>
-
-<h2>SLF4J Simple logger</h2>
-
-<p>The SLF4J comes with a Simple logger implemenation. Simple logger provides only basic functionality. It read its configuration from a <code>simplelogger.properties</code> file that must be included on the classpath. There&rsquo;s no way to specify a different location of the configuration file.</p>
-
-<p><figure class='code'><figcaption><span>simplelogger.properties - Output to console </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='properties'><span class='line'><span class="na">org.slf4j.simpleLogger.logFile</span><span class="o">=</span><span class="s">System.out</span>
-</span><span class='line'><span class="na">org.slf4j.simpleLogger.defaultLogLevel</span><span class="o">=</span><span class="s">debug</span>
-</span><span class='line'><span class="na">org.slf4j.simpleLogger.showDateTime</span><span class="o">=</span><span class="s">true</span>
-</span><span class='line'><span class="na">org.slf4j.simpleLogger.dateTimeFormat</span><span class="o">=</span><span class="s">HH:mm:ss.SSS</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p><figure class='code'><figcaption><span>simplelogger.properties - Output to file </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='properties'><span class='line'><span class="na">org.slf4j.simpleLogger.logFile</span><span class="o">=</span><span class="s">/tmp/logger.out</span>
-</span><span class='line'><span class="na">org.slf4j.simpleLogger.defaultLogLevel</span><span class="o">=</span><span class="s">debug</span>
-</span><span class='line'><span class="na">org.slf4j.simpleLogger.showDateTime</span><span class="o">=</span><span class="s">true</span>
-</span><span class='line'><span class="na">org.slf4j.simpleLogger.dateTimeFormat</span><span class="o">=</span><span class="s">HH:mm:ss.SSS</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Run the application with:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>java -cp .:slf4j-api-1.7.12.jar:slf4j-simple-1.7.12.jar LogApp
-</span></code></pre></td></tr></table></div></figure></p>
-
-<h2>JDK 1.4 logger (java.util.logging)</h2>
-
-<p>The java.util.logging package was introduced in JDK 1.4. The default <code>logging.properties</code> configuration file that comes with JRE (<code>jre/lib/logging.properties</code>) specifies a ConsoleHandler that routes logging to System.err. There&rsquo;s no way how to configure the JDK 1.4 logger to log to standard output instead of standard error output unless you do the configuration programmaticaly. You can specify the location of your JDK 1.4 logging configuration file in <code>java.util.logging.config.file</code> Java property.</p>
-
-<p><figure class='code'><figcaption><span>jdk14.stderr.properties - Output to console </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='properties'><span class='line'><span class="na">handlers</span><span class="o">=</span><span class="s">java.util.logging.ConsoleHandler</span>
-</span><span class='line'><span class="na">.level</span><span class="o">=</span><span class="s">FINE</span>
-</span><span class='line'><span class="na">java.util.logging.ConsoleHandler.level</span><span class="o">=</span><span class="s">FINE</span>
-</span><span class='line'><span class="na">java.util.logging.ConsoleHandler.formatter</span><span class="o">=</span><span class="s">java.util.logging.SimpleFormatter&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;h1&gt;message</span> <span class="err">pattern</span> <span class="err">works</span> <span class="err">since</span> <span class="err">Java</span> <span class="err">7&lt;/h1&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="na">&lt;p&gt;java.util.logging.SimpleFormatter.format</span><span class="o">=</span><span class="s">%1$tT [%2$s] %4$s - %5$s %6$s%n</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p><figure class='code'><figcaption><span>jdk14.file.properties - Output to file </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='properties'><span class='line'><span class="na">handlers</span><span class="o">=</span><span class="s">java.util.logging.FileHandler</span>
-</span><span class='line'><span class="na">.level</span><span class="o">=</span><span class="s">FINE</span>
-</span><span class='line'><span class="na">java.util.logging.FileHandler.level</span><span class="o">=</span><span class="s">FINE</span>
-</span><span class='line'><span class="na">java.util.logging.FileHandler.pattern</span><span class="o">=</span><span class="s">/tmp/logger.out</span>
-</span><span class='line'><span class="na">java.util.logging.FileHandler.append</span><span class="o">=</span><span class="s">true</span>
-</span><span class='line'><span class="na">java.util.logging.FileHandler.formatter</span><span class="o">=</span><span class="s">java.util.logging.SimpleFormatter&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;h1&gt;message</span> <span class="err">pattern</span> <span class="err">works</span> <span class="err">since</span> <span class="err">Java</span> <span class="err">7&lt;/h1&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="na">&lt;p&gt;java.util.logging.SimpleFormatter.format</span><span class="o">=</span><span class="s">%1$tT [%2$s] %4$s - %5$s %6$s%n</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Run the application with:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>java -cp .:slf4j-api-1.7.12.jar:slf4j-jdk14-1.7.12.jar -Djava.util.logging.config.file<span class="o">=</span>/tmp/jdk14.stderr.properties LogApp
-</span></code></pre></td></tr></table></div></figure></p>
-
-<h2>Log4j</h2>
-
-<p>The Log4j doesn&rsquo;t log a single message for you unless you provide it with a proper configuration:
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>log4j:WARN No appenders could be found for logger (LogApp).
-</span><span class='line'>log4j:WARN Please initialize the log4j system properly.
-</span><span class='line'>log4j:WARN See &lt;a href="http://logging.apache.org/log4j/1.2/faq.html#noconfig">http://logging.apache.org/log4j/1.2/faq.html#noconfig&lt;/a> for more info.</span></code></pre></td></tr></table></div></figure></p>
-
-<p>The following are the sample Log4j configuration files. Note that the <code>log4j.configuration</code> Java property that specifies the location of the configuration file must be a URL. In the example below the <code>/tmp/log4j.stdout.properties</code> location has to be prepended with <code>file:</code> to form a URL.</p>
-
-<p><figure class='code'><figcaption><span>log4j.stdout.properties - Output to console </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='properties'><span class='line'><span class="na">log4j.rootLogger</span><span class="o">=</span><span class="s">DEBUG, stdout</span>
-</span><span class='line'><span class="na">log4j.appender.stdout</span><span class="o">=</span><span class="s">org.apache.log4j.ConsoleAppender</span>
-</span><span class='line'><span class="na">log4j.appender.stdout.Target</span><span class="o">=</span><span class="s">System.out</span>
-</span><span class='line'><span class="na">log4j.appender.stdout.layout</span><span class="o">=</span><span class="s">org.apache.log4j.PatternLayout</span>
-</span><span class='line'><span class="na">log4j.appender.stdout.layout.ConversionPattern</span><span class="o">=</span><span class="s">%d{HH:mm:ss} [%t] %-5p %c{1}:%L - %m%n</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p><figure class='code'><figcaption><span>log4j.file.properties - Output to file </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='properties'><span class='line'><span class="na">log4j.rootLogger</span><span class="o">=</span><span class="s">DEBUG, file</span>
-</span><span class='line'><span class="na">log4j.appender.file</span><span class="o">=</span><span class="s">org.apache.log4j.FileAppender</span>
-</span><span class='line'><span class="na">log4j.appender.file.File</span><span class="o">=</span><span class="s">/tmp/logger.out</span>
-</span><span class='line'><span class="na">log4j.appender.file.layout</span><span class="o">=</span><span class="s">org.apache.log4j.PatternLayout</span>
-</span><span class='line'><span class="na">log4j.appender.file.layout.ConversionPattern</span><span class="o">=</span><span class="s">%d{HH:mm:ss} [%t] %-5p %c{1}:%L - %m%n</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Run the application with:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>java -cp .:slf4j-api-1.7.12.jar:slf4j-log4j12-1.7.12.jar:log4j-1.2.17.jar -Dlog4j.configuration<span class="o">=</span>file:/tmp/log4j.stdout.properties LogApp
-</span></code></pre></td></tr></table></div></figure></p>
-
-<h2>Logback</h2>
-
-<p>With no configuration provided Logback defaults to printing all log messages on the console standard output. The <code>logback-classic</code> jar package that comes with Logback includes the <code>org.slf4j.impl.StaticLoggerBinder</code> class that serves as an adaptor to SLF4J framework. Therefore no extra SLF4J adaptor jar is needed on the runtime classpath. You can specify the location of your Logback configuration file in the <code>logback.configurationFile</code> Java property.</p>
-
-<p><figure class='code'><figcaption><span>logback.stdout.xml - Output to console </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;configuration&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;appender</span> <span class="na">name=</span><span class="s">&quot;stdout&quot;</span> <span class="na">class=</span><span class="s">&quot;ch.qos.logback.core.ConsoleAppender&quot;</span><span class="nt">&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;Target&gt;</span>System.out<span class="nt">&lt;/Target&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;encoder&gt;</span>
-</span><span class='line'>      <span class="nt">&lt;pattern&gt;</span>%d{HH:mm:ss} [%t] %-5p %c{1}:%L - %m%n<span class="nt">&lt;/pattern&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;/encoder&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;/appender&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;root</span> <span class="na">level=</span><span class="s">&quot;DEBUG&quot;</span><span class="nt">&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;appender-ref</span> <span class="na">ref=</span><span class="s">&quot;stdout&quot;</span><span class="nt">/&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;/root&gt;</span>
-</span><span class='line'><span class="nt">&lt;/configuration&gt;</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p><figure class='code'><figcaption><span>logback.file.xml - Output to file </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;configuration&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;appender</span> <span class="na">name=</span><span class="s">&quot;file&quot;</span> <span class="na">class=</span><span class="s">&quot;ch.qos.logback.core.FileAppender&quot;</span><span class="nt">&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;File&gt;</span>/tmp/logger.out<span class="nt">&lt;/File&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;encoder&gt;</span>
-</span><span class='line'>      <span class="nt">&lt;pattern&gt;</span>%d{HH:mm:ss} [%t] %-5p %c{1}:%L - %m%n<span class="nt">&lt;/pattern&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;/encoder&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;/appender&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;root</span> <span class="na">level=</span><span class="s">&quot;DEBUG&quot;</span><span class="nt">&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;appender-ref</span> <span class="na">ref=</span><span class="s">&quot;file&quot;</span><span class="nt">/&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;/root&gt;</span>
-</span><span class='line'><span class="nt">&lt;/configuration&gt;</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Run the application with:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>java -cp .:slf4j-api-1.7.12.jar:logback-core-1.1.3.jar:logback-classic-1.1.3.jar -Dlogback.configurationFile=/tmp/logback.stdout.xml LogApp</span></code></pre></td></tr></table></div></figure></p>
-
-<h2>Log4j2</h2>
-
-<p>With no configuration provided Log4j2 informs you that it logs only error messages to stdout. You can provide the location of your Log4j2 configuration file in the <code>log4j.configurationFile</code> Java property.</p>
-
-<p><figure class='code'><figcaption><span>lang </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>ERROR StatusLogger No log4j2 configuration file found. Using default configuration: logging only errors to the console.
-</span><span class='line'>22:09:13.052 [main] ERROR LogApp - Error message</span></code></pre></td></tr></table></div></figure></p>
-
-<p><figure class='code'><figcaption><span>log4j2.stdout.xml - Output to console </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;Configuration&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;Appenders&gt;</span>
-</span><span class='line'>        <span class="nt">&lt;Console</span> <span class="na">name=</span><span class="s">&quot;console&quot;</span> <span class="na">target=</span><span class="s">&quot;SYSTEM_OUT&quot;</span><span class="nt">&gt;</span>
-</span><span class='line'>            <span class="nt">&lt;PatternLayout</span> <span class="na">pattern=</span><span class="s">&quot;%d{HH:mm:ss} [%t] %-5p %c{1}:%L - %m%n&quot;</span> <span class="nt">/&gt;</span>
-</span><span class='line'>        <span class="nt">&lt;/Console&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;/Appenders&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;Loggers&gt;</span>
-</span><span class='line'>        <span class="nt">&lt;Root</span> <span class="na">level=</span><span class="s">&quot;debug&quot;</span><span class="nt">&gt;</span>
-</span><span class='line'>            <span class="nt">&lt;AppenderRef</span> <span class="na">ref=</span><span class="s">&quot;console&quot;</span> <span class="nt">/&gt;</span>
-</span><span class='line'>        <span class="nt">&lt;/Root&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;/Loggers&gt;</span>
-</span><span class='line'><span class="nt">&lt;/Configuration&gt;</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p><figure class='code'><figcaption><span>log4j2.file.xml - Output to file </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;Configuration&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;Appenders&gt;</span>
-</span><span class='line'>        <span class="nt">&lt;File</span> <span class="na">name=</span><span class="s">&quot;file&quot;</span> <span class="na">fileName=</span><span class="s">&quot;/tmp/logger.out&quot;</span> <span class="na">append=</span><span class="s">&quot;true&quot;</span><span class="nt">&gt;</span>
-</span><span class='line'>            <span class="nt">&lt;PatternLayout</span> <span class="na">pattern=</span><span class="s">&quot;%d{HH:mm:ss} [%t] %-5p %c{1}:%L - %m%n&quot;</span><span class="nt">/&gt;</span>
-</span><span class='line'>        <span class="nt">&lt;/File&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;/Appenders&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;Loggers&gt;</span>
-</span><span class='line'>        <span class="nt">&lt;Root</span> <span class="na">level=</span><span class="s">&quot;debug&quot;</span><span class="nt">&gt;</span>
-</span><span class='line'>            <span class="nt">&lt;AppenderRef</span> <span class="na">ref=</span><span class="s">&quot;file&quot;</span> <span class="nt">/&gt;</span>
-</span><span class='line'>        <span class="nt">&lt;/Root&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;/Loggers&gt;</span>
-</span><span class='line'><span class="nt">&lt;/Configuration&gt;</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Run the application with:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>java -cp .:slf4j-api-1.7.12.jar:log4j-core-2.2.jar:log4j-api-2.2.jar:log4j-slf4j-impl-2.2.jar -Dlog4j.configurationFile<span class="o">=</span>/tmp/log4j2.stdout.xml LogApp
-</span></code></pre></td></tr></table></div></figure></p>
-]]></content>
-  </entry>
-  
 </feed>

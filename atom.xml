@@ -4,15 +4,148 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2015-07-05T19:40:11-07:00</updated>
+  <updated>2015-07-20T19:26:39-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
-    
+
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
-  
+
+  <entry>
+    <title type="html"><![CDATA[Browsing Docker Source using Eclipse]]></title>
+    <link href="http://alesnosek.com/blog/2015/07/19/browsing-docker-source-using-eclipse/"/>
+    <updated>2015-07-19T20:59:12-07:00</updated>
+    <id>http://alesnosek.com/blog/2015/07/19/browsing-docker-source-using-eclipse</id>
+    <content type="html"><![CDATA[<p>Do you like Docker technology and want to learn more about it? There&rsquo;s no better way to learn than reading the source code. In this article, we&rsquo;ll install Go programming language, download the latest Docker source code and navigate it in Eclipse.</p>
+
+<!-- more -->
+
+
+<h2>Installing the Go programming language</h2>
+
+<p>The Go programming language is relatively young and sees a lot of development. Within the past two years there was a major release available every half a year. To keep up with the latest state of art it&rsquo;s better to install Go packages directly from the project&rsquo;s <a href="https://golang.org/dl/" title="Go Downloads">download site</a> instead of trying to make use of the packages coming with your Linux distribution. Currently, Docker requires Go version 1.4 or later. Before you start the installation, make sure that there are no Go packages installed on your system. Following command will uninstall all Go packages from your Debian-based Linux:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo apt-get purge golang*
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>After you&rsquo;ve downloaded the Go binary distribution tarball your can install it with:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo tar -C /usr/local -xzf go1.4.2.linux-amd64.tar.gz
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This will extract the archive into the <code>/usr/local/go</code> directory. The Go distributions assume they will be installed in <code>/usr/local/go</code>. If you install Go into a different location you&rsquo;ll have to set the <code>GOROOT</code> environment variable. For more information on the Go installation refer to the Go&rsquo;s <a href="http://golang.org/doc/install" title="Getting Started">Getting Started</a> page.</p>
+
+<p>The <code>/usr/local/go/bin</code> includes the Go tool (the <code>go</code> command). We&rsquo;ll use this tool to download and compile Docker. You want to have the Go tool available on your path:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nb">export </span><span class="nv">PATH</span><span class="o">=</span><span class="nv">$PATH</span>:/usr/local/go/bin
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Creating a Go workspace</h2>
+
+<p>The Go <em>workspace</em> is a directory with three subdirectories:</p>
+
+<ul>
+<li><code>src</code> is where the source code resides</li>
+<li><code>pkg</code> is where the libraries are stored</li>
+<li><code>bin</code> is where the executables reside</li>
+</ul>
+
+
+<p>Typically, Go programmers keep <em>all</em> their source code and dependencies (libraries) in a single workspace. It means that all your Go projects are located in a single workspace.</p>
+
+<p>The workspace can be created at an arbitrary location. In order for Go tool to find the available workspaces, you must list them in the <code>GOPATH</code> environment variable. We&rsquo;ll define a single workspace under the current user&rsquo;s home directory:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nb">export </span><span class="nv">GOPATH</span><span class="o">=</span><span class="nv">$HOME</span>/go
+</span><span class='line'><span class="nb">export </span><span class="nv">PATH</span><span class="o">=</span><span class="nv">$PATH</span>:<span class="nv">$GOPATH</span>/bin
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>At the same time, we&rsquo;ve included the workspace&rsquo;s <code>bin</code> directory into our path variable. Whenever we build an executable it&rsquo;ll be instantly available for us to use. Note that the workspace directory doesn&rsquo;t exist yet. Go tool will automatically create it when we download the Docker source code.</p>
+
+<p>Furher information on the Go code organization and workspaces can be found <a href="http://golang.org/doc/code.html" title="How to Write Go Code">here</a>.</p>
+
+<h2>Building Docker from source</h2>
+
+<p>We&rsquo;ve defined the location of our Go workspace so far. Now we&rsquo;re going to download the latest Docker code and build it. The Go tool can directly download the Docker Git repository and save it into our workspace:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>go get -d github.com/docker/docker
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now we can change into the cloned Git repository and start the build:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nb">cd</span> <span class="nv">$HOME</span>/go/src/github.com/docker/docker
+</span><span class='line'><span class="nv">GOPATH</span><span class="o">=</span><span class="nv">$HOME</span>/go:<span class="nv">$HOME</span>/go/src/github.com/docker/docker/vendor ./hack/make.sh dynbinary
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Docker comes with a set of dependencies directly checked into the Docker Git repository. You can find them in the <code>vendor</code> directory. This directory is actually a Go workspace which we only needed to include in our <code>GOPATH</code> when we triggered the build. If everything went fine, you can find some generated source files in the <code>autogen</code> directory and the freshly built Docker executables in the <code>bundles</code> directory.</p>
+
+<h2>Creating an Eclipse project</h2>
+
+<p>In this section, we&rsquo;re going to install a Go language plug-in into Eclipse IDE and create a Docker project. The <a href="https://github.com/GoClipse/goclipse" title="GoClipse">GoClipse</a> plug-in brings Go language support into Eclipse. The minimum installation requirements for this plug-in are: Eclipse 4.5 (Mars) running on Java 8 or later. You can follow the installation instructions available <a href="https://github.com/GoClipse/goclipse/blob/latest/documentation/Installation.md" title="GoClipse installation">here</a> to get the plug-in installed.</p>
+
+<p>After the successful plug-in installation and restart of Eclipse select <code>File -&gt; New -&gt; Project ...</code>. Choose <code>Go Project</code> in the dialog box. You&rsquo;ll be presented with a window similar to:</p>
+
+<p><img class="center" src="http://alesnosek.com/images/posts/eclipse_go1.png"></p>
+
+<p>Instead of using default location, let Eclipse create the project in your Go workspace. After your Go project has been created go to <code>Window -&gt; Preferences</code> and find the tab with the Go configuration. You want to set the location of your Go language installation to the standard <code>/usr/local/go</code> directory. Make sure you set the <code>GOOS</code> and <code>GOARCH</code> fields, too. You&rsquo;ll also have to add the path to the Docker&rsquo;s <code>vendor</code> directory into the <code>GOPATH</code> field.</p>
+
+<p><img class="center" src="http://alesnosek.com/images/posts/eclipse_go2.png"></p>
+
+<h2>Code navigation and autocompletion</h2>
+
+<p>In this final section, we&rsquo;re going to make navigation and autocompletion in Eclipse work. The <code>Open Definition</code> navigation in Eclipse (keyboard shorcut F3) requires the Go <code>oracle</code> tool to be installed. Whenever you open the definition of the entity under the cursor Eclipse will call the <code>oracle</code> tool in order to obtain the information about the navigation target.</p>
+
+<p>The <code>oracle</code> tool is part of a bigger Go toolset located <a href="https://github.com/golang/tools" title="Golang tools">here</a>. You can easily install the <code>oracle</code> tool using the <code>go</code> command. Type this in your console:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>go get golang.org/x/tools/cmd/oracle
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You can run this command to confirm that the <code>oracle</code> tool was installed successfully:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>oracle --help
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The source code navigation in Eclipse using the F3 keyboard shortcut should start working. Let&rsquo;s focus on the code autocompletion (Ctrl+Space) next. In order to make the autocompletion work, we need to install an autocompletion daemon for the Go programming language <a href="https://github.com/nsf/gocode" title="gocode">gocode</a>. The installation with the <code>go</code> tool is pretty simple:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>go get github.com/nsf/gocode
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>To confirm that the <code>gocode</code> tool was installed successfully type:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>gocode --help
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Eclipse provides a configuration dialog for Go tools under <code>Window -&gt; Preferences</code>. There&rsquo;s even buttons to click &amp; install the <code>oracle</code> and <code>gocode</code> tools from within Eclipse. We did this installation on the command-line.</p>
+
+<p><img class="center" src="http://alesnosek.com/images/posts/eclipse_go3.png"></p>
+
+<p>Now that you&rsquo;re all set I wish you happy browsing through the Docker source code!</p>
+]]></content>
+  </entry>
+
   <entry>
     <title type="html"><![CDATA[Running Wine within Docker]]></title>
     <link href="http://alesnosek.com/blog/2015/07/04/running-wine-within-docker/"/>
@@ -126,7 +259,7 @@
 <p>One can leverage the modern Docker technology to create a specific Wine environment on any Linux system. To achieve this a little bit of configuration is required, though. In case of Wine you might be better off using some of the specialized tools for Wine management. For instance, <a href="https://www.playonlinux.com/" title="PlayOnLinux">PlayOnLinux</a> can manage different versions of Wine as well as different prefixes (<code>WINEPREFIX</code> environment variable).</p>
 ]]></content>
   </entry>
-  
+
   <entry>
     <title type="html"><![CDATA[Diagrams and Images in Doxygen]]></title>
     <link href="http://alesnosek.com/blog/2015/06/28/diagrams-and-images-in-doxygen/"/>
@@ -175,7 +308,7 @@
 
 ]]></content>
   </entry>
-  
+
   <entry>
     <title type="html"><![CDATA[The Structure of Doxygen Documentation]]></title>
     <link href="http://alesnosek.com/blog/2015/06/21/the-structure-of-doxygen-documentation/"/>
@@ -284,7 +417,7 @@ The page hierarchy is created by the repetitive use of the Doxygen tag <code>@su
 <p>Doxygen automatically generates a list of namespaces, classes and files for you.</p>
 ]]></content>
   </entry>
-  
+
   <entry>
     <title type="html"><![CDATA[Technical Documentation with Doxygen]]></title>
     <link href="http://alesnosek.com/blog/2015/06/14/technical-documentation-with-doxygen/"/>
@@ -325,7 +458,7 @@ The page hierarchy is created by the repetitive use of the Doxygen tag <code>@su
 
 ]]></content>
   </entry>
-  
+
   <entry>
     <title type="html"><![CDATA[Seven Tips for Better Code]]></title>
     <link href="http://alesnosek.com/blog/2015/06/06/seven-tips-for-better-code/"/>
@@ -600,7 +733,7 @@ The page hierarchy is created by the repetitive use of the Doxygen tag <code>@su
 <p>There&rsquo;s no perfect programming language. Idioms get invented to work around the quirks of a specific programming language. Using idioms improves the maintanability of the code. You should learn and use them wherever possible. For Java idioms you can refer to <a href="http://c2.com/ppr/wiki/JavaIdioms/JavaIdioms.html" title="Java Idioms">Java Idioms</a> and <a href="http://www.nayuki.io/page/good-java-idioms" title="Good Java Idioms">Good Java Idioms</a>.</p>
 ]]></content>
   </entry>
-  
+
   <entry>
     <title type="html"><![CDATA[OpenStack Dynamic DNS Updates]]></title>
     <link href="http://alesnosek.com/blog/2015/05/31/openstack-dynamic-dns-updates/"/>
@@ -618,7 +751,7 @@ The page hierarchy is created by the repetitive use of the Doxygen tag <code>@su
 <p>You can find the DNS updates implementantion including the systemd startup script at GitHub: <a href="https://github.com/noseka1/openstack-dns-updater" title="openstack-dns-updater">openstack-dns-updater</a>.</p>
 ]]></content>
   </entry>
-  
+
   <entry>
     <title type="html"><![CDATA[OpenStack Nova Notifications Subscriber]]></title>
     <link href="http://alesnosek.com/blog/2015/05/25/openstack-nova-notifications-subscriber/"/>
@@ -789,7 +922,7 @@ The possible choices of notification driver are briefly described in <a href="ht
 <p>You can find more detailed information on topic exchanges in the great RabbitMQ tutorial <a href="https://www.rabbitmq.com/tutorials/tutorial-five-python.html" title="Topics">here</a>. A version of the Nova notifications subscriber implemented with Python <a href="http://pika.readthedocs.org/en/latest/" title="Introduction to Pika">Pika</a> library is described in <a href="https://prosuncsedu.wordpress.com/2014/01/08/notification-of-actions-in-openstack-nova/" title="Action Notifications in OpenStack nova">this</a> blogpost.</p>
 ]]></content>
   </entry>
-  
+
   <entry>
     <title type="html"><![CDATA[Five Basic Tips for Logging in Java]]></title>
     <link href="http://alesnosek.com/blog/2015/05/18/five-basic-tips-for-logging-in-java/"/>
@@ -1179,7 +1312,7 @@ The possible choices of notification driver are briefly described in <a href="ht
 <p>Now you can tell the name of the user for whom you did the processing.</p>
 ]]></content>
   </entry>
-  
+
   <entry>
     <title type="html"><![CDATA[Java Logging Quick Reference]]></title>
     <link href="http://alesnosek.com/blog/2015/05/11/java-logging-quick-reference/"/>
@@ -1530,7 +1663,7 @@ The possible choices of notification driver are briefly described in <a href="ht
 
 ]]></content>
   </entry>
-  
+
   <entry>
     <title type="html"><![CDATA[Dynamic DNS with BIND and dhclient]]></title>
     <link href="http://alesnosek.com/blog/2015/05/02/dynamic-dns-with-bind-and-dhclient/"/>
@@ -1662,7 +1795,7 @@ The possible choices of notification driver are briefly described in <a href="ht
 <p>Note that we&rsquo;re parsing the <code>/var/lib/dhclient/dhclient-eth0.leases</code> file to obtain the acquired IP address. Should the virtual machine obtain different IP address in the future the DNS entry gets updated accordingly.</p>
 ]]></content>
   </entry>
-  
+
   <entry>
     <title type="html"><![CDATA[Using Cloud-Init Outside of Cloud]]></title>
     <link href="http://alesnosek.com/blog/2015/04/26/using-cloud-init-outside-of-cloud/"/>
@@ -1845,7 +1978,7 @@ The possible choices of notification driver are briefly described in <a href="ht
 <p>Congratulations, your virtual machine has just been configured by Cloud-Init the same way as any other virtual machine running in the cloud environment.</p>
 ]]></content>
   </entry>
-  
+
   <entry>
     <title type="html"><![CDATA[Five Basic Tips for Teamwork with Git]]></title>
     <link href="http://alesnosek.com/blog/2015/04/18/five-basic-tips-for-teamwork-with-git/"/>
@@ -1876,7 +2009,7 @@ The possible choices of notification driver are briefly described in <a href="ht
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>PROJXREF-27 Remove obsolete code in component X
-</span><span class='line'>    
+</span><span class='line'>
 </span><span class='line'>The logging functionality in component X is not needed anymore.
 </span><span class='line'>Component Y took over the logging responsibility.</span></code></pre></td></tr></table></div></figure>
 
@@ -1926,5 +2059,5 @@ The possible choices of notification driver are briefly described in <a href="ht
 <p>From now on whenever you create/clone a Git repository you should find the <code>pre-commit</code> hook file installed at <code>.git/hooks/pre-commit</code>. Git will clean up trailing whitespaces for you before you commit.</p>
 ]]></content>
   </entry>
-  
+
 </feed>
