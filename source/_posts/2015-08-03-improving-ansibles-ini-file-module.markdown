@@ -10,7 +10,7 @@ For editing Windows INI files, Ansible comes with an `ini_file` module built in.
 
 <!-- more -->
 
-On Debian Linux, the Ansible's built-in `ini_file` module can be found at `/usr/share/ansible/files/ini_file`. This file is the base for our own `ini_file2`. The question was, at what location should one store the `ini_file2` module for Ansible to find it? From Ansible's [documentation]("http://docs.ansible.com/ansible/developing_modules.html" Developing Modules) I learned that when looking for modules, Ansible searches the `./library` directory alongside of the top level playbooks. That sounds perfect to me.
+On Debian Linux, the Ansible's built-in `ini_file` module can be found at `/usr/share/ansible/files/ini_file`. This file is the base for our own `ini_file2`. The question was, at what location should one store the `ini_file2` module for Ansible to find it? From Ansible's [documentation](http://docs.ansible.com/ansible/developing_modules.html "Developing Modules") I learned that when looking for modules, Ansible searches the `./library` directory alongside of the top level playbooks. That sounds perfect to me.
 
 After a while working with the Python code, I created the `ini_file2` module. This module provides an equivalent functionality to the original `ini_file` module, however, it does only the minimum changes when editing the INI file. It typically modifies only one line. When removing options, it doesn't delete the lines but comment them out instead. If there was a commented out option it comments it in when required.
 
@@ -76,4 +76,4 @@ option2 = new_value
 
 ## References
 
-The `ini_file2` source code accompanied by tests can be found at [GitHub]("https://github.com/noseka1/ini_file2" ini_file2).
+The `ini_file2` source code accompanied by tests can be found at [GitHub](https://github.com/noseka1/ini_file2 "ini_file2").
