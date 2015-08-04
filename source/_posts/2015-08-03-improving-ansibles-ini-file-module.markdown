@@ -12,7 +12,7 @@ For editing Windows INI files, Ansible comes with an `ini_file` module built in.
 
 On Debian Linux, the Ansible's built-in `ini_file` module can be found at `/usr/share/ansible/files/ini_file`. This file is the base for our own `ini_file2`. The question was, at what location should one store the `ini_file2` module for Ansible to find it? From Ansible's [documentation]("http://docs.ansible.com/ansible/developing_modules.html" Developing Modules) I learned that when looking for modules, Ansible searches the `./library` directory alongside of the top level playbooks. That sounds perfect to me.
 
-After a while working with the Python code, I created the `ini_file2` module. This module provides an equivalent functionality to the original `ini_file` module, however, it does only the minimum changes when editing an INI file. It typically modifies only one line. When removing options, it doesn't delete the lines but comment them out instead. If there was a commented out option it comments it in when required.
+After a while working with the Python code, I created the `ini_file2` module. This module provides an equivalent functionality to the original `ini_file` module, however, it does only the minimum changes when editing the INI file. It typically modifies only one line. When removing options, it doesn't delete the lines but comment them out instead. If there was a commented out option it comments it in when required.
 
 ## The ini_file and ini_file2 comparison
 
@@ -34,7 +34,7 @@ option1 = orig_value
 option3 = some_value
 {% endcodeblock %}
 
-The Ansible test script will set the `option1` and `option2` to `new_value`. It will remove the `option3` from the INI file:
+The Ansible test script will set the `option1` and `option2` to `new_value` and it will remove the `option3` from the INI file:
 
 {% codeblock %}
 - name: Set option1 to new_value
@@ -56,7 +56,7 @@ option2 = new_value
 
 {% endcodeblock %}
 
-You can see that there's not much is left from the input file. All comments are gone. In contrary, the `ini_file2` module does the editing operations with care:
+You can see that there's not much left from the input file. All comments are gone. In contrary, the `ini_file2` module does the editing operations with care:
 
 {% codeblock lang:ini %}
 # This is the main configuration section
