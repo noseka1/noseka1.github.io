@@ -4,15 +4,176 @@
   <title><![CDATA[Category: devops | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/devops/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2015-07-20T21:40:30-07:00</updated>
+  <updated>2015-08-03T22:07:12-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
-    
+
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
-  
+
+  <entry>
+    <title type="html"><![CDATA[Improving Ansible's ini_file module]]></title>
+    <link href="http://alesnosek.com/blog/2015/08/03/improving-ansibles-ini-file-module/"/>
+    <updated>2015-08-03T20:01:30-07:00</updated>
+    <id>http://alesnosek.com/blog/2015/08/03/improving-ansibles-ini-file-module</id>
+    <content type="html"><![CDATA[<p>For editing Windows INI files, Ansible comes with an <code>ini_file</code> module built in. Unfortunately, this module uses Python&rsquo;s <code>ConfigParser</code> module which reformats the entire INI file whenever you want to change a single line. It removes all the comment lines, too. For me this was not acceptable. After looking for a possible solution I decided to improve the <code>ini_file</code> module and created <code>ini_file2</code>. I realized how easy it is to create an Ansible module.</p>
+
+<!-- more -->
+
+
+<p>On Debian Linux, the Ansible&rsquo;s built-in <code>ini_file</code> module can be found at <code>/usr/share/ansible/files/ini_file</code>. This file is the base for our own <code>ini_file2</code>. The question was, at what location should one store the <code>ini_file2</code> module for Ansible to find it? From Ansible&rsquo;s <a href="%22http://docs.ansible.com/ansible/developing_modules.html%22%20Developing%20Modules">documentation</a> I learned that when looking for modules, Ansible searches the <code>./library</code> directory alongside of the top level playbooks. That sounds perfect to me.</p>
+
+<p>After a while working with the Python code, I created the <code>ini_file2</code> module. This module provides an equivalent functionality to the original <code>ini_file</code> module, however, it does only the minimum changes when editing an INI file. It typically modifies only one line. When removing options, it doesn&rsquo;t delete the lines but comment them out instead. If there was a commented out option it comments it in when required.</p>
+
+<h2>The ini_file and ini_file2 comparison</h2>
+
+<p>Let&rsquo;s compare the <code>ini_file</code> and <code>ini_file2</code> on a practical example. Our input INI file looks as follows:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class='ini'><span class='line'><span class="err">&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">&lt;h1&gt;This</span> <span class="err">is</span> <span class="err">the</span> <span class="err">main</span> <span class="err">configuration</span> <span class="err">section&lt;/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">&lt;h1&gt;There</span> <span class="err">are</span> <span class="err">some</span> <span class="err">important</span> <span class="err">options</span> <span class="err">to</span> <span class="err">configure&lt;/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">&lt;p&gt;[main]&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">&lt;h1&gt;This</span> <span class="err">is</span> <span class="err">the</span> <span class="err">first</span> <span class="err">option&lt;/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="na">&lt;p&gt;option1</span> <span class="o">=</span> <span class="s">orig_value&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">&lt;h1&gt;This</span> <span class="err">is</span> <span class="err">the</span> <span class="err">second</span> <span class="err">option&lt;/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">&lt;h1&gt;If</span> <span class="err">not</span> <span class="err">set,</span> <span class="err">the</span> <span class="err">default</span> <span class="err">value</span> <span class="err">is</span> <span class="err">def_value&lt;/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="na">&lt;h1&gt;option2</span> <span class="o">=</span> <span class="s">def_value&lt;/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">&lt;h1&gt;This</span> <span class="err">is</span> <span class="err">the</span> <span class="err">last</span> <span class="err">option&lt;/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">&lt;h1&gt;If</span> <span class="err">not</span> <span class="err">set,</span> <span class="err">the</span> <span class="err">default</span> <span class="err">value</span> <span class="err">is</span> <span class="err">def_value&lt;/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="na">&lt;p&gt;option3</span> <span class="o">=</span> <span class="s">some_value</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>The Ansible test script will set the <code>option1</code> and <code>option2</code> to <code>new_value</code>. It will remove the <code>option3</code> from the INI file:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- name: Set option1 to new_value
+</span><span class='line'>  ini_file: dest=settings.ini section=main option=option1 value=new_value&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;ul>
+</span><span class='line'>&lt;li>&lt;p>name: Set option2 to new_value
+</span><span class='line'>ini_file: dest=settings.ini section=main option=option2 value=new_value&lt;/p>&lt;/li>
+</span><span class='line'>&lt;li>&lt;p>name: Remove option3
+</span><span class='line'>ini_file: dest=settings.ini section=main option=option3 state=absent</span></code></pre></td></tr></table></div></figure></p></li>
+</ul>
+
+
+<p>When using the original <code>ini_file</code> module, the resulting INI file looks like this:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ini'><span class='line'><span class="k">[main]</span>
+</span><span class='line'><span class="na">option1</span> <span class="o">=</span> <span class="s">new_value</span>
+</span><span class='line'><span class="na">option2</span> <span class="o">=</span> <span class="s">new_value&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">&lt;p&gt;</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>You can see that there&rsquo;s not much is left from the input file. All comments are gone. In contrary, the <code>ini_file2</code> module does the editing operations with care:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+</pre></td><td class='code'><pre><code class='ini'><span class='line'><span class="err">&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">&lt;h1&gt;This</span> <span class="err">is</span> <span class="err">the</span> <span class="err">main</span> <span class="err">configuration</span> <span class="err">section&lt;/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">&lt;h1&gt;There</span> <span class="err">are</span> <span class="err">some</span> <span class="err">important</span> <span class="err">options</span> <span class="err">to</span> <span class="err">configure&lt;/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">&lt;p&gt;[main]&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">&lt;h1&gt;This</span> <span class="err">is</span> <span class="err">the</span> <span class="err">first</span> <span class="err">option&lt;/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="na">&lt;p&gt;option1</span> <span class="o">=</span> <span class="s">new_value&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">&lt;h1&gt;This</span> <span class="err">is</span> <span class="err">the</span> <span class="err">second</span> <span class="err">option&lt;/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">&lt;h1&gt;If</span> <span class="err">not</span> <span class="err">set,</span> <span class="err">the</span> <span class="err">default</span> <span class="err">value</span> <span class="err">is</span> <span class="err">def_value&lt;/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="na">&lt;p&gt;option2</span> <span class="o">=</span> <span class="s">new_value&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">&lt;h1&gt;This</span> <span class="err">is</span> <span class="err">the</span> <span class="err">last</span> <span class="err">option&lt;/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">&lt;h1&gt;If</span> <span class="err">not</span> <span class="err">set,</span> <span class="err">the</span> <span class="err">default</span> <span class="err">value</span> <span class="err">is</span> <span class="err">def_value&lt;/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="na">&lt;h1&gt;option3</span> <span class="o">=</span> <span class="s">some_value&lt;/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">&lt;p&gt;</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<h2>References</h2>
+
+<p>The <code>ini_file2</code> source code accompanied by tests can be found at <a href="%22https://github.com/noseka1/ini_file2%22%20ini_file2">GitHub</a>.</p>
+]]></content>
+  </entry>
+
   <entry>
     <title type="html"><![CDATA[Running Wine within Docker]]></title>
     <link href="http://alesnosek.com/blog/2015/07/04/running-wine-within-docker/"/>
@@ -117,7 +278,7 @@
 <p>One can leverage the modern Docker technology to create a specific Wine environment on any Linux system. To achieve this a little bit of configuration is required, though. In case of Wine you might be better off using some of the specialized tools for Wine management. For instance, <a href="https://www.playonlinux.com/" title="PlayOnLinux">PlayOnLinux</a> can manage different versions of Wine as well as different prefixes (<code>WINEPREFIX</code> environment variable).</p>
 ]]></content>
   </entry>
-  
+
   <entry>
     <title type="html"><![CDATA[OpenStack Dynamic DNS Updates]]></title>
     <link href="http://alesnosek.com/blog/2015/05/31/openstack-dynamic-dns-updates/"/>
@@ -135,7 +296,7 @@
 <p>You can find the DNS updates implementantion including the systemd startup script at GitHub: <a href="https://github.com/noseka1/openstack-dns-updater" title="openstack-dns-updater">openstack-dns-updater</a>.</p>
 ]]></content>
   </entry>
-  
+
   <entry>
     <title type="html"><![CDATA[OpenStack Nova Notifications Subscriber]]></title>
     <link href="http://alesnosek.com/blog/2015/05/25/openstack-nova-notifications-subscriber/"/>
@@ -305,7 +466,7 @@ Whenever you create/delete an instance in OpenStack a host of notification messa
 <p>You can find more detailed information on topic exchanges in the great RabbitMQ tutorial <a href="https://www.rabbitmq.com/tutorials/tutorial-five-python.html" title="Topics">here</a>. A version of the Nova notifications subscriber implemented with Python <a href="http://pika.readthedocs.org/en/latest/" title="Introduction to Pika">Pika</a> library is described in <a href="https://prosuncsedu.wordpress.com/2014/01/08/notification-of-actions-in-openstack-nova/" title="Action Notifications in OpenStack nova">this</a> blogpost.</p>
 ]]></content>
   </entry>
-  
+
   <entry>
     <title type="html"><![CDATA[Dynamic DNS with BIND and dhclient]]></title>
     <link href="http://alesnosek.com/blog/2015/05/02/dynamic-dns-with-bind-and-dhclient/"/>
@@ -437,176 +598,5 @@ You should see the IP address <code>192.168.100.200</code> in the command output
 <p>Note that we&rsquo;re parsing the <code>/var/lib/dhclient/dhclient-eth0.leases</code> file to obtain the acquired IP address. Should the virtual machine obtain different IP address in the future the DNS entry gets updated accordingly.</p>
 ]]></content>
   </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Using Cloud-Init Outside of Cloud]]></title>
-    <link href="http://alesnosek.com/blog/2015/04/26/using-cloud-init-outside-of-cloud/"/>
-    <updated>2015-04-26T13:04:25-07:00</updated>
-    <id>http://alesnosek.com/blog/2015/04/26/using-cloud-init-outside-of-cloud</id>
-    <content type="html"><![CDATA[<p>In EC2 and OpenStack cloud environments <em>user data</em> can be passed to the cloud instance to customize the cloud instance on the first boot. But what if your virtual machine doesn&rsquo;t run in the cloud environment? In this article we&rsquo;re going to configure our virtual machines with user data regardless if they&rsquo;re running in the cloud or not.</p>
 
-<!-- more -->
-
-
-<h2>Introducing Cloud-Init</h2>
-
-<p><a href="https://cloudinit.readthedocs.org/en/latest/" title="Cloud-Init documentation">Cloud-Init</a> is a tool that handles early initialization of a cloud instance. The <code>cloud-init</code> RPM package should be installed on the disk image which the cloud instance is going to boot up from. The package installs init scripts into <code>/etc/rc.d/init.d</code> that makes Cloud-Init run early during the system initialization. Cloud-Init obtains user data passed to it by the cloud software and executes them. User data contains a set of configuration tasks for the cloud instance. For example, Cloud-Init can update machine&rsquo;s hostname, configure <code>/etc/hosts</code>, create users, configure SSH authorized keys, resize filesystems, manage disk mounts, run user-defined scripts and <a href="https://cloudinit.readthedocs.org/en/latest/topics/examples.html" title="Cloud config examples">much more</a>.</p>
-
-<p><blockquote><p>Even if you&rsquo;re not running your virtual machines in the cloud environment it&rsquo;s worth it to deploy Clout-Init.</p></blockquote></p>
-
-<p>Every cloud software comes with its own mechanism of how to pass the user data to the cloud instance. For example, EC2 provides a <em>magic IP</em> from which the instance can download its user data. OpenStack cloud attaches a special <em>config drive</em> to the cloud instance containing the user data to be consumed by Clout-Init. In order to pass the user data to our virtual machine let&rsquo;s go the OpenStack way and assemble a minimum config drive.</p>
-
-<h2>Config drive assembly</h2>
-
-<p>First, we&rsquo;re going to prepare the following file structure for our config drive:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>config_drive
-</span><span class='line'>config_drive/openstack
-</span><span class='line'>config_drive/openstack/latest
-</span><span class='line'>config_drive/openstack/2012-08-10
-</span><span class='line'>config_drive/openstack/2012-08-10/meta_data.json
-</span><span class='line'>config_drive/openstack/2012-08-10/user_data</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Start by creating directories and the <code>latest</code> symbolic link like this:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>mkdir config_drive
-</span><span class='line'>mkdir -p config_drive/openstack/2012-08-10
-</span><span class='line'>ln -s 2012-08-10 config_drive/openstack/latest</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Next create a minimum metadata file required by Cloud-Init. I&rsquo;m using a fully qualified domain name of the virtual machine as its UUID:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>cat &gt; config_drive/openstack/latest/meta_data.json <span class="p">&amp;</span>lt<span class="p">;&amp;</span>lt<span class="p">;</span> EOF
-</span><span class='line'><span class="o">{</span>
-</span><span class='line'>    <span class="p">&amp;</span>ldquo<span class="p">;</span>uuid<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span>myinstance.mydomain.com<span class="p">&amp;</span>rdquo<span class="p">;</span>
-</span><span class='line'><span class="o">}</span>
-</span><span class='line'>EOF
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Cloud-Init supports many <a href="https://cloudinit.readthedocs.org/en/latest/topics/format.html" title="Cloud-Init user data formats">formats</a> for scripts within user data. One of the most popular formats is the <em>cloud-config</em> file format. Let&rsquo;s create a cloud-config script that adds our SSH public key to the authorized keys for the user <code>root</code> on the virtual machine. We can then login into the virtual machine as user root without using a password. If you don&rsquo;t have a public-private SSH key pair you can quickly generate it using <code>ssh-keygen</code> command:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>ssh-keygen -f mykey
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Now create a <code>user_data</code> file with the configuration instructions for Cloud-Init. In the following code block replace the value of the <code>ssh-authorized-keys</code> field with the content of your generated <code>mykey.pub</code> file:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>cat &gt; config_drive/openstack/latest/user_data <span class="p">&amp;</span>lt<span class="p">;&amp;</span>lt<span class="p">;</span> EOF&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;h1&gt;cloud-config&lt;/h1&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;fqdn: myinstance.mydomain.com
-</span><span class='line'>users:
-</span><span class='line'>  - name: root
-</span><span class='line'>    ssh-authorized-keys:
-</span><span class='line'>      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDNH8Qwn4raGR1f9fvjbZe/GXM2N9Mh+eWlsFoYpcU4H5qf5YxT5CUo7BaTOgeE5geHyzxJQmCQlvoxcW3qkcjBJvVgEsTrrnX7KYS8BszvT4AMIuG2Za8f7myubXd6zYfj74XYhutUsPz7x2TEp9ZqbVkWcaElrQFxF2AzF7dV1RGntpPKyISqem70En8RYpGY514OLZ9TQDBYjbw8tfPuDd9mznXnWOZ34fPtP7+QDvOMFuA4tXsBpHj99/cbC0ViwzZtvb1QtY7dv9OFDgCRadw81+SKtzXctQ2rCYkb0huc0BCE7kLzinzlO62Znd+N1d+tpLAwP6i8Z5ZMXIJj user@machine
-</span><span class='line'>EOF
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>The file structure for our config drive is ready. Let&rsquo;s generate an ext2 filesystem and copy the files to it. The <code>virt-make-fs</code> utility from the <code>libguestfs-tools</code> package can help us with that:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>virt-make-fs config_drive disk.config
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>In order for Cloud-Init to detect the attached drive as config drive the filesystem on the config drive needs to be labeled <code>config-2</code>. You can use <code>e2label</code> command from the <code>e2fsprogs</code> package to label your config drive:
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>e2label disk.config config-2
-</span></code></pre></td></tr></table></div></figure></p>
-
-<h2>Cloud-Init in action</h2>
-
-<p>On my Linux host I&rsquo;m running <a href="http://libvirt.org/" title="Libvirt - The virtualization API">libvirt</a> to ease the management of virtual machines. You can install it by running <code>sudo yum install libvirt</code>. There is a handy command-line utility <code>virsh</code> which comes  with libvirt in the extra package <code>libvirt-client</code>.</p>
-
-<p>Let&rsquo;s create a virtual machine with the config drive attached. As a virtual machine boot image I&rsquo;m using a CentOS-6 image from <a href="http://cloud.centos.org/centos/6/images/" title="CentOS-6 cloud images">cloud.centos.org</a> which comes with Cloud-Init built in. Make sure that your virtual machine boot image has Cloud-Init installed. Following is a virtual machine definition file for the CentoOS-6 virtual machine. You might need to change the location of the disk image files and save it as <code>CentOS-6.xml</code>:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;domain</span> <span class="na">type=</span><span class="s">&#39;kvm&#39;</span><span class="nt">&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;name&gt;</span>CentOS-6<span class="nt">&lt;/name&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;memory</span> <span class="na">unit=</span><span class="s">&#39;KiB&#39;</span><span class="nt">&gt;</span>2097152<span class="nt">&lt;/memory&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;os&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;type&gt;</span>hvm<span class="nt">&lt;/type&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;/os&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;devices&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;disk</span> <span class="na">type=</span><span class="s">&#39;file&#39;</span> <span class="na">device=</span><span class="s">&#39;disk&#39;</span><span class="nt">&gt;</span>
-</span><span class='line'>      <span class="nt">&lt;driver</span> <span class="na">name=</span><span class="s">&quot;qemu&quot;</span> <span class="na">type=</span><span class="s">&quot;qcow2&quot;</span><span class="nt">/&gt;</span>
-</span><span class='line'>      <span class="nt">&lt;source</span> <span class="na">file=</span><span class="s">&#39;/tmp/CentOS-6-x86_64-GenericCloud.qcow2&#39;</span><span class="nt">/&gt;</span>
-</span><span class='line'>      <span class="nt">&lt;target</span> <span class="na">bus=</span><span class="s">&quot;virtio&quot;</span> <span class="na">dev=</span><span class="s">&quot;vda&quot;</span><span class="nt">/&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;/disk&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;disk</span> <span class="na">type=</span><span class="s">&#39;file&#39;</span> <span class="na">device=</span><span class="s">&#39;disk&#39;</span><span class="nt">&gt;</span>
-</span><span class='line'>      <span class="nt">&lt;driver</span> <span class="na">name=</span><span class="s">&quot;qemu&quot;</span> <span class="na">type=</span><span class="s">&quot;raw&quot;</span><span class="nt">/&gt;</span>
-</span><span class='line'>      <span class="nt">&lt;source</span> <span class="na">file=</span><span class="s">&#39;/tmp/disk.config&#39;</span><span class="nt">/&gt;</span>
-</span><span class='line'>      <span class="nt">&lt;target</span> <span class="na">bus=</span><span class="s">&quot;virtio&quot;</span> <span class="na">dev=</span><span class="s">&quot;vdb&quot;</span><span class="nt">/&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;/disk&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;interface</span> <span class="na">type=</span><span class="s">&#39;network&#39;</span><span class="nt">&gt;</span>
-</span><span class='line'>      <span class="nt">&lt;source</span> <span class="na">network=</span><span class="s">&#39;default&#39;</span><span class="nt">/&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;/interface&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;serial</span> <span class="na">type=</span><span class="s">&quot;file&quot;</span><span class="nt">&gt;</span>
-</span><span class='line'>      <span class="nt">&lt;source</span> <span class="na">path=</span><span class="s">&quot;/tmp/CentOS-6.log&quot;</span><span class="nt">/&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;/serial&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;/devices&gt;</span>
-</span><span class='line'><span class="nt">&lt;/domain&gt;</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Okay, everything is ready, let&rsquo;s launch our Cloud-Init enabled CentOS-6 virtual machine:
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo virsh define CentOS-6.xml
-</span><span class='line'>sudo virsh start CentOS-6
-</span></code></pre></td></tr></table></div></figure>
-If everything went fine you can watch the console output of the booting virtual machine at <code>/tmp/CentOS-6.log</code>. Cloud-Init will print out the IP address obtained by the virtual machine (192.168.122.165 in my case) where we can login as root using the generated private key:
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>ssh -i testkey &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#109;&amp;#97;&amp;#105;&amp;#x6c;&amp;#x74;&amp;#111;&amp;#58;&amp;#x72;&amp;#x6f;&amp;#x6f;&amp;#116;&amp;#64;&amp;#x31;&amp;#57;&amp;#50;&amp;#46;&amp;#x31;&amp;#54;&amp;#x38;&amp;#46;&amp;#49;&amp;#x32;&amp;#50;&amp;#46;&amp;#x31;&amp;#x36;&amp;#x35;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#114;&amp;#x6f;&amp;#111;&amp;#116;&amp;#64;&amp;#x31;&amp;#57;&amp;#x32;&amp;#46;&amp;#49;&amp;#54;&amp;#x38;&amp;#x2e;&amp;#x31;&amp;#x32;&amp;#x32;&amp;#46;&amp;#x31;&amp;#x36;&amp;#x35;&lt;/a&gt;</span>
-</span></code></pre></td></tr></table></div></figure>
-Congratulations, your virtual machine has just been configured by Cloud-Init the same way as any other virtual machine running in the cloud environment.</p>
-]]></content>
-  </entry>
-  
 </feed>

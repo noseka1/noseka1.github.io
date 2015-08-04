@@ -1,0 +1,365 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Improving Ansible&#8217;s ini_file module - Ales Nosek - The Software Practitioner</title>
+  <meta name="author" content="Ales Nosek">
+
+
+  <meta name="description" content="For editing Windows INI files, Ansible comes with an ini_file module built in. Unfortunately, this module uses Python&rsquo;s ConfigParser module &hellip;">
+
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <link rel="canonical" href="http://alesnosek.com/blog/2015/08/03/improving-ansibles-ini-file-module/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Ales Nosek - The Software Practitioner" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-61965164-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <img src="/images/computers.png" align="right">
+  <h1><a href="/">Ales Nosek - The Software Practitioner</a></h1>
+
+    <h2>Practicing to make software perfect.</h2>
+
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+
+</ul>
+
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="alesnosek.com">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+
+  <header>
+
+      <h1 class="entry-title">Improving Ansible&#8217;s ini_file module</h1>
+
+
+      <p class="meta">
+
+
+
+
+
+<time class='entry-date' datetime='2015-08-03T20:01:30-07:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>3</span><span class='date-suffix'>rd</span>, <span class='date-year'>2015</span></span> <span class='time'>8:01 pm</span></time>
+
+      </p>
+
+  </header>
+
+
+<div class="entry-content"><p>For editing Windows INI files, Ansible comes with an <code>ini_file</code> module built in. Unfortunately, this module uses Python&rsquo;s <code>ConfigParser</code> module which reformats the entire INI file whenever you want to change a single line. It removes all the comment lines, too. For me this was not acceptable. After looking for a possible solution I decided to improve the <code>ini_file</code> module and created <code>ini_file2</code>. I realized how easy it is to create an Ansible module.</p>
+
+<!-- more -->
+
+
+<p>On Debian Linux, the Ansible&rsquo;s built-in <code>ini_file</code> module can be found at <code>/usr/share/ansible/files/ini_file</code>. This file is the base for our own <code>ini_file2</code>. The question was, at what location should one store the <code>ini_file2</code> module for Ansible to find it? From Ansible&rsquo;s <a href="%22http://docs.ansible.com/ansible/developing_modules.html%22%20Developing%20Modules">documentation</a> I learned that when looking for modules, Ansible searches the <code>./library</code> directory alongside of the top level playbooks. That sounds perfect to me.</p>
+
+<p>After a while working with the Python code, I created the <code>ini_file2</code> module. This module provides an equivalent functionality to the original <code>ini_file</code> module, however, it does only the minimum changes when editing an INI file. It typically modifies only one line. When removing options, it doesn&rsquo;t delete the lines but comment them out instead. If there was a commented out option it comments it in when required.</p>
+
+<h2>The ini_file and ini_file2 comparison</h2>
+
+<p>Let&rsquo;s compare the <code>ini_file</code> and <code>ini_file2</code> on a practical example. Our input INI file looks as follows:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='ini'><span class='line'><span class="c1"># This is the main configuration section</span>
+</span><span class='line'><span class="c1"># There are some important options to configure</span>
+</span><span class='line'><span class="k">[main]</span>
+</span><span class='line'><span class="c1"># This is the first option</span>
+</span><span class='line'><span class="na">option1</span> <span class="o">=</span> <span class="s">orig_value</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># This is the second option</span>
+</span><span class='line'><span class="c1"># If not set, the default value is def_value</span>
+</span><span class='line'><span class="c1"># option2 = def_value</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># This is the last option</span>
+</span><span class='line'><span class="c1"># If not set, the default value is def_value</span>
+</span><span class='line'><span class="na">option3</span> <span class="o">=</span> <span class="s">some_value</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The Ansible test script will set the <code>option1</code> and <code>option2</code> to <code>new_value</code>. It will remove the <code>option3</code> from the INI file:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- name: Set option1 to new_value
+</span><span class='line'>  ini_file: dest=settings.ini section=main option=option1 value=new_value
+</span><span class='line'>
+</span><span class='line'>- name: Set option2 to new_value
+</span><span class='line'>  ini_file: dest=settings.ini section=main option=option2 value=new_value
+</span><span class='line'>
+</span><span class='line'>- name: Remove option3
+</span><span class='line'>  ini_file: dest=settings.ini section=main option=option3 state=absent</span></code></pre></td></tr></table></div></figure>
+
+
+<p>When using the original <code>ini_file</code> module, the resulting INI file looks like this:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ini'><span class='line'><span class="k">[main]</span>
+</span><span class='line'><span class="na">option1</span> <span class="o">=</span> <span class="s">new_value</span>
+</span><span class='line'><span class="na">option2</span> <span class="o">=</span> <span class="s">new_value</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You can see that there&rsquo;s not much is left from the input file. All comments are gone. In contrary, the <code>ini_file2</code> module does the editing operations with care:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='ini'><span class='line'><span class="c1"># This is the main configuration section</span>
+</span><span class='line'><span class="c1"># There are some important options to configure</span>
+</span><span class='line'><span class="k">[main]</span>
+</span><span class='line'><span class="c1"># This is the first option</span>
+</span><span class='line'><span class="na">option1</span> <span class="o">=</span> <span class="s">new_value</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># This is the second option</span>
+</span><span class='line'><span class="c1"># If not set, the default value is def_value</span>
+</span><span class='line'><span class="na">option2</span> <span class="o">=</span> <span class="s">new_value</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># This is the last option</span>
+</span><span class='line'><span class="c1"># If not set, the default value is def_value</span>
+</span><span class='line'><span class="c1">#option3 = some_value</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>References</h2>
+
+<p>The <code>ini_file2</code> source code accompanied by tests can be found at <a href="%22https://github.com/noseka1/ini_file2%22%20ini_file2">GitHub</a>.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+
+
+
+<span class="byline author vcard">Posted by <span class="fn">Ales Nosek</span></span>
+
+
+
+
+
+
+<time class='entry-date' datetime='2015-08-03T20:01:30-07:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>3</span><span class='date-suffix'>rd</span>, <span class='date-year'>2015</span></span> <span class='time'>8:01 pm</span></time>
+
+
+<span class="categories">
+
+    <a class='category' href='/blog/categories/devops/'>devops</a>
+
+</span>
+
+
+    </p>
+
+      <div class="sharing">
+
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://alesnosek.com/blog/2015/08/03/improving-ansibles-ini-file-module/" data-via="" data-counturl="http://alesnosek.com/blog/2015/08/03/improving-ansibles-ini-file-module/" >Tweet</a>
+
+
+  <div class="g-plusone" data-size="medium"></div>
+
+
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+
+</div>
+
+
+    <p class="meta">
+
+        <a class="basic-alignment left" href="/blog/2015/07/19/browsing-docker-source-using-eclipse/" title="Previous Post: Browsing Docker Source using Eclipse">&laquo; Browsing Docker Source using Eclipse</a>
+
+
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+
+      <li class="post">
+        <a href="/blog/2015/08/03/improving-ansibles-ini-file-module/">Improving Ansible&#8217;s ini_file module</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2015/07/19/browsing-docker-source-using-eclipse/">Browsing Docker Source using Eclipse</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2015/07/04/running-wine-within-docker/">Running Wine within Docker</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2015/06/28/diagrams-and-images-in-doxygen/">Diagrams and Images in Doxygen</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2015/06/21/the-structure-of-doxygen-documentation/">The Structure of Doxygen Documentation</a>
+      </li>
+
+  </ul>
+</section>
+
+
+
+
+
+
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2015 - Ales Nosek -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'alesnosekcom';
+
+
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://alesnosek.com/blog/2015/08/03/improving-ansibles-ini-file-module/';
+        var disqus_url = 'http://alesnosek.com/blog/2015/08/03/improving-ansibles-ini-file-module/';
+        var disqus_script = 'embed.js';
+
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
