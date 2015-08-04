@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2015-08-03T22:21:32-07:00</updated>
+  <updated>2015-08-03T22:45:41-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -91,7 +91,7 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>You can see that there&rsquo;s not much left from the input file. All comments are gone. In contrary, the <code>ini_file2</code> module does the editing operations with care:</p>
+<p>You can see that there&rsquo;s not much left from the input file. All comments are gone. In contrast, the <code>ini_file2</code> module does the editing operations with more precision:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -124,7 +124,7 @@
 
 <h2>References</h2>
 
-<p>The <code>ini_file2</code> source code accompanied by tests can be found at <a href="https://github.com/noseka1/ini_file2" title="ini_file2">GitHub</a>.</p>
+<p>The <code>ini_file2</code> source code as well as test scripts can be found at <a href="https://github.com/noseka1/ini_file2" title="ini_file2">GitHub</a>.</p>
 ]]></content>
   </entry>
 
