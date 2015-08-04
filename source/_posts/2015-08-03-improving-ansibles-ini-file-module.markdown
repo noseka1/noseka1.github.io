@@ -56,7 +56,7 @@ option2 = new_value
 
 {% endcodeblock %}
 
-You can see that there's not much left from the input file. All comments are gone. In contrary, the `ini_file2` module does the editing operations with care:
+You can see that there's not much left from the input file. All comments are gone. In contrast, the `ini_file2` module does the editing operations with more precision:
 
 {% codeblock lang:ini %}
 # This is the main configuration section
@@ -76,4 +76,4 @@ option2 = new_value
 
 ## References
 
-The `ini_file2` source code accompanied by tests can be found at [GitHub](https://github.com/noseka1/ini_file2 "ini_file2").
+The `ini_file2` source code as well as test scripts can be found at [GitHub](https://github.com/noseka1/ini_file2 "ini_file2").
