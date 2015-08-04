@@ -102,9 +102,9 @@
 <!-- more -->
 
 
-<p>On Debian Linux, the Ansible&rsquo;s built-in <code>ini_file</code> module can be found at <code>/usr/share/ansible/files/ini_file</code>. This file is the base for our own <code>ini_file2</code>. The question was, at what location should one store the <code>ini_file2</code> module for Ansible to find it? From Ansible&rsquo;s <a href="%22http://docs.ansible.com/ansible/developing_modules.html%22%20Developing%20Modules">documentation</a> I learned that when looking for modules, Ansible searches the <code>./library</code> directory alongside of the top level playbooks. That sounds perfect to me.</p>
+<p>On Debian Linux, the Ansible&rsquo;s built-in <code>ini_file</code> module can be found at <code>/usr/share/ansible/files/ini_file</code>. This file is the base for our own <code>ini_file2</code>. The question was, at what location should one store the <code>ini_file2</code> module for Ansible to find it? From Ansible&rsquo;s <a href="http://docs.ansible.com/ansible/developing_modules.html" title="Developing Modules">documentation</a> I learned that when looking for modules, Ansible searches the <code>./library</code> directory alongside of the top level playbooks. That sounds perfect to me.</p>
 
-<p>After a while working with the Python code, I created the <code>ini_file2</code> module. This module provides an equivalent functionality to the original <code>ini_file</code> module, however, it does only the minimum changes when editing an INI file. It typically modifies only one line. When removing options, it doesn&rsquo;t delete the lines but comment them out instead. If there was a commented out option it comments it in when required.</p>
+<p>After a while working with the Python code, I created the <code>ini_file2</code> module. This module provides an equivalent functionality to the original <code>ini_file</code> module, however, it does only the minimum changes when editing the INI file. It typically modifies only one line. When removing options, it doesn&rsquo;t delete the lines but comment them out instead. If there was a commented out option it comments it in when required.</p>
 
 <h2>The ini_file and ini_file2 comparison</h2>
 
@@ -139,7 +139,7 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>The Ansible test script will set the <code>option1</code> and <code>option2</code> to <code>new_value</code>. It will remove the <code>option3</code> from the INI file:</p>
+<p>The Ansible test script will set the <code>option1</code> and <code>option2</code> to <code>new_value</code> and it will remove the <code>option3</code> from the INI file:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -170,7 +170,7 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>You can see that there&rsquo;s not much is left from the input file. All comments are gone. In contrary, the <code>ini_file2</code> module does the editing operations with care:</p>
+<p>You can see that there&rsquo;s not much left from the input file. All comments are gone. In contrary, the <code>ini_file2</code> module does the editing operations with care:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -203,7 +203,7 @@
 
 <h2>References</h2>
 
-<p>The <code>ini_file2</code> source code accompanied by tests can be found at <a href="%22https://github.com/noseka1/ini_file2%22%20ini_file2">GitHub</a>.</p>
+<p>The <code>ini_file2</code> source code accompanied by tests can be found at <a href="https://github.com/noseka1/ini_file2" title="ini_file2">GitHub</a>.</p>
 </div>
 
 
