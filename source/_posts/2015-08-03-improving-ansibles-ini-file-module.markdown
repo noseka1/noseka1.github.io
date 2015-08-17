@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Improving Ansible's ini_file module"
+title: "Improving Ansible's ini_file Module"
 date: 2015-08-03 20:01:30 -0700
 comments: true
 categories: devops
