@@ -4,7 +4,7 @@
   <title><![CDATA[Category: devops | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/devops/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2015-08-17T23:27:49-07:00</updated>
+  <updated>2015-08-17T23:40:56-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -51,7 +51,7 @@
 <p>You can find the <code>rhel_reposync</code> Ansible role at <a href="https://github.com/noseka1/rhel_reposync" title="rhel_reposync">GitHub</a>. You want to run this role on your Docker host. It will download the RHEL6 and RHEL7 images, and register them with the Red Hat Customer Portal. You have to supply your Red Hat credentials on the command-line. For example:</p>
 
 <p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>ansible-playbook -i hosts playbook.yml -e <span class="nv">redhat_portal_username</span><span class="o">=</span>&lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#x6d;&amp;#97;&amp;#105;&amp;#108;&amp;#x74;&amp;#x6f;&amp;#58;&amp;#117;&amp;#x73;&amp;#101;&amp;#114;&amp;#x6e;&amp;#97;&amp;#x6d;&amp;#x65;&amp;#64;&amp;#x63;&amp;#x6f;&amp;#109;&amp;#112;&amp;#97;&amp;#x6e;&amp;#x79;&amp;#x2e;&amp;#99;&amp;#x6f;&amp;#109;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#x75;&amp;#x73;&amp;#x65;&amp;#x72;&amp;#110;&amp;#97;&amp;#x6d;&amp;#101;&amp;#x40;&amp;#x63;&amp;#111;&amp;#109;&amp;#112;&amp;#x61;&amp;#110;&amp;#x79;&amp;#x2e;&amp;#x63;&amp;#x6f;&amp;#x6d;&lt;/a&gt; -e redhat_portal_password=secretpassword</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>ansible-playbook -i hosts playbook.yml -e <span class="nv">redhat_portal_username</span><span class="o">=</span>&lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#109;&amp;#97;&amp;#105;&amp;#x6c;&amp;#116;&amp;#x6f;&amp;#x3a;&amp;#117;&amp;#115;&amp;#101;&amp;#114;&amp;#x6e;&amp;#97;&amp;#x6d;&amp;#x65;&amp;#x40;&amp;#x63;&amp;#x6f;&amp;#x6d;&amp;#x70;&amp;#x61;&amp;#x6e;&amp;#121;&amp;#46;&amp;#99;&amp;#111;&amp;#x6d;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#117;&amp;#x73;&amp;#x65;&amp;#x72;&amp;#x6e;&amp;#x61;&amp;#x6d;&amp;#x65;&amp;#64;&amp;#99;&amp;#111;&amp;#109;&amp;#x70;&amp;#97;&amp;#110;&amp;#121;&amp;#x2e;&amp;#x63;&amp;#x6f;&amp;#109;&lt;/a&gt; -e redhat_portal_password=secretpassword</span>
 </span></code></pre></td></tr></table></div></figure></p>
 
 <p>After the Ansible run is finished you&rsquo;ll find two images in your local Docker repository: <code>rhel6_reposync_registered</code> and <code>rhel7_reposync_registered</code>.</p>
@@ -66,7 +66,7 @@
 
 <h2>Alternative solution</h2>
 
-<p>I discovered an <a href="https://github.com/pyther/upstream_sync" title="upstream_sync">upstream_sync</a> script that allows you to mirror multiple RHEL/CentOS repositories from a single machine. It uses a specific client SSL certificate and key to access each of the repositories. Depending on your situation, you might find this solution better than the approach described in this article.</p>
+<p>I discovered an <a href="https://github.com/pyther/upstream_sync" title="upstream_sync">upstream_sync</a> script that allows you to mirror multiple RHEL/CentOS repositories from a single machine. It uses a specific client SSL certificate and key to access each of the repositories. This solution is much simpler than the approach described in this article.</p>
 ]]></content>
   </entry>
 
