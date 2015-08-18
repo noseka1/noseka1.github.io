@@ -50,4 +50,4 @@ docker run --rm -v /var/www/html/RHEL6:/repodir rhel6_reposync_registered
 
 ## Alternative solution
 
-I discovered an [upstream_sync](https://github.com/pyther/upstream_sync "upstream_sync") script that allows you to mirror multiple RHEL/CentOS repositories from a single machine. It uses a specific client SSL certificate and key to access each of the repositories. Depending on your situation, you might find this solution better than the approach described in this article.
+I discovered an [upstream_sync](https://github.com/pyther/upstream_sync "upstream_sync") script that allows you to mirror multiple RHEL/CentOS repositories from a single machine. It uses a specific client SSL certificate and key to access each of the repositories. This solution is much simpler than the approach described in this article.
