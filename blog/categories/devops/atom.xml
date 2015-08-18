@@ -4,7 +4,7 @@
   <title><![CDATA[Category: devops | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/devops/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2015-08-03T22:45:41-07:00</updated>
+  <updated>2015-08-17T23:27:49-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -14,7 +14,64 @@
 
 
   <entry>
-    <title type="html"><![CDATA[Improving Ansible's ini_file module]]></title>
+    <title type="html"><![CDATA[Multiple RHEL Mirrors on a Single Machine]]></title>
+    <link href="http://alesnosek.com/blog/2015/08/16/multiple-rhel-mirrors-on-a-single-machine/"/>
+    <updated>2015-08-16T22:23:11-07:00</updated>
+    <id>http://alesnosek.com/blog/2015/08/16/multiple-rhel-mirrors-on-a-single-machine</id>
+    <content type="html"><![CDATA[<p><em>Reposync</em> can mirror the yum repository to which your machine is subscribed to. However, you cannot subscribe your machine to the RHEL6 and RHEL7 at the same time. Let&rsquo;s take a look at how Docker can help us here.</p>
+
+<!-- more -->
+
+
+<p>The RHEL Docker images are available in the public registry. For example, the following command downloads a RHEL6 Docker image:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>docker pull rhel6
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>The downloaded image is not registered with <a href="https://access.redhat.com/" title="Red Hat Customer Portal">Red Hat Customer Portal</a> and hence cannot receive any software updates. To register the Docker image, you&rsquo;ll need the <em>username</em> and <em>password</em> you use to log in to the Red Hat Customer Portal.</p>
+
+<h2>Docker and the build-time secrets</h2>
+
+<p>You will encounter a problem when building and registering the RHEL image using a Dockerfile. How to register the RHEL image using your credentials without Docker baking those credentials into the image? You don&rsquo;t want others to discover your secrets in the image&rsquo;s metadata or the history log. As a matter of fact, there doesn&rsquo;t seem to be a secure way to pass the secrets to the Docker in build-time. And there is a nice <a href="https://github.com/docker/docker/issues/13490" title="Secrets in Docker">write-up</a> available in the Docker issue tracker describing the different approaches how to workaround this deficiency.</p>
+
+<p>The following approach worked for me:</p>
+
+<ol>
+<li>Store the credentials into a file on the Docker host</li>
+<li>Start a RHEL container with the credentials file mounted into it</li>
+<li>Use the credentials to register the RHEL system</li>
+<li>Stop the RHEL container</li>
+<li>Commit the RHEL container into a new Docker image</li>
+</ol>
+
+
+<h2>Creating RHEL images with Ansible</h2>
+
+<p>You can find the <code>rhel_reposync</code> Ansible role at <a href="https://github.com/noseka1/rhel_reposync" title="rhel_reposync">GitHub</a>. You want to run this role on your Docker host. It will download the RHEL6 and RHEL7 images, and register them with the Red Hat Customer Portal. You have to supply your Red Hat credentials on the command-line. For example:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>ansible-playbook -i hosts playbook.yml -e <span class="nv">redhat_portal_username</span><span class="o">=</span>&lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#x6d;&amp;#97;&amp;#105;&amp;#108;&amp;#x74;&amp;#x6f;&amp;#58;&amp;#117;&amp;#x73;&amp;#101;&amp;#114;&amp;#x6e;&amp;#97;&amp;#x6d;&amp;#x65;&amp;#64;&amp;#x63;&amp;#x6f;&amp;#109;&amp;#112;&amp;#97;&amp;#x6e;&amp;#x79;&amp;#x2e;&amp;#99;&amp;#x6f;&amp;#109;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#x75;&amp;#x73;&amp;#x65;&amp;#x72;&amp;#110;&amp;#97;&amp;#x6d;&amp;#101;&amp;#x40;&amp;#x63;&amp;#111;&amp;#109;&amp;#112;&amp;#x61;&amp;#110;&amp;#x79;&amp;#x2e;&amp;#x63;&amp;#x6f;&amp;#x6d;&lt;/a&gt; -e redhat_portal_password=secretpassword</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>After the Ansible run is finished you&rsquo;ll find two images in your local Docker repository: <code>rhel6_reposync_registered</code> and <code>rhel7_reposync_registered</code>.</p>
+
+<h2>Mirroring the RHEL repository</h2>
+
+<p>To begin the RHEL repository mirroring you just start a container based on the registered image. The container expects a volume to be mounted at <code>/repodir</code>. It will save the downloaded RPM packages at this location.</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>docker run <span class="p">&amp;</span>ndash<span class="p">;</span>rm -v /var/www/html/RHEL6:/repodir rhel6_reposync_registered
+</span></code></pre></td></tr></table></div></figure></p>
+
+<h2>Alternative solution</h2>
+
+<p>I discovered an <a href="https://github.com/pyther/upstream_sync" title="upstream_sync">upstream_sync</a> script that allows you to mirror multiple RHEL/CentOS repositories from a single machine. It uses a specific client SSL certificate and key to access each of the repositories. Depending on your situation, you might find this solution better than the approach described in this article.</p>
+]]></content>
+  </entry>
+
+  <entry>
+    <title type="html"><![CDATA[Improving Ansible's ini_file Module]]></title>
     <link href="http://alesnosek.com/blog/2015/08/03/improving-ansibles-ini-file-module/"/>
     <updated>2015-08-03T20:01:30-07:00</updated>
     <id>http://alesnosek.com/blog/2015/08/03/improving-ansibles-ini-file-module</id>
@@ -464,138 +521,6 @@ Whenever you create/delete an instance in OpenStack a host of notification messa
 <h2>References</h2>
 
 <p>You can find more detailed information on topic exchanges in the great RabbitMQ tutorial <a href="https://www.rabbitmq.com/tutorials/tutorial-five-python.html" title="Topics">here</a>. A version of the Nova notifications subscriber implemented with Python <a href="http://pika.readthedocs.org/en/latest/" title="Introduction to Pika">Pika</a> library is described in <a href="https://prosuncsedu.wordpress.com/2014/01/08/notification-of-actions-in-openstack-nova/" title="Action Notifications in OpenStack nova">this</a> blogpost.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[Dynamic DNS with BIND and dhclient]]></title>
-    <link href="http://alesnosek.com/blog/2015/05/02/dynamic-dns-with-bind-and-dhclient/"/>
-    <updated>2015-05-02T19:21:43-07:00</updated>
-    <id>http://alesnosek.com/blog/2015/05/02/dynamic-dns-with-bind-and-dhclient</id>
-    <content type="html"><![CDATA[<p>In this blogpost we&rsquo;re going to configure the BIND server to accept dynamic updates. Client machines themselves will send the updates to the DNS server instead of letting DHCP server update the DNS. A great setup for situations where the DHCP server is not in your control.</p>
-
-<!-- more -->
-
-
-<p>Examples in this article work on RHEL6 that comes with BIND 9. You&rsquo;ll need to have <code>bind</code> and <code>bind-utils</code> RPM packages installed. In the following, the BIND server with host name <code>ns.somedomain.com</code> is an authoritative DNS server for the fictive zone <code>somedomain.com</code>.</p>
-
-<h2>Dynamic DNS with BIND</h2>
-
-<p>In our example we&rsquo;re going to configure the BIND server to accept DNS updates for <code>somedomain.com</code> zone from any client. In production environment you&rsquo;d use encryption keys to secure the access to the DNS server. You can read more on the secure configuration in <a href="http://linux.yyz.us/nsupdate/" title="nsupdate: Painless Dynamic DNS">this</a> excellent article. To allow any client to update the <code>somedomain.com</code> zone add the <code>allow-update { 0/0; };</code> option into your <code>/etc/named.conf</code> file:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>zone &ldquo;somedomain.com&rdquo; in {
-</span><span class='line'>        type master;
-</span><span class='line'>        file &ldquo;db.somedomain.com&rdquo;;
-</span><span class='line'>        allow-update { 0/0; };
-</span><span class='line'>};</span></code></pre></td></tr></table></div></figure></p>
-
-<p>After restarting the DNS server with <code>sudo /etc/init.d/named restart</code> we can test that the DNS updates are working. Let&rsquo;s ask the DNS server <code>ns.somedomain.com</code> to register a host <code>somehost.somedomain.com</code> with IP address <code>192.168.100.200</code>:
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>nsupdate -d <span class="p">&amp;</span>lt<span class="p">;&amp;</span>lt<span class="p">;</span> EOF
-</span><span class='line'>server ns.somedomain.com
-</span><span class='line'>update add somehost.somedomain.com <span class="m">300</span> A 192.168.100.200
-</span><span class='line'>send
-</span><span class='line'>EOF
-</span></code></pre></td></tr></table></div></figure>
-If everything worked fine you should see <code>status: NOERROR</code> in the reply from update query. The DNS server created a new record in its database pairing the <code>somehost.somedomain.com</code> host name with the IP address <code>192.168.100.200</code>. Let&rsquo;s check that the host name resolution works by issuing:
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>host somehost.somedomain.com ns.somedomain.com
-</span></code></pre></td></tr></table></div></figure>
-You should see the IP address <code>192.168.100.200</code> in the command output. When on the DNS server you can dump the zone data into <code>/var/named/data/cache_dump.db</code> file for inspection:
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>rndc dumpdb -all
-</span></code></pre></td></tr></table></div></figure></p>
-
-<h2>Updating DNS after IP acquisition</h2>
-
-<p>Our virtual machines obtain their IP addresses via DHCP. Whenever the virtual machine obtains a new IP address or renews the lease we&rsquo;d like it to update the DNS accordingly. This way the DNS is always kept up to date and we&rsquo;re able to access the virtual machine using its host name.</p>
-
-<p>The IP address acquisition is managed by the DHCP client <code>dhclient</code> running on the virtual machine. The <code>dhclient</code> can be extended by custom hooks. We are going to prepare a script that updates the DNS database whenever the virtual machine acquires an IP address. Our DNS update hook must be saved at <code>/etc/dhcp/dhclient-eth0-up-hooks</code>. The <code>/sbin/dhclient-script</code> shell script that comes with the <code>dhclient</code> package will execute the hook. Upon execution the hook is passed a <code>reason</code> variable describing the event.</p>
-
-<p>To install the update hook on the virtual machine let&rsquo;s make use of Cloud-Init tool that I talked about in the <a href="/blog/2015/04/26/using-cloud-init-outside-of-cloud/" title="Using Cloud-Init Outside of Cloud">previous blogpost</a>. The cloud-config script to be consumed by Cloud-Init looks as follows:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="l-Scalar-Plain">&lt;h1&gt;cloud-config&lt;/h1&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="l-Scalar-Plain">&lt;p&gt;fqdn</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">somehost.somedomain.com</span>
-</span><span class='line'><span class="l-Scalar-Plain">write_files</span><span class="p-Indicator">:</span>
-</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">path</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">/etc/dhcp/dhclient-eth0-up-hooks</span>
-</span><span class='line'>    <span class="l-Scalar-Plain">permissions</span><span class="p-Indicator">:</span> <span class="nl">&amp;lsquo</span><span class="l-Scalar-Plain">;0755&amp;rsquo;</span>
-</span><span class='line'>    <span class="l-Scalar-Plain">content</span><span class="p-Indicator">:</span> <span class="p-Indicator">|</span>
-</span><span class='line'>      <span class="no">#!/bin/bash</span>
-</span><span class='line'>      <span class="no">INTERFACE=eth0</span>
-</span><span class='line'>      <span class="no">LEASE_FILE=/var/lib/dhclient/dhclient-$INTERFACE.leases</span>
-</span><span class='line'>      <span class="no">HOST_ADDR=$(sed -n -e &amp;rsquo;s/.&lt;em&gt;fixed-address ([0-9]+.[0-9]+.[0-9]+.[0-9]+).&lt;/em&gt;/\1/p&#39; $LEASE_FILE | tail -1)</span>
-</span><span class='line'>      <span class="no">HOST_NAME=$(hostname)</span>
-</span><span class='line'>      <span class="no">NAMESERVER=ns.somedomain.com</span>
-</span><span class='line'>      <span class="no">TTL=300&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="l-Scalar-Plain">&lt;pre&gt;&lt;code&gt;  if host $NAMESERVER 1&amp;gt;/dev/null 2&amp;gt;&amp;amp;1; then</span>
-</span><span class='line'>    <span class="l-Scalar-Plain">case $reason in</span>
-</span><span class='line'>      <span class="l-Scalar-Plain">BOUND|RENEW|REBIND|REBOOT)</span>
-</span><span class='line'>        <span class="l-Scalar-Plain">nsupdate &amp;lt;&amp;lt; EOF</span>
-</span><span class='line'>          <span class="l-Scalar-Plain">server $NAMESERVER</span>
-</span><span class='line'>          <span class="l-Scalar-Plain">update delete $HOST_NAME A</span>
-</span><span class='line'>          <span class="l-Scalar-Plain">update add $HOST_NAME $TTL A $HOST_ADDR</span>
-</span><span class='line'>          <span class="l-Scalar-Plain">send</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">EOF</span>
-</span><span class='line'>      <span class="l-Scalar-Plain">;;</span>
-</span><span class='line'>    <span class="l-Scalar-Plain">esac</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">fi</span>
-</span><span class='line'><span class="l-Scalar-Plain">&lt;/code&gt;&lt;/pre&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="l-Scalar-Plain">&lt;p&gt;runcmd</span><span class="p-Indicator">:</span>
-</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">hostname somehost.somedomain.com</span> <span class="c1"># fix the hostname incorrectly set up by cloud-init</span>
-</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">reason=BOUND /etc/dhcp/dhclient-eth0-up-hooks</span> <span class="c1"># DNS registration on first boot</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Upon the very first execution of the hook the machine&rsquo;s network setup is not complete yet. There&rsquo;s no <code>/etc/resolv.conf</code> file written yet and the default route is not configured. The condition <code>if host $NAMESERVER; then ...</code> skips the DNS update in this case. Later in the initialization process the <code>runcmd</code> part of the cloud-config script gets executed. At this time the network configuration is complete and so we execute the update hook manually. This is the first time that the virtual machine registers itself with DNS. Cloud-Init executes the <code>runcmd</code> section only on the very first boot. Subsequent boots won&rsquo;t execute the <code>runcmd</code> code.</p>
-
-<p>Note that we&rsquo;re parsing the <code>/var/lib/dhclient/dhclient-eth0.leases</code> file to obtain the acquired IP address. Should the virtual machine obtain different IP address in the future the DNS entry gets updated accordingly.</p>
 ]]></content>
   </entry>
 
