@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2015-08-17T23:40:56-07:00</updated>
+  <updated>2015-09-07T19:39:52-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,196 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[Bridging VLAN Trunk to the Guest]]></title>
+    <link href="http://alesnosek.com/blog/2015/09/07/bridging-vlan-trunk-to-the-guest/"/>
+    <updated>2015-09-07T07:12:22-07:00</updated>
+    <id>http://alesnosek.com/blog/2015/09/07/bridging-vlan-trunk-to-the-guest</id>
+    <content type="html"><![CDATA[<p>In this article, we&rsquo;re going to make an entire VLAN trunk on the host accessible to the guest machine. The guest machine can then create VLAN subinterfaces in order to access a particular VLAN.</p>
+
+<!-- more -->
+
+
+<p>Our host and guest machines are running RHEL7. We&rsquo;re using Linux bridges and <a href="http://libvirt.org/" title="libvirt">libvirt</a> for guest and network configuration.</p>
+
+<h2>Bridge configuration on the host</h2>
+
+<p>On the host, the physical interface <code>enp3s0f0</code> is a trunk interface including VLANs with tags 408, 410 and 412. We&rsquo;ll create a new Linux bridge and add the <code>enp3s0f0</code> to this bridge. The virtual machines created by libvirt will also be connected to this bridge. The configuration of the <code>enp3s0f0</code> physical interface looks as follows:</p>
+
+<figure class='code'><figcaption><span>/etc/sysconfig/network-scripts/ifcfg-enp3s0f0 </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">TYPE</span><span class="o">=</span>Ethernet
+</span><span class='line'><span class="nv">BOOTPROTO</span><span class="o">=</span>none
+</span><span class='line'><span class="nv">DEVICE</span><span class="o">=</span>enp3s0f0
+</span><span class='line'><span class="nv">ONBOOT</span><span class="o">=</span>yes
+</span><span class='line'><span class="nv">BRIDGE</span><span class="o">=</span>br-enp3s0f0
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Please, note that there&rsquo;s no IP address configuration (neither static nor via DHCP) for the <code>enp3s0f0</code> interface. The <code>enp3s0f0</code> interface is a trunk interface and hence the IP configuration would make no sense here. The <code>BRIDGE</code> configuration variable connects the physical interface to the <code>br-enp3s0f0</code> bridge. To create the <code>br-enp3s0f0</code> bridge the following configuration file is needed:</p>
+
+<figure class='code'><figcaption><span>/etc/sysconfig/network-scripts/ifcfg-br-enp3s0f0 </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">TYPE</span><span class="o">=</span>Bridge
+</span><span class='line'><span class="nv">BOOTPROTO</span><span class="o">=</span>none
+</span><span class='line'><span class="nv">DEVICE</span><span class="o">=</span>br-enp3s0f0
+</span><span class='line'><span class="nv">ONBOOT</span><span class="o">=</span>yes
+</span><span class='line'><span class="nv">DELAY</span><span class="o">=</span>0
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>After the <code>enp3s0f0</code> and <code>br-enp3s0f0</code> configuration is in place you might want to restart the networking service using the command:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo systemctl restart network
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Creating a bridged network in libvirt</h2>
+
+<p>Next, we&rsquo;re going to tell libvirt that there&rsquo;s an existing bridge <code>br-enp3s0f0</code> we&rsquo;d like our virtual machines be connected to. First, let&rsquo;s create a libvirt network definition file named just <code>bridge.xml</code>:</p>
+
+<figure class='code'><figcaption><span>bridge.xml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;network&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;name&gt;</span>br-enp3s0f0<span class="nt">&lt;/name&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;forward</span> <span class="na">mode=</span><span class="s">&#39;bridge&#39;</span><span class="nt">/&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;bridge</span> <span class="na">name=</span><span class="s">&#39;br-enp3s0f0&#39;</span> <span class="nt">/&gt;</span>
+</span><span class='line'><span class="nt">&lt;/network&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>To create a libvirt network based on the above definition, type:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo virsh net-define bridge.xml
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We&rsquo;d like libvirt daemon to start the network automatically on the startup:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo virsh net-autostart br-enp3s0f0
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>For the first time, we have to start the <code>br-enp3s0f0</code> network manually:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo virsh net-start br-enp3s0f0
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>If the above configuration went well, you will find the new network <code>br-enp3s0f0</code> on the list of libvirt networks:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>virsh net-list
+</span><span class='line'> Name                 State      Autostart     Persistent
+</span><span class='line'>----------------------------------------------------------
+</span><span class='line'> br-enp3s0f0          active     yes           yes
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Attaching a guest to the network</h2>
+
+<p>When creating a new guest (domain) in libvirt, you will need to attach the domain to the <code>br-enp3s0f0</code> network. I&rsquo;m not going to present the complete domain XML configuration here. You should include the following snippet in your domain definition in order to connect the domain to the <code>br-enp3s0f0</code> network:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;interface</span> <span class="na">type=</span><span class="s">&#39;network&#39;</span><span class="nt">&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;source</span> <span class="na">network=</span><span class="s">&#39;br-enp3s0f0&#39;</span><span class="nt">/&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;forward</span> <span class="na">mode=</span><span class="s">&#39;route&#39;</span><span class="nt">/&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;model</span> <span class="na">type=</span><span class="s">&#39;virtio&#39;</span><span class="nt">/&gt;</span>
+</span><span class='line'><span class="nt">&lt;/interface&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Guest network configuration</h2>
+
+<p>After the guest machine boots up successfully, you can create VLAN subinterfaces in order to obtain access to the individual VLANs within the guest. First, let&rsquo;s check the configuration of the VLAN trunk interface <code>eth0</code> inside the guest:</p>
+
+<figure class='code'><figcaption><span>/etc/sysconfig/network-scripts/ifcfg-eth0 </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">TYPE</span><span class="o">=</span>Ethernet
+</span><span class='line'><span class="nv">BOOTPROTO</span><span class="o">=</span>none
+</span><span class='line'><span class="nv">DEVICE</span><span class="o">=</span>eth0
+</span><span class='line'><span class="nv">ONBOOT</span><span class="o">=</span>yes
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Finally, we can create VLAN subinterfaces to access individual VLANs available in the <code>eth0</code> trunk. For example, to access VLAN 408 and obtain the IP configuration via DHCP you can create a new cofiguration file <code>ifcfg-eth0.408</code>:</p>
+
+<figure class='code'><figcaption><span>/etc/sysconfig/network-scripts/ifcfg-eth0.408 </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">BOOTPROTO</span><span class="o">=</span>dhcp
+</span><span class='line'><span class="nv">DEVICE</span><span class="o">=</span>eth0.408
+</span><span class='line'><span class="nv">ONBOOT</span><span class="o">=</span>yes
+</span><span class='line'><span class="nv">VLAN</span><span class="o">=</span>yes
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>When you restart the networking service, your guest should successfully obtain an IP address on the VLAN 408:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo systemctl restart network
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Caveat</h2>
+
+<p>When experimenting with the Linux bridge configuration I made this observation: <em>If there&rsquo;s a VLAN subinterface defined for a specific VLAN on the host machine, this specific VLAN won&rsquo;t be accessible inside the guest.</em> For example, when I created the following VLAN 408 subinterface on the host:</p>
+
+<figure class='code'><figcaption><span>/etc/sysconfig/network-scripts/ifcfg-enp3s0f0.408 </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">BOOTPROTO</span><span class="o">=</span>none
+</span><span class='line'><span class="nv">DEVICE</span><span class="o">=</span>enp3s0f0.408
+</span><span class='line'><span class="nv">ONBOOT</span><span class="o">=</span>yes
+</span><span class='line'><span class="nv">VLAN</span><span class="o">=</span>yes
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>As soon as I brought this interface up using:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo ifup enp3s0f0.408
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>the <code>eth0.408</code> VLAN subinterface in the guest stopped working.</p>
+
+<h2>References</h2>
+
+<p>When writing this blogpost I referred to the very useful article <a href="http://blog.davidvassallo.me/2012/05/05/kvm-brctl-in-linux-bringing-vlans-to-the-guests/">KVM &amp; BRCTL in Linux – bringing VLANs to the guests</a> describing the issues of VLAN bridging in a great detail.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[Multiple RHEL Mirrors on a Single Machine]]></title>

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: devops | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/devops/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2015-08-17T23:40:56-07:00</updated>
+  <updated>2015-09-07T19:39:52-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,183 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[Bridging VLAN Trunk to the Guest]]></title>
+    <link href="http://alesnosek.com/blog/2015/09/07/bridging-vlan-trunk-to-the-guest/"/>
+    <updated>2015-09-07T07:12:22-07:00</updated>
+    <id>http://alesnosek.com/blog/2015/09/07/bridging-vlan-trunk-to-the-guest</id>
+    <content type="html"><![CDATA[<p>In this article, we&rsquo;re going to make an entire VLAN trunk on the host accessible to the guest machine. The guest machine can then create VLAN subinterfaces in order to access a particular VLAN.</p>
+
+<!-- more -->
+
+
+<p>Our host and guest machines are running RHEL7. We&rsquo;re using Linux bridges and <a href="http://libvirt.org/" title="libvirt">libvirt</a> for guest and network configuration.</p>
+
+<h2>Bridge configuration on the host</h2>
+
+<p>On the host, the physical interface <code>enp3s0f0</code> is a trunk interface including VLANs with tags 408, 410 and 412. We&rsquo;ll create a new Linux bridge and add the <code>enp3s0f0</code> to this bridge. The virtual machines created by libvirt will also be connected to this bridge. The configuration of the <code>enp3s0f0</code> physical interface looks as follows:</p>
+
+<p><figure class='code'><figcaption><span>/etc/sysconfig/network-scripts/ifcfg-enp3s0f0 </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">TYPE</span><span class="o">=</span>Ethernet
+</span><span class='line'><span class="nv">BOOTPROTO</span><span class="o">=</span>none
+</span><span class='line'><span class="nv">DEVICE</span><span class="o">=</span>enp3s0f0
+</span><span class='line'><span class="nv">ONBOOT</span><span class="o">=</span>yes
+</span><span class='line'><span class="nv">BRIDGE</span><span class="o">=</span>br-enp3s0f0
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Please, note that there&rsquo;s no IP address configuration (neither static nor via DHCP) for the <code>enp3s0f0</code> interface. The <code>enp3s0f0</code> interface is a trunk interface and hence the IP configuration would make no sense here. The <code>BRIDGE</code> configuration variable connects the physical interface to the <code>br-enp3s0f0</code> bridge. To create the <code>br-enp3s0f0</code> bridge the following configuration file is needed:</p>
+
+<p><figure class='code'><figcaption><span>/etc/sysconfig/network-scripts/ifcfg-br-enp3s0f0 </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">TYPE</span><span class="o">=</span>Bridge
+</span><span class='line'><span class="nv">BOOTPROTO</span><span class="o">=</span>none
+</span><span class='line'><span class="nv">DEVICE</span><span class="o">=</span>br-enp3s0f0
+</span><span class='line'><span class="nv">ONBOOT</span><span class="o">=</span>yes
+</span><span class='line'><span class="nv">DELAY</span><span class="o">=</span>0
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>After the <code>enp3s0f0</code> and <code>br-enp3s0f0</code> configuration is in place you might want to restart the networking service using the command:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo systemctl restart network
+</span></code></pre></td></tr></table></div></figure></p>
+
+<h2>Creating a bridged network in libvirt</h2>
+
+<p>Next, we&rsquo;re going to tell libvirt that there&rsquo;s an existing bridge <code>br-enp3s0f0</code> we&rsquo;d like our virtual machines be connected to. First, let&rsquo;s create a libvirt network definition file named just <code>bridge.xml</code>:</p>
+
+<p><figure class='code'><figcaption><span>bridge.xml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;network&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;name&gt;</span>br-enp3s0f0<span class="nt">&lt;/name&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;forward</span> <span class="na">mode=</span><span class="s">&#39;bridge&#39;</span><span class="nt">/&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;bridge</span> <span class="na">name=</span><span class="s">&#39;br-enp3s0f0&#39;</span> <span class="nt">/&gt;</span>
+</span><span class='line'><span class="nt">&lt;/network&gt;</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>To create a libvirt network based on the above definition, type:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo virsh net-define bridge.xml
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>We&rsquo;d like libvirt daemon to start the network automatically on the startup:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo virsh net-autostart br-enp3s0f0
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>For the first time, we have to start the <code>br-enp3s0f0</code> network manually:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo virsh net-start br-enp3s0f0
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>If the above configuration went well, you will find the new network <code>br-enp3s0f0</code> on the list of libvirt networks:
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>virsh net-list&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;h2&gt; Name                 State      Autostart     Persistent&lt;/h2&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt; br-enp3s0f0          active     yes           yes
+</span></code></pre></td></tr></table></div></figure></p>
+
+<h2>Attaching a guest to the network</h2>
+
+<p>When creating a new guest (domain) in libvirt, you will need to attach the domain to the <code>br-enp3s0f0</code> network. I&rsquo;m not going to present the complete domain XML configuration here. You should include the following snippet in your domain definition in order to connect the domain to the <code>br-enp3s0f0</code> network:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;interface</span> <span class="na">type=</span><span class="s">&#39;network&#39;</span><span class="nt">&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;source</span> <span class="na">network=</span><span class="s">&#39;br-enp3s0f0&#39;</span><span class="nt">/&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;forward</span> <span class="na">mode=</span><span class="s">&#39;route&#39;</span><span class="nt">/&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;model</span> <span class="na">type=</span><span class="s">&#39;virtio&#39;</span><span class="nt">/&gt;</span>
+</span><span class='line'><span class="nt">&lt;/interface&gt;</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<h2>Guest network configuration</h2>
+
+<p>After the guest machine boots up successfully, you can create VLAN subinterfaces in order to obtain access to the individual VLANs within the guest. First, let&rsquo;s check the configuration of the VLAN trunk interface <code>eth0</code> inside the guest:</p>
+
+<p><figure class='code'><figcaption><span>/etc/sysconfig/network-scripts/ifcfg-eth0 </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">TYPE</span><span class="o">=</span>Ethernet
+</span><span class='line'><span class="nv">BOOTPROTO</span><span class="o">=</span>none
+</span><span class='line'><span class="nv">DEVICE</span><span class="o">=</span>eth0
+</span><span class='line'><span class="nv">ONBOOT</span><span class="o">=</span>yes
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Finally, we can create VLAN subinterfaces to access individual VLANs available in the <code>eth0</code> trunk. For example, to access VLAN 408 and obtain the IP configuration via DHCP you can create a new cofiguration file <code>ifcfg-eth0.408</code>:</p>
+
+<p><figure class='code'><figcaption><span>/etc/sysconfig/network-scripts/ifcfg-eth0.408 </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">BOOTPROTO</span><span class="o">=</span>dhcp
+</span><span class='line'><span class="nv">DEVICE</span><span class="o">=</span>eth0.408
+</span><span class='line'><span class="nv">ONBOOT</span><span class="o">=</span>yes
+</span><span class='line'><span class="nv">VLAN</span><span class="o">=</span>yes
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>When you restart the networking service, your guest should successfully obtain an IP address on the VLAN 408:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo systemctl restart network
+</span></code></pre></td></tr></table></div></figure></p>
+
+<h2>Caveat</h2>
+
+<p>When experimenting with the Linux bridge configuration I made this observation: <em>If there&rsquo;s a VLAN subinterface defined for a specific VLAN on the host machine, this specific VLAN won&rsquo;t be accessible inside the guest.</em> For example, when I created the following VLAN 408 subinterface on the host:</p>
+
+<p><figure class='code'><figcaption><span>/etc/sysconfig/network-scripts/ifcfg-enp3s0f0.408 </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">BOOTPROTO</span><span class="o">=</span>none
+</span><span class='line'><span class="nv">DEVICE</span><span class="o">=</span>enp3s0f0.408
+</span><span class='line'><span class="nv">ONBOOT</span><span class="o">=</span>yes
+</span><span class='line'><span class="nv">VLAN</span><span class="o">=</span>yes
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>As soon as I brought this interface up using:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo ifup enp3s0f0.408
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>the <code>eth0.408</code> VLAN subinterface in the guest stopped working.</p>
+
+<h2>References</h2>
+
+<p>When writing this blogpost I referred to the very useful article <a href="http://blog.davidvassallo.me/2012/05/05/kvm-brctl-in-linux-bringing-vlans-to-the-guests/">KVM &amp; BRCTL in Linux – bringing VLANs to the guests</a> describing the issues of VLAN bridging in a great detail.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[Multiple RHEL Mirrors on a Single Machine]]></title>
@@ -51,7 +228,7 @@
 <p>You can find the <code>rhel_reposync</code> Ansible role at <a href="https://github.com/noseka1/rhel_reposync" title="rhel_reposync">GitHub</a>. You want to run this role on your Docker host. It will download the RHEL6 and RHEL7 images, and register them with the Red Hat Customer Portal. You have to supply your Red Hat credentials on the command-line. For example:</p>
 
 <p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>ansible-playbook -i hosts playbook.yml -e <span class="nv">redhat_portal_username</span><span class="o">=</span>&lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#109;&amp;#97;&amp;#105;&amp;#x6c;&amp;#116;&amp;#x6f;&amp;#x3a;&amp;#117;&amp;#115;&amp;#101;&amp;#114;&amp;#x6e;&amp;#97;&amp;#x6d;&amp;#x65;&amp;#x40;&amp;#x63;&amp;#x6f;&amp;#x6d;&amp;#x70;&amp;#x61;&amp;#x6e;&amp;#121;&amp;#46;&amp;#99;&amp;#111;&amp;#x6d;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#117;&amp;#x73;&amp;#x65;&amp;#x72;&amp;#x6e;&amp;#x61;&amp;#x6d;&amp;#x65;&amp;#64;&amp;#99;&amp;#111;&amp;#109;&amp;#x70;&amp;#97;&amp;#110;&amp;#121;&amp;#x2e;&amp;#x63;&amp;#x6f;&amp;#109;&lt;/a&gt; -e redhat_portal_password=secretpassword</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>ansible-playbook -i hosts playbook.yml -e <span class="nv">redhat_portal_username</span><span class="o">=</span>&lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#109;&amp;#97;&amp;#x69;&amp;#x6c;&amp;#116;&amp;#111;&amp;#x3a;&amp;#x75;&amp;#x73;&amp;#101;&amp;#114;&amp;#110;&amp;#x61;&amp;#109;&amp;#101;&amp;#x40;&amp;#99;&amp;#111;&amp;#x6d;&amp;#112;&amp;#x61;&amp;#x6e;&amp;#x79;&amp;#x2e;&amp;#99;&amp;#x6f;&amp;#109;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#x75;&amp;#115;&amp;#x65;&amp;#114;&amp;#x6e;&amp;#x61;&amp;#x6d;&amp;#101;&amp;#64;&amp;#x63;&amp;#x6f;&amp;#x6d;&amp;#112;&amp;#x61;&amp;#x6e;&amp;#121;&amp;#46;&amp;#x63;&amp;#111;&amp;#109;&lt;/a&gt; -e redhat_portal_password=secretpassword</span>
 </span></code></pre></td></tr></table></div></figure></p>
 
 <p>After the Ansible run is finished you&rsquo;ll find two images in your local Docker repository: <code>rhel6_reposync_registered</code> and <code>rhel7_reposync_registered</code>.</p>
@@ -351,176 +528,6 @@
 <p>In my previous <a href="/blog/2015/05/25/openstack-nova-notifications-subscriber" title="OpenStack Nova Notifications Subscriber">article</a> I described how to monitor Nova events on RabbitMQ message bus. Two events of interest are <code>compute.instance.create.end</code> and <code>compute.instance.delete.start</code> that are sent by Nova on instance creation and instance deletion. Both events carry enough information for us to create a simple script to extract the hostname and IP addresses of the instance from the events and update the internal DNS using the <code>nsupdate</code> command.</p>
 
 <p>You can find the DNS updates implementantion including the systemd startup script at GitHub: <a href="https://github.com/noseka1/openstack-dns-updater" title="openstack-dns-updater">openstack-dns-updater</a>.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[OpenStack Nova Notifications Subscriber]]></title>
-    <link href="http://alesnosek.com/blog/2015/05/25/openstack-nova-notifications-subscriber/"/>
-    <updated>2015-05-25T08:42:41-07:00</updated>
-    <id>http://alesnosek.com/blog/2015/05/25/openstack-nova-notifications-subscriber</id>
-    <content type="html"><![CDATA[<p>OpenStack components generate notifications that can provide useful insight into what is going on in OpenStack. Let&rsquo;s create a simple subcriber that dumps incoming notifications from OpenStack Nova to standard output.</p>
-
-<!-- more -->
-
-
-<h2>Configure Nova to generate notifications</h2>
-
-<p>First let&rsquo;s make sure that Nova is configured to send out notifications. You should find the following lines in your <code>/etc/nova/nova.conf</code> file:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='ini'><span class='line'><span class="k">[DEFAULT]</span>
-</span><span class='line'><span class="na">notification_topics</span><span class="o">=</span><span class="s">notifications</span>
-</span><span class='line'><span class="na">notification_driver</span><span class="o">=</span><span class="s">messagingv2</span>
-</span><span class='line'><span class="na">notify_on_state_change</span><span class="o">=</span><span class="s">vm_state</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Property <code>notification_topics</code> determines the base name of the topic (routing key) where the notification messages are sent to. The full name of the topic where the info-level notifications are published is <code>notifications.info</code>.
-The possible choices of notification driver are briefly described in <a href="http://docs.openstack.org/developer/oslo.messaging/FAQ.html" title="Frequently Asked Questions">oslo.messaging FAQ</a>. The <code>messagingv2</code> option instructs Nova to send notifications using the 2.0 message format that wraps the messages into an oslo.messaging envelope. The <code>notify_on_state_change</code> property determines the kind of notifications Nova should send out. You can set its value to <code>vm_and_task_state</code> if you want to receive additional notifications. After you modified your <code>/etc/nova/nova.conf</code> restart the Nova components for changes to take effect:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo systemctl restart openstack-nova-api
-</span><span class='line'>sudo systemctl restart openstack-nova-compute
-</span><span class='line'>sudo systemctl restart openstack-nova-conductor
-</span><span class='line'>sudo systemctl restart openstack-nova-scheduler
-</span></code></pre></td></tr></table></div></figure></p>
-
-<h2>Implement Nova notifications subscriber</h2>
-
-<p>Internally, Nova uses <a href="https://kombu.readthedocs.org/en/latest/" title="Kombu Documentation">Kombu</a> messaging library to connect to the RabbitMQ message broker. Let&rsquo;s use this Python library in our notifications subscriber to avoid the need to install additional libraries.</p>
-
-<p>Nova sends out notification messages to a <em>topic</em> exchange called <code>nova</code> with the routing key <code>notifications.info</code>. In order to receive notification messages our client application needs to create a queue and bind it to the <code>nova</code> exchange. The binding key used to bind the queue to the <code>nova</code> exchange must match the routing key used by Nova to send out notification messages. Whenever there&rsquo;s a new message in the queue the Kombu library will invoke the <code>on_message</code> callback on our client to handle the message. The complete code of our notifications subscriber looks as follows:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">h1</span><span class="o">&gt;</span><span class="err">!</span><span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">env</span> <span class="n">python</span><span class="o">&lt;/</span><span class="n">h1</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="kn">import</span> <span class="nn">sys</span>
-</span><span class='line'><span class="kn">import</span> <span class="nn">logging</span> <span class="kn">as</span> <span class="nn">log</span>
-</span><span class='line'><span class="kn">from</span> <span class="nn">kombu</span> <span class="kn">import</span> <span class="n">BrokerConnection</span>
-</span><span class='line'><span class="kn">from</span> <span class="nn">kombu</span> <span class="kn">import</span> <span class="n">Exchange</span>
-</span><span class='line'><span class="kn">from</span> <span class="nn">kombu</span> <span class="kn">import</span> <span class="n">Queue</span>
-</span><span class='line'><span class="kn">from</span> <span class="nn">kombu.mixins</span> <span class="kn">import</span> <span class="n">ConsumerMixin</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">EXCHANGE_NAME</span><span class="o">=&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">nova</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span>
-</span><span class='line'><span class="n">ROUTING_KEY</span><span class="o">=&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">notifications</span><span class="o">.</span><span class="n">info</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span>
-</span><span class='line'><span class="n">QUEUE_NAME</span><span class="o">=&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">nova_dump_queue</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span>
-</span><span class='line'><span class="n">BROKER_URI</span><span class="o">=&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">amqp</span><span class="p">:</span><span class="o">//</span><span class="n">guest</span><span class="p">:</span><span class="n">guest</span><span class="nd">@localhost</span><span class="p">:</span><span class="mi">5672</span><span class="o">//&amp;</span><span class="n">rdquo</span><span class="p">;</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">log</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">stream</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">log</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="k">class</span> <span class="nc">NotificationsDump</span><span class="p">(</span><span class="n">ConsumerMixin</span><span class="p">):</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">connection</span><span class="p">):</span>
-</span><span class='line'>    <span class="bp">self</span><span class="o">.</span><span class="n">connection</span> <span class="o">=</span> <span class="n">connection</span>
-</span><span class='line'>    <span class="k">return</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">def</span> <span class="nf">get_consumers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">consumer</span><span class="p">,</span> <span class="n">channel</span><span class="p">):</span>
-</span><span class='line'>    <span class="n">exchange</span> <span class="o">=</span> <span class="n">Exchange</span><span class="p">(</span><span class="n">EXCHANGE_NAME</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s">&quot;topic&quot;</span><span class="p">,</span> <span class="n">durable</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-</span><span class='line'>    <span class="n">queue</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">(</span><span class="n">QUEUE_NAME</span><span class="p">,</span> <span class="n">exchange</span><span class="p">,</span> <span class="n">routing_key</span> <span class="o">=</span> <span class="n">ROUTING_KEY</span><span class="p">,</span> <span class="n">durable</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">auto_delete</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">no_ack</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-</span><span class='line'>    <span class="k">return</span> <span class="p">[</span> <span class="n">consumer</span><span class="p">(</span><span class="n">queue</span><span class="p">,</span> <span class="n">callbacks</span> <span class="o">=</span> <span class="p">[</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_message</span> <span class="p">])</span> <span class="p">]</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">def</span> <span class="nf">on_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">body</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
-</span><span class='line'>    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Body: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">body</span><span class="p">)</span>
-</span><span class='line'>    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;---------------&#39;</span><span class="p">)</span>
-</span><span class='line'><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="k">if</span> <span class="o">&lt;</span><span class="n">strong</span><span class="o">&gt;</span><span class="n">name</span><span class="o">&lt;/</span><span class="n">strong</span><span class="o">&gt;</span> <span class="o">==</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="o">&lt;</span><span class="n">strong</span><span class="o">&gt;</span><span class="n">main</span><span class="o">&lt;/</span><span class="n">strong</span><span class="o">&gt;&amp;</span><span class="n">rdquo</span><span class="p">;:</span>
-</span><span class='line'>    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">Connecting</span> <span class="n">to</span> <span class="n">broker</span> <span class="p">{}</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">BROKER_URI</span><span class="p">))</span>
-</span><span class='line'>    <span class="k">with</span> <span class="n">BrokerConnection</span><span class="p">(</span><span class="n">BROKER_URI</span><span class="p">)</span> <span class="k">as</span> <span class="n">connection</span><span class="p">:</span>
-</span><span class='line'>        <span class="n">NotificationsDump</span><span class="p">(</span><span class="n">connection</span><span class="p">)</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>After you run the notifications subscriber and if everything went fine you should see the output similar to:
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>INFO:root:Connecting to broker amqp://guest:guest@localhost:5672//
-</span><span class='line'>DEBUG:amqp:Start from server, version: 0.9, properties: {u'information': u'Licensed under the MPL.  See &lt;a href="http://www.rabbitmq.com/">http://www.rabbitmq.com/&lt;/a>&lsquo;, u'product&rsquo;: u'RabbitMQ', u'copyright': u'Copyright &copy; 2007-2014 GoPivotal, Inc.&lsquo;, u'capabilities&rsquo;: {u'exchange_exchange_bindings': True, u'connection.blocked': True, u'authentication_failure_close': True, u'basic.nack': True, u'per_consumer_qos': True, u'consumer_priorities': True, u'consumer_cancel_notify': True, u'publisher_confirms': True}, u'cluster_name': u'rabbit@rdo-controller', u'platform': u'Erlang/OTP', u'version': u'3.3.5'}, mechanisms: [u'AMQPLAIN', u'PLAIN'], locales: [u'en_US']
-</span><span class='line'>DEBUG:amqp:Open OK!
-</span><span class='line'>INFO:kombu.mixins:Connected to amqp://guest@127.0.0.1:5672//
-</span><span class='line'>DEBUG:amqp:using channel_id: 1
-</span><span class='line'>DEBUG:amqp:Channel open</span></code></pre></td></tr></table></div></figure>
-Whenever you create/delete an instance in OpenStack a host of notification messages should be rolling on your screen.</p>
-
-<h2>Troubleshooting</h2>
-
-<p>RabbitMQ comes with a <code>rabbitmqctl</code> command which can be used to inspect the state of the exchanges, queues and bindings in the running RabbitMQ instance. First let&rsquo;s check that the <code>nova</code> topic exchange exists:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo rabbitmqctl list_exchanges <span class="p">|</span> grep nova
-</span><span class='line'>nova    topic
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Next let&rsquo;s make sure that our consumer queue was successfully created:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo rabbitmqctl list_queues <span class="p">|</span> grep nova_dump_queue
-</span><span class='line'>nova_dump_queue 0
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>As a last thing we want to double-check that our <code>nova_dump_queue</code> was bound with the <code>nova</code> exchange using the binding key <code>notifications.info</code>:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo rabbitmqctl list_bindings <span class="p">|</span> grep nova_dump_queue
-</span><span class='line'>        exchange        nova_dump_queue queue   nova_dump_queue <span class="o">[]</span>
-</span><span class='line'>nova    exchange        nova_dump_queue queue   notifications.info      <span class="o">[]</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<h2>References</h2>
-
-<p>You can find more detailed information on topic exchanges in the great RabbitMQ tutorial <a href="https://www.rabbitmq.com/tutorials/tutorial-five-python.html" title="Topics">here</a>. A version of the Nova notifications subscriber implemented with Python <a href="http://pika.readthedocs.org/en/latest/" title="Introduction to Pika">Pika</a> library is described in <a href="https://prosuncsedu.wordpress.com/2014/01/08/notification-of-actions-in-openstack-nova/" title="Action Notifications in OpenStack nova">this</a> blogpost.</p>
 ]]></content>
   </entry>
 
