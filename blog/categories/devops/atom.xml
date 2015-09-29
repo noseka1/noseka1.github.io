@@ -4,7 +4,7 @@
   <title><![CDATA[Category: devops | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/devops/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2015-09-07T19:39:52-07:00</updated>
+  <updated>2015-09-28T23:14:56-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,274 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[Network Configuration with os-net-config]]></title>
+    <link href="http://alesnosek.com/blog/2015/09/28/network-configuration-with-os-net-config/"/>
+    <updated>2015-09-28T20:30:11-07:00</updated>
+    <id>http://alesnosek.com/blog/2015/09/28/network-configuration-with-os-net-config</id>
+    <content type="html"><![CDATA[<p><a href="https://github.com/openstack/os-net-config" title="os-net-config">Os-net-config</a> is a simple tool to configure networking of Linux hosts. Combined with Cloud-init, it&rsquo;s suitable for network configuration of virtual machines when booting in the cloud. Let&rsquo;s take a closer look at os-net-config.</p>
+
+<!-- more -->
+
+
+<p>Os-net-config is developed as a part of the OpenStack <a href="https://wiki.openstack.org/wiki/TripleO" title="TripleO">TripleO</a> project. Its modus operandi is simple: based on the YAML/JSON configuration file, the os-net-config configures the network interfaces of the machine. Currently, the tool supports configuration of Debian based distributions using <code>/etc/network/interfaces</code> and configuration of distributions using scripts in <code>/etc/sysconfig/network</code> directory, e.g. Red Hat. Os-net-config allows to:</p>
+
+<ol>
+<li>Assign IP addresses to interfaces</li>
+<li>Define static routes</li>
+<li>Create VLAN subinterfaces</li>
+<li>Create OVS bridges</li>
+<li>Create OVS bonds (not implemented on Debian)</li>
+</ol>
+
+
+<h2>Using os-net-config on Red Hat</h2>
+
+<p>In the following examples we&rsquo;ll use RHEL7 and os-net-config version 0.1.4. By default, os-net-config reads the configuration file at <code>/etc/os-net-config/config.yaml</code>. However, you can specify a different location using the <code>-c</code> parameter. First example shows a configuration of machine with two network interfaces. The first interface is dynamically configured using DHCP. The second interface has been assigned an IP address and netmask statically:</p>
+
+<p><figure class='code'><figcaption><span>example1.yaml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">network_config</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">type</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">interface</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">nic1</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">use_dhcp</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">true&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">&lt;ul&gt;</span>
+</span><span class='line'><span class="l-Scalar-Plain">&lt;li&gt;type</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">interface</span>
+</span><span class='line'><span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">nic2</span>
+</span><span class='line'><span class="l-Scalar-Plain">addresses</span><span class="p-Indicator">:</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">&lt;ul&gt;</span>
+</span><span class='line'><span class="l-Scalar-Plain">&lt;li&gt;ip_netmask</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">192.168.1.1/24</span>
+</span></code></pre></td></tr></table></div></figure></li>
+</ul>
+</li>
+</ul>
+
+
+<p>To apply the above network configuration to your machine you can run:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>os-net-config -c example1.yaml
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>On my machine, os-net-config created four configuration files in the <code>/etc/sysconfig/network-scripts</code> directory:</p>
+
+<p><figure class='code'><figcaption><span>/etc/sysconfig/network-scripts/ifcfg-eth0 </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;h1&gt;This file is autogenerated by os-net-config&lt;/h1&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;DEVICE<span class="o">=</span>eth0
+</span><span class='line'><span class="nv">ONBOOT</span><span class="o">=</span>yes
+</span><span class='line'><span class="nv">HOTPLUG</span><span class="o">=</span>no
+</span><span class='line'><span class="nv">NM_CONTROLLED</span><span class="o">=</span>no
+</span><span class='line'><span class="nv">BOOTPROTO</span><span class="o">=</span>dhcp
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p><figure class='code'><figcaption><span>/etc/sysconfig/network-scripts/ifcfg-eth1 </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;h1&gt;This file is autogenerated by os-net-config&lt;/h1&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;DEVICE<span class="o">=</span>eth1
+</span><span class='line'><span class="nv">ONBOOT</span><span class="o">=</span>yes
+</span><span class='line'><span class="nv">HOTPLUG</span><span class="o">=</span>no
+</span><span class='line'><span class="nv">NM_CONTROLLED</span><span class="o">=</span>no
+</span><span class='line'><span class="nv">BOOTPROTO</span><span class="o">=</span>static
+</span><span class='line'><span class="nv">IPADDR</span><span class="o">=</span>192.168.1.1
+</span><span class='line'><span class="nv">NETMASK</span><span class="o">=</span>255.255.255.0
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>In addition to the above interface configuration files, two empty files <code>route-eth0</code> and <code>route-eth1</code> have been created. These files would be populated in the case that I would define some static routes in my network configuration.</p>
+
+<p>In the second example, we&rsquo;ll bond two network interfaces and plug this bond into an OVS bridge. The os-net-config YAML configuration looks like this:</p>
+
+<p><figure class='code'><figcaption><span>example2.yaml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">network_config</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">type</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">ovs_bridge</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">bridge1</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">use_dhcp</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">true</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">members</span><span class="p-Indicator">:</span>
+</span><span class='line'>       <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">type</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">ovs_bond</span>
+</span><span class='line'>         <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">bond1</span>
+</span><span class='line'>         <span class="l-Scalar-Plain">members</span><span class="p-Indicator">:</span>
+</span><span class='line'>           <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">type</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">interface</span>
+</span><span class='line'>             <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">nic1</span>
+</span><span class='line'>           <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">type</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">interface</span>
+</span><span class='line'>             <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">nic2</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>And here is the listing of the network configuration files generated by os-net-config based on the above input:</p>
+
+<p><figure class='code'><figcaption><span>/etc/sysconfig/network-scripts/ifcfg-eth0 </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;h1&gt;This file is autogenerated by os-net-config&lt;/h1&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;DEVICE<span class="o">=</span>eth0
+</span><span class='line'><span class="nv">ONBOOT</span><span class="o">=</span>yes
+</span><span class='line'><span class="nv">HOTPLUG</span><span class="o">=</span>no
+</span><span class='line'><span class="nv">NM_CONTROLLED</span><span class="o">=</span>no
+</span><span class='line'><span class="nv">BOOTPROTO</span><span class="o">=</span>none
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p><figure class='code'><figcaption><span>/etc/sysconfig/network-scripts/ifcfg-eth1 </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;h1&gt;This file is autogenerated by os-net-config&lt;/h1&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;DEVICE<span class="o">=</span>eth1
+</span><span class='line'><span class="nv">ONBOOT</span><span class="o">=</span>yes
+</span><span class='line'><span class="nv">HOTPLUG</span><span class="o">=</span>no
+</span><span class='line'><span class="nv">NM_CONTROLLED</span><span class="o">=</span>no
+</span><span class='line'><span class="nv">BOOTPROTO</span><span class="o">=</span>none
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p><figure class='code'><figcaption><span>/etc/sysconfig/network-scripts/ifcfg-bond1 </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;h1&gt;This file is autogenerated by os-net-config&lt;/h1&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;DEVICE<span class="o">=</span>bond1
+</span><span class='line'><span class="nv">ONBOOT</span><span class="o">=</span>yes
+</span><span class='line'><span class="nv">HOTPLUG</span><span class="o">=</span>no
+</span><span class='line'><span class="nv">NM_CONTROLLED</span><span class="o">=</span>no
+</span><span class='line'><span class="nv">DEVICETYPE</span><span class="o">=</span>ovs
+</span><span class='line'><span class="nv">TYPE</span><span class="o">=</span>OVSPort
+</span><span class='line'><span class="nv">OVS_BRIDGE</span><span class="o">=</span>bridge1
+</span><span class='line'><span class="nv">DEVICETYPE</span><span class="o">=</span>ovs
+</span><span class='line'><span class="nv">TYPE</span><span class="o">=</span>OVSBond
+</span><span class='line'><span class="nv">BOND_IFACES</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span>eth0 eth1<span class="p">&amp;</span>rdquo<span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p><figure class='code'><figcaption><span>/etc/sysconfig/network-scripts/ifcfg-bridge1 </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;h1&gt;This file is autogenerated by os-net-config&lt;/h1&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;DEVICE<span class="o">=</span>bridge1
+</span><span class='line'><span class="nv">ONBOOT</span><span class="o">=</span>yes
+</span><span class='line'><span class="nv">HOTPLUG</span><span class="o">=</span>no
+</span><span class='line'><span class="nv">NM_CONTROLLED</span><span class="o">=</span>no
+</span><span class='line'><span class="nv">DEVICETYPE</span><span class="o">=</span>ovs
+</span><span class='line'><span class="nv">TYPE</span><span class="o">=</span>OVSBridge
+</span><span class='line'><span class="nv">OVSBOOTPROTO</span><span class="o">=</span>dhcp
+</span><span class='line'><span class="nv">OVSDHCPINTERFACES</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span>bond1<span class="p">&amp;</span>rdquo<span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<h2>Activating the network configuration</h2>
+
+<p>When activating the network configuration, os-net-config executes a couple of steps in this order:</p>
+
+<ol>
+<li>Ifdown interfaces</li>
+<li>Ifdown bridges</li>
+<li>Generate/modify the configuration files in <code>/etc/sysconfig/network-scripts</code> directory</li>
+<li>Ifup bridges</li>
+<li>Ifup interfaces</li>
+</ol>
+
+
+<p>Os-net-config executes the aforementioned steps only on interfaces/bridges whose configuration has been updated. If the interface/bridge configuration hasn&rsquo;t changed os-net-config will not touch the respective configuration files in the <code>/etc/sysconfig/network-scripts</code> directory and will not restart the respective interface/bridge. This way, os-net-config minimizes the number of changes done to your system.</p>
+
+<h2>Network interface names</h2>
+
+<p>The names of the network interfaces are platform dependent. In the os-net-config configuration file, you can refer to your interfaces using symbolic names <code>nic1</code>, <code>nic2</code>, <code>nic3</code>, &hellip; Os-net-config will automatically associate these symbolic names with the real network interfaces like <code>em</code>, <code>eth</code>, <code>eno</code>.</p>
+
+<h2>Conclusion</h2>
+
+<p>Os-net-config is a useful configuration tool you might want to include on your virtual machine images.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[Bridging VLAN Trunk to the Guest]]></title>
@@ -228,7 +496,7 @@
 <p>You can find the <code>rhel_reposync</code> Ansible role at <a href="https://github.com/noseka1/rhel_reposync" title="rhel_reposync">GitHub</a>. You want to run this role on your Docker host. It will download the RHEL6 and RHEL7 images, and register them with the Red Hat Customer Portal. You have to supply your Red Hat credentials on the command-line. For example:</p>
 
 <p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>ansible-playbook -i hosts playbook.yml -e <span class="nv">redhat_portal_username</span><span class="o">=</span>&lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#109;&amp;#97;&amp;#x69;&amp;#x6c;&amp;#116;&amp;#111;&amp;#x3a;&amp;#x75;&amp;#x73;&amp;#101;&amp;#114;&amp;#110;&amp;#x61;&amp;#109;&amp;#101;&amp;#x40;&amp;#99;&amp;#111;&amp;#x6d;&amp;#112;&amp;#x61;&amp;#x6e;&amp;#x79;&amp;#x2e;&amp;#99;&amp;#x6f;&amp;#109;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#x75;&amp;#115;&amp;#x65;&amp;#114;&amp;#x6e;&amp;#x61;&amp;#x6d;&amp;#101;&amp;#64;&amp;#x63;&amp;#x6f;&amp;#x6d;&amp;#112;&amp;#x61;&amp;#x6e;&amp;#121;&amp;#46;&amp;#x63;&amp;#111;&amp;#109;&lt;/a&gt; -e redhat_portal_password=secretpassword</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>ansible-playbook -i hosts playbook.yml -e <span class="nv">redhat_portal_username</span><span class="o">=</span>&lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#109;&amp;#x61;&amp;#105;&amp;#x6c;&amp;#116;&amp;#111;&amp;#58;&amp;#117;&amp;#x73;&amp;#101;&amp;#114;&amp;#110;&amp;#97;&amp;#x6d;&amp;#x65;&amp;#x40;&amp;#99;&amp;#111;&amp;#109;&amp;#112;&amp;#97;&amp;#x6e;&amp;#121;&amp;#46;&amp;#99;&amp;#x6f;&amp;#x6d;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#117;&amp;#x73;&amp;#x65;&amp;#x72;&amp;#x6e;&amp;#x61;&amp;#x6d;&amp;#101;&amp;#x40;&amp;#x63;&amp;#111;&amp;#x6d;&amp;#x70;&amp;#97;&amp;#110;&amp;#x79;&amp;#x2e;&amp;#x63;&amp;#111;&amp;#109;&lt;/a&gt; -e redhat_portal_password=secretpassword</span>
 </span></code></pre></td></tr></table></div></figure></p>
 
 <p>After the Ansible run is finished you&rsquo;ll find two images in your local Docker repository: <code>rhel6_reposync_registered</code> and <code>rhel7_reposync_registered</code>.</p>
@@ -510,24 +778,6 @@
 <h2>Conclusion</h2>
 
 <p>One can leverage the modern Docker technology to create a specific Wine environment on any Linux system. To achieve this a little bit of configuration is required, though. In case of Wine you might be better off using some of the specialized tools for Wine management. For instance, <a href="https://www.playonlinux.com/" title="PlayOnLinux">PlayOnLinux</a> can manage different versions of Wine as well as different prefixes (<code>WINEPREFIX</code> environment variable).</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[OpenStack Dynamic DNS Updates]]></title>
-    <link href="http://alesnosek.com/blog/2015/05/31/openstack-dynamic-dns-updates/"/>
-    <updated>2015-05-31T22:49:39-07:00</updated>
-    <id>http://alesnosek.com/blog/2015/05/31/openstack-dynamic-dns-updates</id>
-    <content type="html"><![CDATA[<p>Today&rsquo;s user story is: As a private cloud user I&rsquo;d like to have virtual machines registered with internal DNS. Let&rsquo;s look at how a software practitioner solves this problem in a truly agile way.</p>
-
-<!-- more -->
-
-
-<p>The OpenStack <a href="https://wiki.openstack.org/wiki/Designate" title="Designate">Designate</a> project implements DNSaaS. After trying out Designate, I realized that for simple DNS updates DNSaaS is a little too involved.</p>
-
-<p>In my previous <a href="/blog/2015/05/25/openstack-nova-notifications-subscriber" title="OpenStack Nova Notifications Subscriber">article</a> I described how to monitor Nova events on RabbitMQ message bus. Two events of interest are <code>compute.instance.create.end</code> and <code>compute.instance.delete.start</code> that are sent by Nova on instance creation and instance deletion. Both events carry enough information for us to create a simple script to extract the hostname and IP addresses of the instance from the events and update the internal DNS using the <code>nsupdate</code> command.</p>
-
-<p>You can find the DNS updates implementantion including the systemd startup script at GitHub: <a href="https://github.com/noseka1/openstack-dns-updater" title="openstack-dns-updater">openstack-dns-updater</a>.</p>
 ]]></content>
   </entry>
 
