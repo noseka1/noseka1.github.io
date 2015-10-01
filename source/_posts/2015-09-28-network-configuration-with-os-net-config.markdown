@@ -10,7 +10,7 @@ categories: devops cloud
 
 <!-- more -->
 
-Os-net-config is developed as a part of the OpenStack [TripleO](https://wiki.openstack.org/wiki/TripleO "TripleO") project. Its modus operandi is simple: based on the YAML/JSON configuration file, the os-net-config configures the network interfaces of the machine. Currently, the tool supports configuration of Debian based distributions using `/etc/network/interfaces` and configuration of distributions using scripts in `/etc/sysconfig/network` directory, e.g. Red Hat. Os-net-config allows to:
+Os-net-config is developed as a part of the OpenStack [TripleO](https://wiki.openstack.org/wiki/TripleO "TripleO") project. Its modus operandi is simple: based on the YAML/JSON configuration file, the os-net-config configures the network interfaces of the machine. Currently, the tool supports configuration of Debian based distributions using `/etc/network/interfaces` and configuration of distributions using scripts in `/etc/sysconfig/network` directory, e.g. Red Hat. Os-net-config allows the user to:
 
 1. Assign IP addresses to interfaces
 2. Define static routes
@@ -20,7 +20,7 @@ Os-net-config is developed as a part of the OpenStack [TripleO](https://wiki.ope
 
 ## Using os-net-config on Red Hat
 
-In the following examples we'll use RHEL7 and os-net-config version 0.1.4. By default, os-net-config reads the configuration file at `/etc/os-net-config/config.yaml`. However, you can specify a different location using the `-c` parameter. First example shows a configuration of machine with two network interfaces. The first interface is dynamically configured using DHCP. The second interface has been assigned an IP address and netmask statically:
+In the following examples we'll use RHEL7 and os-net-config version 0.1.4. By default, os-net-config reads the configuration file at `/etc/os-net-config/config.yaml`. However, you can specify a different location using the `-c` parameter. The first example shows a configuration of machine with two network interfaces. The first interface is dynamically configured using DHCP. The second interface has been assigned an IP address and netmask statically:
 
 {% codeblock lang:yaml example1.yaml %}
 network_config:
@@ -129,7 +129,7 @@ OVSDHCPINTERFACES="bond1"
 
 ## Activating the network configuration
 
-When activating the network configuration, os-net-config executes a couple of steps in this order:
+When activating the network configuration, os-net-config executes several steps in the following order:
 
 1. Ifdown interfaces
 2. Ifdown bridges
