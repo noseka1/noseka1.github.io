@@ -4,7 +4,7 @@
   <title><![CDATA[Category: devops | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/devops/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2015-09-28T23:14:56-07:00</updated>
+  <updated>2015-09-30T21:06:14-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -23,7 +23,7 @@
 <!-- more -->
 
 
-<p>Os-net-config is developed as a part of the OpenStack <a href="https://wiki.openstack.org/wiki/TripleO" title="TripleO">TripleO</a> project. Its modus operandi is simple: based on the YAML/JSON configuration file, the os-net-config configures the network interfaces of the machine. Currently, the tool supports configuration of Debian based distributions using <code>/etc/network/interfaces</code> and configuration of distributions using scripts in <code>/etc/sysconfig/network</code> directory, e.g. Red Hat. Os-net-config allows to:</p>
+<p>Os-net-config is developed as a part of the OpenStack <a href="https://wiki.openstack.org/wiki/TripleO" title="TripleO">TripleO</a> project. Its modus operandi is simple: based on the YAML/JSON configuration file, the os-net-config configures the network interfaces of the machine. Currently, the tool supports configuration of Debian based distributions using <code>/etc/network/interfaces</code> and configuration of distributions using scripts in <code>/etc/sysconfig/network</code> directory, e.g. Red Hat. Os-net-config allows the user to:</p>
 
 <ol>
 <li>Assign IP addresses to interfaces</li>
@@ -36,7 +36,7 @@
 
 <h2>Using os-net-config on Red Hat</h2>
 
-<p>In the following examples we&rsquo;ll use RHEL7 and os-net-config version 0.1.4. By default, os-net-config reads the configuration file at <code>/etc/os-net-config/config.yaml</code>. However, you can specify a different location using the <code>-c</code> parameter. First example shows a configuration of machine with two network interfaces. The first interface is dynamically configured using DHCP. The second interface has been assigned an IP address and netmask statically:</p>
+<p>In the following examples we&rsquo;ll use RHEL7 and os-net-config version 0.1.4. By default, os-net-config reads the configuration file at <code>/etc/os-net-config/config.yaml</code>. However, you can specify a different location using the <code>-c</code> parameter. The first example shows a configuration of machine with two network interfaces. The first interface is dynamically configured using DHCP. The second interface has been assigned an IP address and netmask statically:</p>
 
 <p><figure class='code'><figcaption><span>example1.yaml </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -258,7 +258,7 @@
 
 <h2>Activating the network configuration</h2>
 
-<p>When activating the network configuration, os-net-config executes a couple of steps in this order:</p>
+<p>When activating the network configuration, os-net-config executes several steps in the following order:</p>
 
 <ol>
 <li>Ifdown interfaces</li>
@@ -496,7 +496,7 @@
 <p>You can find the <code>rhel_reposync</code> Ansible role at <a href="https://github.com/noseka1/rhel_reposync" title="rhel_reposync">GitHub</a>. You want to run this role on your Docker host. It will download the RHEL6 and RHEL7 images, and register them with the Red Hat Customer Portal. You have to supply your Red Hat credentials on the command-line. For example:</p>
 
 <p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>ansible-playbook -i hosts playbook.yml -e <span class="nv">redhat_portal_username</span><span class="o">=</span>&lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#109;&amp;#x61;&amp;#105;&amp;#x6c;&amp;#116;&amp;#111;&amp;#58;&amp;#117;&amp;#x73;&amp;#101;&amp;#114;&amp;#110;&amp;#97;&amp;#x6d;&amp;#x65;&amp;#x40;&amp;#99;&amp;#111;&amp;#109;&amp;#112;&amp;#97;&amp;#x6e;&amp;#121;&amp;#46;&amp;#99;&amp;#x6f;&amp;#x6d;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#117;&amp;#x73;&amp;#x65;&amp;#x72;&amp;#x6e;&amp;#x61;&amp;#x6d;&amp;#101;&amp;#x40;&amp;#x63;&amp;#111;&amp;#x6d;&amp;#x70;&amp;#97;&amp;#110;&amp;#x79;&amp;#x2e;&amp;#x63;&amp;#111;&amp;#109;&lt;/a&gt; -e redhat_portal_password=secretpassword</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>ansible-playbook -i hosts playbook.yml -e <span class="nv">redhat_portal_username</span><span class="o">=</span>&lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#109;&amp;#97;&amp;#x69;&amp;#108;&amp;#116;&amp;#111;&amp;#58;&amp;#117;&amp;#115;&amp;#101;&amp;#114;&amp;#x6e;&amp;#x61;&amp;#109;&amp;#x65;&amp;#64;&amp;#99;&amp;#x6f;&amp;#x6d;&amp;#112;&amp;#97;&amp;#x6e;&amp;#121;&amp;#x2e;&amp;#99;&amp;#111;&amp;#x6d;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#117;&amp;#x73;&amp;#101;&amp;#114;&amp;#110;&amp;#x61;&amp;#109;&amp;#101;&amp;#x40;&amp;#99;&amp;#x6f;&amp;#109;&amp;#112;&amp;#x61;&amp;#110;&amp;#121;&amp;#46;&amp;#x63;&amp;#x6f;&amp;#x6d;&lt;/a&gt; -e redhat_portal_password=secretpassword</span>
 </span></code></pre></td></tr></table></div></figure></p>
 
 <p>After the Ansible run is finished you&rsquo;ll find two images in your local Docker repository: <code>rhel6_reposync_registered</code> and <code>rhel7_reposync_registered</code>.</p>
