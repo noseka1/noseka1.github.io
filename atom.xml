@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2015-09-30T21:06:14-07:00</updated>
+  <updated>2015-10-20T22:28:22-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,65 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[Installing OpenStack Liberty on RHEL7]]></title>
+    <link href="http://alesnosek.com/blog/2015/10/19/installing-openstack-liberty-on-rhel7/"/>
+    <updated>2015-10-19T22:30:48-07:00</updated>
+    <id>http://alesnosek.com/blog/2015/10/19/installing-openstack-liberty-on-rhel7</id>
+    <content type="html"><![CDATA[<p>The OpenStack Liberty was released last week. In this article I&rsquo;ll briefly describe how to deploy the OpenStack Liberty on RHEL7 using RDO Manager.</p>
+
+<!-- more -->
+
+
+<p>The <a href="https://www.rdoproject.org/" title="RDO project">RDO project</a> packages the OpenStack software for the Red Hat based platforms. Currently, there are Liberty packages in status testing/release candidate available from the project. Apart from a couple of configuration issues the installation went pretty well and I obtained a basic 2-node cluster.</p>
+
+<p>If you intalled OpenStack Kilo using RDO Manager before I have a good news for you. The installation procedure remains pretty much the same. You can follow the <a href="http://docs.openstack.org/developer/tripleo-docs/" title="TripleO Doc">great guide</a> provided by the TripleO project to get the installation going. First, add the following two repositories:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>http://trunk.rdoproject.org/centos7/current-tripleo/delorean.repo
+</span><span class='line'>http://trunk.rdoproject.org/centos7/delorean-deps.repo</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now you can install the RDO Manager with:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>sudo yum install python-tripleoclient</span></code></pre></td></tr></table></div></figure>
+
+
+<p>In the Kilo release, the <code>python-tripleoclient</code> package was called <code>python-rdomanager-oscplugin</code>. You can continue with the guide. To build the overcloud images I issue the commands:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nb">export </span><span class="nv">NODE_DIST</span><span class="o">=</span>rhel7
+</span><span class='line'><span class="nb">export </span><span class="nv">DIB_LOCAL_IMAGE</span><span class="o">=</span>rhel-guest-image-7.1-20150224.0.x86_64.qcow2
+</span><span class='line'><span class="nb">export </span><span class="nv">REG_METHOD</span><span class="o">=</span>disable
+</span><span class='line'><span class="nb">export </span><span class="nv">DIB_DEBUG_TRACE</span><span class="o">=</span>1
+</span><span class='line'><span class="nb">export </span><span class="nv">DIB_YUM_REPO_CONF</span><span class="o">=</span>/etc/yum.repos.d/rhel7_mirror.repo
+</span><span class='line'><span class="nb">export </span><span class="nv">USE_DELOREAN_TRUNK</span><span class="o">=</span>1
+</span><span class='line'><span class="nb">export </span><span class="nv">DELOREAN_TRUNK_REPO</span><span class="o">=</span>http://trunk.rdoproject.org/centos7/current-tripleo
+</span><span class='line'><span class="nb">export </span><span class="nv">DELOREAN_REPO_FILE</span><span class="o">=</span>delorean.repo
+</span><span class='line'>openstack overcloud image build --all
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>As you can see, I&rsquo;m not really registering the OpenStack nodes with the Red Hat portal. Instead, I&rsquo;m pulling the RHEL7 packages from the local mirror.</p>
+
+<p>After the installation of the overcloud has completed I realized that some of the OpenStack processes on the overcloud nodes were segfaulting. After switching SELinux from enforcing to permissive mode everything started working as expected.</p>
+
+<h2>A final note</h2>
+
+<p>The deployment of OpenStack is rather an involved process even when leveraging the tools like RDO Manager. To truly automate the installation in my specific environment I use a set of Ansible scripts to drive the RDO manager installation. Now that Red Hat acquired Ansible I&rsquo;m wondering if we&rsquo;re going to get an even better OpenStack installation experience on Red Hat based distributions.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[Network Configuration with os-net-config]]></title>
