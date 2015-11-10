@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>http://alesnosek.com/blog/2015/11/09/assigning-roles-to-nodes-directly-in-rdo/</loc>
+    <lastmod>2015-11-09T20:49:40-08:00</lastmod>
+  </url>
+  <url>
     <loc>http://alesnosek.com/blog/2015/10/19/installing-openstack-liberty-on-rhel7/</loc>
     <lastmod>2015-10-19T22:30:48-07:00</lastmod>
   </url>

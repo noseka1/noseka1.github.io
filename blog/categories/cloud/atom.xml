@@ -4,7 +4,7 @@
   <title><![CDATA[Category: cloud | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/cloud/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2015-10-20T22:28:22-07:00</updated>
+  <updated>2015-11-09T22:18:37-08:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,97 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[Assigning roles to nodes directly in RDO]]></title>
+    <link href="http://alesnosek.com/blog/2015/11/09/assigning-roles-to-nodes-directly-in-rdo/"/>
+    <updated>2015-11-09T20:49:40-08:00</updated>
+    <id>http://alesnosek.com/blog/2015/11/09/assigning-roles-to-nodes-directly-in-rdo</id>
+    <content type="html"><![CDATA[<p>RDO Manager defines multiple roles that nodes can play in OpenStack deployment. For large-sized installations, RDO features automatic assignment of roles to nodes. This assignment is based on the facts that RDO obtained about each node during the introspection. However, for smaller deployments, you might prefer to assign the roles to the available nodes by hand. It was not straight forward for me to find out about this manual option even when it is described in the <a href="http://docs.openstack.org/developer/tripleo-docs/advanced_deployment/profile_matching.html#optional-manually-add-the-profiles-to-the-nodes" title="TripleO documentation">TripleO documentation</a>. Let&rsquo;s review the required configuration steps in this blogpost.</p>
+
+<!-- more -->
+
+
+<p>The relationship between roles and nodes is organized via flavors. A flavor is a set of properties that the target node must match in order to be eligible for deployment of a specific role. The manual assignment of a role to a node is a three-step process:</p>
+
+<ol>
+<li>Define a flavor with a property <code>capabilities:profile</code> set to the role name</li>
+<li>Add the same profile to the capabilities list of the target node</li>
+<li>Tell RDO what flavor to use for a specific role when beginning the deployment</li>
+</ol>
+
+
+<p>The creation of flavors with the associated <code>capabilities:profile</code> property looks like this:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>openstack flavor create <span class="p">&amp;</span>ndash<span class="p">;</span>id auto <span class="p">&amp;</span>ndash<span class="p">;</span>ram <span class="m">4096</span> <span class="p">&amp;</span>ndash<span class="p">;</span>disk <span class="m">40</span> <span class="p">&amp;</span>ndash<span class="p">;</span>vcpus <span class="m">1</span> ceph
+</span><span class='line'>openstack flavor create <span class="p">&amp;</span>ndash<span class="p">;</span>id auto <span class="p">&amp;</span>ndash<span class="p">;</span>ram <span class="m">4096</span> <span class="p">&amp;</span>ndash<span class="p">;</span>disk <span class="m">40</span> <span class="p">&amp;</span>ndash<span class="p">;</span>vcpus <span class="m">1</span> cinder
+</span><span class='line'>openstack flavor create <span class="p">&amp;</span>ndash<span class="p">;</span>id auto <span class="p">&amp;</span>ndash<span class="p">;</span>ram <span class="m">4096</span> <span class="p">&amp;</span>ndash<span class="p">;</span>disk <span class="m">40</span> <span class="p">&amp;</span>ndash<span class="p">;</span>vcpus <span class="m">1</span> compute
+</span><span class='line'>openstack flavor create <span class="p">&amp;</span>ndash<span class="p">;</span>id auto <span class="p">&amp;</span>ndash<span class="p">;</span>ram <span class="m">4096</span> <span class="p">&amp;</span>ndash<span class="p">;</span>disk <span class="m">40</span> <span class="p">&amp;</span>ndash<span class="p">;</span>vcpus <span class="m">1</span> controller
+</span><span class='line'>openstack flavor create <span class="p">&amp;</span>ndash<span class="p">;</span>id auto <span class="p">&amp;</span>ndash<span class="p">;</span>ram <span class="m">4096</span> <span class="p">&amp;</span>ndash<span class="p">;</span>disk <span class="m">40</span> <span class="p">&amp;</span>ndash<span class="p">;</span>vcpus <span class="m">1</span> swift&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;openstack flavor <span class="nb">set</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>cpu_arch<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span>x86_64<span class="p">&amp;</span>rdquo<span class="p">;</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>capabilities:boot_option<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span><span class="nb">local</span><span class="p">&amp;</span>rdquo<span class="p">;</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>capabilities:profile<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span>ceph<span class="p">&amp;</span>rdquo<span class="p">;</span> ceph
+</span><span class='line'>openstack flavor <span class="nb">set</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>cpu_arch<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span>x86_64<span class="p">&amp;</span>rdquo<span class="p">;</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>capabilities:boot_option<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span><span class="nb">local</span><span class="p">&amp;</span>rdquo<span class="p">;</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>capabilities:profile<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span>cinder<span class="p">&amp;</span>rdquo<span class="p">;</span> cinder
+</span><span class='line'>openstack flavor <span class="nb">set</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>cpu_arch<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span>x86_64<span class="p">&amp;</span>rdquo<span class="p">;</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>capabilities:boot_option<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span><span class="nb">local</span><span class="p">&amp;</span>rdquo<span class="p">;</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>capabilities:profile<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span>compute<span class="p">&amp;</span>rdquo<span class="p">;</span> compute
+</span><span class='line'>openstack flavor <span class="nb">set</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>cpu_arch<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span>x86_64<span class="p">&amp;</span>rdquo<span class="p">;</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>capabilities:boot_option<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span><span class="nb">local</span><span class="p">&amp;</span>rdquo<span class="p">;</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>capabilities:profile<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span>controller<span class="p">&amp;</span>rdquo<span class="p">;</span> controller
+</span><span class='line'>openstack flavor <span class="nb">set</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>cpu_arch<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span>x86_64<span class="p">&amp;</span>rdquo<span class="p">;</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>capabilities:boot_option<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span><span class="nb">local</span><span class="p">&amp;</span>rdquo<span class="p">;</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>capabilities:profile<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span>swift<span class="p">&amp;</span>rdquo<span class="p">;</span> swift
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Now we need to add the profiles to the capabilities list of the respective nodes:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>ironic node-update &lt;node1 UUID here&gt; replace properties/capabilities<span class="o">=</span><span class="p">&amp;</span>lsquo<span class="p">;</span>profile:ceph,boot_option:local<span class="p">&amp;</span>rsquo<span class="p">;</span>
+</span><span class='line'>ironic node-update &lt;node2 UUID here&gt; replace properties/capabilities<span class="o">=</span><span class="p">&amp;</span>lsquo<span class="p">;</span>profile:cinder,boot_option:local<span class="p">&amp;</span>rsquo<span class="p">;</span>
+</span><span class='line'>ironic node-update &lt;node3 UUID here&gt; replace properties/capabilities<span class="o">=</span><span class="p">&amp;</span>lsquo<span class="p">;</span>profile:compute,boot_option:local<span class="p">&amp;</span>rsquo<span class="p">;</span>
+</span><span class='line'>ironic node-update &lt;node4 UUID here&gt; replace properties/capabilities<span class="o">=</span><span class="p">&amp;</span>lsquo<span class="p">;</span>profile:controller,boot_option:local<span class="p">&amp;</span>rsquo<span class="p">;</span>
+</span><span class='line'>ironic node-update &lt;node5 UUID here&gt; replace properties/capabilities<span class="o">=</span><span class="p">&amp;</span>lsquo<span class="p">;</span>profile:swift,boot_option:local<span class="p">&amp;</span>rsquo<span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>When deploying the OpenStack cloud, we need to tell the RDO manager what flavor to use for each specific role:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>openstack overcloud deploy <span class="se">\</span>
+</span><span class='line'><span class="p">&amp;</span>ndash<span class="p">;</span>templates /usr/share/openstack-tripleo-heat-templates <span class="se">\</span>
+</span><span class='line'><span class="p">&amp;</span>ndash<span class="p">;</span>ceph-storage-scale <span class="m">1</span> <span class="se">\</span>
+</span><span class='line'><span class="p">&amp;</span>ndash<span class="p">;</span>block-storage-scale <span class="m">1</span> <span class="se">\</span>
+</span><span class='line'><span class="p">&amp;</span>ndash<span class="p">;</span>compute-scale <span class="m">1</span> <span class="se">\</span>
+</span><span class='line'><span class="p">&amp;</span>ndash<span class="p">;</span>control-scale <span class="m">1</span> <span class="se">\</span>
+</span><span class='line'><span class="p">&amp;</span>ndash<span class="p">;</span>swift-storage-scale <span class="m">1</span> <span class="se">\</span>
+</span><span class='line'><span class="p">&amp;</span>ndash<span class="p">;</span>ceph-storage-flavor ceph <span class="se">\</span>
+</span><span class='line'><span class="p">&amp;</span>ndash<span class="p">;</span>block-storage-flavor cinder <span class="se">\</span>
+</span><span class='line'><span class="p">&amp;</span>ndash<span class="p">;</span>compute-flavor compute <span class="se">\</span>
+</span><span class='line'><span class="p">&amp;</span>ndash<span class="p">;</span>control-flavor controller <span class="se">\</span>
+</span><span class='line'><span class="p">&amp;</span>ndash<span class="p">;</span>swift-storage-flavor swift
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>And that&rsquo;s all for today. Hope you&rsquo;re enjoying the full control over your OpenStack cloud deployment.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[Installing OpenStack Liberty on RHEL7]]></title>
@@ -522,177 +613,6 @@ Whenever you create/delete an instance in OpenStack a host of notification messa
 <h2>References</h2>
 
 <p>You can find more detailed information on topic exchanges in the great RabbitMQ tutorial <a href="https://www.rabbitmq.com/tutorials/tutorial-five-python.html" title="Topics">here</a>. A version of the Nova notifications subscriber implemented with Python <a href="http://pika.readthedocs.org/en/latest/" title="Introduction to Pika">Pika</a> library is described in <a href="https://prosuncsedu.wordpress.com/2014/01/08/notification-of-actions-in-openstack-nova/" title="Action Notifications in OpenStack nova">this</a> blogpost.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[Using Cloud-Init Outside of Cloud]]></title>
-    <link href="http://alesnosek.com/blog/2015/04/26/using-cloud-init-outside-of-cloud/"/>
-    <updated>2015-04-26T13:04:25-07:00</updated>
-    <id>http://alesnosek.com/blog/2015/04/26/using-cloud-init-outside-of-cloud</id>
-    <content type="html"><![CDATA[<p>In EC2 and OpenStack cloud environments <em>user data</em> can be passed to the cloud instance to customize the cloud instance on the first boot. But what if your virtual machine doesn&rsquo;t run in the cloud environment? In this article we&rsquo;re going to configure our virtual machines with user data regardless if they&rsquo;re running in the cloud or not.</p>
-
-<!-- more -->
-
-
-<h2>Introducing Cloud-Init</h2>
-
-<p><a href="https://cloudinit.readthedocs.org/en/latest/" title="Cloud-Init documentation">Cloud-Init</a> is a tool that handles early initialization of a cloud instance. The <code>cloud-init</code> RPM package should be installed on the disk image which the cloud instance is going to boot up from. The package installs init scripts into <code>/etc/rc.d/init.d</code> that makes Cloud-Init run early during the system initialization. Cloud-Init obtains user data passed to it by the cloud software and executes them. User data contains a set of configuration tasks for the cloud instance. For example, Cloud-Init can update machine&rsquo;s hostname, configure <code>/etc/hosts</code>, create users, configure SSH authorized keys, resize filesystems, manage disk mounts, run user-defined scripts and <a href="https://cloudinit.readthedocs.org/en/latest/topics/examples.html" title="Cloud config examples">much more</a>.</p>
-
-<p><blockquote><p>Even if you&rsquo;re not running your virtual machines in the cloud environment it&rsquo;s worth it to deploy Clout-Init.</p></blockquote></p>
-
-<p>Every cloud software comes with its own mechanism of how to pass the user data to the cloud instance. For example, EC2 provides a <em>magic IP</em> from which the instance can download its user data. OpenStack cloud attaches a special <em>config drive</em> to the cloud instance containing the user data to be consumed by Clout-Init. In order to pass the user data to our virtual machine let&rsquo;s go the OpenStack way and assemble a minimum config drive.</p>
-
-<h2>Config drive assembly</h2>
-
-<p>First, we&rsquo;re going to prepare the following file structure for our config drive:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>config_drive
-</span><span class='line'>config_drive/openstack
-</span><span class='line'>config_drive/openstack/latest
-</span><span class='line'>config_drive/openstack/2012-08-10
-</span><span class='line'>config_drive/openstack/2012-08-10/meta_data.json
-</span><span class='line'>config_drive/openstack/2012-08-10/user_data</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Start by creating directories and the <code>latest</code> symbolic link like this:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>mkdir config_drive
-</span><span class='line'>mkdir -p config_drive/openstack/2012-08-10
-</span><span class='line'>ln -s 2012-08-10 config_drive/openstack/latest</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Next create a minimum metadata file required by Cloud-Init. I&rsquo;m using a fully qualified domain name of the virtual machine as its UUID:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>cat &gt; config_drive/openstack/latest/meta_data.json <span class="p">&amp;</span>lt<span class="p">;&amp;</span>lt<span class="p">;</span> EOF
-</span><span class='line'><span class="o">{</span>
-</span><span class='line'>    <span class="p">&amp;</span>ldquo<span class="p">;</span>uuid<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span>myinstance.mydomain.com<span class="p">&amp;</span>rdquo<span class="p">;</span>
-</span><span class='line'><span class="o">}</span>
-</span><span class='line'>EOF
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Cloud-Init supports many <a href="https://cloudinit.readthedocs.org/en/latest/topics/format.html" title="Cloud-Init user data formats">formats</a> for scripts within user data. One of the most popular formats is the <em>cloud-config</em> file format. Let&rsquo;s create a cloud-config script that adds our SSH public key to the authorized keys for the user <code>root</code> on the virtual machine. We can then login into the virtual machine as user root without using a password. If you don&rsquo;t have a public-private SSH key pair you can quickly generate it using <code>ssh-keygen</code> command:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>ssh-keygen -f mykey
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Now create a <code>user_data</code> file with the configuration instructions for Cloud-Init. In the following code block replace the value of the <code>ssh-authorized-keys</code> field with the content of your generated <code>mykey.pub</code> file:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>cat &gt; config_drive/openstack/latest/user_data <span class="p">&amp;</span>lt<span class="p">;&amp;</span>lt<span class="p">;</span> EOF&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;h1&gt;cloud-config&lt;/h1&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;fqdn: myinstance.mydomain.com
-</span><span class='line'>users:
-</span><span class='line'>  - name: root
-</span><span class='line'>    ssh-authorized-keys:
-</span><span class='line'>      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDNH8Qwn4raGR1f9fvjbZe/GXM2N9Mh+eWlsFoYpcU4H5qf5YxT5CUo7BaTOgeE5geHyzxJQmCQlvoxcW3qkcjBJvVgEsTrrnX7KYS8BszvT4AMIuG2Za8f7myubXd6zYfj74XYhutUsPz7x2TEp9ZqbVkWcaElrQFxF2AzF7dV1RGntpPKyISqem70En8RYpGY514OLZ9TQDBYjbw8tfPuDd9mznXnWOZ34fPtP7+QDvOMFuA4tXsBpHj99/cbC0ViwzZtvb1QtY7dv9OFDgCRadw81+SKtzXctQ2rCYkb0huc0BCE7kLzinzlO62Znd+N1d+tpLAwP6i8Z5ZMXIJj user@machine
-</span><span class='line'>EOF
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>The file structure for our config drive is ready. Let&rsquo;s generate an ext2 filesystem and copy the files to it. The <code>virt-make-fs</code> utility from the <code>libguestfs-tools</code> package can help us with that:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>virt-make-fs config_drive disk.config
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>In order for Cloud-Init to detect the attached drive as config drive the filesystem on the config drive needs to be labeled <code>config-2</code>. You can use <code>e2label</code> command from the <code>e2fsprogs</code> package to label your config drive:
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>e2label disk.config config-2
-</span></code></pre></td></tr></table></div></figure></p>
-
-<h2>Cloud-Init in action</h2>
-
-<p>On my Linux host I&rsquo;m running <a href="http://libvirt.org/" title="Libvirt - The virtualization API">libvirt</a> to ease the management of virtual machines. You can install it by running <code>sudo yum install libvirt</code>. There is a handy command-line utility <code>virsh</code> which comes  with libvirt in the extra package <code>libvirt-client</code>.</p>
-
-<p>Let&rsquo;s create a virtual machine with the config drive attached. As a virtual machine boot image I&rsquo;m using a CentOS-6 image from <a href="http://cloud.centos.org/centos/6/images/" title="CentOS-6 cloud images">cloud.centos.org</a> which comes with Cloud-Init built in. Make sure that your virtual machine boot image has Cloud-Init installed. Following is a virtual machine definition file for the CentoOS-6 virtual machine. You might need to change the location of the disk image files and save it as <code>CentOS-6.xml</code>:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;domain</span> <span class="na">type=</span><span class="s">&#39;kvm&#39;</span><span class="nt">&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;name&gt;</span>CentOS-6<span class="nt">&lt;/name&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;memory</span> <span class="na">unit=</span><span class="s">&#39;KiB&#39;</span><span class="nt">&gt;</span>2097152<span class="nt">&lt;/memory&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;os&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;type&gt;</span>hvm<span class="nt">&lt;/type&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;/os&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;devices&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;disk</span> <span class="na">type=</span><span class="s">&#39;file&#39;</span> <span class="na">device=</span><span class="s">&#39;disk&#39;</span><span class="nt">&gt;</span>
-</span><span class='line'>      <span class="nt">&lt;driver</span> <span class="na">name=</span><span class="s">&quot;qemu&quot;</span> <span class="na">type=</span><span class="s">&quot;qcow2&quot;</span><span class="nt">/&gt;</span>
-</span><span class='line'>      <span class="nt">&lt;source</span> <span class="na">file=</span><span class="s">&#39;/tmp/CentOS-6-x86_64-GenericCloud.qcow2&#39;</span><span class="nt">/&gt;</span>
-</span><span class='line'>      <span class="nt">&lt;target</span> <span class="na">bus=</span><span class="s">&quot;virtio&quot;</span> <span class="na">dev=</span><span class="s">&quot;vda&quot;</span><span class="nt">/&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;/disk&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;disk</span> <span class="na">type=</span><span class="s">&#39;file&#39;</span> <span class="na">device=</span><span class="s">&#39;disk&#39;</span><span class="nt">&gt;</span>
-</span><span class='line'>      <span class="nt">&lt;driver</span> <span class="na">name=</span><span class="s">&quot;qemu&quot;</span> <span class="na">type=</span><span class="s">&quot;raw&quot;</span><span class="nt">/&gt;</span>
-</span><span class='line'>      <span class="nt">&lt;source</span> <span class="na">file=</span><span class="s">&#39;/tmp/disk.config&#39;</span><span class="nt">/&gt;</span>
-</span><span class='line'>      <span class="nt">&lt;target</span> <span class="na">bus=</span><span class="s">&quot;virtio&quot;</span> <span class="na">dev=</span><span class="s">&quot;vdb&quot;</span><span class="nt">/&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;/disk&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;interface</span> <span class="na">type=</span><span class="s">&#39;network&#39;</span><span class="nt">&gt;</span>
-</span><span class='line'>      <span class="nt">&lt;source</span> <span class="na">network=</span><span class="s">&#39;default&#39;</span><span class="nt">/&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;/interface&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;serial</span> <span class="na">type=</span><span class="s">&quot;file&quot;</span><span class="nt">&gt;</span>
-</span><span class='line'>      <span class="nt">&lt;source</span> <span class="na">path=</span><span class="s">&quot;/tmp/CentOS-6.log&quot;</span><span class="nt">/&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;/serial&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;/devices&gt;</span>
-</span><span class='line'><span class="nt">&lt;/domain&gt;</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Okay, everything is ready, let&rsquo;s launch our Cloud-Init enabled CentOS-6 virtual machine:
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo virsh define CentOS-6.xml
-</span><span class='line'>sudo virsh start CentOS-6
-</span></code></pre></td></tr></table></div></figure>
-If everything went fine you can watch the console output of the booting virtual machine at <code>/tmp/CentOS-6.log</code>. Cloud-Init will print out the IP address obtained by the virtual machine (192.168.122.165 in my case) where we can login as root using the generated private key:
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>ssh -i testkey &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#109;&amp;#97;&amp;#x69;&amp;#108;&amp;#116;&amp;#111;&amp;#58;&amp;#114;&amp;#x6f;&amp;#111;&amp;#116;&amp;#64;&amp;#x31;&amp;#57;&amp;#x32;&amp;#x2e;&amp;#49;&amp;#54;&amp;#x38;&amp;#x2e;&amp;#49;&amp;#x32;&amp;#50;&amp;#46;&amp;#49;&amp;#54;&amp;#x35;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#114;&amp;#111;&amp;#111;&amp;#x74;&amp;#64;&amp;#x31;&amp;#57;&amp;#50;&amp;#x2e;&amp;#49;&amp;#54;&amp;#56;&amp;#46;&amp;#x31;&amp;#50;&amp;#50;&amp;#46;&amp;#49;&amp;#x36;&amp;#x35;&lt;/a&gt;</span>
-</span></code></pre></td></tr></table></div></figure>
-Congratulations, your virtual machine has just been configured by Cloud-Init the same way as any other virtual machine running in the cloud environment.</p>
 ]]></content>
   </entry>
 

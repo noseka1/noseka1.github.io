@@ -4,7 +4,7 @@
   <title><![CDATA[Category: devops | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/devops/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2015-10-20T22:28:22-07:00</updated>
+  <updated>2015-11-09T22:18:37-08:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,97 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[Assigning roles to nodes directly in RDO]]></title>
+    <link href="http://alesnosek.com/blog/2015/11/09/assigning-roles-to-nodes-directly-in-rdo/"/>
+    <updated>2015-11-09T20:49:40-08:00</updated>
+    <id>http://alesnosek.com/blog/2015/11/09/assigning-roles-to-nodes-directly-in-rdo</id>
+    <content type="html"><![CDATA[<p>RDO Manager defines multiple roles that nodes can play in OpenStack deployment. For large-sized installations, RDO features automatic assignment of roles to nodes. This assignment is based on the facts that RDO obtained about each node during the introspection. However, for smaller deployments, you might prefer to assign the roles to the available nodes by hand. It was not straight forward for me to find out about this manual option even when it is described in the <a href="http://docs.openstack.org/developer/tripleo-docs/advanced_deployment/profile_matching.html#optional-manually-add-the-profiles-to-the-nodes" title="TripleO documentation">TripleO documentation</a>. Let&rsquo;s review the required configuration steps in this blogpost.</p>
+
+<!-- more -->
+
+
+<p>The relationship between roles and nodes is organized via flavors. A flavor is a set of properties that the target node must match in order to be eligible for deployment of a specific role. The manual assignment of a role to a node is a three-step process:</p>
+
+<ol>
+<li>Define a flavor with a property <code>capabilities:profile</code> set to the role name</li>
+<li>Add the same profile to the capabilities list of the target node</li>
+<li>Tell RDO what flavor to use for a specific role when beginning the deployment</li>
+</ol>
+
+
+<p>The creation of flavors with the associated <code>capabilities:profile</code> property looks like this:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>openstack flavor create <span class="p">&amp;</span>ndash<span class="p">;</span>id auto <span class="p">&amp;</span>ndash<span class="p">;</span>ram <span class="m">4096</span> <span class="p">&amp;</span>ndash<span class="p">;</span>disk <span class="m">40</span> <span class="p">&amp;</span>ndash<span class="p">;</span>vcpus <span class="m">1</span> ceph
+</span><span class='line'>openstack flavor create <span class="p">&amp;</span>ndash<span class="p">;</span>id auto <span class="p">&amp;</span>ndash<span class="p">;</span>ram <span class="m">4096</span> <span class="p">&amp;</span>ndash<span class="p">;</span>disk <span class="m">40</span> <span class="p">&amp;</span>ndash<span class="p">;</span>vcpus <span class="m">1</span> cinder
+</span><span class='line'>openstack flavor create <span class="p">&amp;</span>ndash<span class="p">;</span>id auto <span class="p">&amp;</span>ndash<span class="p">;</span>ram <span class="m">4096</span> <span class="p">&amp;</span>ndash<span class="p">;</span>disk <span class="m">40</span> <span class="p">&amp;</span>ndash<span class="p">;</span>vcpus <span class="m">1</span> compute
+</span><span class='line'>openstack flavor create <span class="p">&amp;</span>ndash<span class="p">;</span>id auto <span class="p">&amp;</span>ndash<span class="p">;</span>ram <span class="m">4096</span> <span class="p">&amp;</span>ndash<span class="p">;</span>disk <span class="m">40</span> <span class="p">&amp;</span>ndash<span class="p">;</span>vcpus <span class="m">1</span> controller
+</span><span class='line'>openstack flavor create <span class="p">&amp;</span>ndash<span class="p">;</span>id auto <span class="p">&amp;</span>ndash<span class="p">;</span>ram <span class="m">4096</span> <span class="p">&amp;</span>ndash<span class="p">;</span>disk <span class="m">40</span> <span class="p">&amp;</span>ndash<span class="p">;</span>vcpus <span class="m">1</span> swift&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;openstack flavor <span class="nb">set</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>cpu_arch<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span>x86_64<span class="p">&amp;</span>rdquo<span class="p">;</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>capabilities:boot_option<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span><span class="nb">local</span><span class="p">&amp;</span>rdquo<span class="p">;</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>capabilities:profile<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span>ceph<span class="p">&amp;</span>rdquo<span class="p">;</span> ceph
+</span><span class='line'>openstack flavor <span class="nb">set</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>cpu_arch<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span>x86_64<span class="p">&amp;</span>rdquo<span class="p">;</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>capabilities:boot_option<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span><span class="nb">local</span><span class="p">&amp;</span>rdquo<span class="p">;</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>capabilities:profile<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span>cinder<span class="p">&amp;</span>rdquo<span class="p">;</span> cinder
+</span><span class='line'>openstack flavor <span class="nb">set</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>cpu_arch<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span>x86_64<span class="p">&amp;</span>rdquo<span class="p">;</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>capabilities:boot_option<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span><span class="nb">local</span><span class="p">&amp;</span>rdquo<span class="p">;</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>capabilities:profile<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span>compute<span class="p">&amp;</span>rdquo<span class="p">;</span> compute
+</span><span class='line'>openstack flavor <span class="nb">set</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>cpu_arch<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span>x86_64<span class="p">&amp;</span>rdquo<span class="p">;</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>capabilities:boot_option<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span><span class="nb">local</span><span class="p">&amp;</span>rdquo<span class="p">;</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>capabilities:profile<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span>controller<span class="p">&amp;</span>rdquo<span class="p">;</span> controller
+</span><span class='line'>openstack flavor <span class="nb">set</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>cpu_arch<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span>x86_64<span class="p">&amp;</span>rdquo<span class="p">;</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>capabilities:boot_option<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span><span class="nb">local</span><span class="p">&amp;</span>rdquo<span class="p">;</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>capabilities:profile<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span>swift<span class="p">&amp;</span>rdquo<span class="p">;</span> swift
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Now we need to add the profiles to the capabilities list of the respective nodes:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>ironic node-update &lt;node1 UUID here&gt; replace properties/capabilities<span class="o">=</span><span class="p">&amp;</span>lsquo<span class="p">;</span>profile:ceph,boot_option:local<span class="p">&amp;</span>rsquo<span class="p">;</span>
+</span><span class='line'>ironic node-update &lt;node2 UUID here&gt; replace properties/capabilities<span class="o">=</span><span class="p">&amp;</span>lsquo<span class="p">;</span>profile:cinder,boot_option:local<span class="p">&amp;</span>rsquo<span class="p">;</span>
+</span><span class='line'>ironic node-update &lt;node3 UUID here&gt; replace properties/capabilities<span class="o">=</span><span class="p">&amp;</span>lsquo<span class="p">;</span>profile:compute,boot_option:local<span class="p">&amp;</span>rsquo<span class="p">;</span>
+</span><span class='line'>ironic node-update &lt;node4 UUID here&gt; replace properties/capabilities<span class="o">=</span><span class="p">&amp;</span>lsquo<span class="p">;</span>profile:controller,boot_option:local<span class="p">&amp;</span>rsquo<span class="p">;</span>
+</span><span class='line'>ironic node-update &lt;node5 UUID here&gt; replace properties/capabilities<span class="o">=</span><span class="p">&amp;</span>lsquo<span class="p">;</span>profile:swift,boot_option:local<span class="p">&amp;</span>rsquo<span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>When deploying the OpenStack cloud, we need to tell the RDO manager what flavor to use for each specific role:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>openstack overcloud deploy <span class="se">\</span>
+</span><span class='line'><span class="p">&amp;</span>ndash<span class="p">;</span>templates /usr/share/openstack-tripleo-heat-templates <span class="se">\</span>
+</span><span class='line'><span class="p">&amp;</span>ndash<span class="p">;</span>ceph-storage-scale <span class="m">1</span> <span class="se">\</span>
+</span><span class='line'><span class="p">&amp;</span>ndash<span class="p">;</span>block-storage-scale <span class="m">1</span> <span class="se">\</span>
+</span><span class='line'><span class="p">&amp;</span>ndash<span class="p">;</span>compute-scale <span class="m">1</span> <span class="se">\</span>
+</span><span class='line'><span class="p">&amp;</span>ndash<span class="p">;</span>control-scale <span class="m">1</span> <span class="se">\</span>
+</span><span class='line'><span class="p">&amp;</span>ndash<span class="p">;</span>swift-storage-scale <span class="m">1</span> <span class="se">\</span>
+</span><span class='line'><span class="p">&amp;</span>ndash<span class="p">;</span>ceph-storage-flavor ceph <span class="se">\</span>
+</span><span class='line'><span class="p">&amp;</span>ndash<span class="p">;</span>block-storage-flavor cinder <span class="se">\</span>
+</span><span class='line'><span class="p">&amp;</span>ndash<span class="p">;</span>compute-flavor compute <span class="se">\</span>
+</span><span class='line'><span class="p">&amp;</span>ndash<span class="p">;</span>control-flavor controller <span class="se">\</span>
+</span><span class='line'><span class="p">&amp;</span>ndash<span class="p">;</span>swift-storage-flavor swift
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>And that&rsquo;s all for today. Hope you&rsquo;re enjoying the full control over your OpenStack cloud deployment.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[Installing OpenStack Liberty on RHEL7]]></title>
@@ -552,7 +643,7 @@
 <p>You can find the <code>rhel_reposync</code> Ansible role at <a href="https://github.com/noseka1/rhel_reposync" title="rhel_reposync">GitHub</a>. You want to run this role on your Docker host. It will download the RHEL6 and RHEL7 images, and register them with the Red Hat Customer Portal. You have to supply your Red Hat credentials on the command-line. For example:</p>
 
 <p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>ansible-playbook -i hosts playbook.yml -e <span class="nv">redhat_portal_username</span><span class="o">=</span>&lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#109;&amp;#97;&amp;#x69;&amp;#x6c;&amp;#116;&amp;#111;&amp;#58;&amp;#x75;&amp;#115;&amp;#x65;&amp;#x72;&amp;#x6e;&amp;#x61;&amp;#109;&amp;#x65;&amp;#64;&amp;#x63;&amp;#x6f;&amp;#109;&amp;#112;&amp;#97;&amp;#x6e;&amp;#121;&amp;#46;&amp;#x63;&amp;#111;&amp;#x6d;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#x75;&amp;#115;&amp;#101;&amp;#114;&amp;#110;&amp;#97;&amp;#x6d;&amp;#x65;&amp;#x40;&amp;#x63;&amp;#111;&amp;#109;&amp;#112;&amp;#x61;&amp;#110;&amp;#x79;&amp;#46;&amp;#99;&amp;#x6f;&amp;#x6d;&lt;/a&gt; -e redhat_portal_password=secretpassword</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>ansible-playbook -i hosts playbook.yml -e <span class="nv">redhat_portal_username</span><span class="o">=</span>&lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#109;&amp;#x61;&amp;#x69;&amp;#x6c;&amp;#x74;&amp;#x6f;&amp;#58;&amp;#117;&amp;#115;&amp;#x65;&amp;#114;&amp;#x6e;&amp;#97;&amp;#x6d;&amp;#x65;&amp;#64;&amp;#99;&amp;#x6f;&amp;#x6d;&amp;#112;&amp;#97;&amp;#110;&amp;#x79;&amp;#x2e;&amp;#99;&amp;#111;&amp;#109;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#117;&amp;#115;&amp;#x65;&amp;#x72;&amp;#110;&amp;#97;&amp;#x6d;&amp;#101;&amp;#x40;&amp;#99;&amp;#111;&amp;#x6d;&amp;#112;&amp;#x61;&amp;#110;&amp;#x79;&amp;#46;&amp;#x63;&amp;#111;&amp;#109;&lt;/a&gt; -e redhat_portal_password=secretpassword</span>
 </span></code></pre></td></tr></table></div></figure></p>
 
 <p>After the Ansible run is finished you&rsquo;ll find two images in your local Docker repository: <code>rhel6_reposync_registered</code> and <code>rhel7_reposync_registered</code>.</p>
@@ -568,167 +659,6 @@
 <h2>Alternative solution</h2>
 
 <p>I discovered an <a href="https://github.com/pyther/upstream_sync" title="upstream_sync">upstream_sync</a> script that allows you to mirror multiple RHEL/CentOS repositories from a single machine. It uses a specific client SSL certificate and key to access each of the repositories. This solution is much simpler than the approach described in this article.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[Improving Ansible's ini_file Module]]></title>
-    <link href="http://alesnosek.com/blog/2015/08/03/improving-ansibles-ini-file-module/"/>
-    <updated>2015-08-03T20:01:30-07:00</updated>
-    <id>http://alesnosek.com/blog/2015/08/03/improving-ansibles-ini-file-module</id>
-    <content type="html"><![CDATA[<p>For editing Windows INI files, Ansible comes with an <code>ini_file</code> module built in. Unfortunately, this module uses Python&rsquo;s <code>ConfigParser</code> module which reformats the entire INI file whenever you want to change a single line. It removes all the comment lines, too. For me this was not acceptable. After looking for a possible solution I decided to improve the <code>ini_file</code> module and created <code>ini_file2</code>. I realized how easy it is to create an Ansible module.</p>
-
-<!-- more -->
-
-
-<p>On Debian Linux, the Ansible&rsquo;s built-in <code>ini_file</code> module can be found at <code>/usr/share/ansible/files/ini_file</code>. This file is the base for our own <code>ini_file2</code>. The question was, at what location should one store the <code>ini_file2</code> module for Ansible to find it? From Ansible&rsquo;s <a href="http://docs.ansible.com/ansible/developing_modules.html" title="Developing Modules">documentation</a> I learned that when looking for modules, Ansible searches the <code>./library</code> directory alongside of the top level playbooks. That sounds perfect to me.</p>
-
-<p>After a while working with the Python code, I created the <code>ini_file2</code> module. This module provides an equivalent functionality to the original <code>ini_file</code> module, however, it does only the minimum changes when editing the INI file. It typically modifies only one line. When removing options, it doesn&rsquo;t delete the lines but comment them out instead. If there was a commented out option it comments it in when required.</p>
-
-<h2>The ini_file and ini_file2 comparison</h2>
-
-<p>Let&rsquo;s compare the <code>ini_file</code> and <code>ini_file2</code> on a practical example. Our input INI file looks as follows:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-</pre></td><td class='code'><pre><code class='ini'><span class='line'><span class="err">&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;h1&gt;This</span> <span class="err">is</span> <span class="err">the</span> <span class="err">main</span> <span class="err">configuration</span> <span class="err">section&lt;/h1&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;h1&gt;There</span> <span class="err">are</span> <span class="err">some</span> <span class="err">important</span> <span class="err">options</span> <span class="err">to</span> <span class="err">configure&lt;/h1&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;p&gt;[main]&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;h1&gt;This</span> <span class="err">is</span> <span class="err">the</span> <span class="err">first</span> <span class="err">option&lt;/h1&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="na">&lt;p&gt;option1</span> <span class="o">=</span> <span class="s">orig_value&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;h1&gt;This</span> <span class="err">is</span> <span class="err">the</span> <span class="err">second</span> <span class="err">option&lt;/h1&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;h1&gt;If</span> <span class="err">not</span> <span class="err">set,</span> <span class="err">the</span> <span class="err">default</span> <span class="err">value</span> <span class="err">is</span> <span class="err">def_value&lt;/h1&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="na">&lt;h1&gt;option2</span> <span class="o">=</span> <span class="s">def_value&lt;/h1&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;h1&gt;This</span> <span class="err">is</span> <span class="err">the</span> <span class="err">last</span> <span class="err">option&lt;/h1&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;h1&gt;If</span> <span class="err">not</span> <span class="err">set,</span> <span class="err">the</span> <span class="err">default</span> <span class="err">value</span> <span class="err">is</span> <span class="err">def_value&lt;/h1&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="na">&lt;p&gt;option3</span> <span class="o">=</span> <span class="s">some_value</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>The Ansible test script will set the <code>option1</code> and <code>option2</code> to <code>new_value</code> and it will remove the <code>option3</code> from the INI file:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>- name: Set option1 to new_value
-</span><span class='line'>  ini_file: dest=settings.ini section=main option=option1 value=new_value&lt;/p>
-</span><span class='line'>
-</span><span class='line'>&lt;ul>
-</span><span class='line'>&lt;li>&lt;p>name: Set option2 to new_value
-</span><span class='line'>ini_file: dest=settings.ini section=main option=option2 value=new_value&lt;/p>&lt;/li>
-</span><span class='line'>&lt;li>&lt;p>name: Remove option3
-</span><span class='line'>ini_file: dest=settings.ini section=main option=option3 state=absent</span></code></pre></td></tr></table></div></figure></p></li>
-</ul>
-
-
-<p>When using the original <code>ini_file</code> module, the resulting INI file looks like this:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='ini'><span class='line'><span class="k">[main]</span>
-</span><span class='line'><span class="na">option1</span> <span class="o">=</span> <span class="s">new_value</span>
-</span><span class='line'><span class="na">option2</span> <span class="o">=</span> <span class="s">new_value&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;p&gt;</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>You can see that there&rsquo;s not much left from the input file. All comments are gone. In contrast, the <code>ini_file2</code> module does the editing operations with more precision:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-</pre></td><td class='code'><pre><code class='ini'><span class='line'><span class="err">&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;h1&gt;This</span> <span class="err">is</span> <span class="err">the</span> <span class="err">main</span> <span class="err">configuration</span> <span class="err">section&lt;/h1&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;h1&gt;There</span> <span class="err">are</span> <span class="err">some</span> <span class="err">important</span> <span class="err">options</span> <span class="err">to</span> <span class="err">configure&lt;/h1&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;p&gt;[main]&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;h1&gt;This</span> <span class="err">is</span> <span class="err">the</span> <span class="err">first</span> <span class="err">option&lt;/h1&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="na">&lt;p&gt;option1</span> <span class="o">=</span> <span class="s">new_value&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;h1&gt;This</span> <span class="err">is</span> <span class="err">the</span> <span class="err">second</span> <span class="err">option&lt;/h1&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;h1&gt;If</span> <span class="err">not</span> <span class="err">set,</span> <span class="err">the</span> <span class="err">default</span> <span class="err">value</span> <span class="err">is</span> <span class="err">def_value&lt;/h1&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="na">&lt;p&gt;option2</span> <span class="o">=</span> <span class="s">new_value&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;h1&gt;This</span> <span class="err">is</span> <span class="err">the</span> <span class="err">last</span> <span class="err">option&lt;/h1&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;h1&gt;If</span> <span class="err">not</span> <span class="err">set,</span> <span class="err">the</span> <span class="err">default</span> <span class="err">value</span> <span class="err">is</span> <span class="err">def_value&lt;/h1&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="na">&lt;h1&gt;option3</span> <span class="o">=</span> <span class="s">some_value&lt;/h1&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;p&gt;</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<h2>References</h2>
-
-<p>The <code>ini_file2</code> source code as well as test scripts can be found at <a href="https://github.com/noseka1/ini_file2" title="ini_file2">GitHub</a>.</p>
 ]]></content>
   </entry>
 
