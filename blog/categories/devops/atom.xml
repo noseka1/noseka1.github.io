@@ -4,7 +4,7 @@
   <title><![CDATA[Category: devops | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/devops/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2015-11-30T23:18:07-08:00</updated>
+  <updated>2015-11-30T23:20:39-08:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -19,6 +19,9 @@
     <updated>2015-11-30T21:13:33-08:00</updated>
     <id>http://alesnosek.com/blog/2015/11/30/monitoring-openstack-cluster-with-icinga</id>
     <content type="html"><![CDATA[<p>If you don&rsquo;t monitor it, it&rsquo;s not in production! To get an OpenStack cloud ready for production, monitoring is a must. Let&rsquo;s take a look at two projects providing Nagios/Icinga plugins for checking the health of OpenStack services.</p>
+
+<!-- more -->
+
 
 <p>First, a few words about <a href="https://www.icinga.org/" title="Icinga">Icinga</a>. I started using Icinga 2 only recently and I&rsquo;m very pleased with this flexible and well-documented software. I&rsquo;ve listened to a German presentation about Icinga where they said that Icinga was not that widely spread in the US as it was the case in Europe. Dear Icinga team, you have one more happy user in the US now. Your software just works and your web GUI is beautiful.</p>
 
