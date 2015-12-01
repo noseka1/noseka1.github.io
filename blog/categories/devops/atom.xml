@@ -4,7 +4,7 @@
   <title><![CDATA[Category: devops | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/devops/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2015-11-09T22:18:37-08:00</updated>
+  <updated>2015-11-30T23:18:07-08:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,54 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[Monitoring OpenStack Cluster with Icinga]]></title>
+    <link href="http://alesnosek.com/blog/2015/11/30/monitoring-openstack-cluster-with-icinga/"/>
+    <updated>2015-11-30T21:13:33-08:00</updated>
+    <id>http://alesnosek.com/blog/2015/11/30/monitoring-openstack-cluster-with-icinga</id>
+    <content type="html"><![CDATA[<p>If you don&rsquo;t monitor it, it&rsquo;s not in production! To get an OpenStack cloud ready for production, monitoring is a must. Let&rsquo;s take a look at two projects providing Nagios/Icinga plugins for checking the health of OpenStack services.</p>
+
+<p>First, a few words about <a href="https://www.icinga.org/" title="Icinga">Icinga</a>. I started using Icinga 2 only recently and I&rsquo;m very pleased with this flexible and well-documented software. I&rsquo;ve listened to a German presentation about Icinga where they said that Icinga was not that widely spread in the US as it was the case in Europe. Dear Icinga team, you have one more happy user in the US now. Your software just works and your web GUI is beautiful.</p>
+
+<p>I found two very useful projects for monitoring the OpenStack APIs both hosted on GitHub:</p>
+
+<ul>
+<li><a href="https://github.com/cirrax/openstack-nagios-plugins">OpenStack Nagios Plugins</a></li>
+<li><a href="https://github.com/openstack/monitoring-for-openstack">Monitoring for OpenStack</a></li>
+</ul>
+
+
+<h2>OpenStack Nagios Plugins</h2>
+
+<p><a href="https://github.com/cirrax/openstack-nagios-plugins">OpenStack Nagios Plugins</a> provides a collection of checks for the OpenStack services Nova, Neutron, Cinder, Keystone and Ceilometer. Available plugins worked right away with my OpenStack Liberty cluster. The Nova Hypervisor check monitors the &ldquo;virtual&rdquo; CPU and memory usage across your compute nodes. The name virtual CPU is a little misleading here. In reality, the number of physical cores is monitored as the Nova API actually reports the number of physical cores. I stick to the OpenStack default settings that overcommit the CPUs by factor of 16 and the memory by factor of 1.5. To accommodate this fact, I changed the warning and critical ranges for the check_nova-hypervisors plugin as follows:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>check_nova-hypervisors <span class="p">&amp;</span>ndash<span class="p">;</span>warn_memory_percent 0:135 <span class="p">&amp;</span>ndash<span class="p">;</span>critical_memory_percent 0:142 <span class="p">&amp;</span>ndash<span class="p">;</span>warn_vcpus_percent 0:1440 <span class="p">&amp;</span>ndash<span class="p">;</span>critical_vcpus_percent 0:1520
+</span></code></pre></td></tr></table></div></figure></p>
+
+<h2>Monitoring for OpenStack</h2>
+
+<p>Plugins coming with the <a href="(https://github.com/openstack/monitoring-for-openstack">Monitoring for OpenStack</a> project provide deeper checks of OpenStack functionality. I liked the following ones the best:</p>
+
+<ul>
+<li><code>check_nova_instance</code>: Creates an instance on your cloud and deletes it again as soon as it is active. It&rsquo;s recommended to use a small disk image like cirros for this check.</li>
+<li><code>cinder_volume</code>: Allocates a volume of size 1GB and deletes it again.</li>
+<li><code>neutron_floating_ip</code>: Tries to allocate a floating IP. You have to configure the network where to allocate the IP from.</li>
+<li><code>glance_upload</code>: Uploads 1MB of data as an image into Glance.</li>
+<li><code>check_horizon_login</code>: Given a user name and a password the plugin will log into the Horizon dashboard.</li>
+</ul>
+
+
+<p>Some of the plugins didn&rsquo;t work for me due to incompatibilities with the Liberty client APIs. If you encounter the same problem you can try out my fixed version of the plugins on GitHub <a href="https://github.com/noseka1/monitoring-for-openstack">here</a>.</p>
+
+<h2>Icinga 2 Screenshot</h2>
+
+<p>And this is how the OpenStack APIs service group looks in Icinga Web 2. Happy monitoring!</p>
+
+<p><img class="center" src="/images/posts/osmon.png"></p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[Assigning roles to nodes directly in RDO]]></title>
@@ -602,63 +650,6 @@
 <h2>References</h2>
 
 <p>When writing this blogpost I referred to the very useful article <a href="http://blog.davidvassallo.me/2012/05/05/kvm-brctl-in-linux-bringing-vlans-to-the-guests/">KVM &amp; BRCTL in Linux – bringing VLANs to the guests</a> describing the issues of VLAN bridging in a great detail.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[Multiple RHEL Mirrors on a Single Machine]]></title>
-    <link href="http://alesnosek.com/blog/2015/08/16/multiple-rhel-mirrors-on-a-single-machine/"/>
-    <updated>2015-08-16T22:23:11-07:00</updated>
-    <id>http://alesnosek.com/blog/2015/08/16/multiple-rhel-mirrors-on-a-single-machine</id>
-    <content type="html"><![CDATA[<p><em>Reposync</em> can mirror the yum repository to which your machine is subscribed to. However, you cannot subscribe your machine to the RHEL6 and RHEL7 at the same time. Let&rsquo;s take a look at how Docker can help us here.</p>
-
-<!-- more -->
-
-
-<p>The RHEL Docker images are available in the public registry. For example, the following command downloads a RHEL6 Docker image:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>docker pull rhel6
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>The downloaded image is not registered with <a href="https://access.redhat.com/" title="Red Hat Customer Portal">Red Hat Customer Portal</a> and hence cannot receive any software updates. To register the Docker image, you&rsquo;ll need the <em>username</em> and <em>password</em> you use to log in to the Red Hat Customer Portal.</p>
-
-<h2>Docker and the build-time secrets</h2>
-
-<p>You will encounter a problem when building and registering the RHEL image using a Dockerfile. How to register the RHEL image using your credentials without Docker baking those credentials into the image? You don&rsquo;t want others to discover your secrets in the image&rsquo;s metadata or the history log. As a matter of fact, there doesn&rsquo;t seem to be a secure way to pass the secrets to the Docker in build-time. And there is a nice <a href="https://github.com/docker/docker/issues/13490" title="Secrets in Docker">write-up</a> available in the Docker issue tracker describing the different approaches how to workaround this deficiency.</p>
-
-<p>The following approach worked for me:</p>
-
-<ol>
-<li>Store the credentials into a file on the Docker host</li>
-<li>Start a RHEL container with the credentials file mounted into it</li>
-<li>Use the credentials to register the RHEL system</li>
-<li>Stop the RHEL container</li>
-<li>Commit the RHEL container into a new Docker image</li>
-</ol>
-
-
-<h2>Creating RHEL images with Ansible</h2>
-
-<p>You can find the <code>rhel_reposync</code> Ansible role at <a href="https://github.com/noseka1/rhel_reposync" title="rhel_reposync">GitHub</a>. You want to run this role on your Docker host. It will download the RHEL6 and RHEL7 images, and register them with the Red Hat Customer Portal. You have to supply your Red Hat credentials on the command-line. For example:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>ansible-playbook -i hosts playbook.yml -e <span class="nv">redhat_portal_username</span><span class="o">=</span>&lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#109;&amp;#x61;&amp;#x69;&amp;#x6c;&amp;#x74;&amp;#x6f;&amp;#58;&amp;#117;&amp;#115;&amp;#x65;&amp;#114;&amp;#x6e;&amp;#97;&amp;#x6d;&amp;#x65;&amp;#64;&amp;#99;&amp;#x6f;&amp;#x6d;&amp;#112;&amp;#97;&amp;#110;&amp;#x79;&amp;#x2e;&amp;#99;&amp;#111;&amp;#109;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#117;&amp;#115;&amp;#x65;&amp;#x72;&amp;#110;&amp;#97;&amp;#x6d;&amp;#101;&amp;#x40;&amp;#99;&amp;#111;&amp;#x6d;&amp;#112;&amp;#x61;&amp;#110;&amp;#x79;&amp;#46;&amp;#x63;&amp;#111;&amp;#109;&lt;/a&gt; -e redhat_portal_password=secretpassword</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>After the Ansible run is finished you&rsquo;ll find two images in your local Docker repository: <code>rhel6_reposync_registered</code> and <code>rhel7_reposync_registered</code>.</p>
-
-<h2>Mirroring the RHEL repository</h2>
-
-<p>To begin the RHEL repository mirroring you just start a container based on the registered image. The container expects a volume to be mounted at <code>/repodir</code>. It will save the downloaded RPM packages at this location.</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>docker run <span class="p">&amp;</span>ndash<span class="p">;</span>rm -v /var/www/html/RHEL6:/repodir rhel6_reposync_registered
-</span></code></pre></td></tr></table></div></figure></p>
-
-<h2>Alternative solution</h2>
-
-<p>I discovered an <a href="https://github.com/pyther/upstream_sync" title="upstream_sync">upstream_sync</a> script that allows you to mirror multiple RHEL/CentOS repositories from a single machine. It uses a specific client SSL certificate and key to access each of the repositories. This solution is much simpler than the approach described in this article.</p>
 ]]></content>
   </entry>
 
