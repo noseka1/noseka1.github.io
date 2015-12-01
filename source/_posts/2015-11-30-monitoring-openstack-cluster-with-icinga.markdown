@@ -8,6 +8,8 @@ categories: cloud devops
 
 If you don't monitor it, it's not in production! To get an OpenStack cloud ready for production, monitoring is a must. Let's take a look at two projects providing Nagios/Icinga plugins for checking the health of OpenStack services.
 
+<!-- more -->
+
 First, a few words about [Icinga](https://www.icinga.org/ "Icinga"). I started using Icinga 2 only recently and I'm very pleased with this flexible and well-documented software. I've listened to a German presentation about Icinga where they said that Icinga was not that widely spread in the US as it was the case in Europe. Dear Icinga team, you have one more happy user in the US now. Your software just works and your web GUI is beautiful.
 
 I found two very useful projects for monitoring the OpenStack APIs both hosted on GitHub:
