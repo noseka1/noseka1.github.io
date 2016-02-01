@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2015-11-30T23:20:39-08:00</updated>
+  <updated>2016-01-31T21:10:24-08:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,76 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[Bootstrapping a Galera Cluster on RHEL7]]></title>
+    <link href="http://alesnosek.com/blog/2016/01/31/bootstrapping-a-galera-cluster-on-rhel7/"/>
+    <updated>2016-01-31T15:24:55-08:00</updated>
+    <id>http://alesnosek.com/blog/2016/01/31/bootstrapping-a-galera-cluster-on-rhel7</id>
+    <content type="html"><![CDATA[<p>The MariaDB Galera packages provided by the RDO project in their OpenStack repositories don&rsquo;t seem to include a command or script to bootstrap the cluster. Let&rsquo;s look at an alternative way to bring the cluster up.</p>
+
+<!-- more -->
+
+
+<p>RHEL7 comes with the init system <code>systemd</code>. Unfortunately, systemd doesn&rsquo;t provide a way to pass command-line arguments to the unit files. Hence, doing something like this won&rsquo;t work:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">[</span>root@rhel1 ~<span class="o">]</span><span class="nv">$ </span>systemctl start mariadb --wsrep_new_cluster
+</span><span class='line'>systemctl: unrecognized option <span class="s1">&#39;--wsrep_new_cluster&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Instead of passing command-line arguments, systemd allows for creating <a href="http://0pointer.de/blog/projects/instances.html">multiple instances</a> of the same service where each instance can obtain it&rsquo;s own set of environment variables. The Percona XtraDB Cluster includes the standard and the bootstrap service instance definitions in the RPM package <code>Percona-XtraDB-Cluster-server</code>. To boostrap the Percona cluster, the first node can be started with the following command:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">[</span>root@percona1 ~<span class="o">]</span><span class="nv">$ </span>systemctl start mysql@bootstrap.service
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>At the moment, this boostrap service definition is missing in the RDO OpenStack packages. Before a similar <code>mysql@.service</code> script is available in RDO you can start the MariaDB Galera cluster as follows:</p>
+
+<ul>
+<li>On the first node, start the MariaDB with the <code>--wsrep-new-cluster</code> to create a new cluster:</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">[</span>root@rhel1 ~<span class="o">]</span><span class="nv">$ </span>/usr/bin/mysqld_safe --wsrep-new-cluster
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Let the command run in the foreground.</p>
+
+<ul>
+<li>On the remaining cluster nodes start the mariadb service as usual:</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">[</span>root@rhel2 ~<span class="o">]</span><span class="nv">$ </span>systemctl start mariadb
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><p>After the cluster has been fully formed, stop the mariadb on the first node by sending it a SIGQUIT (press CTRL + \ on the console).</p></li>
+<li><p>On the first node, start the mariadb service via systemd:</p></li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">[</span>root@rhel1 ~<span class="o">]</span><span class="nv">$ </span>systemctl start mariadb
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>That&rsquo;s it. You can check the status of each of the cluster nodes by running the following command:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">[</span>root@rhel1 ~<span class="o">]</span><span class="nv">$ </span>mysql -e <span class="s2">&quot;SHOW GLOBAL STATUS LIKE &#39;wsrep%&#39;;&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[Monitoring OpenStack Cluster with Icinga]]></title>
@@ -2785,87 +2855,6 @@ The possible choices of notification driver are briefly described in <a href="ht
 
 
 <p>Congratulations, your virtual machine has just been configured by Cloud-Init the same way as any other virtual machine running in the cloud environment.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[Five Basic Tips for Teamwork with Git]]></title>
-    <link href="http://alesnosek.com/blog/2015/04/18/five-basic-tips-for-teamwork-with-git/"/>
-    <updated>2015-04-18T16:51:08-07:00</updated>
-    <id>http://alesnosek.com/blog/2015/04/18/five-basic-tips-for-teamwork-with-git</id>
-    <content type="html"><![CDATA[<p>Do you care about how your Git commits look like? A great software practitioner does, indeed. Let&rsquo;s review a couple of basic tips for developers that make the Git commit log look good and teamwork with Git source control more fun.</p>
-
-<!-- more -->
-
-
-<h2>1) Introduce yourself to Git</h2>
-
-<p>When searching through the commit history your fellow developers would like to recognize that this particular awesome commit was created by you. Before your first commit, please, introduce yourself to Git. Tell Git your name and email address:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>git config --global user.name <span class="s2">&quot;Ales Nosek&quot;</span>
-</span><span class='line'>git config --global user.email <span class="s2">&quot;anosek@verimatrix.com&quot;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>2) Commit message formatting</h2>
-
-<p>Respect the conventions for Git commit message formatting. The first line of the commit message is a short (50 chars or less) summary. The first letter of the summary is capitalized and there&rsquo;s no dot at the end of the summary. The summary begins with a reference to the issue in your bug tracking system if available. Use imperative in your summary line as you&rsquo;d be commanding your code to do something, i.e. write &ldquo;Remove obsolete code&rdquo; instead of &ldquo;Removed obsolete code&rdquo; or &ldquo;Removes obsolete code&rdquo;. More detailed explanatory text comes after a blank line. Here is a model Git commit message:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>PROJXREF-27 Remove obsolete code in component X
-</span><span class='line'>
-</span><span class='line'>The logging functionality in component X is not needed anymore.
-</span><span class='line'>Component Y took over the logging responsibility.</span></code></pre></td></tr></table></div></figure>
-
-
-<p>See also this <a href="http://chris.beams.io/posts/git-commit/" title="How to Write a Git Commit Message">article</a> for more detailed explanation and examples.</p>
-
-<h2>3) One commit per unit of work</h2>
-
-<p>Create one commit per unit of work. A combined commit like &ldquo;Add method X, correct indention, clean up whitespaces&rdquo; is harder to review. Break your changes down into multiple commits, e.g. three commits &ldquo;Add method X&rdquo;, &ldquo;Correct indention&rdquo; and &ldquo;Clean up whitespaces&rdquo;.</p>
-
-<h2>4) git diff <code>--</code>cached</h2>
-
-<p>Before commiting <em>always</em> check your code changes. Make sure that your commit includes only the changes you intended to commit. Let your debug code and test modifications not flow into the production code base. Before committing double-check your changes with:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>git diff --cached</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>5) Trailing whitespaces</h2>
-
-<p>Whitespace changes in the commit diffs decrease the readability of the commit diffs and make code review less fun. You can configure your editor to remove the trailing whitespaces for you on file save. Perhaps a better option though is to instruct Git to clean up the trailing white spaces automatically before comitting. You can use the commit hook <a href="http://stackoverflow.com/questions/591923/make-git-automatically-remove-trailing-whitespace-before-committing/3516525#3516525" title="Make git automatically remove trailing whitespace before committing">here</a> to do exactly that. Save the commit hook as file named <code>pre-commit</code>. Install the <code>pre-commit</code> script into your Git repository:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>cp pre-commit my_existing_repo/.git/hooks
-</span><span class='line'>chmod 755 my_existing_repo/.git/hooks/pre-commit</span></code></pre></td></tr></table></div></figure>
-
-
-<p>The pre-commit hook will run only before the commit in this particular Git repository. If you&rsquo;d like Git to install the pre-commit hook to every newly created/cloned repository you&rsquo;ll need to add the hook file into your template directory. First tell Git where is your template directory located by adding the following into your <code>~/.gitconfig</code> file:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>[init]
-</span><span class='line'>        templatedir = ~/.gittemplate</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Now you can create your Git template directory and copy the <code>pre-commit</code> hook file into it:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>mkdir -p ~/.gittemplate/hooks
-</span><span class='line'>cp pre-commit ~/.gittemplate/hooks
-</span><span class='line'>chmod 755 ~/.gittemplate/hooks/pre-commit</span></code></pre></td></tr></table></div></figure>
-
-
-<p>From now on whenever you create/clone a Git repository you should find the <code>pre-commit</code> hook file installed at <code>.git/hooks/pre-commit</code>. Git will clean up trailing whitespaces for you before you commit.</p>
 ]]></content>
   </entry>
 

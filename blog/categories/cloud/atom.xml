@@ -4,7 +4,7 @@
   <title><![CDATA[Category: cloud | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/cloud/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2015-11-30T23:20:39-08:00</updated>
+  <updated>2016-01-31T21:10:24-08:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,57 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[Bootstrapping a Galera Cluster on RHEL7]]></title>
+    <link href="http://alesnosek.com/blog/2016/01/31/bootstrapping-a-galera-cluster-on-rhel7/"/>
+    <updated>2016-01-31T15:24:55-08:00</updated>
+    <id>http://alesnosek.com/blog/2016/01/31/bootstrapping-a-galera-cluster-on-rhel7</id>
+    <content type="html"><![CDATA[<p>The MariaDB Galera packages provided by the RDO project in their OpenStack repositories don&rsquo;t seem to include a command or script to bootstrap the cluster. Let&rsquo;s look at an alternative way to bring the cluster up.</p>
+
+<!-- more -->
+
+
+<p>RHEL7 comes with the init system <code>systemd</code>. Unfortunately, systemd doesn&rsquo;t provide a way to pass command-line arguments to the unit files. Hence, doing something like this won&rsquo;t work:
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">[</span>root@rhel1 ~<span class="o">]</span><span class="nv">$ </span>systemctl start mariadb <span class="p">&amp;</span>ndash<span class="p">;</span>wsrep_new_cluster
+</span><span class='line'>systemctl: unrecognized option <span class="p">&amp;</span>lsquo<span class="p">;&amp;</span>ndash<span class="p">;</span>wsrep_new_cluster<span class="p">&amp;</span>rsquo<span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Instead of passing command-line arguments, systemd allows for creating <a href="http://0pointer.de/blog/projects/instances.html">multiple instances</a> of the same service where each instance can obtain it&rsquo;s own set of environment variables. The Percona XtraDB Cluster includes the standard and the bootstrap service instance definitions in the RPM package <code>Percona-XtraDB-Cluster-server</code>. To boostrap the Percona cluster, the first node can be started with the following command:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">[</span>root@percona1 ~<span class="o">]</span><span class="nv">$ </span>systemctl start &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#109;&amp;#x61;&amp;#105;&amp;#108;&amp;#116;&amp;#111;&amp;#x3a;&amp;#x6d;&amp;#121;&amp;#115;&amp;#113;&amp;#108;&amp;#64;&amp;#98;&amp;#111;&amp;#111;&amp;#116;&amp;#x73;&amp;#116;&amp;#x72;&amp;#97;&amp;#x70;&amp;#x2e;&amp;#x73;&amp;#101;&amp;#114;&amp;#x76;&amp;#105;&amp;#x63;&amp;#101;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#x6d;&amp;#121;&amp;#115;&amp;#x71;&amp;#108;&amp;#64;&amp;#x62;&amp;#x6f;&amp;#x6f;&amp;#116;&amp;#115;&amp;#x74;&amp;#114;&amp;#97;&amp;#x70;&amp;#46;&amp;#115;&amp;#101;&amp;#x72;&amp;#118;&amp;#x69;&amp;#x63;&amp;#x65;&lt;/a&gt;</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>At the moment, this boostrap service definition is missing in the RDO OpenStack packages. Before a similar <code>mysql@.service</code> script is available in RDO you can start the MariaDB Galera cluster as follows:</p>
+
+<ul>
+<li><p>On the first node, start the MariaDB with the <code>--wsrep-new-cluster</code> to create a new cluster:
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">[</span>root@rhel1 ~<span class="o">]</span><span class="nv">$ </span>/usr/bin/mysqld_safe <span class="p">&amp;</span>ndash<span class="p">;</span>wsrep-new-cluster
+</span></code></pre></td></tr></table></div></figure>
+Let the command run in the foreground.</p></li>
+<li><p>On the remaining cluster nodes start the mariadb service as usual:
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">[</span>root@rhel2 ~<span class="o">]</span><span class="nv">$ </span>systemctl start mariadb
+</span></code></pre></td></tr></table></div></figure></p></li>
+<li><p>After the cluster has been fully formed, stop the mariadb on the first node by sending it a SIGQUIT (press CTRL + \ on the console).</p></li>
+<li><p>On the first node, start the mariadb service via systemd:
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">[</span>root@rhel1 ~<span class="o">]</span><span class="nv">$ </span>systemctl start mariadb
+</span></code></pre></td></tr></table></div></figure></p></li>
+</ul>
+
+
+<p>That&rsquo;s it. You can check the status of each of the cluster nodes by running the following command:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">[</span>root@rhel1 ~<span class="o">]</span><span class="nv">$ </span>mysql -e <span class="p">&amp;</span>ldquo<span class="p">;</span>SHOW GLOBAL STATUS LIKE <span class="p">&amp;</span>lsquo<span class="p">;</span>wsrep%<span class="p">&amp;</span>rsquo<span class="p">;;&amp;</span>rdquo<span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure></p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[Monitoring OpenStack Cluster with Icinga]]></title>
@@ -476,24 +527,6 @@
 <h2>Conclusion</h2>
 
 <p>Os-net-config is a useful configuration tool you might want to include on your virtual machine images.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[OpenStack Dynamic DNS Updates]]></title>
-    <link href="http://alesnosek.com/blog/2015/05/31/openstack-dynamic-dns-updates/"/>
-    <updated>2015-05-31T22:49:39-07:00</updated>
-    <id>http://alesnosek.com/blog/2015/05/31/openstack-dynamic-dns-updates</id>
-    <content type="html"><![CDATA[<p>Today&rsquo;s user story is: As a private cloud user I&rsquo;d like to have virtual machines registered with internal DNS. Let&rsquo;s look at how a software practitioner solves this problem in a truly agile way.</p>
-
-<!-- more -->
-
-
-<p>The OpenStack <a href="https://wiki.openstack.org/wiki/Designate" title="Designate">Designate</a> project implements DNSaaS. After trying out Designate, I realized that for simple DNS updates DNSaaS is a little too involved.</p>
-
-<p>In my previous <a href="/blog/2015/05/25/openstack-nova-notifications-subscriber" title="OpenStack Nova Notifications Subscriber">article</a> I described how to monitor Nova events on RabbitMQ message bus. Two events of interest are <code>compute.instance.create.end</code> and <code>compute.instance.delete.start</code> that are sent by Nova on instance creation and instance deletion. Both events carry enough information for us to create a simple script to extract the hostname and IP addresses of the instance from the events and update the internal DNS using the <code>nsupdate</code> command.</p>
-
-<p>You can find the DNS updates implementantion including the systemd startup script at GitHub: <a href="https://github.com/noseka1/openstack-dns-updater" title="openstack-dns-updater">openstack-dns-updater</a>.</p>
 ]]></content>
   </entry>
 
