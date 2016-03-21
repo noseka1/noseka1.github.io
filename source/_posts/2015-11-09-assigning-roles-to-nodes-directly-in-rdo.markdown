@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Assigning roles to nodes directly in RDO"
+title: "Assigning Roles to Nodes Directly in RDO"
 date: 2015-11-09 20:49:40 -0800
 comments: true
 categories: cloud devops
