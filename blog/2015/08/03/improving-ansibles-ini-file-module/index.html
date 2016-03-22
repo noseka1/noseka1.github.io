@@ -9,7 +9,7 @@
   <meta name="author" content="Ales Nosek">
 
 
-  <meta name="description" content="For editing Windows INI files, Ansible comes with an ini_file module built in. Unfortunately, this module uses Python&rsquo;s ConfigParser module &hellip;">
+  <meta name="description" content="Update 3/31/2016: The implementation of the ini_file module described in this blogpost has been merged into Ansible version 2.0. For editing Windows &hellip;">
 
 
   <!-- http://t.co/dKP3o1e -->
@@ -97,7 +97,9 @@
   </header>
 
 
-<div class="entry-content"><p>For editing Windows INI files, Ansible comes with an <code>ini_file</code> module built in. Unfortunately, this module uses Python&rsquo;s <code>ConfigParser</code> module which reformats the entire INI file whenever you want to change a single line. It removes all the comment lines, too. For me this was not acceptable. After looking for a possible solution I decided to improve the <code>ini_file</code> module and created <code>ini_file2</code>. I realized how easy it is to create an Ansible module.</p>
+<div class="entry-content"><p><strong> Update 3/31/2016: </strong> The implementation of the ini_file module described in this blogpost has been merged into Ansible version 2.0.</p>
+
+<p>For editing Windows INI files, Ansible comes with an <code>ini_file</code> module built in. Unfortunately, this module uses Python&rsquo;s <code>ConfigParser</code> module which reformats the entire INI file whenever you want to change a single line. It removes all the comment lines, too. For me this was not acceptable. After looking for a possible solution I decided to improve the <code>ini_file</code> module and created <code>ini_file2</code>. I realized how easy it is to create an Ansible module.</p>
 
 <!-- more -->
 
@@ -270,6 +272,10 @@
   <ul id="recent_posts">
 
       <li class="post">
+        <a href="/blog/2016/03/20/tripleo-installer-the-good/">TripleO Installer - the Good, the Bad and the Ugly</a>
+      </li>
+
+      <li class="post">
         <a href="/blog/2016/01/31/bootstrapping-a-galera-cluster-on-rhel7/">Bootstrapping a Galera Cluster on RHEL7</a>
       </li>
 
@@ -278,15 +284,11 @@
       </li>
 
       <li class="post">
-        <a href="/blog/2015/11/09/assigning-roles-to-nodes-directly-in-rdo/">Assigning roles to nodes directly in RDO</a>
+        <a href="/blog/2015/11/09/assigning-roles-to-nodes-directly-in-rdo/">Assigning Roles to Nodes Directly in RDO</a>
       </li>
 
       <li class="post">
         <a href="/blog/2015/10/19/installing-openstack-liberty-on-rhel7/">Installing OpenStack Liberty on RHEL7</a>
-      </li>
-
-      <li class="post">
-        <a href="/blog/2015/09/28/network-configuration-with-os-net-config/">Network Configuration with os-net-config</a>
       </li>
 
   </ul>
