@@ -6,6 +6,8 @@ comments: true
 categories: devops
 ---
 
+** Update 3/31/2016: ** The implementation of the ini_file module described in this blogpost has been merged into Ansible version 2.0.
+
 For editing Windows INI files, Ansible comes with an `ini_file` module built in. Unfortunately, this module uses Python's `ConfigParser` module which reformats the entire INI file whenever you want to change a single line. It removes all the comment lines, too. For me this was not acceptable. After looking for a possible solution I decided to improve the `ini_file` module and created `ini_file2`. I realized how easy it is to create an Ansible module.
 
 <!-- more -->
