@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2016-03-22T20:56:09-07:00</updated>
+  <updated>2016-03-27T21:26:52-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,82 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[TripleO Installer - the Good, the Bad and the Ugly]]></title>
+    <link href="http://alesnosek.com/blog/2016/03/27/tripleo-installer-the-good/"/>
+    <updated>2016-03-27T19:39:15-07:00</updated>
+    <id>http://alesnosek.com/blog/2016/03/27/tripleo-installer-the-good</id>
+    <content type="html"><![CDATA[<p><a href="https://wiki.openstack.org/wiki/TripleO">TripleO</a> is an OpenStack deployment and management tool I&rsquo;ve been using since the Kilo release of OpenStack. It does its job pretty well however not everything is perfect. My experience presented in this article applies more or less to the Red Hat&rsquo;s OpenStack director, too, as the Red Hat OpenStack director is a downstream version of TripleO.</p>
+
+<!-- more -->
+
+
+<h2>The good things about TripleO</h2>
+
+<h3>TripleO is a great idea</h3>
+
+<p>TripleO aka OpenStack-on-OpenStack installs OpenStack cluster using OpenStack. At first, a minimum one-node OpenStack installation is created which is in turn used to provision a much bigger workload OpenStack cluster. I find this TripleO idea amazing. If OpenStack is the best way to manage your infrastructure then why use something else to install it? As an administrator I would prefer to provision my OpenStack nodes with Ironic before introducing yet another tool like <a href="http://cobbler.github.io/">Cobbler</a> to do the same job. Needless to say that, as the Ironic and Heat components improve so improves the OpenStack installation experience.</p>
+
+<p>One could argue that taking the OpenStack to form an installer comes with a ton of complexity when installing the installer itself. In my experience, however, the installation of the undercloud OpenStack using the provided Puppet scripts doesn&rsquo;t impose any problem.</p>
+
+<h3>TripleO has a vibrant community</h3>
+
+<p>TripleO is used to continuously deploy and test the OpenStack cloud during its development. The RDO project adopted TripleO as their OpenStack installation tool. Red Hat derives their OpenStack director installer from the RDO project. A large community of TripleO users is a great plus.</p>
+
+<h2>The bad things about TripleO</h2>
+
+<h3>Configuration flexibility</h3>
+
+<p>TripleO installer consists of a bunch of Heat templates to orchestrate the overcloud image provisioning and a number of Puppet and shell scripts for the following configuration of the overcloud nodes. These templates and scripts are heavily developed from release to release as the new TripleO features come in. To avoid the upgrade headaches you should not modify the TripleO templates and scripts directly. Instead, TripleO provides extension points (via extra config) where you can put your customizations.</p>
+
+<p>This didn&rsquo;t work for me. My goal was to deploy an Ironic service in the overcloud OpenStack. For that to work, I needed to provision an additional undercloud network including a VIP for the load balancer. This was not possible without patching the Heat templates and Puppet scripts. I dread the day when I&rsquo;ll have to port these patches to the next TripleO release.</p>
+
+<p>Furthermore, the current way to modify OpenStack configuration properties is less straight forward. To configure a property, I have to first grep through the Puppet scripts to find out whether the desired property is managed by Puppet or not. Afterwards, I grep through the TripleO Heat templates to find out whether TripleO provides a direct template parameter to set the Puppet variable or not. Afterwards, I can either pass the parameter to the TripleO template or I set the Puppet variable in the extra config section or I&rsquo;m on my own.</p>
+
+<blockquote><p>I&#8217;d like to be able to easily modify any property in any configuration file on any OpenStack node.</p></blockquote>
+
+
+<p>OpenStack comes with tons of configuration properties and I think it would be great to have a more straight forward way to configure them.</p>
+
+<h3>Deployment control</h3>
+
+<p>TripleO uses Heat to deploy and configure the overcloud OpenStack. Heat orchestrates the infrastracture based on the description provided by the user in the Heat templates. In the Heat templates, we tell Heat how our deployment should look like but we have no control over the steps Heat will take to get to the desired state. I find this lack of control rather problematic.</p>
+
+<blockquote><p>A fine-grained deployment control would be desirable.</p></blockquote>
+
+
+<p>Let&rsquo;s say I have an overcloud consisting of 100 nodes. After changing the configuration in my Heat templates, I can only re-run the entire Heat configuration process and hope that I&rsquo;ll not end up with a broken cloud. Instead, I&rsquo;d like to apply the configuration changes to a couple of nodes to make sure that everything works, before I continue with the rest of the cloud. The ability to apply only part of the configuration would be useful as well.</p>
+
+<h2>The ugly experience with TripleO</h2>
+
+<p>I&rsquo;d like to share one scary experience I had with the TripleO installer. While using TripleO for a couple of months, I have to say that this was the only serious problem I&rsquo;ve encountered.</p>
+
+<p>One day I uploaded an updated node image into the undercloud OpenStack. I was about to create new nodes in the overcloud cluster and wanted to have them provisioned with this new image. After starting the Heat stack update, it occurred to me that the processing took longer than usual. Well, after I SSHed into the overcloud nodes I realized why. Heat simply wiped out the entire disk content of the existing nodes and replaced it with the fresh disk image. Wow, my entire workload cloud was gone!</p>
+
+<p>I learned that when you update the disk image in the undercloud, Heat will find out what nodes have to be updated and simply replaces their disk content with the new image. If you are orchestrating cloud deployments where your machines are cattle, this is what you want. However:</p>
+
+<blockquote><p>The overcloud baremetal nodes are pets and should not be handled as cattle.</p></blockquote>
+
+
+<p>To protect the overcloud nodes from deletion I run the following command for each node against the undercloud Nova database:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">UPDATE</span> <span class="n">instances</span> <span class="k">SET</span> <span class="n">disable_terminate</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">WHERE</span> <span class="n">uuid</span> <span class="o">=</span> <span class="s1">&#39;&lt;uuid of the overcloud instance&gt;&#39;</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So far, I didn&rsquo;t find a better way how to do it. This effectively prevents deleting the node whether by issuing a <code>nova delete</code> command or by Heat when updating the stack.</p>
+
+<h2>Conclusion and suggestions</h2>
+
+<p>TripleO installer is a great tool to deploy an OpenStack cloud. It&rsquo;s backed by a large user community and doesn&rsquo;t invent any new tools to install OpenStack.</p>
+
+<p>On the other hand, I&rsquo;m somewhat sceptical about Heat being the right tool to do software configuration. Funneling the configuration options through the Heat templates down to the Puppet scripts seems cumbersome to me.</p>
+
+<p>I&rsquo;d like to suggest the following approach: let Heat do the node provisioning, network configuration and perhaps a minimum node setup using cloud-init. At the end of the deployment, Heat would provide the information about the deployment in the format understandable to the configuration management tools like Puppet, Chef or Ansible. Configuration management tool then merges the facts provided by Heat with the tons of OpenStack configuration settings provided by the user. The following OpenStack installation, configuration and later orchestration would solely be done by the configuration management tool more suitable for this job. No Heat involved at this stage.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[Bootstrapping a Galera Cluster on RHEL7]]></title>
@@ -2674,189 +2750,6 @@ The possible choices of notification driver are briefly described in <a href="ht
 <p>Upon the very first execution of the hook the machine&rsquo;s network setup is not complete yet. There&rsquo;s no <code>/etc/resolv.conf</code> file written yet and the default route is not configured. The condition <code>if host $NAMESERVER; then ...</code> skips the DNS update in this case. Later in the initialization process the <code>runcmd</code> part of the cloud-config script gets executed. At this time the network configuration is complete and so we execute the update hook manually. This is the first time that the virtual machine registers itself with DNS. Cloud-Init executes the <code>runcmd</code> section only on the very first boot. Subsequent boots won&rsquo;t execute the <code>runcmd</code> code.</p>
 
 <p>Note that we&rsquo;re parsing the <code>/var/lib/dhclient/dhclient-eth0.leases</code> file to obtain the acquired IP address. Should the virtual machine obtain different IP address in the future the DNS entry gets updated accordingly.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[Using Cloud-Init Outside of Cloud]]></title>
-    <link href="http://alesnosek.com/blog/2015/04/26/using-cloud-init-outside-of-cloud/"/>
-    <updated>2015-04-26T13:04:25-07:00</updated>
-    <id>http://alesnosek.com/blog/2015/04/26/using-cloud-init-outside-of-cloud</id>
-    <content type="html"><![CDATA[<p>In EC2 and OpenStack cloud environments <em>user data</em> can be passed to the cloud instance to customize the cloud instance on the first boot. But what if your virtual machine doesn&rsquo;t run in the cloud environment? In this article we&rsquo;re going to configure our virtual machines with user data regardless if they&rsquo;re running in the cloud or not.</p>
-
-<!-- more -->
-
-
-<h2>Introducing Cloud-Init</h2>
-
-<p><a href="https://cloudinit.readthedocs.org/en/latest/" title="Cloud-Init documentation">Cloud-Init</a> is a tool that handles early initialization of a cloud instance. The <code>cloud-init</code> RPM package should be installed on the disk image which the cloud instance is going to boot up from. The package installs init scripts into <code>/etc/rc.d/init.d</code> that makes Cloud-Init run early during the system initialization. Cloud-Init obtains user data passed to it by the cloud software and executes them. User data contains a set of configuration tasks for the cloud instance. For example, Cloud-Init can update machine&rsquo;s hostname, configure <code>/etc/hosts</code>, create users, configure SSH authorized keys, resize filesystems, manage disk mounts, run user-defined scripts and <a href="https://cloudinit.readthedocs.org/en/latest/topics/examples.html" title="Cloud config examples">much more</a>.</p>
-
-<blockquote><p>Even if you&#8217;re not running your virtual machines in the cloud environment it&#8217;s worth it to deploy Clout-Init.</p></blockquote>
-
-
-<p>Every cloud software comes with its own mechanism of how to pass the user data to the cloud instance. For example, EC2 provides a <em>magic IP</em> from which the instance can download its user data. OpenStack cloud attaches a special <em>config drive</em> to the cloud instance containing the user data to be consumed by Clout-Init. In order to pass the user data to our virtual machine let&rsquo;s go the OpenStack way and assemble a minimum config drive.</p>
-
-<h2>Config drive assembly</h2>
-
-<p>First, we&rsquo;re going to prepare the following file structure for our config drive:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>config_drive
-</span><span class='line'>config_drive/openstack
-</span><span class='line'>config_drive/openstack/latest
-</span><span class='line'>config_drive/openstack/2012-08-10
-</span><span class='line'>config_drive/openstack/2012-08-10/meta_data.json
-</span><span class='line'>config_drive/openstack/2012-08-10/user_data</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Start by creating directories and the <code>latest</code> symbolic link like this:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>mkdir config_drive
-</span><span class='line'>mkdir -p config_drive/openstack/2012-08-10
-</span><span class='line'>ln -s 2012-08-10 config_drive/openstack/latest</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Next create a minimum metadata file required by Cloud-Init. I&rsquo;m using a fully qualified domain name of the virtual machine as its UUID:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>cat &gt; config_drive/openstack/latest/meta_data.json <span class="s">&lt;&lt; EOF</span>
-</span><span class='line'><span class="s">{</span>
-</span><span class='line'><span class="s">    &quot;uuid&quot;: &quot;myinstance.mydomain.com&quot;</span>
-</span><span class='line'><span class="s">}</span>
-</span><span class='line'><span class="s">EOF</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Cloud-Init supports many <a href="https://cloudinit.readthedocs.org/en/latest/topics/format.html" title="Cloud-Init user data formats">formats</a> for scripts within user data. One of the most popular formats is the <em>cloud-config</em> file format. Let&rsquo;s create a cloud-config script that adds our SSH public key to the authorized keys for the user <code>root</code> on the virtual machine. We can then login into the virtual machine as user root without using a password. If you don&rsquo;t have a public-private SSH key pair you can quickly generate it using <code>ssh-keygen</code> command:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>ssh-keygen -f mykey
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Now create a <code>user_data</code> file with the configuration instructions for Cloud-Init. In the following code block replace the value of the <code>ssh-authorized-keys</code> field with the content of your generated <code>mykey.pub</code> file:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>cat &gt; config_drive/openstack/latest/user_data <span class="s">&lt;&lt; EOF</span>
-</span><span class='line'><span class="s">#cloud-config</span>
-</span><span class='line'><span class="s">fqdn: myinstance.mydomain.com</span>
-</span><span class='line'><span class="s">users:</span>
-</span><span class='line'><span class="s">  - name: root</span>
-</span><span class='line'><span class="s">    ssh-authorized-keys:</span>
-</span><span class='line'><span class="s">      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDNH8Qwn4raGR1f9fvjbZe/GXM2N9Mh+eWlsFoYpcU4H5qf5YxT5CUo7BaTOgeE5geHyzxJQmCQlvoxcW3qkcjBJvVgEsTrrnX7KYS8BszvT4AMIuG2Za8f7myubXd6zYfj74XYhutUsPz7x2TEp9ZqbVkWcaElrQFxF2AzF7dV1RGntpPKyISqem70En8RYpGY514OLZ9TQDBYjbw8tfPuDd9mznXnWOZ34fPtP7+QDvOMFuA4tXsBpHj99/cbC0ViwzZtvb1QtY7dv9OFDgCRadw81+SKtzXctQ2rCYkb0huc0BCE7kLzinzlO62Znd+N1d+tpLAwP6i8Z5ZMXIJj user@machine</span>
-</span><span class='line'><span class="s">EOF</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>The file structure for our config drive is ready. Let&rsquo;s generate an ext2 filesystem and copy the files to it. The <code>virt-make-fs</code> utility from the <code>libguestfs-tools</code> package can help us with that:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>virt-make-fs config_drive disk.config
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>In order for Cloud-Init to detect the attached drive as config drive the filesystem on the config drive needs to be labeled <code>config-2</code>. You can use <code>e2label</code> command from the <code>e2fsprogs</code> package to label your config drive:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>e2label disk.config config-2
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Cloud-Init in action</h2>
-
-<p>On my Linux host I&rsquo;m running <a href="http://libvirt.org/" title="Libvirt - The virtualization API">libvirt</a> to ease the management of virtual machines. You can install it by running <code>sudo yum install libvirt</code>. There is a handy command-line utility <code>virsh</code> which comes  with libvirt in the extra package <code>libvirt-client</code>.</p>
-
-<p>Let&rsquo;s create a virtual machine with the config drive attached. As a virtual machine boot image I&rsquo;m using a CentOS-6 image from <a href="http://cloud.centos.org/centos/6/images/" title="CentOS-6 cloud images">cloud.centos.org</a> which comes with Cloud-Init built in. Make sure that your virtual machine boot image has Cloud-Init installed. Following is a virtual machine definition file for the CentoOS-6 virtual machine. You might need to change the location of the disk image files and save it as <code>CentOS-6.xml</code>:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;domain</span> <span class="na">type=</span><span class="s">&#39;kvm&#39;</span><span class="nt">&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;name&gt;</span>CentOS-6<span class="nt">&lt;/name&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;memory</span> <span class="na">unit=</span><span class="s">&#39;KiB&#39;</span><span class="nt">&gt;</span>2097152<span class="nt">&lt;/memory&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;os&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;type&gt;</span>hvm<span class="nt">&lt;/type&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;/os&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;devices&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;disk</span> <span class="na">type=</span><span class="s">&#39;file&#39;</span> <span class="na">device=</span><span class="s">&#39;disk&#39;</span><span class="nt">&gt;</span>
-</span><span class='line'>      <span class="nt">&lt;driver</span> <span class="na">name=</span><span class="s">&quot;qemu&quot;</span> <span class="na">type=</span><span class="s">&quot;qcow2&quot;</span><span class="nt">/&gt;</span>
-</span><span class='line'>      <span class="nt">&lt;source</span> <span class="na">file=</span><span class="s">&#39;/tmp/CentOS-6-x86_64-GenericCloud.qcow2&#39;</span><span class="nt">/&gt;</span>
-</span><span class='line'>      <span class="nt">&lt;target</span> <span class="na">bus=</span><span class="s">&quot;virtio&quot;</span> <span class="na">dev=</span><span class="s">&quot;vda&quot;</span><span class="nt">/&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;/disk&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;disk</span> <span class="na">type=</span><span class="s">&#39;file&#39;</span> <span class="na">device=</span><span class="s">&#39;disk&#39;</span><span class="nt">&gt;</span>
-</span><span class='line'>      <span class="nt">&lt;driver</span> <span class="na">name=</span><span class="s">&quot;qemu&quot;</span> <span class="na">type=</span><span class="s">&quot;raw&quot;</span><span class="nt">/&gt;</span>
-</span><span class='line'>      <span class="nt">&lt;source</span> <span class="na">file=</span><span class="s">&#39;/tmp/disk.config&#39;</span><span class="nt">/&gt;</span>
-</span><span class='line'>      <span class="nt">&lt;target</span> <span class="na">bus=</span><span class="s">&quot;virtio&quot;</span> <span class="na">dev=</span><span class="s">&quot;vdb&quot;</span><span class="nt">/&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;/disk&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;interface</span> <span class="na">type=</span><span class="s">&#39;network&#39;</span><span class="nt">&gt;</span>
-</span><span class='line'>      <span class="nt">&lt;source</span> <span class="na">network=</span><span class="s">&#39;default&#39;</span><span class="nt">/&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;/interface&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;serial</span> <span class="na">type=</span><span class="s">&quot;file&quot;</span><span class="nt">&gt;</span>
-</span><span class='line'>      <span class="nt">&lt;source</span> <span class="na">path=</span><span class="s">&quot;/tmp/CentOS-6.log&quot;</span><span class="nt">/&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;/serial&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;/devices&gt;</span>
-</span><span class='line'><span class="nt">&lt;/domain&gt;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Okay, everything is ready, let&rsquo;s launch our Cloud-Init enabled CentOS-6 virtual machine:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo virsh define CentOS-6.xml
-</span><span class='line'>sudo virsh start CentOS-6
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>If everything went fine you can watch the console output of the booting virtual machine at <code>/tmp/CentOS-6.log</code>. Cloud-Init will print out the IP address obtained by the virtual machine (192.168.122.165 in my case) where we can login as root using the generated private key:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>ssh -i testkey root@192.168.122.165
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Congratulations, your virtual machine has just been configured by Cloud-Init the same way as any other virtual machine running in the cloud environment.</p>
 ]]></content>
   </entry>
 
