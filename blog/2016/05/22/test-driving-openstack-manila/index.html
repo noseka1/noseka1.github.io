@@ -1,0 +1,371 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Test-Driving OpenStack Manila - Ales Nosek - The Software Practitioner</title>
+  <meta name="author" content="Ales Nosek">
+
+
+  <meta name="description" content="Do you need to provision an NFS share for your Hadoop cluster? And what about creating a CIFS share to make your files accesible to the Windows &hellip;">
+
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <link rel="canonical" href="http://alesnosek.com/blog/2016/05/22/test-driving-openstack-manila/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Ales Nosek - The Software Practitioner" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-61965164-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <img src="/images/computers.png" align="right">
+  <h1><a href="/">Ales Nosek - The Software Practitioner</a></h1>
+
+    <h2>Practicing to make software perfect.</h2>
+
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+
+</ul>
+
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="alesnosek.com">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+
+  <header>
+
+      <h1 class="entry-title">Test-Driving OpenStack Manila</h1>
+
+
+      <p class="meta">
+
+
+
+
+
+<time class='entry-date' datetime='2016-05-22T16:59:30-07:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>22</span><span class='date-suffix'>nd</span>, <span class='date-year'>2016</span></span> <span class='time'>4:59 pm</span></time>
+
+      </p>
+
+  </header>
+
+
+<div class="entry-content"><p>Do you need to provision an NFS share for your Hadoop cluster? And what about creating a CIFS share to make your files accesible to the Windows clients? Manila is a provisioning and management service for shared file systems within OpenStack. Let&rsquo;s test-drive it in this blogpost.</p>
+
+<!-- more -->
+
+
+<p>In this introductory article, we&rsquo;re going to allocate a volume in Cinder and provide that volume as an NFS share to our Nova instances. For this, I&rsquo;m using the OpenStack Mitaka installed via TripleO on RHEL7. The Manila version included in the Mitaka release is version 2.0.</p>
+
+<p>After installing Manila, the following Manila services are running on the controller nodes:</p>
+
+<ul>
+<li><em>openstack-manila-api</em> exposes REST APIs that the Manila client talks to.</li>
+<li><em>openstack-manila-scheduler</em> makes provisioning decisions when creating a new share.</li>
+<li><em>openstack-manila-share</em> comes with a host of drivers to talk to the storage systems.</li>
+</ul>
+
+
+<h2>Configuring the generic share driver</h2>
+
+<p>In order for Manila to allocate shares on Cinder volumes, we&rsquo;ll have to configure Manila to use the <em>generic</em> share driver. For that we&rsquo;ll add a new Manila backend <code>generic_backend</code> into <code>/etc/manila/manila.conf</code>:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='ini'><span class='line'><span class="k">[DEFAULT]</span>
+</span><span class='line'><span class="na">enabled_share_backends</span> <span class="o">=</span> <span class="s">generic_backend</span>
+</span><span class='line'><span class="na">default_share_type</span> <span class="o">=</span> <span class="s">generic</span>
+</span><span class='line'><span class="k">[generic_backend]</span>
+</span><span class='line'><span class="na">share_driver</span> <span class="o">=</span> <span class="s">manila.share.drivers.generic.GenericShareDriver</span>
+</span><span class='line'><span class="na">share_backend_name</span> <span class="o">=</span> <span class="s">generic_backend</span>
+</span><span class='line'><span class="na">service_instance_name_template</span> <span class="o">=</span> <span class="s">manila_service_instance_%s</span>
+</span><span class='line'><span class="na">service_image_name</span> <span class="o">=</span> <span class="s">manila-service-image-master</span>
+</span><span class='line'><span class="na">driver_handles_share_servers</span> <span class="o">=</span> <span class="s">True</span>
+</span><span class='line'><span class="na">service_instance_flavor_id</span> <span class="o">=</span> <span class="s">103</span>
+</span><span class='line'><span class="na">connect_share_server_to_tenant_network</span> <span class="o">=</span> <span class="s">True</span>
+</span><span class='line'><span class="na">service_instance_user</span> <span class="o">=</span> <span class="s">manila</span>
+</span><span class='line'><span class="na">path_to_public_key</span> <span class="o">=</span> <span class="s">/etc/manila/id_rsa.pub</span>
+</span><span class='line'><span class="na">path_to_private_key</span> <span class="o">=</span> <span class="s">/etc/manila/id_rsa</span>
+</span><span class='line'><span class="na">manila_service_keypair_name</span> <span class="o">=</span> <span class="s">manila-service</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Before explaining the configuration settings, I&rsquo;ll briefly describe how the <em>generic</em> driver actually works. Behind the scenes, the generic driver creates a so called <em>service instance</em>. The service instance is a Nova instance owned by the Manila service. It&rsquo;s not even visible to the tenant users. Manila allocates a Cinder volume and asks Nova to attach that volume to the service instance. Afterwards, Manila connects to the service instance using SSH in order to create the filesytem on the attached Cinder volume and mount it and export that as a NFS/CIFS share to the tenant instances.</p>
+
+<p>The service instance can be created by the OpenStack administrator or we can configure Manila to create the service instance by itself (option <code>driver_handles_share_servers = True</code>).</p>
+
+<p>The service instance will be created from the image that we have to upload into Glance beforehand. I downloaded an existing Manila service image from <a href="http://tarballs.openstack.org/manila-image-elements/images/manila-service-image-master.qcow2">here</a>. This image is based on Ubuntu 14.04.4 LTS and includes the <code>manila</code> user account and the NFS and Samba server software packages. I uploaded this image into Glance under the name <code>manila-service-image-master</code>.</p>
+
+<p>Next I&rsquo;ve chosen the size of the machine used for the service instance with <code>service_instance_flavor_id = 103</code>.</p>
+
+<p>The service instance is connected to two networks. The first network is called a <em>service network</em> and is created by Manila before booting up the service instance. Manila uses this network for the SSH access to the service instance. The second network is a <em>share network</em>. The NFS server managed by Manila is accessible on this network. In our case, because we have configured <code>connect_share_server_to_tenant_network = True</code>, the share network will directly map to one of our tenant networks.</p>
+
+<p>Finally, we have to generate a public/private key pair and tell Manila about it using the options <code>path_to_public_key</code> and <code>path_to_private_key</code>. Manila will upload this keypair into Nova under the name <code>manila-service</code>. When creating the service instance, Nova injects the public key into the instance and so allows Manila the SSH access.</p>
+
+<p>In order to make our generic backend available to the Manila users, we&rsquo;re going to define a <code>generic</code> share type next.</p>
+
+<h2>Defining a share type</h2>
+
+<p>The <em>share type</em> has a similar purpose as the <em>volume type</em> in Cinder. It defines the backend used for the share creation. If there are multiple share backends available, an OpenStack administrator can define a separate share type for each of them. When creating a new share, the user can choose which share type to allocate the storage from.</p>
+
+<p>To create a <code>generic</code> share type that maps to our <code>generic</code> backend you can run the following commands as an OpenStack administrator:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>manila <span class="nb">type</span>-create generic True
+</span><span class='line'>manila <span class="nb">type</span>-key generic <span class="nb">set </span><span class="nv">share_backend_name</span><span class="o">=</span>generic_backend
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Creating a share and mounting it</h2>
+
+<p>Finally, we&rsquo;re done with all the configuration and can start enjoying our share service. All the following commands are run as an ordinary tenant user.</p>
+
+<p>At first, we&rsquo;d like to create a share network and map it to one of our tenant networks:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>manila share-network-create --neutron-net-id 4f179a8c-7068-4f0b-9be4-9cb11451b401 --neutron-subnet-id c7d753b0-039b-4f8c-9e0f-012651ff4ada --name management
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now we can create our first NFS share called <code>myshare</code> with the size 1 GB:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>manila create --name myshare --share-network management NFS 1
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Creating the first share on a given tenant network takes longer as Manila has to spin up a new service instance in the background.</p>
+
+<p>Eventually, the status of the share turns into <code>available</code> which means that the share is ready. The <code>manila show myshare</code> command will display the location from where we can mount the share. In our case, it is <code>10.13.243.173:/shares/share-b87367aa-3ef3-4282-a6b5-e45cab991b6c</code>. Before we can mount the share we have to allow access to it by modifying the access list:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>manila access-allow --access_level rw myshare ip 10.13.244.12
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The above command provides an instance having the IP address 10.13.244.12 with a read-write access to the share. Note that the IP addresses 10.13.243.173 and 10.13.244.12 belong to the same network. Finally, we can SSH into the instance and mount the share with:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo mount -t nfs 10.13.243.173:/shares/share-b87367aa-3ef3-4282-a6b5-e45cab991b6c /mnt
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+
+
+
+<span class="byline author vcard">Posted by <span class="fn">Ales Nosek</span></span>
+
+
+
+
+
+
+<time class='entry-date' datetime='2016-05-22T16:59:30-07:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>22</span><span class='date-suffix'>nd</span>, <span class='date-year'>2016</span></span> <span class='time'>4:59 pm</span></time>
+
+
+<span class="categories">
+
+    <a class='category' href='/blog/categories/cloud/'>cloud</a>
+
+</span>
+
+
+    </p>
+
+      <div class="sharing">
+
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://alesnosek.com/blog/2016/05/22/test-driving-openstack-manila/" data-via="" data-counturl="http://alesnosek.com/blog/2016/05/22/test-driving-openstack-manila/" >Tweet</a>
+
+
+  <div class="g-plusone" data-size="medium"></div>
+
+
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+
+</div>
+
+
+    <p class="meta">
+
+        <a class="basic-alignment left" href="/blog/2016/03/27/tripleo-installer-the-good/" title="Previous Post: TripleO Installer - the Good, the Bad and the Ugly">&laquo; TripleO Installer - the Good, the Bad and the Ugly</a>
+
+
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+
+      <li class="post">
+        <a href="/blog/2016/05/22/test-driving-openstack-manila/">Test-Driving OpenStack Manila</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2016/03/27/tripleo-installer-the-good/">TripleO Installer - the Good, the Bad and the Ugly</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2016/01/31/bootstrapping-a-galera-cluster-on-rhel7/">Bootstrapping a Galera Cluster on RHEL7</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2015/11/30/monitoring-openstack-cluster-with-icinga/">Monitoring OpenStack Cluster with Icinga</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2015/11/09/assigning-roles-to-nodes-directly-in-rdo/">Assigning Roles to Nodes Directly in RDO</a>
+      </li>
+
+  </ul>
+</section>
+
+
+
+
+
+
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2016 - Ales Nosek -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'alesnosekcom';
+
+
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://alesnosek.com/blog/2016/05/22/test-driving-openstack-manila/';
+        var disqus_url = 'http://alesnosek.com/blog/2016/05/22/test-driving-openstack-manila/';
+        var disqus_script = 'embed.js';
+
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

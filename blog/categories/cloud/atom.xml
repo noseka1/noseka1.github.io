@@ -4,7 +4,7 @@
   <title><![CDATA[Category: cloud | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/cloud/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2016-03-27T23:03:35-07:00</updated>
+  <updated>2016-05-22T21:43:53-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,121 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[Test-Driving OpenStack Manila]]></title>
+    <link href="http://alesnosek.com/blog/2016/05/22/test-driving-openstack-manila/"/>
+    <updated>2016-05-22T16:59:30-07:00</updated>
+    <id>http://alesnosek.com/blog/2016/05/22/test-driving-openstack-manila</id>
+    <content type="html"><![CDATA[<p>Do you need to provision an NFS share for your Hadoop cluster? And what about creating a CIFS share to make your files accesible to the Windows clients? Manila is a provisioning and management service for shared file systems within OpenStack. Let&rsquo;s test-drive it in this blogpost.</p>
+
+<!-- more -->
+
+
+<p>In this introductory article, we&rsquo;re going to allocate a volume in Cinder and provide that volume as an NFS share to our Nova instances. For this, I&rsquo;m using the OpenStack Mitaka installed via TripleO on RHEL7. The Manila version included in the Mitaka release is version 2.0.</p>
+
+<p>After installing Manila, the following Manila services are running on the controller nodes:</p>
+
+<ul>
+<li><em>openstack-manila-api</em> exposes REST APIs that the Manila client talks to.</li>
+<li><em>openstack-manila-scheduler</em> makes provisioning decisions when creating a new share.</li>
+<li><em>openstack-manila-share</em> comes with a host of drivers to talk to the storage systems.</li>
+</ul>
+
+
+<h2>Configuring the generic share driver</h2>
+
+<p>In order for Manila to allocate shares on Cinder volumes, we&rsquo;ll have to configure Manila to use the <em>generic</em> share driver. For that we&rsquo;ll add a new Manila backend <code>generic_backend</code> into <code>/etc/manila/manila.conf</code>:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='ini'><span class='line'><span class="k">[DEFAULT]</span>
+</span><span class='line'><span class="na">enabled_share_backends</span> <span class="o">=</span> <span class="s">generic_backend</span>
+</span><span class='line'><span class="na">default_share_type</span> <span class="o">=</span> <span class="s">generic</span>
+</span><span class='line'><span class="k">[generic_backend]</span>
+</span><span class='line'><span class="na">share_driver</span> <span class="o">=</span> <span class="s">manila.share.drivers.generic.GenericShareDriver</span>
+</span><span class='line'><span class="na">share_backend_name</span> <span class="o">=</span> <span class="s">generic_backend</span>
+</span><span class='line'><span class="na">service_instance_name_template</span> <span class="o">=</span> <span class="s">manila_service_instance_%s</span>
+</span><span class='line'><span class="na">service_image_name</span> <span class="o">=</span> <span class="s">manila-service-image-master</span>
+</span><span class='line'><span class="na">driver_handles_share_servers</span> <span class="o">=</span> <span class="s">True</span>
+</span><span class='line'><span class="na">service_instance_flavor_id</span> <span class="o">=</span> <span class="s">103</span>
+</span><span class='line'><span class="na">connect_share_server_to_tenant_network</span> <span class="o">=</span> <span class="s">True</span>
+</span><span class='line'><span class="na">service_instance_user</span> <span class="o">=</span> <span class="s">manila</span>
+</span><span class='line'><span class="na">path_to_public_key</span> <span class="o">=</span> <span class="s">/etc/manila/id_rsa.pub</span>
+</span><span class='line'><span class="na">path_to_private_key</span> <span class="o">=</span> <span class="s">/etc/manila/id_rsa</span>
+</span><span class='line'><span class="na">manila_service_keypair_name</span> <span class="o">=</span> <span class="s">manila-service</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Before explaining the configuration settings, I&rsquo;ll briefly describe how the <em>generic</em> driver actually works. Behind the scenes, the generic driver creates a so called <em>service instance</em>. The service instance is a Nova instance owned by the Manila service. It&rsquo;s not even visible to the tenant users. Manila allocates a Cinder volume and asks Nova to attach that volume to the service instance. Afterwards, Manila connects to the service instance using SSH in order to create the filesytem on the attached Cinder volume and mount it and export that as a NFS/CIFS share to the tenant instances.</p>
+
+<p>The service instance can be created by the OpenStack administrator or we can configure Manila to create the service instance by itself (option <code>driver_handles_share_servers = True</code>).</p>
+
+<p>The service instance will be created from the image that we have to upload into Glance beforehand. I downloaded an existing Manila service image from <a href="http://tarballs.openstack.org/manila-image-elements/images/manila-service-image-master.qcow2">here</a>. This image is based on Ubuntu 14.04.4 LTS and includes the <code>manila</code> user account and the NFS and Samba server software packages. I uploaded this image into Glance under the name <code>manila-service-image-master</code>.</p>
+
+<p>Next I&rsquo;ve chosen the size of the machine used for the service instance with <code>service_instance_flavor_id = 103</code>.</p>
+
+<p>The service instance is connected to two networks. The first network is called a <em>service network</em> and is created by Manila before booting up the service instance. Manila uses this network for the SSH access to the service instance. The second network is a <em>share network</em>. The NFS server managed by Manila is accessible on this network. In our case, because we have configured <code>connect_share_server_to_tenant_network = True</code>, the share network will directly map to one of our tenant networks.</p>
+
+<p>Finally, we have to generate a public/private key pair and tell Manila about it using the options <code>path_to_public_key</code> and <code>path_to_private_key</code>. Manila will upload this keypair into Nova under the name <code>manila-service</code>. When creating the service instance, Nova injects the public key into the instance and so allows Manila the SSH access.</p>
+
+<p>In order to make our generic backend available to the Manila users, we&rsquo;re going to define a <code>generic</code> share type next.</p>
+
+<h2>Defining a share type</h2>
+
+<p>The <em>share type</em> has a similar purpose as the <em>volume type</em> in Cinder. It defines the backend used for the share creation. If there are multiple share backends available, an OpenStack administrator can define a separate share type for each of them. When creating a new share, the user can choose which share type to allocate the storage from.</p>
+
+<p>To create a <code>generic</code> share type that maps to our <code>generic</code> backend you can run the following commands as an OpenStack administrator:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>manila <span class="nb">type</span>-create generic True
+</span><span class='line'>manila <span class="nb">type</span>-key generic <span class="nb">set </span><span class="nv">share_backend_name</span><span class="o">=</span>generic_backend
+</span></code></pre></td></tr></table></div></figure></p>
+
+<h2>Creating a share and mounting it</h2>
+
+<p>Finally, we&rsquo;re done with all the configuration and can start enjoying our share service. All the following commands are run as an ordinary tenant user.</p>
+
+<p>At first, we&rsquo;d like to create a share network and map it to one of our tenant networks:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>manila share-network-create <span class="p">&amp;</span>ndash<span class="p">;</span>neutron-net-id 4f179a8c-7068-4f0b-9be4-9cb11451b401 <span class="p">&amp;</span>ndash<span class="p">;</span>neutron-subnet-id c7d753b0-039b-4f8c-9e0f-012651ff4ada <span class="p">&amp;</span>ndash<span class="p">;</span>name management
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Now we can create our first NFS share called <code>myshare</code> with the size 1 GB:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>manila create <span class="p">&amp;</span>ndash<span class="p">;</span>name myshare <span class="p">&amp;</span>ndash<span class="p">;</span>share-network management NFS 1
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Creating the first share on a given tenant network takes longer as Manila has to spin up a new service instance in the background.</p>
+
+<p>Eventually, the status of the share turns into <code>available</code> which means that the share is ready. The <code>manila show myshare</code> command will display the location from where we can mount the share. In our case, it is <code>10.13.243.173:/shares/share-b87367aa-3ef3-4282-a6b5-e45cab991b6c</code>. Before we can mount the share we have to allow access to it by modifying the access list:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>manila access-allow <span class="p">&amp;</span>ndash<span class="p">;</span>access_level rw myshare ip 10.13.244.12
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>The above command provides an instance having the IP address 10.13.244.12 with a read-write access to the share. Note that the IP addresses 10.13.243.173 and 10.13.244.12 belong to the same network. Finally, we can SSH into the instance and mount the share with:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo mount -t nfs 10.13.243.173:/shares/share-b87367aa-3ef3-4282-a6b5-e45cab991b6c /mnt
+</span></code></pre></td></tr></table></div></figure></p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[TripleO Installer - the Good, the Bad and the Ugly]]></title>
@@ -102,7 +217,7 @@
 <p>Instead of passing command-line arguments, systemd allows for creating <a href="http://0pointer.de/blog/projects/instances.html">multiple instances</a> of the same service where each instance can obtain it&rsquo;s own set of environment variables. The Percona XtraDB Cluster includes the standard and the bootstrap service instance definitions in the RPM package <code>Percona-XtraDB-Cluster-server</code>. To boostrap the Percona cluster, the first node can be started with the following command:</p>
 
 <p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">[</span>root@percona1 ~<span class="o">]</span><span class="nv">$ </span>systemctl start &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#109;&amp;#x61;&amp;#105;&amp;#108;&amp;#x74;&amp;#111;&amp;#x3a;&amp;#x6d;&amp;#x79;&amp;#x73;&amp;#x71;&amp;#x6c;&amp;#64;&amp;#98;&amp;#x6f;&amp;#111;&amp;#116;&amp;#x73;&amp;#x74;&amp;#114;&amp;#97;&amp;#x70;&amp;#46;&amp;#x73;&amp;#101;&amp;#114;&amp;#118;&amp;#x69;&amp;#99;&amp;#101;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#x6d;&amp;#x79;&amp;#x73;&amp;#x71;&amp;#x6c;&amp;#64;&amp;#x62;&amp;#111;&amp;#x6f;&amp;#x74;&amp;#115;&amp;#116;&amp;#114;&amp;#97;&amp;#x70;&amp;#x2e;&amp;#115;&amp;#x65;&amp;#114;&amp;#x76;&amp;#x69;&amp;#99;&amp;#101;&lt;/a&gt;</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">[</span>root@percona1 ~<span class="o">]</span><span class="nv">$ </span>systemctl start &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#x6d;&amp;#97;&amp;#105;&amp;#108;&amp;#x74;&amp;#x6f;&amp;#x3a;&amp;#109;&amp;#121;&amp;#115;&amp;#113;&amp;#x6c;&amp;#64;&amp;#98;&amp;#x6f;&amp;#x6f;&amp;#116;&amp;#x73;&amp;#x74;&amp;#114;&amp;#x61;&amp;#112;&amp;#x2e;&amp;#115;&amp;#101;&amp;#x72;&amp;#x76;&amp;#105;&amp;#x63;&amp;#101;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#x6d;&amp;#121;&amp;#115;&amp;#x71;&amp;#108;&amp;#x40;&amp;#98;&amp;#x6f;&amp;#x6f;&amp;#x74;&amp;#115;&amp;#x74;&amp;#114;&amp;#97;&amp;#112;&amp;#x2e;&amp;#x73;&amp;#101;&amp;#114;&amp;#118;&amp;#105;&amp;#x63;&amp;#101;&lt;/a&gt;</span>
 </span></code></pre></td></tr></table></div></figure></p>
 
 <p>At the moment, this boostrap service definition is missing in the RDO OpenStack packages. Before a similar <code>mysql@.service</code> script is available in RDO you can start the MariaDB Galera cluster as follows:</p>
@@ -272,62 +387,6 @@ Let the command run in the foreground.</p></li>
 </span></code></pre></td></tr></table></div></figure></p>
 
 <p>And that&rsquo;s all for today. Hope you&rsquo;re enjoying the full control over your OpenStack cloud deployment.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[Installing OpenStack Liberty on RHEL7]]></title>
-    <link href="http://alesnosek.com/blog/2015/10/19/installing-openstack-liberty-on-rhel7/"/>
-    <updated>2015-10-19T22:30:48-07:00</updated>
-    <id>http://alesnosek.com/blog/2015/10/19/installing-openstack-liberty-on-rhel7</id>
-    <content type="html"><![CDATA[<p>The OpenStack Liberty was released last week. In this article I&rsquo;ll briefly describe how to deploy the OpenStack Liberty on RHEL7 using RDO Manager.</p>
-
-<!-- more -->
-
-
-<p>The <a href="https://www.rdoproject.org/" title="RDO project">RDO project</a> packages the OpenStack software for the Red Hat based platforms. Currently, there are Liberty packages in status testing/release candidate available from the project. Apart from a couple of configuration issues the installation went pretty well and I obtained a basic 2-node cluster.</p>
-
-<p>If you intalled OpenStack Kilo using RDO Manager before I have a good news for you. The installation procedure remains pretty much the same. You can follow the <a href="http://docs.openstack.org/developer/tripleo-docs/" title="TripleO Doc">great guide</a> provided by the TripleO project to get the installation going. First, add the following two repositories:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;a href="http://trunk.rdoproject.org/centos7/current-tripleo/delorean.repo">http://trunk.rdoproject.org/centos7/current-tripleo/delorean.repo&lt;/a>
-</span><span class='line'>&lt;a href="http://trunk.rdoproject.org/centos7/delorean-deps.repo">http://trunk.rdoproject.org/centos7/delorean-deps.repo&lt;/a></span></code></pre></td></tr></table></div></figure></p>
-
-<p>Now you can install the RDO Manager with:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>sudo yum install python-tripleoclient</span></code></pre></td></tr></table></div></figure></p>
-
-<p>In the Kilo release, the <code>python-tripleoclient</code> package was called <code>python-rdomanager-oscplugin</code>. You can continue with the guide. To build the overcloud images I issue the commands:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nb">export </span><span class="nv">NODE_DIST</span><span class="o">=</span>rhel7
-</span><span class='line'><span class="nb">export </span><span class="nv">DIB_LOCAL_IMAGE</span><span class="o">=</span>rhel-guest-image-7.1-20150224.0.x86_64.qcow2
-</span><span class='line'><span class="nb">export </span><span class="nv">REG_METHOD</span><span class="o">=</span>disable
-</span><span class='line'><span class="nb">export </span><span class="nv">DIB_DEBUG_TRACE</span><span class="o">=</span>1
-</span><span class='line'><span class="nb">export </span><span class="nv">DIB_YUM_REPO_CONF</span><span class="o">=</span>/etc/yum.repos.d/rhel7_mirror.repo
-</span><span class='line'><span class="nb">export </span><span class="nv">USE_DELOREAN_TRUNK</span><span class="o">=</span>1
-</span><span class='line'><span class="nb">export </span><span class="nv">DELOREAN_TRUNK_REPO</span><span class="o">=</span>&lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;http://trunk.rdoproject.org/centos7/current-tripleo&quot;</span>&gt;http://trunk.rdoproject.org/centos7/current-tripleo&lt;/a&gt;
-</span><span class='line'><span class="nb">export </span><span class="nv">DELOREAN_REPO_FILE</span><span class="o">=</span>delorean.repo
-</span><span class='line'>openstack overcloud image build <span class="p">&amp;</span>ndash<span class="p">;</span>all
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>As you can see, I&rsquo;m not really registering the OpenStack nodes with the Red Hat portal. Instead, I&rsquo;m pulling the RHEL7 packages from the local mirror.</p>
-
-<p>After the installation of the overcloud has completed I realized that some of the OpenStack processes on the overcloud nodes were segfaulting. After switching SELinux from enforcing to permissive mode everything started working as expected.</p>
-
-<h2>A final note</h2>
-
-<p>The deployment of OpenStack is rather an involved process even when leveraging the tools like RDO Manager. To truly automate the installation in my specific environment I use a set of Ansible scripts to drive the RDO manager installation. Now that Red Hat acquired Ansible I&rsquo;m wondering if we&rsquo;re going to get an even better OpenStack installation experience on Red Hat based distributions.</p>
 ]]></content>
   </entry>
 
