@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2016-06-26T19:58:29-07:00</updated>
+  <updated>2016-06-26T20:27:25-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -23,22 +23,22 @@
 <!-- more -->
 
 
-<p>In this tutorial, there are three OpenStack virtual machines involved. The first machine called <em>Kubernetes installer</em> machine is created manually and is used for compiling Kubernetes from source and running the Kubernetes installer. Other two OpenStack machines, <em>Kubernetes master</em> and <em>Kubernetes node</em>, are created during the installation process.</p>
+<p>In this tutorial, there are three OpenStack virtual machines involved. The first machine, called the <em>Kubernetes installer</em> machine, is created manually and is used for compiling Kubernetes from source and running the Kubernetes installer. The other two OpenStack machines, <em>Kubernetes master</em> and <em>Kubernetes node</em>, are created during the installation process.</p>
 
-<p>The Kubernetes installer machine and both the Kubernetes machines run on the CentOS-7-x86_64-GenericCloud-1605 image. You can download this image from the <a href="http://cloud.centos.org/centos/7/images/">CentOS image repository</a>. After I uploaded the CentOS 7 image into OpenStack, it has been assigned ID <code>17e4e783-321c-48c1-9308-6f99d67c5fa6</code> for me.</p>
+<p>The Kubernetes installer machine and both of the Kubernetes machines run on the CentOS-7-x86_64-GenericCloud-1605 image. You can download this image from the <a href="http://cloud.centos.org/centos/7/images/">CentOS image repository</a>. After I uploaded the CentOS 7 image into OpenStack, it has been assigned ID <code>17e4e783-321c-48c1-9308-6f99d67c5fa6</code> for me.</p>
 
 <h2>Building Kubernetes from source</h2>
 
 <p>First off, let&rsquo;s spin up a Kubernetes installer machine in OpenStack. I recommend using the <code>m1.large</code> flavor that comes with 8 GB of RAM. The compilation of Kubernetes is rather memory intensive.</p>
 
-<p>To ensure consistent and reproducible builds, a Docker container is created at the beginning of the build process and the build proceeds within the container. So, let&rsquo;s setup Docker a little quick on our build machine:</p>
+<p>To ensure consistent and reproducible builds, a Docker container is created at the beginning of the build process and the build proceeds within the container. So, let&rsquo;s quickly setup Docker on our build machine:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo yum install docker
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>Configure the Docker service to start on boot and start it:</p>
+<p>Configure the Docker service to start on boot and then start it:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -84,7 +84,7 @@
 
 <h2>Setting up the OpenStack CLI tools</h2>
 
-<p>The Kubernetes installer uses the OpenStack CLI tools to talk to the OpenStack in order to create a Kubernetes cluster. Before you can install the OpenStack CLI tools on CentOS 7, you have to enable the OpenStack Mitaka RPM repository:</p>
+<p>The Kubernetes installer uses the OpenStack CLI tools to talk to OpenStack in order to create a Kubernetes cluster. Before you can install the OpenStack CLI tools on CentOS 7, you have to enable the OpenStack Mitaka RPM repository:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo yum install centos-release-openstack-mitaka
@@ -105,7 +105,7 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>You should be able to talk to the OpenStack now. For example, check if you can list the available OpenStack networks with:</p>
+<p>You should be able to talk to OpenStack now. For example, check if you can list the available OpenStack networks with:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='sh'><span class='line'>openstack network list
