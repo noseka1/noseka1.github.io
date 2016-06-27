@@ -10,21 +10,21 @@ Want to install Kubernetes on top of OpenStack? There are [many ways](http://kub
 
 <!-- more -->
 
-In this tutorial, there are three OpenStack virtual machines involved. The first machine called *Kubernetes installer* machine is created manually and is used for compiling Kubernetes from source and running the Kubernetes installer. Other two OpenStack machines, *Kubernetes master* and *Kubernetes node*, are created during the installation process.
+In this tutorial, there are three OpenStack virtual machines involved. The first machine, called the *Kubernetes installer* machine, is created manually and is used for compiling Kubernetes from source and running the Kubernetes installer. The other two OpenStack machines, *Kubernetes master* and *Kubernetes node*, are created during the installation process.
 
-The Kubernetes installer machine and both the Kubernetes machines run on the CentOS-7-x86_64-GenericCloud-1605 image. You can download this image from the [CentOS image repository](http://cloud.centos.org/centos/7/images/). After I uploaded the CentOS 7 image into OpenStack, it has been assigned ID `17e4e783-321c-48c1-9308-6f99d67c5fa6` for me.
+The Kubernetes installer machine and both of the Kubernetes machines run on the CentOS-7-x86_64-GenericCloud-1605 image. You can download this image from the [CentOS image repository](http://cloud.centos.org/centos/7/images/). After I uploaded the CentOS 7 image into OpenStack, it has been assigned ID `17e4e783-321c-48c1-9308-6f99d67c5fa6` for me.
 
 ## Building Kubernetes from source
 
 First off, let's spin up a Kubernetes installer machine in OpenStack. I recommend using the `m1.large` flavor that comes with 8 GB of RAM. The compilation of Kubernetes is rather memory intensive.
 
-To ensure consistent and reproducible builds, a Docker container is created at the beginning of the build process and the build proceeds within the container. So, let's setup Docker a little quick on our build machine:
+To ensure consistent and reproducible builds, a Docker container is created at the beginning of the build process and the build proceeds within the container. So, let's quickly setup Docker on our build machine:
 
 {% codeblock lang:sh %}
 sudo yum install docker
 {% endcodeblock %}
 
-Configure the Docker service to start on boot and start it:
+Configure the Docker service to start on boot and then start it:
 
 {% codeblock lang:sh %}
 sudo systemctl enable docker
@@ -60,7 +60,7 @@ After about 15 minutes when the build was successful, you'll find the distributi
 
 ## Setting up the OpenStack CLI tools
 
-The Kubernetes installer uses the OpenStack CLI tools to talk to the OpenStack in order to create a Kubernetes cluster. Before you can install the OpenStack CLI tools on CentOS 7, you have to enable the OpenStack Mitaka RPM repository:
+The Kubernetes installer uses the OpenStack CLI tools to talk to OpenStack in order to create a Kubernetes cluster. Before you can install the OpenStack CLI tools on CentOS 7, you have to enable the OpenStack Mitaka RPM repository:
 
 {% codeblock lang:sh %}
 sudo yum install centos-release-openstack-mitaka
@@ -78,7 +78,7 @@ Next, you have to obtain your OpenStack `openrc.sh` file and source it into your
 . openrc.sh
 {% endcodeblock %}
 
-You should be able to talk to the OpenStack now. For example, check if you can list the available OpenStack networks with:
+You should be able to talk to OpenStack now. For example, check if you can list the available OpenStack networks with:
 {% codeblock lang:sh %}
 openstack network list
 {% endcodeblock %}
