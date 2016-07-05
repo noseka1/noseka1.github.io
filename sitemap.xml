@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>http://alesnosek.com/blog/2016/07/04/what-i-learned-from-the-open-organization/</loc>
+    <lastmod>2016-07-04T21:04:22-07:00</lastmod>
+  </url>
+  <url>
+    <loc>http://alesnosek.com/blog/2016/07/04/red-hat-summit-2016/</loc>
+    <lastmod>2016-07-04T20:26:12-07:00</lastmod>
+  </url>
+  <url>
     <loc>http://alesnosek.com/blog/2016/06/26/deploying-kubernetes-on-openstack-using-heat/</loc>
     <lastmod>2016-06-26T08:28:11-07:00</lastmod>
   </url>
@@ -116,5 +124,11 @@
   </url>
   <url>
     <loc>http://alesnosek.com/blog/categories/java/</loc>
+  </url>
+  <url>
+    <loc>http://alesnosek.com/blog/categories/events/</loc>
+  </url>
+  <url>
+    <loc>http://alesnosek.com/blog/categories/reading/</loc>
   </url>
 </urlset>

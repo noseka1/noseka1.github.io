@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2016-06-26T20:27:25-07:00</updated>
+  <updated>2016-07-04T22:05:45-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,78 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[What I learned from The Open Organization]]></title>
+    <link href="http://alesnosek.com/blog/2016/07/04/what-i-learned-from-the-open-organization/"/>
+    <updated>2016-07-04T21:04:22-07:00</updated>
+    <id>http://alesnosek.com/blog/2016/07/04/what-i-learned-from-the-open-organization</id>
+    <content type="html"><![CDATA[<p>Red Hat is one of the most successful software companies that makes billions of dollars selling open source software. The book <em>The Open Organization</em> written by Jim Whitehurst, CEO of Red Hat, provides a great insight into the company culture and how things get done at Red Hat. This blogpost lists some of the ideas I learned from this book.</p>
+
+<!-- more -->
+
+
+<h2>Motivating and inspiring</h2>
+
+<ul>
+<li><p>A company should have its purpose. The purpose is not a goal a company wants to achieve but the reason why it exists. For instance, the Red Hat&rsquo;s mission statement says: <em>To be the catalyst in communities of customers, contributors, and partners creating better technology the open source way</em>. This statement enables Red Hat to attract the most talented people that share the believe that open source is fundamentally good for the world.</p></li>
+<li><p>It’s important to hire passionate people. When interviewing, ask the candidates what they are passionate about and think how it resonates with the purpose of your company.</p></li>
+<li><p>Admitting mistakes builds your credibility and authority to lead.</p></li>
+<li><p>As a manager, if you want to have engaged employees, you need to share context and knowledge. Be prepared to explain your decisions.</p></li>
+<li><p>As an employee, if your manager is not providing the appropriate context, ask for it. Most bosses are happy to share. They just haven’t yet figured out that it belongs to what they should be doing.</p></li>
+</ul>
+
+
+<h2>Getting things done</h2>
+
+<ul>
+<li><p>The Open organization embraces meritocracy where the leaders are chosen based on their contributions to the project, not based on their titles or longevity within the company.</p></li>
+<li><p>If your intention is just to stick your nose into every little thing so you can be front and center, people see it. At Red Hat, one of the greatest insults to your ego comes when you put something on one of the internal discussion threads and receive nothing back - neither positive nor negative. That means the team is likely ignoring you, which means you’ve failed in some way.</p></li>
+<li><p>In the discussions, people argue and criticize not because they are trying to be difficult, but because they are so passionate about the subject. A debate involving multiple views from different people leads to better decisions made than a meeting where the goal for everyone is to be nice to each other, and every idea is treated as a good one.</p></li>
+</ul>
+
+
+<h2>Setting direction</h2>
+
+<ul>
+<li><p>The decisions that came from top down are typically harder to turn into real actions. The more open you make your decision-making process, the easier is to execute the decisions you made.</p></li>
+<li><p>Encourage your team to bring up ideas and proposals. Discuss the ideas, regardless of whether you move forward with them.</p></li>
+</ul>
+
+]]></content>
+  </entry>
+
+  <entry>
+    <title type="html"><![CDATA[Red Hat Summit 2016]]></title>
+    <link href="http://alesnosek.com/blog/2016/07/04/red-hat-summit-2016/"/>
+    <updated>2016-07-04T20:26:12-07:00</updated>
+    <id>http://alesnosek.com/blog/2016/07/04/red-hat-summit-2016</id>
+    <content type="html"><![CDATA[<p>I had the great opportunity to visit the Red Hat Summit 2016. Enjoy the photos attached.</p>
+
+<!-- more -->
+
+
+<p>The Red Hat summit was hosted at the Moscone Center in San Francisco in June 27-30, 2016. I greatly enjoyed the technical presentations by Red Hatters as well as the opportunity to discuss the OpenShift and Red Hat Atomic products directly with the lead engineers. At my company, we&rsquo;re looking at OpenShift+Atomic as the possible next platform to base our product upon. The frank opinions provided by the Red Hat engineers were very useful for our research. Next, take a look at the pics below.</p>
+
+<p>General sessions and the Red Hat party at the end of the summit took place at Moscone Center North:</p>
+
+<p><img class="center" src="http://alesnosek.com/images/posts/redhatsummit2016/20160629_135631.jpg">
+<img class="center" src="http://alesnosek.com/images/posts/redhatsummit2016/20160628_134625.jpg"></p>
+
+<p>Breakout sessions were hosted at the Moscone Center West:</p>
+
+<p><img class="center" src="http://alesnosek.com/images/posts/redhatsummit2016/20160630_152426.jpg">
+<img class="center" src="http://alesnosek.com/images/posts/redhatsummit2016/20160629_151110.jpg"></p>
+
+<p>The big Red Hat logo at the entrance hall. The red and black colors really catch your eyes:</p>
+
+<p><img class="center" src="http://alesnosek.com/images/posts/redhatsummit2016/20160628_195533.jpg"></p>
+
+<p>Jim Whitehurst, president and CEO of Red Hat, and myself. Check out my <a href="http://alesnosek.com/blog/2016/07/04/what-i-learned-from-the-open-organization">next post</a> to find out, what I learned from the book I&rsquo;m holding in the picture.</p>
+
+<p><img class="center" src="http://alesnosek.com/images/posts/redhatsummit2016/20160629_132338.jpg"></p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[Deploying Kubernetes on OpenStack using Heat]]></title>
@@ -2043,567 +2115,6 @@ The page hierarchy is created by the repetitive use of the Doxygen tag <code>@su
 <p>In my previous <a href="http://alesnosek.com/blog/2015/05/25/openstack-nova-notifications-subscriber" title="OpenStack Nova Notifications Subscriber">article</a> I described how to monitor Nova events on RabbitMQ message bus. Two events of interest are <code>compute.instance.create.end</code> and <code>compute.instance.delete.start</code> that are sent by Nova on instance creation and instance deletion. Both events carry enough information for us to create a simple script to extract the hostname and IP addresses of the instance from the events and update the internal DNS using the <code>nsupdate</code> command.</p>
 
 <p>You can find the DNS updates implementantion including the systemd startup script at GitHub: <a href="https://github.com/noseka1/openstack-dns-updater" title="openstack-dns-updater">openstack-dns-updater</a>.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[OpenStack Nova Notifications Subscriber]]></title>
-    <link href="http://alesnosek.com/blog/2015/05/25/openstack-nova-notifications-subscriber/"/>
-    <updated>2015-05-25T08:42:41-07:00</updated>
-    <id>http://alesnosek.com/blog/2015/05/25/openstack-nova-notifications-subscriber</id>
-    <content type="html"><![CDATA[<p>OpenStack components generate notifications that can provide useful insight into what is going on in OpenStack. Let&rsquo;s create a simple subcriber that dumps incoming notifications from OpenStack Nova to standard output.</p>
-
-<!-- more -->
-
-
-<h2>Configure Nova to generate notifications</h2>
-
-<p>First let&rsquo;s make sure that Nova is configured to send out notifications. You should find the following lines in your <code>/etc/nova/nova.conf</code> file:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='ini'><span class='line'><span class="k">[DEFAULT]</span>
-</span><span class='line'><span class="na">notification_topics</span><span class="o">=</span><span class="s">notifications</span>
-</span><span class='line'><span class="na">notification_driver</span><span class="o">=</span><span class="s">messagingv2</span>
-</span><span class='line'><span class="na">notify_on_state_change</span><span class="o">=</span><span class="s">vm_state</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Property <code>notification_topics</code> determines the base name of the topic (routing key) where the notification messages are sent to. The full name of the topic where the info-level notifications are published is <code>notifications.info</code>.
-The possible choices of notification driver are briefly described in <a href="http://docs.openstack.org/developer/oslo.messaging/FAQ.html" title="Frequently Asked Questions">oslo.messaging FAQ</a>. The <code>messagingv2</code> option instructs Nova to send notifications using the 2.0 message format that wraps the messages into an oslo.messaging envelope. The <code>notify_on_state_change</code> property determines the kind of notifications Nova should send out. You can set its value to <code>vm_and_task_state</code> if you want to receive additional notifications. After you modified your <code>/etc/nova/nova.conf</code> restart the Nova components for changes to take effect:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo systemctl restart openstack-nova-api
-</span><span class='line'>sudo systemctl restart openstack-nova-compute
-</span><span class='line'>sudo systemctl restart openstack-nova-conductor
-</span><span class='line'>sudo systemctl restart openstack-nova-scheduler
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Implement Nova notifications subscriber</h2>
-
-<p>Internally, Nova uses <a href="https://kombu.readthedocs.org/en/latest/" title="Kombu Documentation">Kombu</a> messaging library to connect to the RabbitMQ message broker. Let&rsquo;s use this Python library in our notifications subscriber to avoid the need to install additional libraries.</p>
-
-<p>Nova sends out notification messages to a <em>topic</em> exchange called <code>nova</code> with the routing key <code>notifications.info</code>. In order to receive notification messages our client application needs to create a queue and bind it to the <code>nova</code> exchange. The binding key used to bind the queue to the <code>nova</code> exchange must match the routing key used by Nova to send out notification messages. Whenever there&rsquo;s a new message in the queue the Kombu library will invoke the <code>on_message</code> callback on our client to handle the message. The complete code of our notifications subscriber looks as follows:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="c">#!/usr/bin/env python</span>
-</span><span class='line'><span class="kn">import</span> <span class="nn">sys</span>
-</span><span class='line'><span class="kn">import</span> <span class="nn">logging</span> <span class="kn">as</span> <span class="nn">log</span>
-</span><span class='line'><span class="kn">from</span> <span class="nn">kombu</span> <span class="kn">import</span> <span class="n">BrokerConnection</span>
-</span><span class='line'><span class="kn">from</span> <span class="nn">kombu</span> <span class="kn">import</span> <span class="n">Exchange</span>
-</span><span class='line'><span class="kn">from</span> <span class="nn">kombu</span> <span class="kn">import</span> <span class="n">Queue</span>
-</span><span class='line'><span class="kn">from</span> <span class="nn">kombu.mixins</span> <span class="kn">import</span> <span class="n">ConsumerMixin</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">EXCHANGE_NAME</span><span class="o">=</span><span class="s">&quot;nova&quot;</span>
-</span><span class='line'><span class="n">ROUTING_KEY</span><span class="o">=</span><span class="s">&quot;notifications.info&quot;</span>
-</span><span class='line'><span class="n">QUEUE_NAME</span><span class="o">=</span><span class="s">&quot;nova_dump_queue&quot;</span>
-</span><span class='line'><span class="n">BROKER_URI</span><span class="o">=</span><span class="s">&quot;amqp://guest:guest@localhost:5672//&quot;</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">log</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">stream</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">log</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">class</span> <span class="nc">NotificationsDump</span><span class="p">(</span><span class="n">ConsumerMixin</span><span class="p">):</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">connection</span><span class="p">):</span>
-</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">connection</span> <span class="o">=</span> <span class="n">connection</span>
-</span><span class='line'>        <span class="k">return</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">def</span> <span class="nf">get_consumers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">consumer</span><span class="p">,</span> <span class="n">channel</span><span class="p">):</span>
-</span><span class='line'>        <span class="n">exchange</span> <span class="o">=</span> <span class="n">Exchange</span><span class="p">(</span><span class="n">EXCHANGE_NAME</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s">&quot;topic&quot;</span><span class="p">,</span> <span class="n">durable</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-</span><span class='line'>        <span class="n">queue</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">(</span><span class="n">QUEUE_NAME</span><span class="p">,</span> <span class="n">exchange</span><span class="p">,</span> <span class="n">routing_key</span> <span class="o">=</span> <span class="n">ROUTING_KEY</span><span class="p">,</span> <span class="n">durable</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">auto_delete</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">no_ack</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-</span><span class='line'>        <span class="k">return</span> <span class="p">[</span> <span class="n">consumer</span><span class="p">(</span><span class="n">queue</span><span class="p">,</span> <span class="n">callbacks</span> <span class="o">=</span> <span class="p">[</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_message</span> <span class="p">])</span> <span class="p">]</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">def</span> <span class="nf">on_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">body</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
-</span><span class='line'>        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Body: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">body</span><span class="p">)</span>
-</span><span class='line'>        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;---------------&#39;</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
-</span><span class='line'>    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Connecting to broker {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">BROKER_URI</span><span class="p">))</span>
-</span><span class='line'>    <span class="k">with</span> <span class="n">BrokerConnection</span><span class="p">(</span><span class="n">BROKER_URI</span><span class="p">)</span> <span class="k">as</span> <span class="n">connection</span><span class="p">:</span>
-</span><span class='line'>        <span class="n">NotificationsDump</span><span class="p">(</span><span class="n">connection</span><span class="p">)</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>After you run the notifications subscriber and if everything went fine you should see the output similar to:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>INFO:root:Connecting to broker amqp://guest:guest@localhost:5672//
-</span><span class='line'>DEBUG:amqp:Start from server, version: 0.9, properties: {u'information': u'Licensed under the MPL.  See http://www.rabbitmq.com/', u'product': u'RabbitMQ', u'copyright': u'Copyright (C) 2007-2014 GoPivotal, Inc.', u'capabilities': {u'exchange_exchange_bindings': True, u'connection.blocked': True, u'authentication_failure_close': True, u'basic.nack': True, u'per_consumer_qos': True, u'consumer_priorities': True, u'consumer_cancel_notify': True, u'publisher_confirms': True}, u'cluster_name': u'rabbit@rdo-controller', u'platform': u'Erlang/OTP', u'version': u'3.3.5'}, mechanisms: [u'AMQPLAIN', u'PLAIN'], locales: [u'en_US']
-</span><span class='line'>DEBUG:amqp:Open OK!
-</span><span class='line'>INFO:kombu.mixins:Connected to amqp://guest@127.0.0.1:5672//
-</span><span class='line'>DEBUG:amqp:using channel_id: 1
-</span><span class='line'>DEBUG:amqp:Channel open</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Whenever you create/delete an instance in OpenStack a host of notification messages should be rolling on your screen.</p>
-
-<h2>Troubleshooting</h2>
-
-<p>RabbitMQ comes with a <code>rabbitmqctl</code> command which can be used to inspect the state of the exchanges, queues and bindings in the running RabbitMQ instance. First let&rsquo;s check that the <code>nova</code> topic exchange exists:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo rabbitmqctl list_exchanges <span class="p">|</span> grep nova
-</span><span class='line'>nova    topic
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Next let&rsquo;s make sure that our consumer queue was successfully created:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo rabbitmqctl list_queues <span class="p">|</span> grep nova_dump_queue
-</span><span class='line'>nova_dump_queue 0
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>As a last thing we want to double-check that our <code>nova_dump_queue</code> was bound with the <code>nova</code> exchange using the binding key <code>notifications.info</code>:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo rabbitmqctl list_bindings <span class="p">|</span> grep nova_dump_queue
-</span><span class='line'>        exchange        nova_dump_queue queue   nova_dump_queue <span class="o">[]</span>
-</span><span class='line'>nova    exchange        nova_dump_queue queue   notifications.info      <span class="o">[]</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>References</h2>
-
-<p>You can find more detailed information on topic exchanges in the great RabbitMQ tutorial <a href="https://www.rabbitmq.com/tutorials/tutorial-five-python.html" title="Topics">here</a>. A version of the Nova notifications subscriber implemented with Python <a href="http://pika.readthedocs.org/en/latest/" title="Introduction to Pika">Pika</a> library is described in <a href="https://prosuncsedu.wordpress.com/2014/01/08/notification-of-actions-in-openstack-nova/" title="Action Notifications in OpenStack nova">this</a> blogpost.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[Five Basic Tips for Logging in Java]]></title>
-    <link href="http://alesnosek.com/blog/2015/05/18/five-basic-tips-for-logging-in-java/"/>
-    <updated>2015-05-18T01:11:47-07:00</updated>
-    <id>http://alesnosek.com/blog/2015/05/18/five-basic-tips-for-logging-in-java</id>
-    <content type="html"><![CDATA[<p>Where do you look when your server application doesn&rsquo;t work as expected? Application logs can provide invaluable information when the systems in production misbehave. That&rsquo;s why a great software practitioner desings the application logs carefully. Let&rsquo;s review a couple of basic tips for great logging in Java.</p>
-
-<!-- more -->
-
-
-<h2>1) Use SLF4J logging facade</h2>
-
-<p>There are different Java logging frameworks out there: java.util.logging, Log4j, Log4j2 and Logback to name the most popular ones. <a href="http://www.slf4j.org/" title="Simple Logging Facade for Java (SLF4J)">SLF4J</a> is a thin facade that can talk to all of these logging frameworks. You can write your code using the SLF4J API and plugin in the desired logging framework at deployment time. Instead of tying yourself to Log4j framework like this code example does:</p>
-
-<figure class='code'><figcaption><span>Log4jApp.java </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">import</span> <span class="nn">org.apache.log4j.Logger</span><span class="o">;</span>
-</span><span class='line'>
-</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">Log4jApp</span> <span class="o">{</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">Logger</span> <span class="n">log</span> <span class="o">=</span> <span class="n">Logger</span><span class="o">.</span><span class="na">getLogger</span><span class="o">(</span><span class="n">Log4jApp</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>      <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="s">&quot;Application using Log4j directly&quot;</span><span class="o">);</span>
-</span><span class='line'>  <span class="o">}</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Write your application using the SLF4J API:</p>
-
-<figure class='code'><figcaption><span>Slf4jApp.java </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">import</span> <span class="nn">org.slf4j.Logger</span><span class="o">;</span>
-</span><span class='line'><span class="kn">import</span> <span class="nn">org.slf4j.LoggerFactory</span><span class="o">;</span>
-</span><span class='line'>
-</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">Slf4jApp</span> <span class="o">{</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">Logger</span> <span class="n">log</span> <span class="o">=</span> <span class="n">LoggerFactory</span><span class="o">.</span><span class="na">getLogger</span><span class="o">(</span><span class="n">LogApp</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>      <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="s">&quot;Application using SLF4J facade&quot;</span><span class="o">);</span>
-</span><span class='line'>  <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>In the second example you can see no <code>org.apache.log4j</code> package dependencies. At deployment time you can indeed plug-in Log4j framework as a logging backend but you can also opt for some of the other logging alternatives. You can refer to my <a href="http://alesnosek.com/blog/2015/05/11/java-logging-quick-reference/" title="Java Logging Quick Reference">previous article</a> on how to configure SLF4J with different logging frameworks.</p>
-
-<p>If you&rsquo;re writing a library and need to do logging you should definitely consider using SLF4J. Having your library depend on a particular logging framework will not make your users happy if they prefer to deploy a different logging framework. Even when writing a stand-alone application you might come to the point when you need to break it up into libraries when it gets bigger. Save your time and use SLF4J up front.</p>
-
-<h2>2) Keep the logging performance in mind</h2>
-
-<p>You can improve the performance of your logging code by embracing the following programming idioms.</p>
-
-<p>Instead of concatenating strings to form the logging message let the logging framework do it for you. In the following example assume that the log level was set to <code>info</code>, therefore debug messages won&rsquo;t be logged at all. The code at line 5 is concatenating five string objects in order to create one temporary string object which is not used anyway. You should instead follow the example at line 8. The formatting of the log message is done by the logging framework which is optimized to do the formatting only if the resulting message will actually be logged. Besides that, the code at line 8 is more readable than the variant at line 5.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">String</span> <span class="n">foo</span> <span class="o">=</span> <span class="s">&quot;foo&quot;</span><span class="o">;</span>
-</span><span class='line'><span class="n">String</span> <span class="n">bar</span> <span class="o">=</span> <span class="s">&quot;bar&quot;</span><span class="o">;</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1">// don&#39;t do this!</span>
-</span><span class='line'><span class="n">log</span><span class="o">.</span><span class="na">debug</span><span class="o">(</span><span class="s">&quot;Value of foo is &quot;</span> <span class="o">+</span> <span class="n">foo</span> <span class="o">+</span> <span class="s">&quot;. Value of bar is &quot;</span> <span class="o">+</span> <span class="n">bar</span> <span class="o">+</span> <span class="s">&quot;.&quot;</span><span class="o">);</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1">// do this instead</span>
-</span><span class='line'><span class="n">log</span><span class="o">.</span><span class="na">debug</span><span class="o">(</span><span class="s">&quot;Value of foo is {}. Value of bar is {}.&quot;</span><span class="o">,</span> <span class="n">foo</span><span class="o">,</span> <span class="n">bar</span><span class="o">);</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>If it is expensive to obtain the data to be logged make sure that the log level is high enough before you go to retrieve the data. The example below fetches the debug data from the database only if the current log level is <code>debug</code>:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="k">if</span> <span class="o">(</span><span class="n">log</span><span class="o">.</span><span class="na">isDebugEnabled</span><span class="o">())</span> <span class="o">{</span>
-</span><span class='line'>  <span class="n">String</span> <span class="n">data</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="c1">// ...</span>
-</span><span class='line'>  <span class="c1">// fetch the data from the database</span>
-</span><span class='line'>  <span class="c1">// ...</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="n">log</span><span class="o">.</span><span class="na">debug</span><span class="o">(</span><span class="s">&quot;Data from the database: &quot;</span> <span class="o">+</span> <span class="n">data</span><span class="o">);</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>3) Log Java exceptions</h2>
-
-<p>Even if you&rsquo;d like to ignore Java exceptions at some places, do at least log it before you ignore it. Logging frameworks can log the stack trace of the Java exception nicely. The code in the following example catches and logs a <code>NullPointerException</code>:</p>
-
-<figure class='code'><figcaption><span>LogException.java </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">import</span> <span class="nn">org.slf4j.Logger</span><span class="o">;</span>
-</span><span class='line'><span class="kn">import</span> <span class="nn">org.slf4j.LoggerFactory</span><span class="o">;</span>
-</span><span class='line'>
-</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">LogException</span> <span class="o">{</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">Logger</span> <span class="n">log</span> <span class="o">=</span> <span class="n">LoggerFactory</span><span class="o">.</span><span class="na">getLogger</span><span class="o">(</span><span class="n">LogException</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="kd">private</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">exceptionalMethod</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>      <span class="k">throw</span> <span class="k">new</span> <span class="nf">NullPointerException</span><span class="o">(</span><span class="s">&quot;My exception to be logged&quot;</span><span class="o">);</span>
-</span><span class='line'>  <span class="o">}</span>
-</span><span class='line'>  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>      <span class="k">try</span> <span class="o">{</span>
-</span><span class='line'>          <span class="n">exceptionalMethod</span><span class="o">();</span>
-</span><span class='line'>      <span class="o">}</span>
-</span><span class='line'>      <span class="k">catch</span> <span class="o">(</span><span class="n">Exception</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>          <span class="n">log</span><span class="o">.</span><span class="na">error</span><span class="o">(</span><span class="s">&quot;Something went wrong&quot;</span><span class="o">,</span> <span class="n">e</span><span class="o">);</span>
-</span><span class='line'>      <span class="o">}</span>
-</span><span class='line'>  <span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>This produces the following output in your logs:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>22:16:58.677 [main] ERROR LogException - Something went wrong
-</span><span class='line'>java.lang.NullPointerException: My exception to be logged
-</span><span class='line'>  at LogException.exceptionalMethod(LogException.java:9) ~[bin/:na]
-</span><span class='line'>  at LogException.main(LogException.java:13) ~[bin/:na]</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>4) Mark and filter your log messages</h2>
-
-<p>Java logging frameworks allow you to filter log messages based on the logger name and the message log level. Logback and Log4j2 frameworks come with an additional filtering facility: Markers. You can tag your log messages with user-defined markers in order to filter them later on. In our example, we want to store the timing messages in a separate log file for later processing. In order to accomplish this we&rsquo;ll mark timing messages with the <code>time</code> marker. You can see the definition of the <code>time</code> marker at line 19 and logging of the marked message at line 20:</p>
-
-<figure class='code'><figcaption><span>MarkerApp.java </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">mport</span> <span class="n">org</span><span class="o">.</span><span class="na">slf4j</span><span class="o">.</span><span class="na">Logger</span><span class="o">;</span>
-</span><span class='line'><span class="kn">import</span> <span class="nn">org.slf4j.LoggerFactory</span><span class="o">;</span>
-</span><span class='line'><span class="kn">import</span> <span class="nn">org.slf4j.Marker</span><span class="o">;</span>
-</span><span class='line'><span class="kn">import</span> <span class="nn">org.slf4j.MarkerFactory</span><span class="o">;</span>
-</span><span class='line'>
-</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">MarkerApp</span> <span class="o">{</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">Logger</span> <span class="n">log</span> <span class="o">=</span> <span class="n">LoggerFactory</span><span class="o">.</span><span class="na">getLogger</span><span class="o">(</span><span class="n">MarkerApp</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="kd">static</span> <span class="kt">void</span> <span class="nf">processRequest</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>      <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="s">&quot;Log info message&quot;</span><span class="o">);</span>
-</span><span class='line'>  <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>      <span class="kt">long</span> <span class="n">startTime</span> <span class="o">=</span> <span class="n">System</span><span class="o">.</span><span class="na">nanoTime</span><span class="o">();</span>
-</span><span class='line'>      <span class="n">processRequest</span><span class="o">();</span>
-</span><span class='line'>      <span class="kt">long</span> <span class="n">endTime</span> <span class="o">=</span> <span class="n">System</span><span class="o">.</span><span class="na">nanoTime</span><span class="o">();</span>
-</span><span class='line'>
-</span><span class='line'>      <span class="n">Marker</span> <span class="n">timeMarker</span> <span class="o">=</span> <span class="n">MarkerFactory</span><span class="o">.</span><span class="na">getMarker</span><span class="o">(</span><span class="s">&quot;time&quot;</span><span class="o">);</span>
-</span><span class='line'>      <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="n">timeMarker</span><span class="o">,</span> <span class="s">&quot;Request processing took {} ms&quot;</span><span class="o">,</span> <span class="o">(</span><span class="n">endTime</span> <span class="o">-</span> <span class="n">startTime</span><span class="o">)/</span><span class="mi">1</span><span class="n">e6</span><span class="o">);</span>
-</span><span class='line'>  <span class="o">}</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>In the logging configuration file we&rsquo;ll create two log appenders. The console appender sends all logging messages to the console output. In addition, the file appender logs only the messages marked with the <code>time</code> marker into the <code>/tmp/logger.out</code> log file.</p>
-
-<figure class='code'><figcaption><span>log4j2.marker.xml </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;Configuration&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;Appenders&gt;</span>
-</span><span class='line'>        <span class="nt">&lt;Console</span> <span class="na">name=</span><span class="s">&quot;console&quot;</span> <span class="na">target=</span><span class="s">&quot;SYSTEM_OUT&quot;</span><span class="nt">&gt;</span>
-</span><span class='line'>            <span class="nt">&lt;PatternLayout</span> <span class="na">pattern=</span><span class="s">&quot;%d{HH:mm:ss} [%t] %-5p %c{1}:%L - %m%n&quot;</span> <span class="nt">/&gt;</span>
-</span><span class='line'>        <span class="nt">&lt;/Console&gt;</span>
-</span><span class='line'>        <span class="nt">&lt;File</span> <span class="na">name=</span><span class="s">&quot;file&quot;</span> <span class="na">fileName=</span><span class="s">&quot;/tmp/logger.out&quot;</span> <span class="na">append=</span><span class="s">&quot;true&quot;</span><span class="nt">&gt;</span>
-</span><span class='line'>            <span class="nt">&lt;PatternLayout</span> <span class="na">pattern=</span><span class="s">&quot;%d{HH:mm:ss} [%t] %-5p %c{1}:%L - %m%n&quot;</span><span class="nt">/&gt;</span>
-</span><span class='line'>            <span class="nt">&lt;Filters&gt;</span>
-</span><span class='line'>                <span class="nt">&lt;MarkerFilter</span> <span class="na">marker=</span><span class="s">&quot;time&quot;</span> <span class="na">onMatch=</span><span class="s">&quot;ACCEPT&quot;</span> <span class="na">onMismatch=</span><span class="s">&quot;DENY&quot;</span><span class="nt">/&gt;</span>
-</span><span class='line'>            <span class="nt">&lt;/Filters&gt;</span>
-</span><span class='line'>        <span class="nt">&lt;/File&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;/Appenders&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;Loggers&gt;</span>
-</span><span class='line'>        <span class="nt">&lt;Root</span> <span class="na">level=</span><span class="s">&quot;debug&quot;</span><span class="nt">&gt;</span>
-</span><span class='line'>            <span class="nt">&lt;AppenderRef</span> <span class="na">ref=</span><span class="s">&quot;console&quot;</span> <span class="nt">/&gt;</span>
-</span><span class='line'>            <span class="nt">&lt;AppenderRef</span> <span class="na">ref=</span><span class="s">&quot;file&quot;</span> <span class="nt">/&gt;</span>
-</span><span class='line'>        <span class="nt">&lt;/Root&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;/Loggers&gt;</span>
-</span><span class='line'><span class="nt">&lt;/Configuration&gt;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>If you run the example you&rsquo;ll see the following output on your console:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>22:55:48 [main] INFO  MarkerApp:11 - Log info message
-</span><span class='line'>22:55:48 [main] INFO  MarkerApp:20 - Request processing took 12.09897 ms</span></code></pre></td></tr></table></div></figure>
-
-
-<p>You will find only the marked timing message in the <code>/tmp/logger.out</code> log file:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>22:55:48 [main] INFO  MarkerApp:20 - Request processing took 12.09897 ms</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>5) Leverage diagnostic context in multithreaded applications</h2>
-
-<p>Most server applications need to handle multiple clients simultaneously. Typically, the server application allocates a separate thread to handle a single client request. In such a system different threads handle different client requests in parallel and the log messages written by the threads interleave. In order to differentiate log messages from different threads from each other a diagnostic context comes in handy. Diagnostic context is a map associated with a particular thread. Each thread maintains its own map. You can store arbitrary key-value pairs in the map and in turn lay out your log messages to include the values from the map.</p>
-
-<p>In the following example we want to log the name of the user on behalf of which we&rsquo;re doing some processing. In order to accomplish this we store the name of the user in the map under the key <code>user</code> before we start the processing. After the processing is complete we clear the map to get it ready for the next user.</p>
-
-<figure class='code'><figcaption><span>MdcApp.java </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">import</span> <span class="nn">org.slf4j.Logger</span><span class="o">;</span>
-</span><span class='line'><span class="kn">import</span> <span class="nn">org.slf4j.LoggerFactory</span><span class="o">;</span>
-</span><span class='line'><span class="kn">import</span> <span class="nn">org.slf4j.MDC</span><span class="o">;</span>
-</span><span class='line'>
-</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">MdcApp</span> <span class="o">{</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">Logger</span> <span class="n">log</span> <span class="o">=</span> <span class="n">LoggerFactory</span><span class="o">.</span><span class="na">getLogger</span><span class="o">(</span><span class="n">MdcApp</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="kd">static</span> <span class="kt">void</span> <span class="nf">process</span><span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>      <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="s">&quot;Processing 1&quot;</span><span class="o">);</span>
-</span><span class='line'>      <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="s">&quot;Processing 2&quot;</span><span class="o">);</span>
-</span><span class='line'>      <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="s">&quot;Processing 3&quot;</span><span class="o">);</span>
-</span><span class='line'>  <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>      <span class="n">MDC</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="s">&quot;user&quot;</span><span class="o">,</span> <span class="s">&quot;Joe&quot;</span><span class="o">);</span>
-</span><span class='line'>      <span class="n">process</span><span class="o">();</span>
-</span><span class='line'>      <span class="n">MDC</span><span class="o">.</span><span class="na">clear</span><span class="o">();</span>
-</span><span class='line'>      <span class="n">MDC</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="s">&quot;user&quot;</span><span class="o">,</span> <span class="s">&quot;Eleonora&quot;</span><span class="o">);</span>
-</span><span class='line'>      <span class="n">process</span><span class="o">();</span>
-</span><span class='line'>  <span class="o">}</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>In the logging configuration we need to configure the <code>PatternLayout</code> to include the <code>user</code> value from the map. The <code>%X{user}</code> formatting sequence does exactly that.</p>
-
-<figure class='code'><figcaption><span>log4j2.mdc.xml </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;Configuration&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;Appenders&gt;</span>
-</span><span class='line'>        <span class="nt">&lt;Console</span> <span class="na">name=</span><span class="s">&quot;console&quot;</span> <span class="na">target=</span><span class="s">&quot;SYSTEM_OUT&quot;</span><span class="nt">&gt;</span>
-</span><span class='line'>            <span class="nt">&lt;PatternLayout</span> <span class="na">pattern=</span><span class="s">&quot;%d{HH:mm:ss} [%t] [%X{user}] %p %m%n&quot;</span> <span class="nt">/&gt;</span>
-</span><span class='line'>        <span class="nt">&lt;/Console&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;/Appenders&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;Loggers&gt;</span>
-</span><span class='line'>        <span class="nt">&lt;Root</span> <span class="na">level=</span><span class="s">&quot;debug&quot;</span><span class="nt">&gt;</span>
-</span><span class='line'>            <span class="nt">&lt;AppenderRef</span> <span class="na">ref=</span><span class="s">&quot;console&quot;</span> <span class="nt">/&gt;</span>
-</span><span class='line'>        <span class="nt">&lt;/Root&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;/Loggers&gt;</span>
-</span><span class='line'><span class="nt">&lt;/Configuration&gt;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>When you run the <code>MdcApp</code> application you&rsquo;ll see the following output on your console:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>00:01:30 [main] [Joe] INFO Processing 1
-</span><span class='line'>00:01:30 [main] [Joe] INFO Processing 2
-</span><span class='line'>00:01:30 [main] [Joe] INFO Processing 3
-</span><span class='line'>00:01:30 [main] [Eleonora] INFO Processing 1
-</span><span class='line'>00:01:30 [main] [Eleonora] INFO Processing 2
-</span><span class='line'>00:01:30 [main] [Eleonora] INFO Processing 3</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Now you can tell the name of the user for whom you did the processing.</p>
 ]]></content>
   </entry>
 

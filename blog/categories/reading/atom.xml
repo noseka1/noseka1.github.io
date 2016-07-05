@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: reading | Ales Nosek - The Software Practitioner]]></title>
+  <link href="http://alesnosek.com/blog/categories/reading/atom.xml" rel="self"/>
+  <link href="http://alesnosek.com/"/>
+  <updated>2016-07-04T22:05:45-07:00</updated>
+  <id>http://alesnosek.com/</id>
+  <author>
+    <name><![CDATA[Ales Nosek]]></name>
+
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+
+  <entry>
+    <title type="html"><![CDATA[What I learned from The Open Organization]]></title>
+    <link href="http://alesnosek.com/blog/2016/07/04/what-i-learned-from-the-open-organization/"/>
+    <updated>2016-07-04T21:04:22-07:00</updated>
+    <id>http://alesnosek.com/blog/2016/07/04/what-i-learned-from-the-open-organization</id>
+    <content type="html"><![CDATA[<p>Red Hat is one of the most successful software companies that makes billions of dollars selling open source software. The book <em>The Open Organization</em> written by Jim Whitehurst, CEO of Red Hat, provides a great insight into the company culture and how things get done at Red Hat. This blogpost lists some of the ideas I learned from this book.</p>
+
+<!-- more -->
+
+
+<h2>Motivating and inspiring</h2>
+
+<ul>
+<li><p>A company should have its purpose. The purpose is not a goal a company wants to achieve but the reason why it exists. For instance, the Red Hat&rsquo;s mission statement says: <em>To be the catalyst in communities of customers, contributors, and partners creating better technology the open source way</em>. This statement enables Red Hat to attract the most talented people that share the believe that open source is fundamentally good for the world.</p></li>
+<li><p>It’s important to hire passionate people. When interviewing, ask the candidates what they are passionate about and think how it resonates with the purpose of your company.</p></li>
+<li><p>Admitting mistakes builds your credibility and authority to lead.</p></li>
+<li><p>As a manager, if you want to have engaged employees, you need to share context and knowledge. Be prepared to explain your decisions.</p></li>
+<li><p>As an employee, if your manager is not providing the appropriate context, ask for it. Most bosses are happy to share. They just haven’t yet figured out that it belongs to what they should be doing.</p></li>
+</ul>
+
+
+<h2>Getting things done</h2>
+
+<ul>
+<li><p>The Open organization embraces meritocracy where the leaders are chosen based on their contributions to the project, not based on their titles or longevity within the company.</p></li>
+<li><p>If your intention is just to stick your nose into every little thing so you can be front and center, people see it. At Red Hat, one of the greatest insults to your ego comes when you put something on one of the internal discussion threads and receive nothing back - neither positive nor negative. That means the team is likely ignoring you, which means you’ve failed in some way.</p></li>
+<li><p>In the discussions, people argue and criticize not because they are trying to be difficult, but because they are so passionate about the subject. A debate involving multiple views from different people leads to better decisions made than a meeting where the goal for everyone is to be nice to each other, and every idea is treated as a good one.</p></li>
+</ul>
+
+
+<h2>Setting direction</h2>
+
+<ul>
+<li><p>The decisions that came from top down are typically harder to turn into real actions. The more open you make your decision-making process, the easier is to execute the decisions you made.</p></li>
+<li><p>Encourage your team to bring up ideas and proposals. Discuss the ideas, regardless of whether you move forward with them.</p></li>
+</ul>
+
+]]></content>
+  </entry>
+
+</feed>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: events | Ales Nosek - The Software Practitioner]]></title>
+  <link href="http://alesnosek.com/blog/categories/events/atom.xml" rel="self"/>
+  <link href="http://alesnosek.com/"/>
+  <updated>2016-07-04T22:05:45-07:00</updated>
+  <id>http://alesnosek.com/</id>
+  <author>
+    <name><![CDATA[Ales Nosek]]></name>
+
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+
+  <entry>
+    <title type="html"><![CDATA[Red Hat Summit 2016]]></title>
+    <link href="http://alesnosek.com/blog/2016/07/04/red-hat-summit-2016/"/>
+    <updated>2016-07-04T20:26:12-07:00</updated>
+    <id>http://alesnosek.com/blog/2016/07/04/red-hat-summit-2016</id>
+    <content type="html"><![CDATA[<p>I had the great opportunity to visit the Red Hat Summit 2016. Enjoy the photos attached.</p>
+
+<!-- more -->
+
+
+<p>The Red Hat summit was hosted at the Moscone Center in San Francisco in June 27-30, 2016. I greatly enjoyed the technical presentations by Red Hatters as well as the opportunity to discuss the OpenShift and Red Hat Atomic products directly with the lead engineers. At my company, we&rsquo;re looking at OpenShift+Atomic as the possible next platform to base our product upon. The frank opinions provided by the Red Hat engineers were very useful for our research. Next, take a look at the pics below.</p>
+
+<p>General sessions and the Red Hat party at the end of the summit took place at Moscone Center North:</p>
+
+<p><img class="center" src="/images/posts/redhatsummit2016/20160629_135631.jpg">
+<img class="center" src="/images/posts/redhatsummit2016/20160628_134625.jpg"></p>
+
+<p>Breakout sessions were hosted at the Moscone Center West:</p>
+
+<p><img class="center" src="/images/posts/redhatsummit2016/20160630_152426.jpg">
+<img class="center" src="/images/posts/redhatsummit2016/20160629_151110.jpg"></p>
+
+<p>The big Red Hat logo at the entrance hall. The red and black colors really catch your eyes:</p>
+
+<p><img class="center" src="/images/posts/redhatsummit2016/20160628_195533.jpg"></p>
+
+<p>Jim Whitehurst, president and CEO of Red Hat, and myself. Check out my <a href="/blog/2016/07/04/what-i-learned-from-the-open-organization">next post</a> to find out, what I learned from the book I&rsquo;m holding in the picture.</p>
+
+<p><img class="center" src="/images/posts/redhatsummit2016/20160629_132338.jpg"></p>
+]]></content>
+  </entry>
+
+</feed>
