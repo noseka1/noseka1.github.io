@@ -12,7 +12,7 @@ Red Hat is one of the most successful software companies that makes billions of 
 
 ## Motivating and inspiring
 
-*  A company should have its purpose. The purpose is not a goal a company wants to achieve but the reason why it exists. For instance, the Red Hat's mission statement says: *To be the catalyst in communities of customers, contributors, and partners creating better technology the open source way*. This statement enables Red Hat to attract the most talented people that share the believe that open source is fundamentally good for the world.
+*  A company should have a purpose. The purpose is not a goal a company wants to achieve but the reason why it exists. For instance, Red Hat's mission statement says: *To be the catalyst in communities of customers, contributors, and partners creating better technology the open source way*. This statement enables Red Hat to attract the most talented people that share the belief that open source is fundamentally good for the world.
 
 * It’s important to hire passionate people. When interviewing, ask the candidates what they are passionate about and think how it resonates with the purpose of your company.
 
