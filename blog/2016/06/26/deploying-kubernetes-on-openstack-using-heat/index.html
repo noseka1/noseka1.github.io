@@ -307,6 +307,43 @@
 <p>All pods should be running. The network topology of the Kubernetes cluster as displayed by Horizon:</p>
 
 <p><img class="center" src="/images/posts/kube.png"></p>
+
+<h2>Accessing the Kubernetes cluster</h2>
+
+<p><strong> Update 9/5/2016 </strong></p>
+
+<p>At first, we will copy the <code>kubectl</code> client binary from the Kubernetes installer machine onto the remote host from where we are going to access our Kubernetes cluster:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>scp ./_output/release-stage/client/linux-amd64/kubernetes/client/bin/kubectl user@remote.host.com:
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Remember to replace the <code>remote.host.com</code> with the name of your remote machine.</p>
+
+<p>Next, we&rsquo;re going to start a kubectl proxy to allow access to Kubernetes APIs and the web UI from the remote host. The proxy can be brought up directly on the Kubernetes installer machine using the command:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>./cluster/kubectl.sh proxy --address<span class="o">=</span>0.0.0.0 --port<span class="o">=</span><span class="m">8080</span> --accept-hosts<span class="o">=</span>.*
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The proxy listens on port 8080 on all network interfaces and accepts connections from remote hosts with any IP address. This configuration is very unsecure but is good enough for our test environment. If your Kubernetes installer machine runs on the cloud, you might want to modify the security group rules to provide access to port 8080.</p>
+
+<p>Now, we can access the Kubernetes APIs from the remote machine using the command:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>./kubectl --server http://kubernetes.installer.com:8080 cluster-info
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The web UI of your Kubernetes cluster should be available at the URL:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>http://kubernetes.installer.com:8080/ui</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Note that you want to replace the <code>kubernetes.installer.com</code> with the name of your Kubernetes installer machine. When accessing the Kubernetes installer machine on port 8080, the request will be forwarded to your Kubernetes master node.</p>
 </div>
 
 
