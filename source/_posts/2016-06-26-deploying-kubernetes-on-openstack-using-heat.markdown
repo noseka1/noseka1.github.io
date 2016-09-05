@@ -167,3 +167,36 @@ After about 25 minutes, you should have a Kubernetes cluster up and running. You
 All pods should be running. The network topology of the Kubernetes cluster as displayed by Horizon:
 
 {% img center /images/posts/kube.png %}
+
+## Accessing the Kubernetes cluster
+
+** Update 9/5/2016 **
+
+At first, we will copy the `kubectl` client binary from the Kubernetes installer machine onto the remote host from where we are going to access our Kubernetes cluster:
+{% codeblock lang:sh %}
+scp ./_output/release-stage/client/linux-amd64/kubernetes/client/bin/kubectl user@remote.host.com:
+{% endcodeblock %}
+
+Remember to replace the `remote.host.com` with the name of your remote machine.
+
+Next, we're going to start a kubectl proxy to allow access to Kubernetes APIs and the web UI from the remote host. The proxy can be brought up directly on the Kubernetes installer machine using the command:
+
+{% codeblock lang:sh %}
+./cluster/kubectl.sh proxy --address=0.0.0.0 --port=8080 --accept-hosts=.*
+{% endcodeblock %}
+
+The proxy listens on port 8080 on all network interfaces and accepts connections from remote hosts with any IP address. This configuration is very unsecure but is good enough for our test environment. If your Kubernetes installer machine runs on the cloud, you might want to modify the security group rules to provide access to port 8080.
+
+Now, we can access the Kubernetes APIs from the remote machine using the command:
+
+{% codeblock lang:sh %}
+./kubectl --server http://kubernetes.installer.com:8080 cluster-info
+{% endcodeblock %}
+
+The web UI of your Kubernetes cluster should be available at the URL:
+
+{% codeblock %}
+http://kubernetes.installer.com:8080/ui
+{% endcodeblock %}
+
+Note that you want to replace the `kubernetes.installer.com` with the name of your Kubernetes installer machine. When accessing the Kubernetes installer machine on port 8080, the request will be forwarded to your Kubernetes master node.
