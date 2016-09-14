@@ -4,7 +4,7 @@
   <title><![CDATA[Category: devops | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/devops/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2016-09-05T00:13:34-07:00</updated>
+  <updated>2016-09-13T17:22:06-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,53 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[First Impressions about ansible-container]]></title>
+    <link href="http://alesnosek.com/blog/2016/09/12/first-impressions-about-ansible-container/"/>
+    <updated>2016-09-12T20:06:49-07:00</updated>
+    <id>http://alesnosek.com/blog/2016/09/12/first-impressions-about-ansible-container</id>
+    <content type="html"><![CDATA[<p>At Red Hat summit I learned about the new project <a href="https://www.ansible.com/ansible-container">ansible-container</a>. I was very excited and looked forward to building Docker containers with Ansible instead of the Dockerfiles. The project seemed to came just on time as in our company we&rsquo;re starting to Dockerize our software products. How did <em>ansible-container</em> work out for us? Read on!</p>
+
+<!-- more -->
+
+
+<p>The ansible-container is a very young project. The first release 0.1.0 came out on July 28, 2016. The project&rsquo;s Git repository is hosted on <a href="https://github.com/ansible/ansible-container">GitHub</a>. Additionaly, there&rsquo;s a repository with examples of how to use ansible-container available <a href="https://github.com/ansible/ansible-container-examples">here</a>.</p>
+
+<h2>How ansible-container works</h2>
+
+<p>Here is how you build Docker containers with ansible-container. After crafting your Ansible playbook, you run the command <code>ansible-container build</code> which roughly executes these steps:</p>
+
+<ol>
+<li>Spin up a <em>builder container</em> and mount your Ansible playbook directory as a volume inside of this container.</li>
+<li>Spin up a <em>base container</em> from the Docker image of your choice.</li>
+<li>Run ansible-playbook inside of the <em>builder container</em>. Ansible will connect to the <em>base container</em> and configure it accordingly to the playbook.</li>
+<li>Shutdown the <em>base container</em> and commit it as a new image.</li>
+</ol>
+
+
+<p>Besides building one Docker image at a time, it&rsquo;s rather straight forward to build a group of images at once. Under the hood, ansible-container leverages Docker Compose to start any number of containers to configure them with Ansible.</p>
+
+<p>After your images are built, you can start them as containers on the local machine using the <code>ansible-container run</code> command. And finally, the <code>ansible-container shipit</code> command can help you to deploy your containers to Kubernetes or OpenShift.</p>
+
+<h2>Evaluating ansible-container</h2>
+
+<p>Software development in our company is organized in a way that can probably be found in many other places, too. We maintain base software libraries in a project called <em>platform</em>. On top of <em>platform</em>, many different product components are developed. We distribute our software in the form of RPM packages. As a first step on our way towards containers, we are going to install the RPMs on top of the Docker base images.</p>
+
+<p>After spending a week with ansible-container, we decided that we are not going to adopt it at this time. The main reasons were:</p>
+
+<ol>
+<li><p>We would have to introduce another dependency to our build process. Our build machines would need to have Ansible, ansible-container and Docker Compose installed in order to build Docker containers. We prefer to keep our build dependencies to the minimum.</p></li>
+<li><p>We need to build around 20 containers. During the container build we run a shell script to install an RPM package and to do a few more modifications. Our container build process is rather simple and Dockerfiles can just get the job done. For a more involved build process, Ansible would be preferable.</p></li>
+<li><p>The ansible-container project shows its potential while it&rsquo;s still in its infancy. The builds with ansible-container take longer than the Dockerfile builds that leverage caching of image layers. The build specification file <code>container.yml</code> is not flexible enough for us. For example, it&rsquo;s not easy to build only a subset of the declared containers. Also it&rsquo;s not possible to build in one pass containers which inherit from each other.</p></li>
+</ol>
+
+
+<h2>Conclusion</h2>
+
+<p>The ansible-container project is definitely very promising and we will keep our eye on it. For now, we&rsquo;re moving forward with generating and running Dockerfiles.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[Deploying Kubernetes on OpenStack using Heat]]></title>
@@ -266,7 +313,7 @@
 <p>Instead of passing command-line arguments, systemd allows for creating <a href="http://0pointer.de/blog/projects/instances.html">multiple instances</a> of the same service where each instance can obtain it&rsquo;s own set of environment variables. The Percona XtraDB Cluster includes the standard and the bootstrap service instance definitions in the RPM package <code>Percona-XtraDB-Cluster-server</code>. To boostrap the Percona cluster, the first node can be started with the following command:</p>
 
 <p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">[</span>root@percona1 ~<span class="o">]</span><span class="nv">$ </span>systemctl start &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#x6d;&amp;#x61;&amp;#x69;&amp;#108;&amp;#x74;&amp;#111;&amp;#x3a;&amp;#109;&amp;#x79;&amp;#x73;&amp;#113;&amp;#x6c;&amp;#x40;&amp;#98;&amp;#x6f;&amp;#111;&amp;#116;&amp;#x73;&amp;#x74;&amp;#114;&amp;#x61;&amp;#x70;&amp;#46;&amp;#x73;&amp;#x65;&amp;#114;&amp;#x76;&amp;#105;&amp;#99;&amp;#x65;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#109;&amp;#x79;&amp;#115;&amp;#x71;&amp;#x6c;&amp;#x40;&amp;#98;&amp;#111;&amp;#x6f;&amp;#x74;&amp;#x73;&amp;#x74;&amp;#114;&amp;#97;&amp;#112;&amp;#46;&amp;#115;&amp;#101;&amp;#x72;&amp;#118;&amp;#105;&amp;#x63;&amp;#x65;&lt;/a&gt;</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">[</span>root@percona1 ~<span class="o">]</span><span class="nv">$ </span>systemctl start &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#109;&amp;#97;&amp;#105;&amp;#x6c;&amp;#x74;&amp;#x6f;&amp;#x3a;&amp;#x6d;&amp;#x79;&amp;#x73;&amp;#x71;&amp;#x6c;&amp;#64;&amp;#98;&amp;#111;&amp;#x6f;&amp;#116;&amp;#115;&amp;#x74;&amp;#114;&amp;#x61;&amp;#112;&amp;#x2e;&amp;#115;&amp;#101;&amp;#x72;&amp;#118;&amp;#105;&amp;#x63;&amp;#x65;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#109;&amp;#x79;&amp;#115;&amp;#113;&amp;#108;&amp;#x40;&amp;#x62;&amp;#111;&amp;#x6f;&amp;#116;&amp;#x73;&amp;#116;&amp;#x72;&amp;#x61;&amp;#112;&amp;#x2e;&amp;#115;&amp;#x65;&amp;#114;&amp;#118;&amp;#x69;&amp;#x63;&amp;#101;&lt;/a&gt;</span>
 </span></code></pre></td></tr></table></div></figure></p>
 
 <p>At the moment, this boostrap service definition is missing in the RDO OpenStack packages. Before a similar <code>mysql@.service</code> script is available in RDO you can start the MariaDB Galera cluster as follows:</p>
@@ -436,62 +483,6 @@ Let the command run in the foreground.</p></li>
 </span></code></pre></td></tr></table></div></figure></p>
 
 <p>And that&rsquo;s all for today. Hope you&rsquo;re enjoying the full control over your OpenStack cloud deployment.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[Installing OpenStack Liberty on RHEL7]]></title>
-    <link href="http://alesnosek.com/blog/2015/10/19/installing-openstack-liberty-on-rhel7/"/>
-    <updated>2015-10-19T22:30:48-07:00</updated>
-    <id>http://alesnosek.com/blog/2015/10/19/installing-openstack-liberty-on-rhel7</id>
-    <content type="html"><![CDATA[<p>The OpenStack Liberty was released last week. In this article I&rsquo;ll briefly describe how to deploy the OpenStack Liberty on RHEL7 using RDO Manager.</p>
-
-<!-- more -->
-
-
-<p>The <a href="https://www.rdoproject.org/" title="RDO project">RDO project</a> packages the OpenStack software for the Red Hat based platforms. Currently, there are Liberty packages in status testing/release candidate available from the project. Apart from a couple of configuration issues the installation went pretty well and I obtained a basic 2-node cluster.</p>
-
-<p>If you intalled OpenStack Kilo using RDO Manager before I have a good news for you. The installation procedure remains pretty much the same. You can follow the <a href="http://docs.openstack.org/developer/tripleo-docs/" title="TripleO Doc">great guide</a> provided by the TripleO project to get the installation going. First, add the following two repositories:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;a href="http://trunk.rdoproject.org/centos7/current-tripleo/delorean.repo">http://trunk.rdoproject.org/centos7/current-tripleo/delorean.repo&lt;/a>
-</span><span class='line'>&lt;a href="http://trunk.rdoproject.org/centos7/delorean-deps.repo">http://trunk.rdoproject.org/centos7/delorean-deps.repo&lt;/a></span></code></pre></td></tr></table></div></figure></p>
-
-<p>Now you can install the RDO Manager with:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>sudo yum install python-tripleoclient</span></code></pre></td></tr></table></div></figure></p>
-
-<p>In the Kilo release, the <code>python-tripleoclient</code> package was called <code>python-rdomanager-oscplugin</code>. You can continue with the guide. To build the overcloud images I issue the commands:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nb">export </span><span class="nv">NODE_DIST</span><span class="o">=</span>rhel7
-</span><span class='line'><span class="nb">export </span><span class="nv">DIB_LOCAL_IMAGE</span><span class="o">=</span>rhel-guest-image-7.1-20150224.0.x86_64.qcow2
-</span><span class='line'><span class="nb">export </span><span class="nv">REG_METHOD</span><span class="o">=</span>disable
-</span><span class='line'><span class="nb">export </span><span class="nv">DIB_DEBUG_TRACE</span><span class="o">=</span>1
-</span><span class='line'><span class="nb">export </span><span class="nv">DIB_YUM_REPO_CONF</span><span class="o">=</span>/etc/yum.repos.d/rhel7_mirror.repo
-</span><span class='line'><span class="nb">export </span><span class="nv">USE_DELOREAN_TRUNK</span><span class="o">=</span>1
-</span><span class='line'><span class="nb">export </span><span class="nv">DELOREAN_TRUNK_REPO</span><span class="o">=</span>&lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;http://trunk.rdoproject.org/centos7/current-tripleo&quot;</span>&gt;http://trunk.rdoproject.org/centos7/current-tripleo&lt;/a&gt;
-</span><span class='line'><span class="nb">export </span><span class="nv">DELOREAN_REPO_FILE</span><span class="o">=</span>delorean.repo
-</span><span class='line'>openstack overcloud image build <span class="p">&amp;</span>ndash<span class="p">;</span>all
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>As you can see, I&rsquo;m not really registering the OpenStack nodes with the Red Hat portal. Instead, I&rsquo;m pulling the RHEL7 packages from the local mirror.</p>
-
-<p>After the installation of the overcloud has completed I realized that some of the OpenStack processes on the overcloud nodes were segfaulting. After switching SELinux from enforcing to permissive mode everything started working as expected.</p>
-
-<h2>A final note</h2>
-
-<p>The deployment of OpenStack is rather an involved process even when leveraging the tools like RDO Manager. To truly automate the installation in my specific environment I use a set of Ansible scripts to drive the RDO manager installation. Now that Red Hat acquired Ansible I&rsquo;m wondering if we&rsquo;re going to get an even better OpenStack installation experience on Red Hat based distributions.</p>
 ]]></content>
   </entry>
 

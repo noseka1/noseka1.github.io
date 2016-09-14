@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2016-09-05T00:13:34-07:00</updated>
+  <updated>2016-09-13T17:22:06-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,53 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[First Impressions about ansible-container]]></title>
+    <link href="http://alesnosek.com/blog/2016/09/12/first-impressions-about-ansible-container/"/>
+    <updated>2016-09-12T20:06:49-07:00</updated>
+    <id>http://alesnosek.com/blog/2016/09/12/first-impressions-about-ansible-container</id>
+    <content type="html"><![CDATA[<p>At Red Hat summit I learned about the new project <a href="https://www.ansible.com/ansible-container">ansible-container</a>. I was very excited and looked forward to building Docker containers with Ansible instead of the Dockerfiles. The project seemed to came just on time as in our company we&rsquo;re starting to Dockerize our software products. How did <em>ansible-container</em> work out for us? Read on!</p>
+
+<!-- more -->
+
+
+<p>The ansible-container is a very young project. The first release 0.1.0 came out on July 28, 2016. The project&rsquo;s Git repository is hosted on <a href="https://github.com/ansible/ansible-container">GitHub</a>. Additionaly, there&rsquo;s a repository with examples of how to use ansible-container available <a href="https://github.com/ansible/ansible-container-examples">here</a>.</p>
+
+<h2>How ansible-container works</h2>
+
+<p>Here is how you build Docker containers with ansible-container. After crafting your Ansible playbook, you run the command <code>ansible-container build</code> which roughly executes these steps:</p>
+
+<ol>
+<li>Spin up a <em>builder container</em> and mount your Ansible playbook directory as a volume inside of this container.</li>
+<li>Spin up a <em>base container</em> from the Docker image of your choice.</li>
+<li>Run ansible-playbook inside of the <em>builder container</em>. Ansible will connect to the <em>base container</em> and configure it accordingly to the playbook.</li>
+<li>Shutdown the <em>base container</em> and commit it as a new image.</li>
+</ol>
+
+
+<p>Besides building one Docker image at a time, it&rsquo;s rather straight forward to build a group of images at once. Under the hood, ansible-container leverages Docker Compose to start any number of containers to configure them with Ansible.</p>
+
+<p>After your images are built, you can start them as containers on the local machine using the <code>ansible-container run</code> command. And finally, the <code>ansible-container shipit</code> command can help you to deploy your containers to Kubernetes or OpenShift.</p>
+
+<h2>Evaluating ansible-container</h2>
+
+<p>Software development in our company is organized in a way that can probably be found in many other places, too. We maintain base software libraries in a project called <em>platform</em>. On top of <em>platform</em>, many different product components are developed. We distribute our software in the form of RPM packages. As a first step on our way towards containers, we are going to install the RPMs on top of the Docker base images.</p>
+
+<p>After spending a week with ansible-container, we decided that we are not going to adopt it at this time. The main reasons were:</p>
+
+<ol>
+<li><p>We would have to introduce another dependency to our build process. Our build machines would need to have Ansible, ansible-container and Docker Compose installed in order to build Docker containers. We prefer to keep our build dependencies to the minimum.</p></li>
+<li><p>We need to build around 20 containers. During the container build we run a shell script to install an RPM package and to do a few more modifications. Our container build process is rather simple and Dockerfiles can just get the job done. For a more involved build process, Ansible would be preferable.</p></li>
+<li><p>The ansible-container project shows its potential while it&rsquo;s still in its infancy. The builds with ansible-container take longer than the Dockerfile builds that leverage caching of image layers. The build specification file <code>container.yml</code> is not flexible enough for us. For example, it&rsquo;s not easy to build only a subset of the declared containers. Also it&rsquo;s not possible to build in one pass containers which inherit from each other.</p></li>
+</ol>
+
+
+<h2>Conclusion</h2>
+
+<p>The ansible-container project is definitely very promising and we will keep our eye on it. For now, we&rsquo;re moving forward with generating and running Dockerfiles.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[What I learned from The Open Organization]]></title>
@@ -2134,24 +2181,6 @@ The page hierarchy is created by the repetitive use of the Doxygen tag <code>@su
 <h2>7) Learn your programming language idioms</h2>
 
 <p>There&rsquo;s no perfect programming language. Idioms get invented to work around the quirks of a specific programming language. Using idioms improves the maintanability of the code. You should learn and use them wherever possible. For Java idioms you can refer to <a href="http://c2.com/ppr/wiki/JavaIdioms/JavaIdioms.html" title="Java Idioms">Java Idioms</a> and <a href="http://www.nayuki.io/page/good-java-idioms" title="Good Java Idioms">Good Java Idioms</a>.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[OpenStack Dynamic DNS Updates]]></title>
-    <link href="http://alesnosek.com/blog/2015/05/31/openstack-dynamic-dns-updates/"/>
-    <updated>2015-05-31T22:49:39-07:00</updated>
-    <id>http://alesnosek.com/blog/2015/05/31/openstack-dynamic-dns-updates</id>
-    <content type="html"><![CDATA[<p>Today&rsquo;s user story is: As a private cloud user I&rsquo;d like to have virtual machines registered with internal DNS. Let&rsquo;s look at how a software practitioner solves this problem in a truly agile way.</p>
-
-<!-- more -->
-
-
-<p>The OpenStack <a href="https://wiki.openstack.org/wiki/Designate" title="Designate">Designate</a> project implements DNSaaS. After trying out Designate, I realized that for simple DNS updates DNSaaS is a little too involved.</p>
-
-<p>In my previous <a href="http://alesnosek.com/blog/2015/05/25/openstack-nova-notifications-subscriber" title="OpenStack Nova Notifications Subscriber">article</a> I described how to monitor Nova events on RabbitMQ message bus. Two events of interest are <code>compute.instance.create.end</code> and <code>compute.instance.delete.start</code> that are sent by Nova on instance creation and instance deletion. Both events carry enough information for us to create a simple script to extract the hostname and IP addresses of the instance from the events and update the internal DNS using the <code>nsupdate</code> command.</p>
-
-<p>You can find the DNS updates implementantion including the systemd startup script at GitHub: <a href="https://github.com/noseka1/openstack-dns-updater" title="openstack-dns-updater">openstack-dns-updater</a>.</p>
 ]]></content>
   </entry>
 

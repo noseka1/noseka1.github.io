@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>What I learned from The Open Organization - Ales Nosek - The Software Practitioner</title>
+  <title>First Impressions about ansible-container - Ales Nosek - The Software Practitioner</title>
   <meta name="author" content="Ales Nosek">
 
 
-  <meta name="description" content="Red Hat is one of the most successful software companies that makes billions of dollars selling open source software. The book The Open Organization &hellip;">
+  <meta name="description" content="At Red Hat summit I learned about the new project ansible-container. I was very excited and looked forward to building Docker containers with Ansible &hellip;">
 
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
 
-  <link rel="canonical" href="http://alesnosek.com/blog/2016/07/04/what-i-learned-from-the-open-organization/">
+  <link rel="canonical" href="http://alesnosek.com/blog/2016/09/12/first-impressions-about-ansible-container/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Ales Nosek - The Software Practitioner" type="application/atom+xml">
@@ -81,7 +81,7 @@
 
   <header>
 
-      <h1 class="entry-title">What I learned from The Open Organization</h1>
+      <h1 class="entry-title">First Impressions about ansible-container</h1>
 
 
       <p class="meta">
@@ -90,45 +90,52 @@
 
 
 
-<time class='entry-date' datetime='2016-07-04T21:04:22-07:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>4</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>9:04 pm</span></time>
+<time class='entry-date' datetime='2016-09-12T20:06:49-07:00'><span class='date'><span class='date-month'>Sep</span> <span class='date-day'>12</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>8:06 pm</span></time>
 
       </p>
 
   </header>
 
 
-<div class="entry-content"><p>Red Hat is one of the most successful software companies that makes billions of dollars selling open source software. The book <em>The Open Organization</em> written by Jim Whitehurst, CEO of Red Hat, provides a great insight into the company culture and how things get done at Red Hat. This blogpost lists some of the ideas I learned from this book.</p>
+<div class="entry-content"><p>At Red Hat summit I learned about the new project <a href="https://www.ansible.com/ansible-container">ansible-container</a>. I was very excited and looked forward to building Docker containers with Ansible instead of the Dockerfiles. The project seemed to came just on time as in our company we&rsquo;re starting to Dockerize our software products. How did <em>ansible-container</em> work out for us? Read on!</p>
 
 <!-- more -->
 
 
-<h2>Motivating and inspiring</h2>
+<p>The ansible-container is a very young project. The first release 0.1.0 came out on July 28, 2016. The project&rsquo;s Git repository is hosted on <a href="https://github.com/ansible/ansible-container">GitHub</a>. Additionaly, there&rsquo;s a repository with examples of how to use ansible-container available <a href="https://github.com/ansible/ansible-container-examples">here</a>.</p>
 
-<ul>
-<li><p>A company should have a purpose. The purpose is not a goal a company wants to achieve but the reason why it exists. For instance, Red Hat&rsquo;s mission statement says: <em>To be the catalyst in communities of customers, contributors, and partners creating better technology the open source way</em>. This statement enables Red Hat to attract the most talented people that share the belief that open source is fundamentally good for the world.</p></li>
-<li><p>It’s important to hire passionate people. When interviewing, ask the candidates what they are passionate about and think how it resonates with the purpose of your company.</p></li>
-<li><p>Admitting mistakes builds your credibility and authority to lead.</p></li>
-<li><p>As a manager, if you want to have engaged employees, you need to share context and knowledge. Be prepared to explain your decisions.</p></li>
-<li><p>As an employee, if your manager is not providing the appropriate context, ask for it. Most bosses are happy to share. They just haven’t yet figured out that it belongs to what they should be doing.</p></li>
-</ul>
+<h2>How ansible-container works</h2>
 
+<p>Here is how you build Docker containers with ansible-container. After crafting your Ansible playbook, you run the command <code>ansible-container build</code> which roughly executes these steps:</p>
 
-<h2>Getting things done</h2>
-
-<ul>
-<li><p>The Open organization embraces meritocracy where the leaders are chosen based on their contributions to the project, not based on their titles or longevity within the company.</p></li>
-<li><p>If your intention is just to stick your nose into every little thing so you can be front and center, people see it. At Red Hat, one of the greatest insults to your ego comes when you put something on one of the internal discussion threads and receive nothing back - neither positive nor negative. That means the team is likely ignoring you, which means you’ve failed in some way.</p></li>
-<li><p>In the discussions, people argue and criticize not because they are trying to be difficult, but because they are so passionate about the subject. A debate involving multiple views from different people leads to better decisions made than a meeting where the goal for everyone is to be nice to each other, and every idea is treated as a good one.</p></li>
-</ul>
+<ol>
+<li>Spin up a <em>builder container</em> and mount your Ansible playbook directory as a volume inside of this container.</li>
+<li>Spin up a <em>base container</em> from the Docker image of your choice.</li>
+<li>Run ansible-playbook inside of the <em>builder container</em>. Ansible will connect to the <em>base container</em> and configure it accordingly to the playbook.</li>
+<li>Shutdown the <em>base container</em> and commit it as a new image.</li>
+</ol>
 
 
-<h2>Setting direction</h2>
+<p>Besides building one Docker image at a time, it&rsquo;s rather straight forward to build a group of images at once. Under the hood, ansible-container leverages Docker Compose to start any number of containers to configure them with Ansible.</p>
 
-<ul>
-<li><p>The decisions that came from top down are typically harder to turn into real actions. The more open you make your decision-making process, the easier is to execute the decisions you made.</p></li>
-<li><p>Encourage your team to bring up ideas and proposals. Discuss the ideas, regardless of whether you move forward with them.</p></li>
-</ul>
+<p>After your images are built, you can start them as containers on the local machine using the <code>ansible-container run</code> command. And finally, the <code>ansible-container shipit</code> command can help you to deploy your containers to Kubernetes or OpenShift.</p>
 
+<h2>Evaluating ansible-container</h2>
+
+<p>Software development in our company is organized in a way that can probably be found in many other places, too. We maintain base software libraries in a project called <em>platform</em>. On top of <em>platform</em>, many different product components are developed. We distribute our software in the form of RPM packages. As a first step on our way towards containers, we are going to install the RPMs on top of the Docker base images.</p>
+
+<p>After spending a week with ansible-container, we decided that we are not going to adopt it at this time. The main reasons were:</p>
+
+<ol>
+<li><p>We would have to introduce another dependency to our build process. Our build machines would need to have Ansible, ansible-container and Docker Compose installed in order to build Docker containers. We prefer to keep our build dependencies to the minimum.</p></li>
+<li><p>We need to build around 20 containers. During the container build we run a shell script to install an RPM package and to do a few more modifications. Our container build process is rather simple and Dockerfiles can just get the job done. For a more involved build process, Ansible would be preferable.</p></li>
+<li><p>The ansible-container project shows its potential while it&rsquo;s still in its infancy. The builds with ansible-container take longer than the Dockerfile builds that leverage caching of image layers. The build specification file <code>container.yml</code> is not flexible enough for us. For example, it&rsquo;s not easy to build only a subset of the declared containers. Also it&rsquo;s not possible to build in one pass containers which inherit from each other.</p></li>
+</ol>
+
+
+<h2>Conclusion</h2>
+
+<p>The ansible-container project is definitely very promising and we will keep our eye on it. For now, we&rsquo;re moving forward with generating and running Dockerfiles.</p>
 </div>
 
 
@@ -144,12 +151,12 @@
 
 
 
-<time class='entry-date' datetime='2016-07-04T21:04:22-07:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>4</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>9:04 pm</span></time>
+<time class='entry-date' datetime='2016-09-12T20:06:49-07:00'><span class='date'><span class='date-month'>Sep</span> <span class='date-day'>12</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>8:06 pm</span></time>
 
 
 <span class="categories">
 
-    <a class='category' href='/blog/categories/reading/'>reading</a>
+    <a class='category' href='/blog/categories/devops/'>devops</a>
 
 </span>
 
@@ -158,7 +165,7 @@
 
       <div class="sharing">
 
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://alesnosek.com/blog/2016/07/04/what-i-learned-from-the-open-organization/" data-via="" data-counturl="http://alesnosek.com/blog/2016/07/04/what-i-learned-from-the-open-organization/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://alesnosek.com/blog/2016/09/12/first-impressions-about-ansible-container/" data-via="" data-counturl="http://alesnosek.com/blog/2016/09/12/first-impressions-about-ansible-container/" >Tweet</a>
 
 
   <div class="g-plusone" data-size="medium"></div>
@@ -171,10 +178,8 @@
 
     <p class="meta">
 
-        <a class="basic-alignment left" href="/blog/2016/07/04/red-hat-summit-2016/" title="Previous Post: Red Hat Summit 2016">&laquo; Red Hat Summit 2016</a>
+        <a class="basic-alignment left" href="/blog/2016/07/04/what-i-learned-from-the-open-organization/" title="Previous Post: What I learned from The Open Organization">&laquo; What I learned from The Open Organization</a>
 
-
-        <a class="basic-alignment right" href="/blog/2016/09/12/first-impressions-about-ansible-container/" title="Next Post: First Impressions about ansible-container">First Impressions about ansible-container &raquo;</a>
 
     </p>
   </footer>
@@ -240,8 +245,8 @@
 
 
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://alesnosek.com/blog/2016/07/04/what-i-learned-from-the-open-organization/';
-        var disqus_url = 'http://alesnosek.com/blog/2016/07/04/what-i-learned-from-the-open-organization/';
+        var disqus_identifier = 'http://alesnosek.com/blog/2016/09/12/first-impressions-about-ansible-container/';
+        var disqus_url = 'http://alesnosek.com/blog/2016/09/12/first-impressions-about-ansible-container/';
         var disqus_script = 'embed.js';
 
     (function () {
