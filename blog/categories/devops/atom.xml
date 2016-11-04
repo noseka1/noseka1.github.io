@@ -4,7 +4,7 @@
   <title><![CDATA[Category: devops | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/devops/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2016-09-13T17:22:06-07:00</updated>
+  <updated>2016-11-03T22:44:17-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,278 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[5 Linux Commands You Didn't Know You Needed]]></title>
+    <link href="http://alesnosek.com/blog/2016/11/01/5-linux-commands-you-didnt-know-you-needed/"/>
+    <updated>2016-11-01T23:11:44-07:00</updated>
+    <id>http://alesnosek.com/blog/2016/11/01/5-linux-commands-you-didnt-know-you-needed</id>
+    <content type="html"><![CDATA[<p>When preparing for the RHCSA and RHCE exams, I found several useful commands I was not really aware of. In this blog post I&rsquo;ll share them with you.</p>
+
+<!-- more -->
+
+
+<h2>findmnt</h2>
+
+<p>The <code>findmnt</code> command is part of the essential package <em>util-linux</em> and hence is available on pretty much all Linux systems. It can print all mounted filesystems in the tree-like format. I found the output of <code>findmnt</code> command more readable than the output provided by the more popular <code>mount</code> command. This is an example of how the filesystem mounts on a Ceph node look like:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>findmnt
+</span><span class='line'>TARGET                           SOURCE     FSTYPE     OPTIONS
+</span><span class='line'>/                                /dev/sda2  xfs        rw,relatime,seclabel,attr2,inode64,noquota
+</span><span class='line'>├─/sys                           sysfs      sysfs      rw,nosuid,nodev,noexec,relatime,seclabel
+</span><span class='line'>│ ├─/sys/kernel/security         securityfs securityfs rw,nosuid,nodev,noexec,relatime
+</span><span class='line'>│ ├─/sys/fs/cgroup               tmpfs      tmpfs      ro,nosuid,nodev,noexec,seclabel,mode<span class="o">=</span>755
+</span><span class='line'>│ │ ├─/sys/fs/cgroup/systemd     cgroup     cgroup     rw,nosuid,nodev,noexec,relatime,xattr,release_agent<span class="o">=</span>/usr/lib/systemd/systemd-cgroups-agent,name<span class="o">=</span>systemd
+</span><span class='line'>│ │ ├─/sys/fs/cgroup/cpu,cpuacct cgroup     cgroup     rw,nosuid,nodev,noexec,relatime,cpuacct,cpu
+</span><span class='line'>│ │ ├─/sys/fs/cgroup/perf_event  cgroup     cgroup     rw,nosuid,nodev,noexec,relatime,perf_event
+</span><span class='line'>│ │ ├─/sys/fs/cgroup/devices     cgroup     cgroup     rw,nosuid,nodev,noexec,relatime,devices
+</span><span class='line'>│ │ ├─/sys/fs/cgroup/blkio       cgroup     cgroup     rw,nosuid,nodev,noexec,relatime,blkio
+</span><span class='line'>│ │ ├─/sys/fs/cgroup/cpuset      cgroup     cgroup     rw,nosuid,nodev,noexec,relatime,cpuset
+</span><span class='line'>│ │ ├─/sys/fs/cgroup/hugetlb     cgroup     cgroup     rw,nosuid,nodev,noexec,relatime,hugetlb
+</span><span class='line'>│ │ ├─/sys/fs/cgroup/net_cls     cgroup     cgroup     rw,nosuid,nodev,noexec,relatime,net_cls
+</span><span class='line'>│ │ ├─/sys/fs/cgroup/memory      cgroup     cgroup     rw,nosuid,nodev,noexec,relatime,memory
+</span><span class='line'>│ │ └─/sys/fs/cgroup/freezer     cgroup     cgroup     rw,nosuid,nodev,noexec,relatime,freezer
+</span><span class='line'>│ ├─/sys/fs/pstore               pstore     pstore     rw,nosuid,nodev,noexec,relatime
+</span><span class='line'>│ ├─/sys/fs/selinux              selinuxfs  selinuxfs  rw,relatime
+</span><span class='line'>│ ├─/sys/kernel/debug            debugfs    debugfs    rw,relatime
+</span><span class='line'>│ └─/sys/kernel/config           configfs   configfs   rw,relatime
+</span><span class='line'>├─/proc                          proc       proc       rw,nosuid,nodev,noexec,relatime
+</span><span class='line'>│ ├─/proc/sys/fs/binfmt_misc     systemd-1  autofs     rw,relatime,fd<span class="o">=</span>26,pgrp<span class="o">=</span>1,timeout<span class="o">=</span>300,minproto<span class="o">=</span>5,maxproto<span class="o">=</span>5,direct
+</span><span class='line'>│ └─/proc/fs/nfsd                nfsd       nfsd       rw,relatime
+</span><span class='line'>├─/dev                           devtmpfs   devtmpfs   rw,nosuid,seclabel,size<span class="o">=</span>16307108k,nr_inodes<span class="o">=</span>4076777,mode<span class="o">=</span>755
+</span><span class='line'>│ ├─/dev/shm                     tmpfs      tmpfs      rw,nosuid,nodev,seclabel
+</span><span class='line'>│ ├─/dev/pts                     devpts     devpts     rw,nosuid,noexec,relatime,seclabel,gid<span class="o">=</span>5,mode<span class="o">=</span>620,ptmxmode<span class="o">=</span>000
+</span><span class='line'>│ ├─/dev/mqueue                  mqueue     mqueue     rw,relatime,seclabel
+</span><span class='line'>│ └─/dev/hugepages               hugetlbfs  hugetlbfs  rw,relatime,seclabel
+</span><span class='line'>├─/run                           tmpfs      tmpfs      rw,nosuid,nodev,seclabel,mode<span class="o">=</span>755
+</span><span class='line'>│ └─/run/user/1002               tmpfs      tmpfs      rw,nosuid,nodev,relatime,seclabel,size<span class="o">=</span>3265340k,mode<span class="o">=</span>700,uid<span class="o">=</span>1002,gid<span class="o">=</span>1002
+</span><span class='line'>├─/var/lib/nfs/rpc_pipefs        rpc_pipefs rpc_pipefs rw,relatime
+</span><span class='line'>├─/var/lib/ceph/osd/ceph-1       /dev/sdb1  xfs        rw,noatime,seclabel,attr2,inode64,logbsize<span class="o">=</span>256k,sunit<span class="o">=</span>512,swidth<span class="o">=</span>512,noquota
+</span><span class='line'>├─/var/lib/ceph/osd/ceph-3       /dev/sdc1  xfs        rw,noatime,seclabel,attr2,inode64,logbsize<span class="o">=</span>256k,sunit<span class="o">=</span>512,swidth<span class="o">=</span>512,noquota
+</span><span class='line'>├─/var/lib/ceph/osd/ceph-10      /dev/sdg1  xfs        rw,noatime,seclabel,attr2,inode64,logbsize<span class="o">=</span>256k,sunit<span class="o">=</span>512,swidth<span class="o">=</span>512,noquota
+</span><span class='line'>├─/var/lib/ceph/osd/ceph-9       /dev/sdf1  xfs        rw,noatime,seclabel,attr2,inode64,logbsize<span class="o">=</span>256k,sunit<span class="o">=</span>512,swidth<span class="o">=</span>512,noquota
+</span><span class='line'>├─/var/lib/ceph/osd/ceph-4       /dev/sdd1  xfs        rw,noatime,seclabel,attr2,inode64,logbsize<span class="o">=</span>256k,sunit<span class="o">=</span>512,swidth<span class="o">=</span>512,noquota
+</span><span class='line'>└─/var/lib/ceph/osd/ceph-7       /dev/sde1  xfs        rw,noatime,seclabel,attr2,inode64,logbsize<span class="o">=</span>256k,sunit<span class="o">=</span>512,swidth<span class="o">=</span>512,noquota
+</span></code></pre></td></tr></table></div></figure></p>
+
+<h2>ss</h2>
+
+<p>The <code>ss</code> (soscket statistics) command is a replacement for the good old <code>netstat</code> command. It comes in the <em>iproute</em> package which is an essential part of all modern Linux distributions. I found <code>ss</code> command available on systems where the <code>netstat</code> command was missing. Here is a sample output of the <code>ss</code> command running on my Linux desktop:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>sudo ss -tlnp <span class="p">|</span> cat
+</span><span class='line'>State      Recv-Q Send-Q Local Address:Port               Peer Address:Port
+</span><span class='line'>LISTEN     <span class="m">0</span>      <span class="m">100</span>          &lt;em&gt;:15929                    &lt;/em&gt;:&lt;em&gt;                   users:<span class="o">((</span><span class="p">&amp;</span>ldquo<span class="p">;</span>skype<span class="p">&amp;</span>rdquo<span class="p">;</span>,pid<span class="o">=</span>25943,fd<span class="o">=</span>49<span class="o">))</span>
+</span><span class='line'>LISTEN     <span class="m">0</span>      <span class="m">50</span>           &lt;/em&gt;:39964                    &lt;em&gt;:&lt;/em&gt;                   users:<span class="o">((</span><span class="p">&amp;</span>ldquo<span class="p">;</span>java<span class="p">&amp;</span>rdquo<span class="p">;</span>,pid<span class="o">=</span>6015,fd<span class="o">=</span>146<span class="o">))</span>
+</span><span class='line'>LISTEN     <span class="m">0</span>      <span class="m">5</span>      192.168.122.1:53                       &lt;em&gt;:&lt;/em&gt;                   users:<span class="o">((</span><span class="p">&amp;</span>ldquo<span class="p">;</span>dnsmasq<span class="p">&amp;</span>rdquo<span class="p">;</span>,pid<span class="o">=</span>1625,fd<span class="o">=</span>6<span class="o">))</span>
+</span><span class='line'>LISTEN     <span class="m">0</span>      <span class="m">128</span>          &lt;em&gt;:22                       &lt;/em&gt;:&lt;em&gt;                   users:<span class="o">((</span><span class="p">&amp;</span>ldquo<span class="p">;</span>sshd<span class="p">&amp;</span>rdquo<span class="p">;</span>,pid<span class="o">=</span>1442,fd<span class="o">=</span>3<span class="o">))</span>
+</span><span class='line'>LISTEN     <span class="m">0</span>      <span class="m">128</span>         :::22                      :::&lt;/em&gt;                   users:<span class="o">((</span><span class="p">&amp;</span>ldquo<span class="p">;</span>sshd<span class="p">&amp;</span>rdquo<span class="p">;</span>,pid<span class="o">=</span>1442,fd<span class="o">=</span>4<span class="o">))</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>I&rsquo;m switching from using the <code>netstat</code> command to <code>ss</code>. What about you?</p>
+
+<h2>ip</h2>
+
+<p>After years of using the <code>ifconfig</code> utility, it took me some effort to move to its modern replacement - the <code>ip</code> command. Recently, I discovered two useful features of the <code>ip</code> utility.</p>
+
+<p>To obtain a detailed information about the packets transferred by individual network interfaces, use the <code>-s</code> (statistics) parameter. For example:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>ip -s link
+</span><span class='line'>1: lo: <span class="p">&amp;</span>lt<span class="p">;</span>LOOPBACK,UP,LOWER_UP&gt; mtu <span class="m">65536</span> qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1
+</span><span class='line'>    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+</span><span class='line'>    RX: bytes  packets  errors  dropped overrun mcast
+</span><span class='line'>    <span class="m">1416492</span>    <span class="m">20158</span>    <span class="m">0</span>       <span class="m">0</span>       <span class="m">0</span>       0
+</span><span class='line'>    TX: bytes  packets  errors  dropped carrier collsns
+</span><span class='line'>    <span class="m">1416492</span>    <span class="m">20158</span>    <span class="m">0</span>       <span class="m">0</span>       <span class="m">0</span>       0
+</span><span class='line'>2: enp0s31f6: <span class="p">&amp;</span>lt<span class="p">;</span>BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu <span class="m">1500</span> qdisc pfifo_fast state UP mode DEFAULT group default qlen 1000
+</span><span class='line'>    link/ether 18:66:da:21:33:87 brd ff:ff:ff:ff:ff:ff
+</span><span class='line'>    RX: bytes  packets  errors  dropped overrun mcast
+</span><span class='line'>    <span class="m">13776256661</span> <span class="m">26486602</span> <span class="m">0</span>       <span class="m">0</span>       <span class="m">0</span>       1661059
+</span><span class='line'>    TX: bytes  packets  errors  dropped carrier collsns
+</span><span class='line'>    <span class="m">2313484427</span> <span class="m">9811792</span>  <span class="m">0</span>       <span class="m">0</span>       <span class="m">0</span>       0
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>To figure out which network interface would be used to send a packet to the specified IP address:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>ip route get 192.168.0.1
+</span><span class='line'>192.168.0.1 via 10.5.0.1 dev enp0s31f6  src 10.5.0.225
+</span><span class='line'>    cache
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>When sending a packet to the target destination <code>192.168.0.1</code>, the kernel will route the packet via the <code>enp0s31f6</code> interface. The IP <code>10.5.0.1</code> is my default route.</p>
+
+<h2>lscpu</h2>
+
+<p>On modern machines the output of <code>cat /proc/cpuinfo</code> can be really long. To find out what CPU configuration a machine comes with I prefer to use the <code>lscpu</code> command. This is an example output of the <code>lscpu</code> command running on an OpenStack compute node:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>lscpu
+</span><span class='line'>Architecture:          x86_64
+</span><span class='line'>CPU op-mode<span class="o">(</span>s<span class="o">)</span>:        32-bit, 64-bit
+</span><span class='line'>Byte Order:            Little Endian
+</span><span class='line'>CPU<span class="o">(</span>s<span class="o">)</span>:                32
+</span><span class='line'>On-line CPU<span class="o">(</span>s<span class="o">)</span> list:   0-31
+</span><span class='line'>Thread<span class="o">(</span>s<span class="o">)</span> per core:    2
+</span><span class='line'>Core<span class="o">(</span>s<span class="o">)</span> per socket:    8
+</span><span class='line'>Socket<span class="o">(</span>s<span class="o">)</span>:             2
+</span><span class='line'>NUMA node<span class="o">(</span>s<span class="o">)</span>:          2
+</span><span class='line'>Vendor ID:             GenuineIntel
+</span><span class='line'>CPU family:            6
+</span><span class='line'>Model:                 63
+</span><span class='line'>Model name:            Intel<span class="p">&amp;</span>reg<span class="p">;</span> Xeon<span class="p">&amp;</span>reg<span class="p">;</span> CPU E5-2640 v3 @ 2.60GHz
+</span><span class='line'>Stepping:              2
+</span><span class='line'>CPU MHz:               1200.062
+</span><span class='line'>BogoMIPS:              5198.45
+</span><span class='line'>Virtualization:        VT-x
+</span><span class='line'>L1d cache:             32K
+</span><span class='line'>L1i cache:             32K
+</span><span class='line'>L2 cache:              256K
+</span><span class='line'>L3 cache:              20480K
+</span><span class='line'>NUMA node0 CPU<span class="o">(</span>s<span class="o">)</span>:     0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30
+</span><span class='line'>NUMA node1 CPU<span class="o">(</span>s<span class="o">)</span>:     1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>In the above output, the interesting lines are the <code>Socket(s)</code>, <code>Core(s) per socket</code>, <code>Thread(s) per core</code> and <code>CPU(s)</code>. In our case, we&rsquo;re looking at a machine with 2 physical CPUs (Sockets), each of them having 8 physical cores (Cores per socket). Each of the physical cores has 2 processing threads (Threads per core) aka logical CPUs due to the Hyper-Threading technology. In total, there are 32 logical CPUs available to the Linux scheduler to schedule a task on.</p>
+
+<h2>lspci</h2>
+
+<p>The last command in our overview is the <code>lspci</code> command. If you ever wondered which kernel driver is controlling your hardware device, you can find out with:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>lspci -k&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;<span class="p">&amp;</span>hellip<span class="p">;</span>&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;01:05.0 VGA compatible controller: Advanced Micro Devices, Inc. <span class="o">[</span>AMD/ATI<span class="o">]</span> RS880 <span class="o">[</span>Radeon HD 4250<span class="o">]</span>
+</span><span class='line'>        Subsystem: ASUSTeK Computer Inc. M5A88-V EVO
+</span><span class='line'>        Kernel driver in use: radeon
+</span><span class='line'>01:05.1 Audio device: Advanced Micro Devices, Inc. <span class="o">[</span>AMD/ATI<span class="o">]</span> RS880 HDMI Audio <span class="o">[</span>Radeon HD <span class="m">4200</span> Series<span class="o">]</span>
+</span><span class='line'>        Subsystem: ASUSTeK Computer Inc. M5A88-V EVO
+</span><span class='line'>        Kernel driver in use: snd_hda_intel
+</span><span class='line'>02:00.0 FireWire <span class="o">(</span>IEEE 1394<span class="o">)</span>: VIA Technologies, Inc. VT6315 Series Firewire Controller
+</span><span class='line'>        Subsystem: ASUSTeK Computer Inc. M5A88-V EVO
+</span><span class='line'>        Kernel driver in use: firewire_ohci
+</span><span class='line'>02:00.1 IDE interface: VIA Technologies, Inc. VT6415 PATA IDE Host Controller <span class="o">(</span>rev a0<span class="o">)</span>
+</span><span class='line'>        Subsystem: ASUSTeK Computer Inc. Motherboard
+</span><span class='line'>        Kernel driver in use: pata_via
+</span><span class='line'>03:00.0 USB controller: ASMedia Technology Inc. ASM1042 SuperSpeed USB Host Controller
+</span><span class='line'>        Subsystem: ASUSTeK Computer Inc. P8B WS Motherboard
+</span><span class='line'>        Kernel driver in use: xhci_hcd
+</span><span class='line'>05:00.0 Network controller: Realtek Semiconductor Co., Ltd. RTL8192CE PCIe Wireless Network Adapter <span class="o">(</span>rev 01<span class="o">)</span>
+</span><span class='line'>        Subsystem: Realtek Semiconductor Co., Ltd. RTL8192CE PCIe Wireless Network Adapter
+</span><span class='line'>        Kernel driver in use: rtl8192ce
+</span><span class='line'>06:00.0 Ethernet controller: Realtek Semiconductor Co., Ltd. RTL8111/8168/8411 PCI Express Gigabit Ethernet Controller <span class="o">(</span>rev 06<span class="o">)</span>
+</span><span class='line'>        Subsystem: ASUSTeK Computer Inc. P8P67 and other motherboards
+</span><span class='line'>        Kernel driver in use: r8169
+</span></code></pre></td></tr></table></div></figure></p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[First Impressions about ansible-container]]></title>
@@ -313,7 +585,7 @@
 <p>Instead of passing command-line arguments, systemd allows for creating <a href="http://0pointer.de/blog/projects/instances.html">multiple instances</a> of the same service where each instance can obtain it&rsquo;s own set of environment variables. The Percona XtraDB Cluster includes the standard and the bootstrap service instance definitions in the RPM package <code>Percona-XtraDB-Cluster-server</code>. To boostrap the Percona cluster, the first node can be started with the following command:</p>
 
 <p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">[</span>root@percona1 ~<span class="o">]</span><span class="nv">$ </span>systemctl start &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#109;&amp;#97;&amp;#105;&amp;#x6c;&amp;#x74;&amp;#x6f;&amp;#x3a;&amp;#x6d;&amp;#x79;&amp;#x73;&amp;#x71;&amp;#x6c;&amp;#64;&amp;#98;&amp;#111;&amp;#x6f;&amp;#116;&amp;#115;&amp;#x74;&amp;#114;&amp;#x61;&amp;#112;&amp;#x2e;&amp;#115;&amp;#101;&amp;#x72;&amp;#118;&amp;#105;&amp;#x63;&amp;#x65;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#109;&amp;#x79;&amp;#115;&amp;#113;&amp;#108;&amp;#x40;&amp;#x62;&amp;#111;&amp;#x6f;&amp;#116;&amp;#x73;&amp;#116;&amp;#x72;&amp;#x61;&amp;#112;&amp;#x2e;&amp;#115;&amp;#x65;&amp;#114;&amp;#118;&amp;#x69;&amp;#x63;&amp;#101;&lt;/a&gt;</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">[</span>root@percona1 ~<span class="o">]</span><span class="nv">$ </span>systemctl start &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#109;&amp;#97;&amp;#x69;&amp;#108;&amp;#116;&amp;#111;&amp;#x3a;&amp;#109;&amp;#x79;&amp;#x73;&amp;#x71;&amp;#108;&amp;#64;&amp;#98;&amp;#111;&amp;#x6f;&amp;#116;&amp;#115;&amp;#116;&amp;#114;&amp;#x61;&amp;#x70;&amp;#46;&amp;#x73;&amp;#101;&amp;#114;&amp;#118;&amp;#105;&amp;#99;&amp;#101;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#109;&amp;#121;&amp;#x73;&amp;#113;&amp;#108;&amp;#x40;&amp;#98;&amp;#111;&amp;#x6f;&amp;#x74;&amp;#x73;&amp;#116;&amp;#x72;&amp;#97;&amp;#112;&amp;#46;&amp;#x73;&amp;#101;&amp;#114;&amp;#x76;&amp;#105;&amp;#99;&amp;#x65;&lt;/a&gt;</span>
 </span></code></pre></td></tr></table></div></figure></p>
 
 <p>At the moment, this boostrap service definition is missing in the RDO OpenStack packages. Before a similar <code>mysql@.service</code> script is available in RDO you can start the MariaDB Galera cluster as follows:</p>
@@ -392,97 +664,6 @@ Let the command run in the foreground.</p></li>
 <p>And this is how the OpenStack APIs service group looks in Icinga Web 2. Happy monitoring!</p>
 
 <p><img class="center" src="/images/posts/osmon.png"></p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[Assigning Roles to Nodes Directly in RDO]]></title>
-    <link href="http://alesnosek.com/blog/2015/11/09/assigning-roles-to-nodes-directly-in-rdo/"/>
-    <updated>2015-11-09T20:49:40-08:00</updated>
-    <id>http://alesnosek.com/blog/2015/11/09/assigning-roles-to-nodes-directly-in-rdo</id>
-    <content type="html"><![CDATA[<p>RDO Manager defines multiple roles that nodes can play in OpenStack deployment. For large-sized installations, RDO features automatic assignment of roles to nodes. This assignment is based on the facts that RDO obtained about each node during the introspection. However, for smaller deployments, you might prefer to assign the roles to the available nodes by hand. It was not straight forward for me to find out about this manual option even when it is described in the <a href="http://docs.openstack.org/developer/tripleo-docs/advanced_deployment/profile_matching.html#optional-manually-add-the-profiles-to-the-nodes" title="TripleO documentation">TripleO documentation</a>. Let&rsquo;s review the required configuration steps in this blogpost.</p>
-
-<!-- more -->
-
-
-<p>The relationship between roles and nodes is organized via flavors. A flavor is a set of properties that the target node must match in order to be eligible for deployment of a specific role. The manual assignment of a role to a node is a three-step process:</p>
-
-<ol>
-<li>Define a flavor with a property <code>capabilities:profile</code> set to the role name</li>
-<li>Add the same profile to the capabilities list of the target node</li>
-<li>Tell RDO what flavor to use for a specific role when beginning the deployment</li>
-</ol>
-
-
-<p>The creation of flavors with the associated <code>capabilities:profile</code> property looks like this:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>openstack flavor create <span class="p">&amp;</span>ndash<span class="p">;</span>id auto <span class="p">&amp;</span>ndash<span class="p">;</span>ram <span class="m">4096</span> <span class="p">&amp;</span>ndash<span class="p">;</span>disk <span class="m">40</span> <span class="p">&amp;</span>ndash<span class="p">;</span>vcpus <span class="m">1</span> ceph
-</span><span class='line'>openstack flavor create <span class="p">&amp;</span>ndash<span class="p">;</span>id auto <span class="p">&amp;</span>ndash<span class="p">;</span>ram <span class="m">4096</span> <span class="p">&amp;</span>ndash<span class="p">;</span>disk <span class="m">40</span> <span class="p">&amp;</span>ndash<span class="p">;</span>vcpus <span class="m">1</span> cinder
-</span><span class='line'>openstack flavor create <span class="p">&amp;</span>ndash<span class="p">;</span>id auto <span class="p">&amp;</span>ndash<span class="p">;</span>ram <span class="m">4096</span> <span class="p">&amp;</span>ndash<span class="p">;</span>disk <span class="m">40</span> <span class="p">&amp;</span>ndash<span class="p">;</span>vcpus <span class="m">1</span> compute
-</span><span class='line'>openstack flavor create <span class="p">&amp;</span>ndash<span class="p">;</span>id auto <span class="p">&amp;</span>ndash<span class="p">;</span>ram <span class="m">4096</span> <span class="p">&amp;</span>ndash<span class="p">;</span>disk <span class="m">40</span> <span class="p">&amp;</span>ndash<span class="p">;</span>vcpus <span class="m">1</span> controller
-</span><span class='line'>openstack flavor create <span class="p">&amp;</span>ndash<span class="p">;</span>id auto <span class="p">&amp;</span>ndash<span class="p">;</span>ram <span class="m">4096</span> <span class="p">&amp;</span>ndash<span class="p">;</span>disk <span class="m">40</span> <span class="p">&amp;</span>ndash<span class="p">;</span>vcpus <span class="m">1</span> swift&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;openstack flavor <span class="nb">set</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>cpu_arch<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span>x86_64<span class="p">&amp;</span>rdquo<span class="p">;</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>capabilities:boot_option<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span><span class="nb">local</span><span class="p">&amp;</span>rdquo<span class="p">;</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>capabilities:profile<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span>ceph<span class="p">&amp;</span>rdquo<span class="p">;</span> ceph
-</span><span class='line'>openstack flavor <span class="nb">set</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>cpu_arch<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span>x86_64<span class="p">&amp;</span>rdquo<span class="p">;</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>capabilities:boot_option<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span><span class="nb">local</span><span class="p">&amp;</span>rdquo<span class="p">;</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>capabilities:profile<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span>cinder<span class="p">&amp;</span>rdquo<span class="p">;</span> cinder
-</span><span class='line'>openstack flavor <span class="nb">set</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>cpu_arch<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span>x86_64<span class="p">&amp;</span>rdquo<span class="p">;</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>capabilities:boot_option<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span><span class="nb">local</span><span class="p">&amp;</span>rdquo<span class="p">;</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>capabilities:profile<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span>compute<span class="p">&amp;</span>rdquo<span class="p">;</span> compute
-</span><span class='line'>openstack flavor <span class="nb">set</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>cpu_arch<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span>x86_64<span class="p">&amp;</span>rdquo<span class="p">;</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>capabilities:boot_option<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span><span class="nb">local</span><span class="p">&amp;</span>rdquo<span class="p">;</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>capabilities:profile<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span>controller<span class="p">&amp;</span>rdquo<span class="p">;</span> controller
-</span><span class='line'>openstack flavor <span class="nb">set</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>cpu_arch<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span>x86_64<span class="p">&amp;</span>rdquo<span class="p">;</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>capabilities:boot_option<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span><span class="nb">local</span><span class="p">&amp;</span>rdquo<span class="p">;</span> <span class="p">&amp;</span>ndash<span class="p">;</span>property <span class="p">&amp;</span>ldquo<span class="p">;</span>capabilities:profile<span class="p">&amp;</span>rdquo<span class="p">;</span><span class="o">=</span><span class="p">&amp;</span>ldquo<span class="p">;</span>swift<span class="p">&amp;</span>rdquo<span class="p">;</span> swift
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Now we need to add the profiles to the capabilities list of the respective nodes:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>ironic node-update &lt;node1 UUID here&gt; replace properties/capabilities<span class="o">=</span><span class="p">&amp;</span>lsquo<span class="p">;</span>profile:ceph,boot_option:local<span class="p">&amp;</span>rsquo<span class="p">;</span>
-</span><span class='line'>ironic node-update &lt;node2 UUID here&gt; replace properties/capabilities<span class="o">=</span><span class="p">&amp;</span>lsquo<span class="p">;</span>profile:cinder,boot_option:local<span class="p">&amp;</span>rsquo<span class="p">;</span>
-</span><span class='line'>ironic node-update &lt;node3 UUID here&gt; replace properties/capabilities<span class="o">=</span><span class="p">&amp;</span>lsquo<span class="p">;</span>profile:compute,boot_option:local<span class="p">&amp;</span>rsquo<span class="p">;</span>
-</span><span class='line'>ironic node-update &lt;node4 UUID here&gt; replace properties/capabilities<span class="o">=</span><span class="p">&amp;</span>lsquo<span class="p">;</span>profile:controller,boot_option:local<span class="p">&amp;</span>rsquo<span class="p">;</span>
-</span><span class='line'>ironic node-update &lt;node5 UUID here&gt; replace properties/capabilities<span class="o">=</span><span class="p">&amp;</span>lsquo<span class="p">;</span>profile:swift,boot_option:local<span class="p">&amp;</span>rsquo<span class="p">;</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>When deploying the OpenStack cloud, we need to tell the RDO manager what flavor to use for each specific role:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>openstack overcloud deploy <span class="se">\</span>
-</span><span class='line'><span class="p">&amp;</span>ndash<span class="p">;</span>templates /usr/share/openstack-tripleo-heat-templates <span class="se">\</span>
-</span><span class='line'><span class="p">&amp;</span>ndash<span class="p">;</span>ceph-storage-scale <span class="m">1</span> <span class="se">\</span>
-</span><span class='line'><span class="p">&amp;</span>ndash<span class="p">;</span>block-storage-scale <span class="m">1</span> <span class="se">\</span>
-</span><span class='line'><span class="p">&amp;</span>ndash<span class="p">;</span>compute-scale <span class="m">1</span> <span class="se">\</span>
-</span><span class='line'><span class="p">&amp;</span>ndash<span class="p">;</span>control-scale <span class="m">1</span> <span class="se">\</span>
-</span><span class='line'><span class="p">&amp;</span>ndash<span class="p">;</span>swift-storage-scale <span class="m">1</span> <span class="se">\</span>
-</span><span class='line'><span class="p">&amp;</span>ndash<span class="p">;</span>ceph-storage-flavor ceph <span class="se">\</span>
-</span><span class='line'><span class="p">&amp;</span>ndash<span class="p">;</span>block-storage-flavor cinder <span class="se">\</span>
-</span><span class='line'><span class="p">&amp;</span>ndash<span class="p">;</span>compute-flavor compute <span class="se">\</span>
-</span><span class='line'><span class="p">&amp;</span>ndash<span class="p">;</span>control-flavor controller <span class="se">\</span>
-</span><span class='line'><span class="p">&amp;</span>ndash<span class="p">;</span>swift-storage-flavor swift
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>And that&rsquo;s all for today. Hope you&rsquo;re enjoying the full control over your OpenStack cloud deployment.</p>
 ]]></content>
   </entry>
 
