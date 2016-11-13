@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2016-11-03T22:44:17-07:00</updated>
+  <updated>2016-11-13T11:23:41-08:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,66 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[RHCSA/RHCE Exam Experience]]></title>
+    <link href="http://alesnosek.com/blog/2016/11/07/rhce-exam-experience/"/>
+    <updated>2016-11-07T23:45:38-08:00</updated>
+    <id>http://alesnosek.com/blog/2016/11/07/rhce-exam-experience</id>
+    <content type="html"><![CDATA[<p>Today was the great day when I passed the RHCE certification exam. If you&rsquo;re thinking about getting a Linux certification or you&rsquo;re already working towards RHCSA/RHCE, this blog post is for you.</p>
+
+<!-- more -->
+
+
+<p>The RHCSA/RHCE certification is a part of the <a href="https://en.wikipedia.org/wiki/Red_Hat_Certification_Program">Red Hat Certification Program</a>. You have to pass two practical exams, RHCSA (Red Hat Certified System Administrator) and RHCE (Red Hat Certified Engineer).</p>
+
+<h2>Modus operandi</h2>
+
+<p>Both the RHCSA and RHCE exams are hands on. You will be presented with one or more RHEL7 virtual machines and a list of Linux configuration tasks. Your goal is to set up the virtual machines as described in the tasks. After your exam is finished, the Red Hat test automation will reboot the virtual machines and run the grading scripts that will compute your score. An hour or two after the exam end you will receive your exam results in the email.</p>
+
+<p>The exam strictly tests your practical skills which makes it in my opinion very valuable. Several years ago I passed some of the exams from the Oracle Java certification path. The major part of the Java exams was based on the multiple choice questions. It was less fun for me to prepare for it and I think that a hands on exam would test the Java development skills much accurately.</p>
+
+<p>If you&rsquo;re a hiring manager searching for the Linux talent, you should know that:</p>
+
+<blockquote><p>Job candidates that passed the RHCSA/RHCE certification really demonstrated their Linux administration skills at some point.</p></blockquote>
+
+
+<h2>Tips</h2>
+
+<p>You can find a ton of tips for the RHCSA/RHCE exams on the Internet already. I&rsquo;d like to share some more advice here.</p>
+
+<p>The RHEL7 virtual machines you will be working on have manual pages installed. Before taking the exam, make sure you know where to look for the useful configuration examples. For instance, when configuring the network interfaces you can refer to:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>man <span class="m">5</span> nmcli-examples
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Full examples of commands to configure the firewall can be found at:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>man <span class="m">5</span> firewalld.richlanguage
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>When wrestling with the Apache server configuration you can leverage the Apache manual. After you installed the <code>httpd-manual</code> RPM package, you can browse the manual using the <em>elinks</em> web browser:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>yum install elinks httpd-manual
+</span><span class='line'>elinks /usr/share/httpd/manual/index.html
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>If it is feasible for you, make yourself a favor and buy the <a href="https://www.redhat.com/en/services/training/learning-subscription">Red Hat Learning Subscription</a>. You will get access to the training materials that walk you through the tasks very similar to what you&rsquo;ll see on the real exam. It includes mock exams. And you&rsquo;ll be provided with the virtual machines that you can practice on over and over again until you&rsquo;re ready to take the test.</p>
+
+<p>I found the Red Hat learning materials to be of a high quality. Besides the prep for the exam, I&rsquo;m using them to learn about further technologies from the Red Hat portfolio.</p>
+
+<h2>Is the RHCSA/RHCE for me?</h2>
+
+<p>In my opinion, the RHCSA/RHCE is one of the best Linux certifications available. If you mean it with Linux seriously - and it doesn&rsquo;t necessarily have to be the Red Hat flavor of Linux - go get certified!</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[5 Linux Commands You Didn't Know You Needed]]></title>
@@ -2143,47 +2203,6 @@ The page hierarchy is created by the repetitive use of the Doxygen tag <code>@su
 <h2>Namespaces, classes and files</h2>
 
 <p>Doxygen automatically generates a list of namespaces, classes and files for you.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[Technical Documentation with Doxygen]]></title>
-    <link href="http://alesnosek.com/blog/2015/06/14/technical-documentation-with-doxygen/"/>
-    <updated>2015-06-14T22:04:36-07:00</updated>
-    <id>http://alesnosek.com/blog/2015/06/14/technical-documentation-with-doxygen</id>
-    <content type="html"><![CDATA[<p>Do you create project documentation in your company&rsquo;s internal wiki? I did it for quite some time until I realized that a good old Doxygen combined with Git can do a much better job.</p>
-
-<!-- more -->
-
-
-<p><a href="http://www.stack.nl/~dimitri/doxygen/" title="Doxygen">Doxygen</a> is a well-known tool for generating documentation directly out of the annotated source code. However, it can be utilized to create technical documentation, too. In version 1.8.0, <a href="http://www.stack.nl/~dimitri/doxygen/manual/markdown.html" title="Markdown support">Markdown support</a> was introduced to Doxygen. <a href="http://daringfireball.net/projects/markdown/" title="Markdown">Markdown</a> is a popular markup language. Plain text files written in Markdown format can be converted into HTML or many other formats. With Markdown support, creating technical documentation in Doxygen gets really easy.</p>
-
-<h2>Doxygen sample project</h2>
-
-<p>To get started, I read a <a href="http://svenax.net/site/2013/07/creating-user-documentation-with-doxygen/" title="Creating user documentation with Doxygen">very useful article</a> describing how to enable support of plain Markdown files in Doxygen and a couple of gotchas one might encounter. Gotchas? No worries! In record time I was able to create sample technical documentation. As sample content I used a couple of articles from my blog which were also coded in Markdown. Now I&rsquo;d like to share the project with you:</p>
-
-<ul>
-<li><a href="https://github.com/noseka1/tech-doc-with-doxygen" title="tech-doc-with-doxygen">Source code on GitHub</a></li>
-<li><a href="http://noseka1.github.com/tech-doc-with-doxygen/">The generated HTML output</a></li>
-<li><a href="http://noseka1.github.com/tech-doc-with-doxygen/refman.pdf">The generated PDF output</a></li>
-<li><a href="http://noseka1.github.com/tech-doc-with-doxygen/refman.rtf">The generated RTF output</a></li>
-</ul>
-
-
-<p>The project shows a basic document structure. If you want to learn more about Doxygen I recommend downloading the Doxygen source distribution <a href="http://www.stack.nl/~dimitri/doxygen/download.html">tarball</a> or clone the Doxygen&rsquo;s project <a href="https://github.com/doxygen/doxygen">Git repository</a>. After extracting the tar archive go to the <code>doc</code> directory where you can find the sources of the Doxygen&rsquo;s <a href="http://www.stack.nl/~dimitri/doxygen/index.html" title="Doxygen">webpage</a>. You can learn a lot by reading through them.</p>
-
-<p>Doxygen provides good support for creating graphs and diagrams in your technical document. For instance, you can insert graphs in <a href="https://en.wikipedia.org/wiki/DOT_(graph_description_language" title="DOT">DOT</a> format with <code>@dot</code> or <code>@dotfile</code> tags. You can include <a href="http://www.mcternan.me.uk/mscgen/" title="MSC">MSC</a> sequence diagrams with <code>@msc</code> or <code>@mscfile</code> tags. To insert decent looking <a href="http://plantuml.sourceforge.net/" title="PlantUML">PlantUML</a> UML diagrams use <code>@startuml</code> tag. If you like to draw your diagrams in <a href="http://dia-installer.de/" title="Dia">Dia</a> you can insert them to Doxygen via <code>@diafile</code> tag.</p>
-
-<h2>Conclusion</h2>
-
-<p>Doxygen is a very powerful documentation tool. Chances are that you&rsquo;re already using it to generate a documentation from your source code. It makes a lot of sense to me to use Doxygen for project documentation instead of creating it in the Wiki. If you combine Doxygen with a good source control (e.g. Git) you gain the following benefits:</p>
-
-<ul>
-<li>History tracking and branching that no Wiki can provide</li>
-<li>The same development workflow for your documentation as well as for your source code</li>
-<li>Project documentation and source code at one place and possibly referencing each other</li>
-</ul>
-
 ]]></content>
   </entry>
 

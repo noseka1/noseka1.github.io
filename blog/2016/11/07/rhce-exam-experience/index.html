@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Multiple RHEL Mirrors on a Single Machine - Ales Nosek - The Software Practitioner</title>
+  <title>RHCSA/RHCE Exam Experience - Ales Nosek - The Software Practitioner</title>
   <meta name="author" content="Ales Nosek">
 
 
-  <meta name="description" content="Reposync can mirror the yum repository to which your machine is subscribed to. However, you cannot subscribe your machine to the RHEL6 and RHEL7 at &hellip;">
+  <meta name="description" content="Today was the great day when I passed the RHCE certification exam. If you&rsquo;re thinking about getting a Linux certification or you&rsquo;re &hellip;">
 
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
 
-  <link rel="canonical" href="http://alesnosek.com/blog/2015/08/16/multiple-rhel-mirrors-on-a-single-machine/">
+  <link rel="canonical" href="http://alesnosek.com/blog/2016/11/07/rhce-exam-experience/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Ales Nosek - The Software Practitioner" type="application/atom+xml">
@@ -81,7 +81,7 @@
 
   <header>
 
-      <h1 class="entry-title">Multiple RHEL Mirrors on a Single Machine</h1>
+      <h1 class="entry-title">RHCSA/RHCE Exam Experience</h1>
 
 
       <p class="meta">
@@ -90,65 +90,65 @@
 
 
 
-<time class='entry-date' datetime='2015-08-16T22:23:11-07:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>16</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>10:23 pm</span></time>
+<time class='entry-date' datetime='2016-11-07T23:45:38-08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>7</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>11:45 pm</span></time>
 
       </p>
 
   </header>
 
 
-<div class="entry-content"><p><em>Reposync</em> can mirror the yum repository to which your machine is subscribed to. However, you cannot subscribe your machine to the RHEL6 and RHEL7 at the same time. Let&rsquo;s take a look at how Docker can help us here.</p>
+<div class="entry-content"><p>Today was the great day when I passed the RHCE certification exam. If you&rsquo;re thinking about getting a Linux certification or you&rsquo;re already working towards RHCSA/RHCE, this blog post is for you.</p>
 
 <!-- more -->
 
 
-<p>The RHEL Docker images are available in the public registry. For example, the following command downloads a RHEL6 Docker image:</p>
+<p>The RHCSA/RHCE certification is a part of the <a href="https://en.wikipedia.org/wiki/Red_Hat_Certification_Program">Red Hat Certification Program</a>. You have to pass two practical exams, RHCSA (Red Hat Certified System Administrator) and RHCE (Red Hat Certified Engineer).</p>
+
+<h2>Modus operandi</h2>
+
+<p>Both the RHCSA and RHCE exams are hands on. You will be presented with one or more RHEL7 virtual machines and a list of Linux configuration tasks. Your goal is to set up the virtual machines as described in the tasks. After your exam is finished, the Red Hat test automation will reboot the virtual machines and run the grading scripts that will compute your score. An hour or two after the exam end you will receive your exam results in the email.</p>
+
+<p>The exam strictly tests your practical skills which makes it in my opinion very valuable. Several years ago I passed some of the exams from the Oracle Java certification path. The major part of the Java exams was based on the multiple choice questions. It was less fun for me to prepare for it and I think that a hands on exam would test the Java development skills much accurately.</p>
+
+<p>If you&rsquo;re a hiring manager searching for the Linux talent, you should know that:</p>
+
+<blockquote><p>Job candidates that passed the RHCSA/RHCE certification really demonstrated their Linux administration skills at some point.</p></blockquote>
+
+
+<h2>Tips</h2>
+
+<p>You can find a ton of tips for the RHCSA/RHCE exams on the Internet already. I&rsquo;d like to share some more advice here.</p>
+
+<p>The RHEL7 virtual machines you will be working on have manual pages installed. Before taking the exam, make sure you know where to look for the useful configuration examples. For instance, when configuring the network interfaces you can refer to:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>docker pull rhel6
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>man <span class="m">5</span> nmcli-examples
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>The downloaded image is not registered with <a href="https://access.redhat.com/" title="Red Hat Customer Portal">Red Hat Customer Portal</a> and hence cannot receive any software updates. To register the Docker image, you&rsquo;ll need the <em>username</em> and <em>password</em> you use to log in to the Red Hat Customer Portal.</p>
-
-<h2>Docker and the build-time secrets</h2>
-
-<p>You will encounter a problem when building and registering the RHEL image using a Dockerfile. How to register the RHEL image using your credentials without Docker baking those credentials into the image? You don&rsquo;t want others to discover your secrets in the image&rsquo;s metadata or the history log. As a matter of fact, there doesn&rsquo;t seem to be a secure way to pass the secrets to the Docker in build-time. And there is a nice <a href="https://github.com/docker/docker/issues/13490" title="Secrets in Docker">write-up</a> available in the Docker issue tracker describing the different approaches how to workaround this deficiency.</p>
-
-<p>The following approach worked for me:</p>
-
-<ol>
-<li>Store the credentials into a file on the Docker host</li>
-<li>Start a RHEL container with the credentials file mounted into it</li>
-<li>Use the credentials to register the RHEL system</li>
-<li>Stop the RHEL container</li>
-<li>Commit the RHEL container into a new Docker image</li>
-</ol>
-
-
-<h2>Creating RHEL images with Ansible</h2>
-
-<p>You can find the <code>rhel_reposync</code> Ansible role at <a href="https://github.com/noseka1/rhel_reposync" title="rhel_reposync">GitHub</a>. You want to run this role on your Docker host. It will download the RHEL6 and RHEL7 images, and register them with the Red Hat Customer Portal. You have to supply your Red Hat credentials on the command-line. For example:</p>
+<p>Full examples of commands to configure the firewall can be found at:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>ansible-playbook -i hosts playbook.yml -e <span class="nv">redhat_portal_username</span><span class="o">=</span>username@company.com -e <span class="nv">redhat_portal_password</span><span class="o">=</span>secretpassword
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>man <span class="m">5</span> firewalld.richlanguage
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>After the Ansible run is finished you&rsquo;ll find two images in your local Docker repository: <code>rhel6_reposync_registered</code> and <code>rhel7_reposync_registered</code>.</p>
-
-<h2>Mirroring the RHEL repository</h2>
-
-<p>To begin the RHEL repository mirroring you just start a container based on the registered image. The container expects a volume to be mounted at <code>/repodir</code>. It will save the downloaded RPM packages at this location.</p>
+<p>When wrestling with the Apache server configuration you can leverage the Apache manual. After you installed the <code>httpd-manual</code> RPM package, you can browse the manual using the <em>elinks</em> web browser:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>docker run --rm -v /var/www/html/RHEL6:/repodir rhel6_reposync_registered
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>yum install elinks httpd-manual
+</span><span class='line'>elinks /usr/share/httpd/manual/index.html
 </span></code></pre></td></tr></table></div></figure>
 
 
-<h2>Alternative solution</h2>
+<p>If it is feasible for you, make yourself a favor and buy the <a href="https://www.redhat.com/en/services/training/learning-subscription">Red Hat Learning Subscription</a>. You will get access to the training materials that walk you through the tasks very similar to what you&rsquo;ll see on the real exam. It includes mock exams. And you&rsquo;ll be provided with the virtual machines that you can practice on over and over again until you&rsquo;re ready to take the test.</p>
 
-<p>I discovered an <a href="https://github.com/pyther/upstream_sync" title="upstream_sync">upstream_sync</a> script that allows you to mirror multiple RHEL/CentOS repositories from a single machine. It uses a specific client SSL certificate and key to access each of the repositories. This solution is much simpler than the approach described in this article.</p>
+<p>I found the Red Hat learning materials to be of a high quality. Besides the prep for the exam, I&rsquo;m using them to learn about further technologies from the Red Hat portfolio.</p>
+
+<h2>Is the RHCSA/RHCE for me?</h2>
+
+<p>In my opinion, the RHCSA/RHCE is one of the best Linux certifications available. If you mean it with Linux seriously - and it doesn&rsquo;t necessarily have to be the Red Hat flavor of Linux - go get certified!</p>
 </div>
 
 
@@ -164,7 +164,7 @@
 
 
 
-<time class='entry-date' datetime='2015-08-16T22:23:11-07:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>16</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>10:23 pm</span></time>
+<time class='entry-date' datetime='2016-11-07T23:45:38-08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>7</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>11:45 pm</span></time>
 
 
 <span class="categories">
@@ -178,7 +178,7 @@
 
       <div class="sharing">
 
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://alesnosek.com/blog/2015/08/16/multiple-rhel-mirrors-on-a-single-machine/" data-via="" data-counturl="http://alesnosek.com/blog/2015/08/16/multiple-rhel-mirrors-on-a-single-machine/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://alesnosek.com/blog/2016/11/07/rhce-exam-experience/" data-via="" data-counturl="http://alesnosek.com/blog/2016/11/07/rhce-exam-experience/" >Tweet</a>
 
 
   <div class="g-plusone" data-size="medium"></div>
@@ -191,10 +191,8 @@
 
     <p class="meta">
 
-        <a class="basic-alignment left" href="/blog/2015/08/03/improving-ansibles-ini-file-module/" title="Previous Post: Improving Ansible's ini_file Module">&laquo; Improving Ansible&#8217;s ini_file Module</a>
+        <a class="basic-alignment left" href="/blog/2016/11/01/5-linux-commands-you-didnt-know-you-needed/" title="Previous Post: 5 Linux Commands You Didn't Know You Needed">&laquo; 5 Linux Commands You Didn&#8217;t Know You Needed</a>
 
-
-        <a class="basic-alignment right" href="/blog/2015/09/07/bridging-vlan-trunk-to-the-guest/" title="Next Post: Bridging VLAN Trunk to the Guest">Bridging VLAN Trunk to the Guest &raquo;</a>
 
     </p>
   </footer>
@@ -260,8 +258,8 @@
 
 
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://alesnosek.com/blog/2015/08/16/multiple-rhel-mirrors-on-a-single-machine/';
-        var disqus_url = 'http://alesnosek.com/blog/2015/08/16/multiple-rhel-mirrors-on-a-single-machine/';
+        var disqus_identifier = 'http://alesnosek.com/blog/2016/11/07/rhce-exam-experience/';
+        var disqus_url = 'http://alesnosek.com/blog/2016/11/07/rhce-exam-experience/';
         var disqus_script = 'embed.js';
 
     (function () {

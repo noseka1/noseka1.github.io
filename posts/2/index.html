@@ -9,7 +9,7 @@
   <meta name="author" content="Ales Nosek">
 
 
-  <meta name="description" content="The OpenStack Liberty was released last week. In this article I&rsquo;ll briefly describe how to deploy the OpenStack Liberty on RHEL7 using RDO &hellip;">
+  <meta name="description" content="RDO Manager defines multiple roles that nodes can play in OpenStack deployment. For large-sized installations, RDO features automatic assignment of &hellip;">
 
 
   <!-- http://t.co/dKP3o1e -->
@@ -78,6 +78,40 @@
     <div id="content">
       <div class="blog-index">
 
+
+
+    <article>
+
+  <header>
+
+      <h1 class="entry-title"><a href="/blog/2015/11/09/assigning-roles-to-nodes-directly-in-rdo/">Assigning Roles to Nodes Directly in RDO</a></h1>
+
+
+      <p class="meta">
+
+
+
+
+
+<time class='entry-date' datetime='2015-11-09T20:49:40-08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>9</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>8:49 pm</span></time>
+
+      </p>
+
+  </header>
+
+
+  <div class="entry-content"><p>RDO Manager defines multiple roles that nodes can play in OpenStack deployment. For large-sized installations, RDO features automatic assignment of roles to nodes. This assignment is based on the facts that RDO obtained about each node during the introspection. However, for smaller deployments, you might prefer to assign the roles to the available nodes by hand. It was not straight forward for me to find out about this manual option even when it is described in the <a href="http://docs.openstack.org/developer/tripleo-docs/advanced_deployment/profile_matching.html#optional-manually-add-the-profiles-to-the-nodes" title="TripleO documentation">TripleO documentation</a>. Let&rsquo;s review the required configuration steps in this blogpost.</p>
+
+</div>
+
+
+    <footer>
+      <a rel="full-article" href="/blog/2015/11/09/assigning-roles-to-nodes-directly-in-rdo/">Read on &rarr;</a>
+    </footer>
+
+
+
+    </article>
 
 
     <article>
@@ -387,40 +421,6 @@
 
     </article>
 
-
-    <article>
-
-  <header>
-
-      <h1 class="entry-title"><a href="/blog/2015/06/14/technical-documentation-with-doxygen/">Technical Documentation with Doxygen</a></h1>
-
-
-      <p class="meta">
-
-
-
-
-
-<time class='entry-date' datetime='2015-06-14T22:04:36-07:00'><span class='date'><span class='date-month'>Jun</span> <span class='date-day'>14</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>10:04 pm</span></time>
-
-      </p>
-
-  </header>
-
-
-  <div class="entry-content"><p>Do you create project documentation in your company&rsquo;s internal wiki? I did it for quite some time until I realized that a good old Doxygen combined with Git can do a much better job.</p>
-
-</div>
-
-
-    <footer>
-      <a rel="full-article" href="/blog/2015/06/14/technical-documentation-with-doxygen/">Read on &rarr;</a>
-    </footer>
-
-
-
-    </article>
-
   <div class="pagination">
 
       <a class="prev" href="/posts/3">&larr; Older</a>
@@ -438,6 +438,10 @@
   <ul id="recent_posts">
 
       <li class="post">
+        <a href="/blog/2016/11/07/rhce-exam-experience/">RHCSA/RHCE Exam Experience</a>
+      </li>
+
+      <li class="post">
         <a href="/blog/2016/11/01/5-linux-commands-you-didnt-know-you-needed/">5 Linux Commands You Didn&#8217;t Know You Needed</a>
       </li>
 
@@ -451,10 +455,6 @@
 
       <li class="post">
         <a href="/blog/2016/07/04/red-hat-summit-2016/">Red Hat Summit 2016</a>
-      </li>
-
-      <li class="post">
-        <a href="/blog/2016/06/26/deploying-kubernetes-on-openstack-using-heat/">Deploying Kubernetes on OpenStack using Heat</a>
       </li>
 
   </ul>
