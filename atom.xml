@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2016-11-13T11:23:41-08:00</updated>
+  <updated>2016-11-13T11:27:28-08:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -15,9 +15,9 @@
 
   <entry>
     <title type="html"><![CDATA[RHCSA/RHCE Exam Experience]]></title>
-    <link href="http://alesnosek.com/blog/2016/11/07/rhce-exam-experience/"/>
+    <link href="http://alesnosek.com/blog/2016/11/07/rhcsa-slash-rhce-exam-experience/"/>
     <updated>2016-11-07T23:45:38-08:00</updated>
-    <id>http://alesnosek.com/blog/2016/11/07/rhce-exam-experience</id>
+    <id>http://alesnosek.com/blog/2016/11/07/rhcsa-slash-rhce-exam-experience</id>
     <content type="html"><![CDATA[<p>Today was the great day when I passed the RHCE certification exam. If you&rsquo;re thinking about getting a Linux certification or you&rsquo;re already working towards RHCSA/RHCE, this blog post is for you.</p>
 
 <!-- more -->
