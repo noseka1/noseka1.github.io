@@ -4,7 +4,7 @@
   <title><![CDATA[Category: devops | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/devops/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2016-11-13T11:27:28-08:00</updated>
+  <updated>2016-12-10T09:24:51-08:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,342 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[Controlling a Multi-Service Application with systemd]]></title>
+    <link href="http://alesnosek.com/blog/2016/12/04/controlling-a-multi-service-application-with-systemd/"/>
+    <updated>2016-12-04T23:15:39-08:00</updated>
+    <id>http://alesnosek.com/blog/2016/12/04/controlling-a-multi-service-application-with-systemd</id>
+    <content type="html"><![CDATA[<p>Is your application delivered as a set of services running on top of Linux? Did you think about writing a custom controller service that would start your application services in the correct order and monitor their health? Please, stop thinking about it! In this blog post I would like to convince you that you can leverage the existing <em>systemd</em> service manager to control your application services to your greatest benefit.</p>
+
+<!-- more -->
+
+
+<p><a href="https://www.freedesktop.org/wiki/Software/systemd/">systemd</a> is the default service manager on all major Linux distributions. We&rsquo;re going to demonstrate how it can be used to control a custom multi-service application.</p>
+
+<p><img class="right" src="/images/posts/systemd-logo.png" width="200" height="300"></p>
+
+<p>Our application consists of three services: Service 1, Service 2 and Service 3. The following set of requirements should be met when controlling the services using systemd:</p>
+
+<ol>
+<li>User can permanently enable/disable any of the services</li>
+<li>User can start and stop the services as a group</li>
+<li>User can start and stop each service independently</li>
+<li>Service 2 should start before the Service 3 can start</li>
+<li>Service 3 should be stopped before the Service 2 can be stopped</li>
+<li>Services 1 and 2 should start in parallel to speed up the application startup</li>
+<li>Components should be monitored and restarted in the case of failure</li>
+</ol>
+
+
+<p>Required service startup order:</p>
+
+<p><img src="/images/posts/systemd_startup_dependencies.svg" width="300" height="400" title="Service startup order" ></p>
+
+<h2>Creating the systemd unit files</h2>
+
+<p>Let&rsquo;s begin creating the systemd unit files. First, we&rsquo;ll define a pseudo-service called <code>app</code>. This service doesn&rsquo;t run any deamon. Instead, it will allow us to start/stop the three application services at once.</p>
+
+<p><figure class='code'><figcaption><span>app.service </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='ini'><span class='line'><span class="k">[Unit]</span>
+</span><span class='line'><span class="na">Description</span><span class="o">=</span><span class="s">Application&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">&lt;p&gt;[Service]&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">&lt;h1&gt;The</span> <span class="err">dummy</span> <span class="err">program</span> <span class="err">will</span> <span class="err">exit&lt;/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="na">&lt;p&gt;Type</span><span class="o">=</span><span class="s">oneshot&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">&lt;h1&gt;Execute</span> <span class="err">a</span> <span class="err">dummy</span> <span class="err">program&lt;/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="na">&lt;p&gt;ExecStart</span><span class="o">=</span><span class="s">/bin/true&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">&lt;h1&gt;This</span> <span class="err">service</span> <span class="err">shall</span> <span class="err">be</span> <span class="err">considered</span> <span class="err">active</span> <span class="err">after</span> <span class="err">start&lt;/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="na">&lt;p&gt;RemainAfterExit</span><span class="o">=</span><span class="s">yes&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">&lt;p&gt;[Install]&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">&lt;h1&gt;Components</span> <span class="err">of</span> <span class="err">this</span> <span class="err">application</span> <span class="err">should</span> <span class="err">be</span> <span class="err">started</span> <span class="err">at</span> <span class="err">boot</span> <span class="err">time&lt;/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="na">&lt;p&gt;WantedBy</span><span class="o">=</span><span class="s">multi-user.target</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>In the next step, we&rsquo;ll create systemd unit files for the three services that constitute our application. I included some explanatory comments in the first <code>app-component1</code> service definition. The definitions of the remaining two services <code>app-component2</code> and <code>app-component3</code> follow the same schema.</p>
+
+<p><figure class='code'><figcaption><span>app-component1.service </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+</pre></td><td class='code'><pre><code class='ini'><span class='line'><span class="k">[Unit]</span>
+</span><span class='line'><span class="na">Description</span><span class="o">=</span><span class="s">Application Component 1&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">&lt;h1&gt;When</span> <span class="err">systemd</span> <span class="err">stops</span> <span class="err">or</span> <span class="err">restarts</span> <span class="err">the</span> <span class="err">app.service,</span> <span class="err">the</span> <span class="err">action</span> <span class="err">is</span> <span class="err">propagated</span> <span class="err">to</span> <span class="err">this</span> <span class="err">unit&lt;/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="na">&lt;p&gt;PartOf</span><span class="o">=</span><span class="s">app.service&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">&lt;h1&gt;Start</span> <span class="err">this</span> <span class="err">unit</span> <span class="err">after</span> <span class="err">the</span> <span class="err">app.service</span> <span class="err">start&lt;/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="na">&lt;p&gt;After</span><span class="o">=</span><span class="s">app.service&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">&lt;p&gt;[Service]&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">&lt;h1&gt;Pretend</span> <span class="err">that</span> <span class="err">the</span> <span class="err">component</span> <span class="err">is</span> <span class="err">running&lt;/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="na">&lt;p&gt;ExecStart</span><span class="o">=</span><span class="s">/bin/sleep infinity&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">&lt;h1&gt;Restart</span> <span class="err">the</span> <span class="err">service</span> <span class="err">on</span> <span class="err">non-zero</span> <span class="err">exit</span> <span class="err">code</span> <span class="err">when</span> <span class="err">terminated</span> <span class="err">by</span> <span class="err">a</span> <span class="err">signal</span> <span class="err">other</span> <span class="err">than</span> <span class="err">SIGHUP,</span> <span class="err">SIGINT,</span> <span class="err">SIGTERM</span> <span class="err">or</span> <span class="err">SIGPIPE&lt;/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="na">&lt;p&gt;Restart</span><span class="o">=</span><span class="s">on-failure&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">&lt;p&gt;[Install]&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">&lt;h1&gt;This</span> <span class="err">unit</span> <span class="err">should</span> <span class="err">start</span> <span class="err">when</span> <span class="err">app.service</span> <span class="err">is</span> <span class="err">starting&lt;/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="na">&lt;p&gt;WantedBy</span><span class="o">=</span><span class="s">app.service</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>The definition of the service <code>app-component2</code> resembles the definition of service <code>app-component1</code>:</p>
+
+<p><figure class='code'><figcaption><span>app-component2.service </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='ini'><span class='line'><span class="k">[Unit]</span>
+</span><span class='line'><span class="na">Description</span><span class="o">=</span><span class="s">Application Component 2</span>
+</span><span class='line'><span class="na">PartOf</span><span class="o">=</span><span class="s">app.service</span>
+</span><span class='line'><span class="na">After</span><span class="o">=</span><span class="s">app.service&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">&lt;p&gt;</span><span class="k">[Service]</span>
+</span><span class='line'><span class="na">ExecStart</span><span class="o">=</span><span class="s">/bin/sleep infinity</span>
+</span><span class='line'><span class="na">Restart</span><span class="o">=</span><span class="s">on-failure&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">&lt;p&gt;</span><span class="k">[Install]</span>
+</span><span class='line'><span class="na">WantedBy</span><span class="o">=</span><span class="s">app.service</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>We would like the service <code>app-component3</code> to start after the service <code>app-component2</code>. Systemd provides the directive <code>After</code> to configure the start ordering. Note that we don&rsquo;t use a <code>Wants</code> directive to create a dependency of <code>app-component3</code> on <code>app-component2</code>. This <code>Wants</code> dependency would instruct systemd to start the <code>app-component2</code> whenever the <code>app-component3</code> should be started. The <code>app-component2</code> would be started even in the case that it was disabled before. This is however not what we wanted as we require the user to be able to permanently disable any of the components. If <code>app-component2</code> is not enabled, systemd should just skip it when starting the application services.</p>
+
+<p><figure class='code'><figcaption><span>app-component3.service </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='ini'><span class='line'><span class="k">[Unit]</span>
+</span><span class='line'><span class="na">Description</span><span class="o">=</span><span class="s">Application Component 3</span>
+</span><span class='line'><span class="na">PartOf</span><span class="o">=</span><span class="s">app.service</span>
+</span><span class='line'><span class="na">After</span><span class="o">=</span><span class="s">app.service&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">&lt;h1&gt;This</span> <span class="err">unit</span> <span class="err">should</span> <span class="err">start</span> <span class="err">after</span> <span class="err">the</span> <span class="err">app-component2</span> <span class="err">started&lt;/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="na">&lt;p&gt;After</span><span class="o">=</span><span class="s">app-component2.service&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">&lt;p&gt;</span><span class="k">[Service]</span>
+</span><span class='line'><span class="na">ExecStart</span><span class="o">=</span><span class="s">/bin/sleep infinity</span>
+</span><span class='line'><span class="na">Restart</span><span class="o">=</span><span class="s">on-failure&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">&lt;p&gt;</span><span class="k">[Install]</span>
+</span><span class='line'><span class="na">WantedBy</span><span class="o">=</span><span class="s">app.service</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<h2>Adding the application services to systemd</h2>
+
+<p>After we finished the creation of the four systemd unit files, we need to copy them to the systemd configuration directory:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>sudo cp app-component1.service app-component2.service app-component3.service app.service /etc/systemd/system/
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Next, we have to ask systemd to reload its configuration:
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>sudo systemctl daemon-reload
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>If everything went well, you should be able to see the new services in the unit file list:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>systemctl list-unit-files app*
+</span><span class='line'>UNIT FILE              STATE
+</span><span class='line'>app-component1.service disabled
+</span><span class='line'>app-component2.service disabled
+</span><span class='line'>app-component3.service disabled
+</span><span class='line'>app.service            disabled&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;4 unit files listed.
+</span></code></pre></td></tr></table></div></figure></p>
+
+<h2>Testing the application services</h2>
+
+<p>After all the hard work we&rsquo;re now ready to exercise our configuration. First, let&rsquo;s enable all the application services:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>sudo systemctl <span class="nb">enable </span>app app-component1 app-component2 app-component3
+</span><span class='line'>Created symlink from /etc/systemd/system/multi-user.target.wants/app.service to /etc/systemd/system/app.service.
+</span><span class='line'>Created symlink from /etc/systemd/system/app.service.wants/app-component1.service to /etc/systemd/system/app-component1.service.
+</span><span class='line'>Created symlink from /etc/systemd/system/app.service.wants/app-component2.service to /etc/systemd/system/app-component2.service.
+</span><span class='line'>Created symlink from /etc/systemd/system/app.service.wants/app-component3.service to /etc/systemd/system/app-component3.service.
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>To start all the services, you can type:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>sudo systemctl start app
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>The systemd status command should display all the services as <code>active</code>:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>sudo systemctl status app*
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Note that while the component services are marked as <code>running</code>, the pseudo-service <code>app</code> is showed as <code>exited</code>. This is an expected behaviour as the service <code>app</code> is of type <code>oneshot</code>. (I&rsquo;m not showing the output of the systemctl status command here).</p>
+
+<p>Next, let&rsquo;s check the starting order of the services. Systemd logs its messages into the journal. Let&rsquo;s list the recent log entries with:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>journalctl -e
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>In our sample output we can see that the service <code>app-component3</code> was indeed started after the service <code>app-component2</code>:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Dec 05 20:34:57 localhost.localdomain systemd[1]: Starting Application&hellip;
+</span><span class='line'>Dec 05 20:34:57 localhost.localdomain systemd[1]: Started Application.
+</span><span class='line'>Dec 05 20:34:57 localhost.localdomain systemd[1]: Started Application Component 1.
+</span><span class='line'>Dec 05 20:34:57 localhost.localdomain systemd[1]: Starting Application Component 1&hellip;
+</span><span class='line'>Dec 05 20:34:57 localhost.localdomain systemd[1]: Started Application Component 2.
+</span><span class='line'>Dec 05 20:34:57 localhost.localdomain systemd[1]: Starting Application Component 2&hellip;
+</span><span class='line'>Dec 05 20:34:57 localhost.localdomain systemd[1]: Started Application Component 3.
+</span><span class='line'>Dec 05 20:34:57 localhost.localdomain systemd[1]: Starting Application Component 3&hellip;</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Now we&rsquo;re going to check that we can disable any service independently of other services. Let&rsquo;s stop the service <code>app-component2</code> and disable it:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>sudo systemctl stop app-component2
+</span><span class='line'><span class="nv">$ </span>sudo systemctl disable app-component2
+</span><span class='line'>Removed symlink /etc/systemd/system/app.service.wants/app-component2.service.
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>When we stop and start our application the service <code>app-component2</code> will remain disabled.</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>sudo systemctl stop app
+</span><span class='line'><span class="nv">$ </span>sudo systemctl start app
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Unfortunately, I realized that when using the <code>restart</code> command, systemd will enable the service <code>app-component2</code>:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>sudo systemctl restart app
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>The behaviour of the systemd <code>stop</code> command followed by the <code>start</code> command is not consistent with the behaviour of the systemd <code>restart</code> command. As a workaround, you can use the systemd <code>mask</code> command to really disable the application service, for example:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>sudo systemctl mask app-component2
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>This way, the service <code>app-component2</code> remains disabled no matter what.</p>
+
+<h2>Conclusion</h2>
+
+<p>systemd provides a feature-rich service manager. Instead of implementing a home-grown solution you might want to think about using systemd to control your application services. Some of the benefits of opting for systemd are:</p>
+
+<ol>
+<li>systemd is a standard service manager any Linux administrator is familiar with</li>
+<li>systemd is battle tested to the extent your proprietary solution probably cannot be</li>
+<li>You can discover many other useful systemd features which you can employ right away</li>
+</ol>
+
+
+<p>Have fun!</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[RHCSA/RHCE Exam Experience]]></title>
@@ -618,57 +954,6 @@
 </pre></td><td class='code'><pre><code class=''><span class='line'>&lt;a href="http://kubernetes.installer.com:8080/ui">http://kubernetes.installer.com:8080/ui&lt;/a></span></code></pre></td></tr></table></div></figure></p>
 
 <p>Note that you want to replace the <code>kubernetes.installer.com</code> with the name of your Kubernetes installer machine. When accessing the Kubernetes installer machine on port 8080, the request will be forwarded to your Kubernetes master node.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[Bootstrapping a Galera Cluster on RHEL7]]></title>
-    <link href="http://alesnosek.com/blog/2016/01/31/bootstrapping-a-galera-cluster-on-rhel7/"/>
-    <updated>2016-01-31T15:24:55-08:00</updated>
-    <id>http://alesnosek.com/blog/2016/01/31/bootstrapping-a-galera-cluster-on-rhel7</id>
-    <content type="html"><![CDATA[<p>The MariaDB Galera packages provided by the RDO project in their OpenStack repositories don&rsquo;t seem to include a command or script to bootstrap the cluster. Let&rsquo;s look at an alternative way to bring the cluster up.</p>
-
-<!-- more -->
-
-
-<p>RHEL7 comes with the init system <code>systemd</code>. Unfortunately, systemd doesn&rsquo;t provide a way to pass command-line arguments to the unit files. Hence, doing something like this won&rsquo;t work:
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">[</span>root@rhel1 ~<span class="o">]</span><span class="nv">$ </span>systemctl start mariadb <span class="p">&amp;</span>ndash<span class="p">;</span>wsrep_new_cluster
-</span><span class='line'>systemctl: unrecognized option <span class="p">&amp;</span>lsquo<span class="p">;&amp;</span>ndash<span class="p">;</span>wsrep_new_cluster<span class="p">&amp;</span>rsquo<span class="p">;</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Instead of passing command-line arguments, systemd allows for creating <a href="http://0pointer.de/blog/projects/instances.html">multiple instances</a> of the same service where each instance can obtain it&rsquo;s own set of environment variables. The Percona XtraDB Cluster includes the standard and the bootstrap service instance definitions in the RPM package <code>Percona-XtraDB-Cluster-server</code>. To boostrap the Percona cluster, the first node can be started with the following command:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">[</span>root@percona1 ~<span class="o">]</span><span class="nv">$ </span>systemctl start &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#109;&amp;#x61;&amp;#x69;&amp;#x6c;&amp;#x74;&amp;#111;&amp;#58;&amp;#109;&amp;#121;&amp;#115;&amp;#113;&amp;#108;&amp;#x40;&amp;#98;&amp;#x6f;&amp;#111;&amp;#x74;&amp;#115;&amp;#x74;&amp;#x72;&amp;#97;&amp;#x70;&amp;#x2e;&amp;#115;&amp;#101;&amp;#x72;&amp;#x76;&amp;#105;&amp;#99;&amp;#101;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#x6d;&amp;#121;&amp;#x73;&amp;#113;&amp;#x6c;&amp;#x40;&amp;#x62;&amp;#111;&amp;#x6f;&amp;#x74;&amp;#115;&amp;#116;&amp;#x72;&amp;#x61;&amp;#112;&amp;#46;&amp;#115;&amp;#x65;&amp;#x72;&amp;#x76;&amp;#105;&amp;#x63;&amp;#x65;&lt;/a&gt;</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>At the moment, this boostrap service definition is missing in the RDO OpenStack packages. Before a similar <code>mysql@.service</code> script is available in RDO you can start the MariaDB Galera cluster as follows:</p>
-
-<ul>
-<li><p>On the first node, start the MariaDB with the <code>--wsrep-new-cluster</code> to create a new cluster:
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">[</span>root@rhel1 ~<span class="o">]</span><span class="nv">$ </span>/usr/bin/mysqld_safe <span class="p">&amp;</span>ndash<span class="p">;</span>wsrep-new-cluster
-</span></code></pre></td></tr></table></div></figure>
-Let the command run in the foreground.</p></li>
-<li><p>On the remaining cluster nodes start the mariadb service as usual:
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">[</span>root@rhel2 ~<span class="o">]</span><span class="nv">$ </span>systemctl start mariadb
-</span></code></pre></td></tr></table></div></figure></p></li>
-<li><p>After the cluster has been fully formed, stop the mariadb on the first node by sending it a SIGQUIT (press CTRL + \ on the console).</p></li>
-<li><p>On the first node, start the mariadb service via systemd:
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">[</span>root@rhel1 ~<span class="o">]</span><span class="nv">$ </span>systemctl start mariadb
-</span></code></pre></td></tr></table></div></figure></p></li>
-</ul>
-
-
-<p>That&rsquo;s it. You can check the status of each of the cluster nodes by running the following command:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">[</span>root@rhel1 ~<span class="o">]</span><span class="nv">$ </span>mysql -e <span class="p">&amp;</span>ldquo<span class="p">;</span>SHOW GLOBAL STATUS LIKE <span class="p">&amp;</span>lsquo<span class="p">;</span>wsrep%<span class="p">&amp;</span>rsquo<span class="p">;;&amp;</span>rdquo<span class="p">;</span>
-</span></code></pre></td></tr></table></div></figure></p>
 ]]></content>
   </entry>
 
