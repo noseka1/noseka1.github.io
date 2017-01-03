@@ -52,7 +52,7 @@ The output shows my correct local time and the correct time zone (PST) as I'm lo
 
 ## Author date and commit date
 
-In the aforementioned example with the `git log` command I simplified the situation a little bit. There are actually two different timestamps recorded by Git for each commit: the *author date* and the *commit date*. When the commit is created both the timestamps are set to the current time of the machine where the commits where created. The author date denotes the time when the commit was originally made and it never changes. The commit date is updated every time the commit is being modified for example when rebasing or cherry-picking.
+In the aforementioned example with the `git log` command I simplified the situation a little bit. There are actually two different timestamps recorded by Git for each commit: the *author date* and the *commit date*. When the commit is created both the timestamps are set to the current time of the machine where the commit was made. The author date denotes the time when the commit was originally made and it never changes. The commit date is updated every time the commit is being modified for example when rebasing or cherry-picking.
 
 By default `git log` orders the logs according to the commit date, however, the author date is actually displayed in the output. This can easily lead to confusion when there are commits present for which the commit date and the author date actually differ. The parameter `--author-date-order` can be used to order the commits based on the author timestamp:
 
