@@ -164,7 +164,7 @@
 
 <h2>Author date and commit date</h2>
 
-<p>In the aforementioned example with the <code>git log</code> command I simplified the situation a little bit. There are actually two different timestamps recorded by Git for each commit: the <em>author date</em> and the <em>commit date</em>. When the commit is created both the timestamps are set to the current time of the machine where the commits where created. The author date denotes the time when the commit was originally made and it never changes. The commit date is updated every time the commit is being modified for example when rebasing or cherry-picking.</p>
+<p>In the aforementioned example with the <code>git log</code> command I simplified the situation a little bit. There are actually two different timestamps recorded by Git for each commit: the <em>author date</em> and the <em>commit date</em>. When the commit is created both the timestamps are set to the current time of the machine where the commit was made. The author date denotes the time when the commit was originally made and it never changes. The commit date is updated every time the commit is being modified for example when rebasing or cherry-picking.</p>
 
 <p>By default <code>git log</code> orders the logs according to the commit date, however, the author date is actually displayed in the output. This can easily lead to confusion when there are commits present for which the commit date and the author date actually differ. The parameter <code>--author-date-order</code> can be used to order the commits based on the author timestamp:</p>
 
