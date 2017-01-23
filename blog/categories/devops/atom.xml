@@ -4,7 +4,7 @@
   <title><![CDATA[Category: devops | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/devops/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2017-01-02T23:10:01-08:00</updated>
+  <updated>2017-01-22T22:29:07-08:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,63 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[TripleO Installer, Production Ready?]]></title>
+    <link href="http://alesnosek.com/blog/2017/01/15/tripleo-installer-production-ready/"/>
+    <updated>2017-01-15T23:13:32-08:00</updated>
+    <id>http://alesnosek.com/blog/2017/01/15/tripleo-installer-production-ready</id>
+    <content type="html"><![CDATA[<p><a href="https://wiki.openstack.org/wiki/TripleO">TripleO</a> is an OpenStack deployment and management tool we&rsquo;ve been using on the production systems for a while now. As TripleO is an upstream project for the Red Hat OpenStack Platform Director one would expect a decently working tool able to manage large-scale OpenStack deployments. What is our experience with TripleO?</p>
+
+<!-- more -->
+
+
+<h2>Introduction</h2>
+
+<p>Six months have passed since we deployed a private cloud in our company. Our cloud is based on the RDO distribution of OpenStack Mitaka running on top of RHEL 7. I have to say that we&rsquo;re very happy with our cloud-based environment. OpenStack simplified the management of virtual machines and boosted the productivity of our engineering team which enjoys the self-service provided by the OpenStack APIs. Our test automation creates and destroys many virtual machines a day making sure that our software product is tested in a clean and well-defined environment. OpenStack quickly became a critical part of our infrastructure.</p>
+
+<p>Hence we were less pleased when the last week a routine maintenance of the OpenStack cluster turned into an unplanned downtime of two compute nodes. But before we get to the problem itself let me introduce you to the specifics of how we manage the OpenStack cluster.</p>
+
+<h2>Overcloud maintenance is a challenge</h2>
+
+<p>A cloud life-cycle management tool of choice in the RDO distribution is TripleO. I published an article about my initial experience with TripleO a while ago: <a href="/blog/2016/03/27/tripleo-installer-the-good/">TripleO Installer - the Good, the Bad and the Ugly</a>. Overall, the way how TripleO configures the OpenStack cluster is rather less flexible. After spending time on customizing and patching TripleO we decided that there must be an easier way. Eventually, we implemented our own set of Ansible scripts that allow an additional fine-grained configuration of OpenStack nodes. After the <code>openstack overcloud deploy</code> command is complete we run our Ansible scripts to apply an additional configuration to the overcloud. There are two benefits to this approach. First, we don&rsquo;t have to patch TripleO scripts which will be upgraded in the next release of OpenStack. And second, we can keep using Ansible which is our favorite configuration tool.</p>
+
+<p>Having updated the overcloud using TripleO several times we realized that the update procedure is rather unreliable. Some time the TripleO update would fail with an error. Other time the overcloud update would just hang forever. Probably due to the undeterministic behaviour of the Puppet scripts that constitute a substantial part of TripleO we experienced random errors that would not occur again after restarting the update procedure. Situation got worse after we configured the overcloud Keystone to authenticate OpenStack users against Active Directory. The overcloud update would not run into completion anymore due to a defect in the Puppet scripts.</p>
+
+<p>Because fixing the TripleO scripts would require additional effort and the overcloud update would remain a risky operation either way we concluded that we will require a downtime when updating the overcloud. During the downtime period the existing virtual machines are fully operational only the OpenStack services that allow users to create or delete virtual machines or other cloud resources are not available. In the case of our private cloud this was an acceptable albeit not ideal solution.</p>
+
+<p>In summary, we can depict our OpenStack maintenance process like this:</p>
+
+<p><img src="/images/posts/openstack_maintenance_process.svg" width="500" height="700" title="OpenStack Maintenance Process" ></p>
+
+<h2>TripleO installer and the resulting downtime</h2>
+
+<p>On all our OpenStack nodes we use bonded network interfaces to protect the nodes against network failures. In network interface bonding a pair of physical network interfaces is combined into a single logical interface. This provides redundancy by allowing failover from one physical interface to another in the case of failure.</p>
+
+<p>It happened to us that on two of our compute nodes one physical network interface per bond was not working. In this situation the network connection is still functional but not redundant anymore. Unfortunately, for the TripleO installer this was not good enough. Normally, during the overcloud update the <code>os-net-config</code> utility configures the node networking. Due to the single network interface down <code>os-net-config</code> failed to create a correct network configuration. A &ldquo;safe&rdquo; default configuration was generated instead which configured all available network interfaces to use DHCP. Unfortunately, we prefer a static network configuration of overcloud nodes and so no DHCP server was available. Hence this &ldquo;safe&rdquo; default configuration rendered the two compute nodes unreachable including all the virtual machines that were running on top of them!</p>
+
+<p>We were able to fix the networking issue on the first compute node quickly. However, the physical network interfaces on the second compute node were seriously falling apart. Unfortunately:</p>
+
+<p><blockquote><p>The TripleO installer requires that all the overcloud nodes are reachable during the overcloud update.</p></blockquote></p>
+
+<p>In the opposite case the update just stays hanging. It turned out that it was not possible to bring all the network interfaces on the second compute node up but eventually we were able to get at least the management interface working. This allowed us to re-run the overcloud update during which we fooled the TripleO installer to believe that the configuration of the problematic compute node was applied sucessfully. After exceeding the two-hour maintanance window by several hours we were finally done.</p>
+
+<h2>Conclusion</h2>
+
+<p>Here I&rsquo;d like to summarize our six-months long experience with the TripleO installer:</p>
+
+<ol>
+<li>In our experience, the configuration of the OpenStack cluster using only the TripleO installer is not flexible enough. As a workaround, we ended up writing a bunch of Ansible scripts.</li>
+<li>The overcloud update can take a very long time to complete and it can fail because of random errors. Also during the update operation all the overcloud nodes have to be reachable by the TripleO installer. For this reason, I personally cannot imagine using TripleO to manage a cluster with more than one hundred nodes.</li>
+<li>As we experienced, the TripleO installer can easily break a working OpenStack cluster. This is a big no-no for a production system.</li>
+</ol>
+
+
+<p>Overall, I think that the TripleO installer in the Mitaka version of OpenStack would need more work to become production ready. In the meantime, we&rsquo;re continuing with patching of what we have.</p>
+
+<p>In the future, there are other projects that could replace the TripleO installer. I found the <a href="https://github.com/openstack/kolla-ansible">kolla-ansible</a> and <a href="https://github.com/openstack/kolla-kubernetes">kolla-kubernetes</a> rather promising.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[Controlling a Multi-Service Application with systemd]]></title>
@@ -721,239 +778,6 @@
 <h2>Conclusion</h2>
 
 <p>The ansible-container project is definitely very promising and we will keep our eye on it. For now, we&rsquo;re moving forward with generating and running Dockerfiles.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[Deploying Kubernetes on OpenStack using Heat]]></title>
-    <link href="http://alesnosek.com/blog/2016/06/26/deploying-kubernetes-on-openstack-using-heat/"/>
-    <updated>2016-06-26T08:28:11-07:00</updated>
-    <id>http://alesnosek.com/blog/2016/06/26/deploying-kubernetes-on-openstack-using-heat</id>
-    <content type="html"><![CDATA[<p>Want to install Kubernetes on top of OpenStack? There are <a href="http://kubernetes.io/docs/getting-started-guides/">many ways</a> how to install a Kubernetes cluster. The upcoming Kubernetes 1.3 release comes with yet another method called <a href="http://kubernetes.io/docs/getting-started-guides/openstack-heat/">OpenStack Heat</a>. In this article, we&rsquo;re going to explore this deployment method when creating a minimum Kubernetes cluster on top of OpenStack.</p>
-
-<!-- more -->
-
-
-<p>In this tutorial, there are three OpenStack virtual machines involved. The first machine, called the <em>Kubernetes installer</em> machine, is created manually and is used for compiling Kubernetes from source and running the Kubernetes installer. The other two OpenStack machines, <em>Kubernetes master</em> and <em>Kubernetes node</em>, are created during the installation process.</p>
-
-<p>The Kubernetes installer machine and both of the Kubernetes machines run on the CentOS-7-x86_64-GenericCloud-1605 image. You can download this image from the <a href="http://cloud.centos.org/centos/7/images/">CentOS image repository</a>. After I uploaded the CentOS 7 image into OpenStack, it has been assigned ID <code>17e4e783-321c-48c1-9308-6f99d67c5fa6</code> for me.</p>
-
-<h2>Building Kubernetes from source</h2>
-
-<p>First off, let&rsquo;s spin up a Kubernetes installer machine in OpenStack. I recommend using the <code>m1.large</code> flavor that comes with 8 GB of RAM. The compilation of Kubernetes is rather memory intensive.</p>
-
-<p>To ensure consistent and reproducible builds, a Docker container is created at the beginning of the build process and the build proceeds within the container. So, let&rsquo;s quickly setup Docker on our build machine:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo yum install docker
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Configure the Docker service to start on boot and then start it:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo systemctl <span class="nb">enable </span>docker
-</span><span class='line'>sudo systemctl start docker
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>The Kubernetes build scripts expect that the <code>docker</code> command can successfully contact the Docker daemon. In the default CentOS configuration, the <code>sudo docker</code> is required in order to connect to the <code>/var/run/docker.sock</code> socket which is owned by the user root. To overcome the permission problem, let&rsquo;s create a wrapper script that will invoke the <code>docker</code> command using <code>sudo</code>:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>mkdir bin
-</span><span class='line'><span class="nb">echo</span> -e <span class="p">&amp;</span>lsquo<span class="p">;</span><span class="c">#!/bin/bash\nexec sudo /usr/bin/docker &amp;ldquo;$@&amp;rdquo;&amp;rsquo; &gt; bin/docker</span>
-</span><span class='line'>chmod <span class="m">755</span> bin/docker
-</span><span class='line'><span class="nb">export </span><span class="nv">PATH</span><span class="o">=</span>~/bin:<span class="nv">$PATH</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>You can test your changes with the <code>docker info</code> command which should work now.</p>
-
-<p>Kubernetes is written in the Go language and its source code is stored in a Git repository. So, let&rsquo;s install the Go language environment and Git:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo yum install golang git
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Next we&rsquo;ll clone the Kubernetes Git repository and start the build. The <code>quick-release</code> make target creates a build for the amd64 architecture only and doesn&rsquo;t run any tests.</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>git clone &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;https://github.com/kubernetes/kubernetes.git&quot;</span>&gt;https://github.com/kubernetes/kubernetes.git&lt;/a&gt;
-</span><span class='line'><span class="nb">cd </span>kubernetes
-</span><span class='line'>make quick-release
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>After about 15 minutes when the build was successful, you&rsquo;ll find the distribution tarballs <code>kubernetes.tar.gz</code> and <code>kubernetes-salt.tar.gz</code> in the <code>_output/release-tars</code> directory.</p>
-
-<h2>Setting up the OpenStack CLI tools</h2>
-
-<p>The Kubernetes installer uses the OpenStack CLI tools to talk to OpenStack in order to create a Kubernetes cluster. Before you can install the OpenStack CLI tools on CentOS 7, you have to enable the OpenStack Mitaka RPM repository:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo yum install centos-release-openstack-mitaka
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Install the OpenStack CLI tools that are used by the Kubernetes installer when creating a cluster with:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo yum install python-openstackclient python-swiftclient python-glanceclient python-novaclient python-heatclient
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Next, you have to obtain your OpenStack <code>openrc.sh</code> file and source it into your environment:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>. openrc.sh
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>You should be able to talk to OpenStack now. For example, check if you can list the available OpenStack networks with:
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>openstack network list
-</span></code></pre></td></tr></table></div></figure></p>
-
-<h2>Configuring the Kubernetes installer</h2>
-
-<p>In this section, we&rsquo;re going to more or less follow the instructions found in the chapter <a href="http://kubernetes.io/docs/getting-started-guides/openstack-heat/">OpenStack Heat</a> of the Kubernetes documentation.</p>
-
-<p>When deploying the Kubernetes cluster, the installer executes the following steps that you can find in <code>cluster/openstack-heat/util.sh</code>:</p>
-
-<ul>
-<li>Upload the distribution tarballs <code>kubernetes.tar.gz</code> and <code>kubernetes-salt.tar.gz</code> into the <code>kubernetes</code> container in Swift</li>
-<li>Upload the virtual machine image for the Kubernetes VMs into Glance</li>
-<li>Add the user&rsquo;s keypair into Nova</li>
-<li>Run a Heat script in order to create the Kubernetes VMs and put them on a newly created private network. Create a router connecting the private network with an external network.</li>
-<li>At the first boot, the Kubernetes VMs download the distribution tarballs from Swift and install the Kubernetes software using Salt</li>
-</ul>
-
-
-<p>Let&rsquo;s create an <code>openstack-heat.sh</code> file with the configuration values for the Kubernetes installer:
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nb">export </span><span class="nv">KUBERNETES_PROVIDER</span><span class="o">=</span>openstack-heat
-</span><span class='line'><span class="nb">export </span><span class="nv">STACK_NAME</span><span class="o">=</span>kubernetes
-</span><span class='line'><span class="nb">export </span><span class="nv">KUBERNETES_KEYPAIR_NAME</span><span class="o">=</span>mykeypair
-</span><span class='line'><span class="nb">export </span><span class="nv">NUMBER_OF_MINIONS</span><span class="o">=</span>1
-</span><span class='line'><span class="nb">export </span><span class="nv">MAX_NUMBER_OF_MINIONS</span><span class="o">=</span>1
-</span><span class='line'><span class="nb">export </span><span class="nv">EXTERNAL_NETWORK</span><span class="o">=</span>gateway
-</span><span class='line'><span class="nb">export </span><span class="nv">CREATE_IMAGE</span><span class="o">=</span><span class="nb">false</span>
-</span><span class='line'><span class="nb">export </span><span class="nv">DOWNLOAD_IMAGE</span><span class="o">=</span><span class="nb">false</span>
-</span><span class='line'><span class="nb">export </span><span class="nv">IMAGE_ID</span><span class="o">=</span>17e4e783-321c-48c1-9308-6f99d67c5fa6
-</span><span class='line'><span class="nb">export </span><span class="nv">DNS_SERVER</span><span class="o">=</span>10.0.0.10
-</span><span class='line'><span class="nb">export </span><span class="nv">SWIFT_SERVER_URL</span><span class="o">=</span>&lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;https://openstack.localdomain:13808/swift/v1&quot;</span>&gt;https://openstack.localdomain:13808/swift/v1&lt;/a&gt;
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>The above configuration will create exactly one Kubernetes master and one Kubernetes node. It will inject the keypair called <code>mykeypair</code> into both of them. Note that you have to ensure that the keypair <code>mykeypair</code> exists in Nova before proceeding. You probably want to change the name of the external network to a network available in your OpenStack. We&rsquo;re going to use the same CentOS 7 image for both of our Kubernetes VMs. This CentOS image has already been uploaded into OpenStack and in my case it was assigned ID <code>17e4e783-321c-48c1-9308-6f99d67c5fa6</code>. You also want to change the IP address of the DNS server to something that suits your environment. The Swift server URL is the public endpoint of your Swift server that you can obtain from the output of the command <code>openstack catalog show object-store</code>.</p>
-
-<p>When your configuration is ready, you can source it into your environment:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>. openstack-heat.sh
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Next, in my environment I had a problem where the IP range of the private network created by Kubernetes collided with the existing corporate network in my company. I had to directly edit the file <code>cluster/openstack-heat/kubernetes-heat/kubecluster.yaml</code> to change the <code>10.0.0.0/24</code> CIDR to something like <code>10.123.0.0/24</code>. If you don&rsquo;t have this problem you can safely use the default settings.</p>
-
-<p>The Kubernetes cluster can leverage the underlying OpenStack cloud to attach existing Cinder volumes to the Kubernetes pods and to create external loadbalancers. For this to work, Kubernetes has to know how to connect to OpenStack APIs. With regard to the external loadbalancers, we also need to tell Kubernetes what Neutron subnet the loadbalancer&rsquo;s VIP should be placed on.</p>
-
-<p>The OpenStack configuration can be found in the <em>cloud-config</em> script <code>cluster/openstack-heat/kubernetes-heat/fragments/configure-salt.yaml</code>. You can see that this script will create a configuration file <code>/srv/kubernetes/openstack.conf</code> on the Kubernetes machine which contains the OpenStack settings. In my case, I changed the original block:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>[Global]
-</span><span class='line'>auth-url=$OS_AUTH_URL
-</span><span class='line'>username=$OS_USERNAME
-</span><span class='line'>password=$OS_PASSWORD
-</span><span class='line'>region=$OS_REGION_NAME
-</span><span class='line'>tenant-id=$OS_TENANT_ID</span></code></pre></td></tr></table></div></figure></p>
-
-<p>to read:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>[Global]
-</span><span class='line'>auth-url=$OS_AUTH_URL
-</span><span class='line'>username=$OS_USERNAME
-</span><span class='line'>password=$OS_PASSWORD
-</span><span class='line'>region=$OS_REGION_NAME
-</span><span class='line'>tenant-id=$OS_TENANT_ID
-</span><span class='line'>domain-name=MyDomain # Keystone V3 domain
-</span><span class='line'>[LoadBalancer]
-</span><span class='line'>lb-version=v1
-</span><span class='line'>subnet-id=73f8eb91-90cf-42f4-85d0-dcff44077313</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Besides adding the <code>LoadBalancer</code> section, I also appended the <code>domain-name</code> option to the end of the <code>Global</code> section, as in my OpenStack environment I want to authenticate against a non-default Keystone V3 domain.</p>
-
-<h2>Installing the Kubernetes cluster</h2>
-
-<p>After you&rsquo;ve sourced both the <code>openrc.sh</code> and <code>openstack-heat.sh</code> environment settings, you can kick off the installation of the Kubernetes cluster with:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>./cluster/kube-up.sh
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>After about 25 minutes, you should have a Kubernetes cluster up and running. You can check the status of the Kubernetes pods with the command:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>./cluster/kubectl.sh get pods <span class="p">&amp;</span>ndash<span class="p">;</span>namespace kube-system
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>All pods should be running. The network topology of the Kubernetes cluster as displayed by Horizon:</p>
-
-<p><img class="center" src="/images/posts/kube.png"></p>
-
-<h2>Accessing the Kubernetes cluster</h2>
-
-<p><strong> Update 9/5/2016 </strong></p>
-
-<p>At first, we will copy the <code>kubectl</code> client binary from the Kubernetes installer machine onto the remote host from where we are going to access our Kubernetes cluster:
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>scp ./_output/release-stage/client/linux-amd64/kubernetes/client/bin/kubectl user@remote.host.com:
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Remember to replace the <code>remote.host.com</code> with the name of your remote machine.</p>
-
-<p>Next, we&rsquo;re going to start a kubectl proxy to allow access to Kubernetes APIs and the web UI from the remote host. The proxy can be brought up directly on the Kubernetes installer machine using the command:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>./cluster/kubectl.sh proxy <span class="p">&amp;</span>ndash<span class="p">;</span><span class="nv">address</span><span class="o">=</span>0.0.0.0 <span class="p">&amp;</span>ndash<span class="p">;</span><span class="nv">port</span><span class="o">=</span><span class="m">8080</span> <span class="p">&amp;</span>ndash<span class="p">;</span>accept-hosts<span class="o">=</span>.*
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>The proxy listens on port 8080 on all network interfaces and accepts connections from remote hosts with any IP address. This configuration is very unsecure but is good enough for our test environment. If your Kubernetes installer machine runs on the cloud, you might want to modify the security group rules to provide access to port 8080.</p>
-
-<p>Now, we can access the Kubernetes APIs from the remote machine using the command:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>./kubectl <span class="p">&amp;</span>ndash<span class="p">;</span>server &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;http://kubernetes.installer.com:8080&quot;</span>&gt;http://kubernetes.installer.com:8080&lt;/a&gt; cluster-info
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>The web UI of your Kubernetes cluster should be available at the URL:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;a href="http://kubernetes.installer.com:8080/ui">http://kubernetes.installer.com:8080/ui&lt;/a></span></code></pre></td></tr></table></div></figure></p>
-
-<p>Note that you want to replace the <code>kubernetes.installer.com</code> with the name of your Kubernetes installer machine. When accessing the Kubernetes installer machine on port 8080, the request will be forwarded to your Kubernetes master node.</p>
 ]]></content>
   </entry>
 

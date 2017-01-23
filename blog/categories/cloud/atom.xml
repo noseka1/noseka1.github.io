@@ -4,7 +4,7 @@
   <title><![CDATA[Category: cloud | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/cloud/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2017-01-02T23:10:01-08:00</updated>
+  <updated>2017-01-22T22:29:07-08:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,63 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[TripleO Installer, Production Ready?]]></title>
+    <link href="http://alesnosek.com/blog/2017/01/15/tripleo-installer-production-ready/"/>
+    <updated>2017-01-15T23:13:32-08:00</updated>
+    <id>http://alesnosek.com/blog/2017/01/15/tripleo-installer-production-ready</id>
+    <content type="html"><![CDATA[<p><a href="https://wiki.openstack.org/wiki/TripleO">TripleO</a> is an OpenStack deployment and management tool we&rsquo;ve been using on the production systems for a while now. As TripleO is an upstream project for the Red Hat OpenStack Platform Director one would expect a decently working tool able to manage large-scale OpenStack deployments. What is our experience with TripleO?</p>
+
+<!-- more -->
+
+
+<h2>Introduction</h2>
+
+<p>Six months have passed since we deployed a private cloud in our company. Our cloud is based on the RDO distribution of OpenStack Mitaka running on top of RHEL 7. I have to say that we&rsquo;re very happy with our cloud-based environment. OpenStack simplified the management of virtual machines and boosted the productivity of our engineering team which enjoys the self-service provided by the OpenStack APIs. Our test automation creates and destroys many virtual machines a day making sure that our software product is tested in a clean and well-defined environment. OpenStack quickly became a critical part of our infrastructure.</p>
+
+<p>Hence we were less pleased when the last week a routine maintenance of the OpenStack cluster turned into an unplanned downtime of two compute nodes. But before we get to the problem itself let me introduce you to the specifics of how we manage the OpenStack cluster.</p>
+
+<h2>Overcloud maintenance is a challenge</h2>
+
+<p>A cloud life-cycle management tool of choice in the RDO distribution is TripleO. I published an article about my initial experience with TripleO a while ago: <a href="/blog/2016/03/27/tripleo-installer-the-good/">TripleO Installer - the Good, the Bad and the Ugly</a>. Overall, the way how TripleO configures the OpenStack cluster is rather less flexible. After spending time on customizing and patching TripleO we decided that there must be an easier way. Eventually, we implemented our own set of Ansible scripts that allow an additional fine-grained configuration of OpenStack nodes. After the <code>openstack overcloud deploy</code> command is complete we run our Ansible scripts to apply an additional configuration to the overcloud. There are two benefits to this approach. First, we don&rsquo;t have to patch TripleO scripts which will be upgraded in the next release of OpenStack. And second, we can keep using Ansible which is our favorite configuration tool.</p>
+
+<p>Having updated the overcloud using TripleO several times we realized that the update procedure is rather unreliable. Some time the TripleO update would fail with an error. Other time the overcloud update would just hang forever. Probably due to the undeterministic behaviour of the Puppet scripts that constitute a substantial part of TripleO we experienced random errors that would not occur again after restarting the update procedure. Situation got worse after we configured the overcloud Keystone to authenticate OpenStack users against Active Directory. The overcloud update would not run into completion anymore due to a defect in the Puppet scripts.</p>
+
+<p>Because fixing the TripleO scripts would require additional effort and the overcloud update would remain a risky operation either way we concluded that we will require a downtime when updating the overcloud. During the downtime period the existing virtual machines are fully operational only the OpenStack services that allow users to create or delete virtual machines or other cloud resources are not available. In the case of our private cloud this was an acceptable albeit not ideal solution.</p>
+
+<p>In summary, we can depict our OpenStack maintenance process like this:</p>
+
+<p><img src="/images/posts/openstack_maintenance_process.svg" width="500" height="700" title="OpenStack Maintenance Process" ></p>
+
+<h2>TripleO installer and the resulting downtime</h2>
+
+<p>On all our OpenStack nodes we use bonded network interfaces to protect the nodes against network failures. In network interface bonding a pair of physical network interfaces is combined into a single logical interface. This provides redundancy by allowing failover from one physical interface to another in the case of failure.</p>
+
+<p>It happened to us that on two of our compute nodes one physical network interface per bond was not working. In this situation the network connection is still functional but not redundant anymore. Unfortunately, for the TripleO installer this was not good enough. Normally, during the overcloud update the <code>os-net-config</code> utility configures the node networking. Due to the single network interface down <code>os-net-config</code> failed to create a correct network configuration. A &ldquo;safe&rdquo; default configuration was generated instead which configured all available network interfaces to use DHCP. Unfortunately, we prefer a static network configuration of overcloud nodes and so no DHCP server was available. Hence this &ldquo;safe&rdquo; default configuration rendered the two compute nodes unreachable including all the virtual machines that were running on top of them!</p>
+
+<p>We were able to fix the networking issue on the first compute node quickly. However, the physical network interfaces on the second compute node were seriously falling apart. Unfortunately:</p>
+
+<p><blockquote><p>The TripleO installer requires that all the overcloud nodes are reachable during the overcloud update.</p></blockquote></p>
+
+<p>In the opposite case the update just stays hanging. It turned out that it was not possible to bring all the network interfaces on the second compute node up but eventually we were able to get at least the management interface working. This allowed us to re-run the overcloud update during which we fooled the TripleO installer to believe that the configuration of the problematic compute node was applied sucessfully. After exceeding the two-hour maintanance window by several hours we were finally done.</p>
+
+<h2>Conclusion</h2>
+
+<p>Here I&rsquo;d like to summarize our six-months long experience with the TripleO installer:</p>
+
+<ol>
+<li>In our experience, the configuration of the OpenStack cluster using only the TripleO installer is not flexible enough. As a workaround, we ended up writing a bunch of Ansible scripts.</li>
+<li>The overcloud update can take a very long time to complete and it can fail because of random errors. Also during the update operation all the overcloud nodes have to be reachable by the TripleO installer. For this reason, I personally cannot imagine using TripleO to manage a cluster with more than one hundred nodes.</li>
+<li>As we experienced, the TripleO installer can easily break a working OpenStack cluster. This is a big no-no for a production system.</li>
+</ol>
+
+
+<p>Overall, I think that the TripleO installer in the Mitaka version of OpenStack would need more work to become production ready. In the meantime, we&rsquo;re continuing with patching of what we have.</p>
+
+<p>In the future, there are other projects that could replace the TripleO installer. I found the <a href="https://github.com/openstack/kolla-ansible">kolla-ansible</a> and <a href="https://github.com/openstack/kolla-kubernetes">kolla-kubernetes</a> rather promising.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[Deploying Kubernetes on OpenStack using Heat]]></title>
@@ -450,7 +507,7 @@
 <p>Instead of passing command-line arguments, systemd allows for creating <a href="http://0pointer.de/blog/projects/instances.html">multiple instances</a> of the same service where each instance can obtain it&rsquo;s own set of environment variables. The Percona XtraDB Cluster includes the standard and the bootstrap service instance definitions in the RPM package <code>Percona-XtraDB-Cluster-server</code>. To boostrap the Percona cluster, the first node can be started with the following command:</p>
 
 <p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">[</span>root@percona1 ~<span class="o">]</span><span class="nv">$ </span>systemctl start &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#109;&amp;#x61;&amp;#105;&amp;#108;&amp;#x74;&amp;#111;&amp;#58;&amp;#x6d;&amp;#121;&amp;#x73;&amp;#113;&amp;#x6c;&amp;#x40;&amp;#98;&amp;#x6f;&amp;#111;&amp;#x74;&amp;#x73;&amp;#116;&amp;#114;&amp;#x61;&amp;#x70;&amp;#46;&amp;#x73;&amp;#101;&amp;#x72;&amp;#x76;&amp;#x69;&amp;#99;&amp;#101;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#109;&amp;#121;&amp;#x73;&amp;#113;&amp;#108;&amp;#64;&amp;#98;&amp;#x6f;&amp;#x6f;&amp;#x74;&amp;#115;&amp;#116;&amp;#114;&amp;#x61;&amp;#112;&amp;#x2e;&amp;#115;&amp;#x65;&amp;#x72;&amp;#118;&amp;#x69;&amp;#99;&amp;#x65;&lt;/a&gt;</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">[</span>root@percona1 ~<span class="o">]</span><span class="nv">$ </span>systemctl start &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#x6d;&amp;#97;&amp;#x69;&amp;#x6c;&amp;#x74;&amp;#x6f;&amp;#58;&amp;#109;&amp;#121;&amp;#115;&amp;#113;&amp;#108;&amp;#x40;&amp;#x62;&amp;#111;&amp;#x6f;&amp;#x74;&amp;#x73;&amp;#x74;&amp;#114;&amp;#97;&amp;#x70;&amp;#x2e;&amp;#x73;&amp;#x65;&amp;#114;&amp;#118;&amp;#x69;&amp;#x63;&amp;#x65;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#109;&amp;#x79;&amp;#x73;&amp;#x71;&amp;#108;&amp;#x40;&amp;#98;&amp;#x6f;&amp;#x6f;&amp;#116;&amp;#x73;&amp;#x74;&amp;#x72;&amp;#97;&amp;#x70;&amp;#x2e;&amp;#x73;&amp;#101;&amp;#114;&amp;#x76;&amp;#105;&amp;#99;&amp;#101;&lt;/a&gt;</span>
 </span></code></pre></td></tr></table></div></figure></p>
 
 <p>At the moment, this boostrap service definition is missing in the RDO OpenStack packages. Before a similar <code>mysql@.service</code> script is available in RDO you can start the MariaDB Galera cluster as follows:</p>
@@ -478,57 +535,6 @@ Let the command run in the foreground.</p></li>
 <p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">[</span>root@rhel1 ~<span class="o">]</span><span class="nv">$ </span>mysql -e <span class="p">&amp;</span>ldquo<span class="p">;</span>SHOW GLOBAL STATUS LIKE <span class="p">&amp;</span>lsquo<span class="p">;</span>wsrep%<span class="p">&amp;</span>rsquo<span class="p">;;&amp;</span>rdquo<span class="p">;</span>
 </span></code></pre></td></tr></table></div></figure></p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[Monitoring OpenStack Cluster with Icinga]]></title>
-    <link href="http://alesnosek.com/blog/2015/11/30/monitoring-openstack-cluster-with-icinga/"/>
-    <updated>2015-11-30T21:13:33-08:00</updated>
-    <id>http://alesnosek.com/blog/2015/11/30/monitoring-openstack-cluster-with-icinga</id>
-    <content type="html"><![CDATA[<p>If you don&rsquo;t monitor it, it&rsquo;s not in production! To get an OpenStack cloud ready for production, monitoring is a must. Let&rsquo;s take a look at two projects providing Nagios/Icinga plugins for checking the health of OpenStack services.</p>
-
-<!-- more -->
-
-
-<p>First, a few words about <a href="https://www.icinga.org/" title="Icinga">Icinga</a>. I started using Icinga 2 only recently and I&rsquo;m very pleased with this flexible and well-documented software. I&rsquo;ve listened to a German presentation about Icinga where they said that Icinga was not that widely spread in the US as it was the case in Europe. Dear Icinga team, you have one more happy user in the US now. Your software just works and your web GUI is beautiful.</p>
-
-<p>I found two very useful projects for monitoring the OpenStack APIs both hosted on GitHub:</p>
-
-<ul>
-<li><a href="https://github.com/cirrax/openstack-nagios-plugins">OpenStack Nagios Plugins</a></li>
-<li><a href="https://github.com/openstack/monitoring-for-openstack">Monitoring for OpenStack</a></li>
-</ul>
-
-
-<h2>OpenStack Nagios Plugins</h2>
-
-<p><a href="https://github.com/cirrax/openstack-nagios-plugins">OpenStack Nagios Plugins</a> provides a collection of checks for the OpenStack services Nova, Neutron, Cinder, Keystone and Ceilometer. Available plugins worked right away with my OpenStack Liberty cluster. The Nova Hypervisor check monitors the &ldquo;virtual&rdquo; CPU and memory usage across your compute nodes. The name virtual CPU is a little misleading here. In reality, the number of physical cores is monitored as the Nova API actually reports the number of physical cores. I stick to the OpenStack default settings that overcommit the CPUs by factor of 16 and the memory by factor of 1.5. To accommodate this fact, I changed the warning and critical ranges for the check_nova-hypervisors plugin as follows:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>check_nova-hypervisors <span class="p">&amp;</span>ndash<span class="p">;</span>warn_memory_percent 0:135 <span class="p">&amp;</span>ndash<span class="p">;</span>critical_memory_percent 0:142 <span class="p">&amp;</span>ndash<span class="p">;</span>warn_vcpus_percent 0:1440 <span class="p">&amp;</span>ndash<span class="p">;</span>critical_vcpus_percent 0:1520
-</span></code></pre></td></tr></table></div></figure></p>
-
-<h2>Monitoring for OpenStack</h2>
-
-<p>Plugins coming with the <a href="(https://github.com/openstack/monitoring-for-openstack">Monitoring for OpenStack</a> project provide deeper checks of OpenStack functionality. I liked the following ones the best:</p>
-
-<ul>
-<li><code>check_nova_instance</code>: Creates an instance on your cloud and deletes it again as soon as it is active. It&rsquo;s recommended to use a small disk image like cirros for this check.</li>
-<li><code>cinder_volume</code>: Allocates a volume of size 1GB and deletes it again.</li>
-<li><code>neutron_floating_ip</code>: Tries to allocate a floating IP. You have to configure the network where to allocate the IP from.</li>
-<li><code>glance_upload</code>: Uploads 1MB of data as an image into Glance.</li>
-<li><code>check_horizon_login</code>: Given a user name and a password the plugin will log into the Horizon dashboard.</li>
-</ul>
-
-
-<p>Some of the plugins didn&rsquo;t work for me due to incompatibilities with the Liberty client APIs. If you encounter the same problem you can try out my fixed version of the plugins on GitHub <a href="https://github.com/noseka1/monitoring-for-openstack">here</a>.</p>
-
-<h2>Icinga 2 Screenshot</h2>
-
-<p>And this is how the OpenStack APIs service group looks in Icinga Web 2. Happy monitoring!</p>
-
-<p><img class="center" src="/images/posts/osmon.png"></p>
 ]]></content>
   </entry>
 
