@@ -1,0 +1,304 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>An Introduction to Building on OpenShift - Ales Nosek - The Software Practitioner</title>
+  <meta name="author" content="Ales Nosek">
+
+
+  <meta name="description" content="For years a Jenkins server has been driving the software builds in our company. Some time ago, we deployed an OpenShift cluster. The primary purpose &hellip;">
+
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <link rel="canonical" href="http://alesnosek.com/blog/2017/03/19/an-introduction-to-building-on-openshift/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Ales Nosek - The Software Practitioner" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-61965164-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <img src="/images/computers.png" align="right">
+  <h1><a href="/">Ales Nosek - The Software Practitioner</a></h1>
+
+    <h2>Practicing to make software perfect.</h2>
+
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+
+</ul>
+
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="alesnosek.com">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+
+  <header>
+
+      <h1 class="entry-title">An Introduction to Building on OpenShift</h1>
+
+
+      <p class="meta">
+
+
+
+
+
+<time class='entry-date' datetime='2017-03-19T10:48:32-07:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2017</span></span> <span class='time'>10:48 am</span></time>
+
+      </p>
+
+  </header>
+
+
+<div class="entry-content"><p>For years a Jenkins server has been driving the software builds in our company. Some time ago, we deployed an OpenShift cluster. The primary purpose of our OpenShift cluster was to support the efforts of dockerizing our software products. However, as OpeShift is a complete PaaS solution we started thinking about leveraging OpenShift for software builds, too. In this blog post I&rsquo;d like to share what we learned about building on OpenShift so far.</p>
+
+<!-- more -->
+
+
+<p>Before we begin talking about OpenShift, let&rsquo;s briefly discuss our current build environment. In the center of our build environment there is a Jenkins server. In Jenkins, we maintain numerous jobs to build our software, run automated tests, drive various devops tasks and much more. Jenkins is our central place from where the automated processes are started and monitored. As Jenkins is greatly extensible via plugins, we were able to easily integrate Jenkins with other tools, too.</p>
+
+<h2>Building the OpenShift way</h2>
+
+<p><img class="right" src="/images/posts/openshift_logo.gif" width="200" height="200"></p>
+
+<p>In OpenShift, one has to create a <em>BuildConfig</em> resource to describe the <a href="https://docs.openshift.org/latest/dev_guide/builds/index.html">build process</a>. The BuildConfig resource in OpenShift is roughly equivalent to a job definition in Jenkins. When creating a BuildConfig resource, a build strategy has to be chosen. The build strategy resembles a job type in Jenkins. Currently, there are four build strategies available in OpenShift:</p>
+
+<p><strong>Source-to-Image strategy</strong>. Allows you to create a container image starting from the application source code. During the build process, the source code is downloaded into a container and compiled there. The finished binary artifacts are installed into the container. The complete container image is then pushed into the Docker registry from where it can be deployed as an application on OpenShift.</p>
+
+<p><strong>Docker strategy</strong>. The input of the build process is a Dockerfile. OpenShift will execute a Docker build using the provided Dockerfile and upload the resulting image into the Docker registry from where it can be deployed.</p>
+
+<p><strong>Custom strategy</strong>. Custom strategy could be compared to a free style job in Jenkins. The outcome of the build doesn&rsquo;t have to be a Docker image. Instead, the custom strategy allows you to create JARs, tarballs, RPMs or other artifacts which you have to upload to the repository of your choice by the end of the build.</p>
+
+<p><strong>Pipeline strategy</strong>. In OpenShift 3.3, a new build strategy was introduced called <em>Pipeline</em>. This strategy doesn&rsquo;t really build anything but enables you to implement workflows on OpenShift. The great article <a href="https://blog.openshift.com/openshift-3-3-pipelines-deep-dive/">OpenShift 3.3 Pipelines - Deep Dive</a> describes how the Pipeline strategy works. In summary, you can create a BuildConfig in OpenShift that contains a definition of a Jenkins pipeline (using the Groovy DSL language). Based on this definition, OpenShift will create a pipeline job in Jenkins and execute it. Among other things, the Jenkins job can trigger a build on OpenShift, verify that the build succeeded and trigger a deployment. This approach allows OpenShift to leverage Jenkins pipelines to orchestrate a more involved CI/CD workflow possibly encompassing a conditional execution of multiple OpenShift builds and deployments.</p>
+
+<p>An alternative to using the Pipeline strategy in OpenShift would be defining the pipeline job directly in Jenkins. With the <a href="https://plugins.jenkins.io/openshift-pipeline">OpenShift pipeline plugin</a> installed, one can trigger OpenShift operations from within the pipeline job.</p>
+
+<p>As I didn&rsquo;t really work with the OpenShift strategies much I&rsquo;m not going to elaborate any further. Instead, in the next section, I&rsquo;m going to mention two Jenkins plugins that we are successfully using to run builds on OpenShift.</p>
+
+<h2>Builds on Openshift driven by Jenkins</h2>
+
+<p><img class="right" src="/images/posts/jenkins_logo.png" width="200" height="200"></p>
+
+<p>There are two Jenkins plugins that can leverage OpenShift containers as build slaves:</p>
+
+<p><strong><a href="https://wiki.jenkins-ci.org/display/JENKINS/Swarm+Plugin">Swarm plugin</a></strong>. The Swarm plugin consists of two parts: a Jenkins plugin and a CLI client. Jenkins plugin exposes an endpoint where the CLI clients can register themselves. A CLI client acts as a Jenkins slave. It runs indefinitely within a Docker container and provides Jenkins with a configurable number of build executors. While the plugin is called a Swarm plugin it doesn&rsquo;t really need any Swarm orchestration. It can happily run in a Docker container on OpenShift.</p>
+
+<p><strong><a href="https://wiki.jenkins-ci.org/display/JENKINS/Kubernetes+Plugin">Kubernetes plugin</a></strong>. Works perfectly with OpenShift. In contrast to the Swarm plugin, Kubernetes plugin spins up a new Docker slave for each job on the fly and destroys it as soon as the job has finished running.</p>
+
+<p>Because the Jenkins workspace is created inside of the container, it will be deleted as soon as the Docker container is terminated. If you&rsquo;d like to reuse the same workspace for subsequent builds, I&rsquo;d like to offer you two options how to create persistent workspaces:</p>
+
+<ol>
+<li><p>You can attach a volume of type <em>hostPath</em> to your slave pods and place your workspace on that volume. At the same time you have to speficy a <em>nodeSelector</em> on your slave pods that would instruct OpenShift to schedule all your slave pods onto the same OpenShift node. With this approach the Jenkins slave can access its workspace on the local storage. Unfortunately, all the slaves that need to share a workspace have to run on the same OpenShift node which can get overloaded.</p></li>
+<li><p>You can attach a volume with the <em>ReadWriteMany</em> capability to your slave pods and place your workspace on this volume. Eligible volume types are NFS, GlusterFS or CephFS. Using this method a Jenkins slave running on any node in the cluster can access the shared workspace. The downside is that the access is over the network and hence slower than an access to the local storage.</p></li>
+</ol>
+
+
+<h2>Conclusion</h2>
+
+<p>In the this blog post we reviewed different approaches how to leverage an OpenShift cluster for software builds. On one hand, builds can be defined within OpenShift by creating the BuildConfig resources. This approach might be less flexible than using a full-fledged build server like Jenkins, however, one can be sure that the builds will work on any OpenShift cluster including the public cloud. On the other hand, we have seen that in an environment where Jenkins is already the king, we can leverage the Swarm or Kubernetes plugin to allow Jenkins to schedule build jobs on OpenShift.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+
+
+
+<span class="byline author vcard">Posted by <span class="fn">Ales Nosek</span></span>
+
+
+
+
+
+
+<time class='entry-date' datetime='2017-03-19T10:48:32-07:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2017</span></span> <span class='time'>10:48 am</span></time>
+
+
+<span class="categories">
+
+    <a class='category' href='/blog/categories/cloud/'>cloud</a>, <a class='category' href='/blog/categories/devops/'>devops</a>
+
+</span>
+
+
+    </p>
+
+      <div class="sharing">
+
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://alesnosek.com/blog/2017/03/19/an-introduction-to-building-on-openshift/" data-via="" data-counturl="http://alesnosek.com/blog/2017/03/19/an-introduction-to-building-on-openshift/" >Tweet</a>
+
+
+  <div class="g-plusone" data-size="medium"></div>
+
+
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+
+</div>
+
+
+    <p class="meta">
+
+        <a class="basic-alignment left" href="/blog/2017/02/14/accessing-kubernetes-pods-from-outside-of-the-cluster/" title="Previous Post: Accessing Kubernetes Pods from Outside of the Cluster">&laquo; Accessing Kubernetes Pods from Outside of the Cluster</a>
+
+
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+
+      <li class="post">
+        <a href="/blog/2017/03/19/an-introduction-to-building-on-openshift/">An Introduction to Building on OpenShift</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2017/02/14/accessing-kubernetes-pods-from-outside-of-the-cluster/">Accessing Kubernetes Pods from Outside of the Cluster</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2017/01/15/tripleo-installer-production-ready/">TripleO Installer, Production Ready?</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2017/01/02/git-getting-the-timing-right/">Git - Getting the Timing Right</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2016/12/04/controlling-a-multi-service-application-with-systemd/">Controlling a Multi-Service Application with systemd</a>
+      </li>
+
+  </ul>
+</section>
+
+
+
+
+
+
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2017 - Ales Nosek -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'alesnosekcom';
+
+
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://alesnosek.com/blog/2017/03/19/an-introduction-to-building-on-openshift/';
+        var disqus_url = 'http://alesnosek.com/blog/2017/03/19/an-introduction-to-building-on-openshift/';
+        var disqus_script = 'embed.js';
+
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

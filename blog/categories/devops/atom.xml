@@ -4,7 +4,7 @@
   <title><![CDATA[Category: devops | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/devops/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2017-02-25T09:57:10-08:00</updated>
+  <updated>2017-03-20T21:21:52-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,60 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[An Introduction to Building on OpenShift]]></title>
+    <link href="http://alesnosek.com/blog/2017/03/19/an-introduction-to-building-on-openshift/"/>
+    <updated>2017-03-19T10:48:32-07:00</updated>
+    <id>http://alesnosek.com/blog/2017/03/19/an-introduction-to-building-on-openshift</id>
+    <content type="html"><![CDATA[<p>For years a Jenkins server has been driving the software builds in our company. Some time ago, we deployed an OpenShift cluster. The primary purpose of our OpenShift cluster was to support the efforts of dockerizing our software products. However, as OpeShift is a complete PaaS solution we started thinking about leveraging OpenShift for software builds, too. In this blog post I&rsquo;d like to share what we learned about building on OpenShift so far.</p>
+
+<!-- more -->
+
+
+<p>Before we begin talking about OpenShift, let&rsquo;s briefly discuss our current build environment. In the center of our build environment there is a Jenkins server. In Jenkins, we maintain numerous jobs to build our software, run automated tests, drive various devops tasks and much more. Jenkins is our central place from where the automated processes are started and monitored. As Jenkins is greatly extensible via plugins, we were able to easily integrate Jenkins with other tools, too.</p>
+
+<h2>Building the OpenShift way</h2>
+
+<p><img class="right" src="/images/posts/openshift_logo.gif" width="200" height="200"></p>
+
+<p>In OpenShift, one has to create a <em>BuildConfig</em> resource to describe the <a href="https://docs.openshift.org/latest/dev_guide/builds/index.html">build process</a>. The BuildConfig resource in OpenShift is roughly equivalent to a job definition in Jenkins. When creating a BuildConfig resource, a build strategy has to be chosen. The build strategy resembles a job type in Jenkins. Currently, there are four build strategies available in OpenShift:</p>
+
+<p><strong>Source-to-Image strategy</strong>. Allows you to create a container image starting from the application source code. During the build process, the source code is downloaded into a container and compiled there. The finished binary artifacts are installed into the container. The complete container image is then pushed into the Docker registry from where it can be deployed as an application on OpenShift.</p>
+
+<p><strong>Docker strategy</strong>. The input of the build process is a Dockerfile. OpenShift will execute a Docker build using the provided Dockerfile and upload the resulting image into the Docker registry from where it can be deployed.</p>
+
+<p><strong>Custom strategy</strong>. Custom strategy could be compared to a free style job in Jenkins. The outcome of the build doesn&rsquo;t have to be a Docker image. Instead, the custom strategy allows you to create JARs, tarballs, RPMs or other artifacts which you have to upload to the repository of your choice by the end of the build.</p>
+
+<p><strong>Pipeline strategy</strong>. In OpenShift 3.3, a new build strategy was introduced called <em>Pipeline</em>. This strategy doesn&rsquo;t really build anything but enables you to implement workflows on OpenShift. The great article <a href="https://blog.openshift.com/openshift-3-3-pipelines-deep-dive/">OpenShift 3.3 Pipelines - Deep Dive</a> describes how the Pipeline strategy works. In summary, you can create a BuildConfig in OpenShift that contains a definition of a Jenkins pipeline (using the Groovy DSL language). Based on this definition, OpenShift will create a pipeline job in Jenkins and execute it. Among other things, the Jenkins job can trigger a build on OpenShift, verify that the build succeeded and trigger a deployment. This approach allows OpenShift to leverage Jenkins pipelines to orchestrate a more involved CI/CD workflow possibly encompassing a conditional execution of multiple OpenShift builds and deployments.</p>
+
+<p>An alternative to using the Pipeline strategy in OpenShift would be defining the pipeline job directly in Jenkins. With the <a href="https://plugins.jenkins.io/openshift-pipeline">OpenShift pipeline plugin</a> installed, one can trigger OpenShift operations from within the pipeline job.</p>
+
+<p>As I didn&rsquo;t really work with the OpenShift strategies much I&rsquo;m not going to elaborate any further. Instead, in the next section, I&rsquo;m going to mention two Jenkins plugins that we are successfully using to run builds on OpenShift.</p>
+
+<h2>Builds on Openshift driven by Jenkins</h2>
+
+<p><img class="right" src="/images/posts/jenkins_logo.png" width="200" height="200"></p>
+
+<p>There are two Jenkins plugins that can leverage OpenShift containers as build slaves:</p>
+
+<p><strong><a href="https://wiki.jenkins-ci.org/display/JENKINS/Swarm+Plugin">Swarm plugin</a></strong>. The Swarm plugin consists of two parts: a Jenkins plugin and a CLI client. Jenkins plugin exposes an endpoint where the CLI clients can register themselves. A CLI client acts as a Jenkins slave. It runs indefinitely within a Docker container and provides Jenkins with a configurable number of build executors. While the plugin is called a Swarm plugin it doesn&rsquo;t really need any Swarm orchestration. It can happily run in a Docker container on OpenShift.</p>
+
+<p><strong><a href="https://wiki.jenkins-ci.org/display/JENKINS/Kubernetes+Plugin">Kubernetes plugin</a></strong>. Works perfectly with OpenShift. In contrast to the Swarm plugin, Kubernetes plugin spins up a new Docker slave for each job on the fly and destroys it as soon as the job has finished running.</p>
+
+<p>Because the Jenkins workspace is created inside of the container, it will be deleted as soon as the Docker container is terminated. If you&rsquo;d like to reuse the same workspace for subsequent builds, I&rsquo;d like to offer you two options how to create persistent workspaces:</p>
+
+<ol>
+<li><p>You can attach a volume of type <em>hostPath</em> to your slave pods and place your workspace on that volume. At the same time you have to speficy a <em>nodeSelector</em> on your slave pods that would instruct OpenShift to schedule all your slave pods onto the same OpenShift node. With this approach the Jenkins slave can access its workspace on the local storage. Unfortunately, all the slaves that need to share a workspace have to run on the same OpenShift node which can get overloaded.</p></li>
+<li><p>You can attach a volume with the <em>ReadWriteMany</em> capability to your slave pods and place your workspace on this volume. Eligible volume types are NFS, GlusterFS or CephFS. Using this method a Jenkins slave running on any node in the cluster can access the shared workspace. The downside is that the access is over the network and hence slower than an access to the local storage.</p></li>
+</ol>
+
+
+<h2>Conclusion</h2>
+
+<p>In the this blog post we reviewed different approaches how to leverage an OpenShift cluster for software builds. On one hand, builds can be defined within OpenShift by creating the BuildConfig resources. This approach might be less flexible than using a full-fledged build server like Jenkins, however, one can be sure that the builds will work on any OpenShift cluster including the public cloud. On the other hand, we have seen that in an environment where Jenkins is already the king, we can leverage the Swarm or Kubernetes plugin to allow Jenkins to schedule build jobs on OpenShift.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[Accessing Kubernetes Pods from Outside of the Cluster]]></title>
@@ -821,278 +875,6 @@
 <h2>Is the RHCSA/RHCE for me?</h2>
 
 <p>In my opinion, the RHCSA/RHCE is one of the best Linux certifications available. If you mean it with Linux seriously - and it doesn&rsquo;t necessarily have to be the Red Hat flavor of Linux - go get certified!</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[5 Linux Commands You Didn't Know You Needed]]></title>
-    <link href="http://alesnosek.com/blog/2016/11/01/5-linux-commands-you-didnt-know-you-needed/"/>
-    <updated>2016-11-01T23:11:44-07:00</updated>
-    <id>http://alesnosek.com/blog/2016/11/01/5-linux-commands-you-didnt-know-you-needed</id>
-    <content type="html"><![CDATA[<p>When preparing for the RHCSA and RHCE exams, I found several useful commands I was not really aware of. In this blog post I&rsquo;ll share them with you.</p>
-
-<!-- more -->
-
-
-<h2>findmnt</h2>
-
-<p>The <code>findmnt</code> command is part of the essential package <em>util-linux</em> and hence is available on pretty much all Linux systems. It can print all mounted filesystems in the tree-like format. I found the output of <code>findmnt</code> command more readable than the output provided by the more popular <code>mount</code> command. This is an example of how the filesystem mounts on a Ceph node look like:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>findmnt
-</span><span class='line'>TARGET                           SOURCE     FSTYPE     OPTIONS
-</span><span class='line'>/                                /dev/sda2  xfs        rw,relatime,seclabel,attr2,inode64,noquota
-</span><span class='line'>├─/sys                           sysfs      sysfs      rw,nosuid,nodev,noexec,relatime,seclabel
-</span><span class='line'>│ ├─/sys/kernel/security         securityfs securityfs rw,nosuid,nodev,noexec,relatime
-</span><span class='line'>│ ├─/sys/fs/cgroup               tmpfs      tmpfs      ro,nosuid,nodev,noexec,seclabel,mode<span class="o">=</span>755
-</span><span class='line'>│ │ ├─/sys/fs/cgroup/systemd     cgroup     cgroup     rw,nosuid,nodev,noexec,relatime,xattr,release_agent<span class="o">=</span>/usr/lib/systemd/systemd-cgroups-agent,name<span class="o">=</span>systemd
-</span><span class='line'>│ │ ├─/sys/fs/cgroup/cpu,cpuacct cgroup     cgroup     rw,nosuid,nodev,noexec,relatime,cpuacct,cpu
-</span><span class='line'>│ │ ├─/sys/fs/cgroup/perf_event  cgroup     cgroup     rw,nosuid,nodev,noexec,relatime,perf_event
-</span><span class='line'>│ │ ├─/sys/fs/cgroup/devices     cgroup     cgroup     rw,nosuid,nodev,noexec,relatime,devices
-</span><span class='line'>│ │ ├─/sys/fs/cgroup/blkio       cgroup     cgroup     rw,nosuid,nodev,noexec,relatime,blkio
-</span><span class='line'>│ │ ├─/sys/fs/cgroup/cpuset      cgroup     cgroup     rw,nosuid,nodev,noexec,relatime,cpuset
-</span><span class='line'>│ │ ├─/sys/fs/cgroup/hugetlb     cgroup     cgroup     rw,nosuid,nodev,noexec,relatime,hugetlb
-</span><span class='line'>│ │ ├─/sys/fs/cgroup/net_cls     cgroup     cgroup     rw,nosuid,nodev,noexec,relatime,net_cls
-</span><span class='line'>│ │ ├─/sys/fs/cgroup/memory      cgroup     cgroup     rw,nosuid,nodev,noexec,relatime,memory
-</span><span class='line'>│ │ └─/sys/fs/cgroup/freezer     cgroup     cgroup     rw,nosuid,nodev,noexec,relatime,freezer
-</span><span class='line'>│ ├─/sys/fs/pstore               pstore     pstore     rw,nosuid,nodev,noexec,relatime
-</span><span class='line'>│ ├─/sys/fs/selinux              selinuxfs  selinuxfs  rw,relatime
-</span><span class='line'>│ ├─/sys/kernel/debug            debugfs    debugfs    rw,relatime
-</span><span class='line'>│ └─/sys/kernel/config           configfs   configfs   rw,relatime
-</span><span class='line'>├─/proc                          proc       proc       rw,nosuid,nodev,noexec,relatime
-</span><span class='line'>│ ├─/proc/sys/fs/binfmt_misc     systemd-1  autofs     rw,relatime,fd<span class="o">=</span>26,pgrp<span class="o">=</span>1,timeout<span class="o">=</span>300,minproto<span class="o">=</span>5,maxproto<span class="o">=</span>5,direct
-</span><span class='line'>│ └─/proc/fs/nfsd                nfsd       nfsd       rw,relatime
-</span><span class='line'>├─/dev                           devtmpfs   devtmpfs   rw,nosuid,seclabel,size<span class="o">=</span>16307108k,nr_inodes<span class="o">=</span>4076777,mode<span class="o">=</span>755
-</span><span class='line'>│ ├─/dev/shm                     tmpfs      tmpfs      rw,nosuid,nodev,seclabel
-</span><span class='line'>│ ├─/dev/pts                     devpts     devpts     rw,nosuid,noexec,relatime,seclabel,gid<span class="o">=</span>5,mode<span class="o">=</span>620,ptmxmode<span class="o">=</span>000
-</span><span class='line'>│ ├─/dev/mqueue                  mqueue     mqueue     rw,relatime,seclabel
-</span><span class='line'>│ └─/dev/hugepages               hugetlbfs  hugetlbfs  rw,relatime,seclabel
-</span><span class='line'>├─/run                           tmpfs      tmpfs      rw,nosuid,nodev,seclabel,mode<span class="o">=</span>755
-</span><span class='line'>│ └─/run/user/1002               tmpfs      tmpfs      rw,nosuid,nodev,relatime,seclabel,size<span class="o">=</span>3265340k,mode<span class="o">=</span>700,uid<span class="o">=</span>1002,gid<span class="o">=</span>1002
-</span><span class='line'>├─/var/lib/nfs/rpc_pipefs        rpc_pipefs rpc_pipefs rw,relatime
-</span><span class='line'>├─/var/lib/ceph/osd/ceph-1       /dev/sdb1  xfs        rw,noatime,seclabel,attr2,inode64,logbsize<span class="o">=</span>256k,sunit<span class="o">=</span>512,swidth<span class="o">=</span>512,noquota
-</span><span class='line'>├─/var/lib/ceph/osd/ceph-3       /dev/sdc1  xfs        rw,noatime,seclabel,attr2,inode64,logbsize<span class="o">=</span>256k,sunit<span class="o">=</span>512,swidth<span class="o">=</span>512,noquota
-</span><span class='line'>├─/var/lib/ceph/osd/ceph-10      /dev/sdg1  xfs        rw,noatime,seclabel,attr2,inode64,logbsize<span class="o">=</span>256k,sunit<span class="o">=</span>512,swidth<span class="o">=</span>512,noquota
-</span><span class='line'>├─/var/lib/ceph/osd/ceph-9       /dev/sdf1  xfs        rw,noatime,seclabel,attr2,inode64,logbsize<span class="o">=</span>256k,sunit<span class="o">=</span>512,swidth<span class="o">=</span>512,noquota
-</span><span class='line'>├─/var/lib/ceph/osd/ceph-4       /dev/sdd1  xfs        rw,noatime,seclabel,attr2,inode64,logbsize<span class="o">=</span>256k,sunit<span class="o">=</span>512,swidth<span class="o">=</span>512,noquota
-</span><span class='line'>└─/var/lib/ceph/osd/ceph-7       /dev/sde1  xfs        rw,noatime,seclabel,attr2,inode64,logbsize<span class="o">=</span>256k,sunit<span class="o">=</span>512,swidth<span class="o">=</span>512,noquota
-</span></code></pre></td></tr></table></div></figure></p>
-
-<h2>ss</h2>
-
-<p>The <code>ss</code> (soscket statistics) command is a replacement for the good old <code>netstat</code> command. It comes in the <em>iproute</em> package which is an essential part of all modern Linux distributions. I found <code>ss</code> command available on systems where the <code>netstat</code> command was missing. Here is a sample output of the <code>ss</code> command running on my Linux desktop:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>sudo ss -tlnp <span class="p">|</span> cat
-</span><span class='line'>State      Recv-Q Send-Q Local Address:Port               Peer Address:Port
-</span><span class='line'>LISTEN     <span class="m">0</span>      <span class="m">100</span>          &lt;em&gt;:15929                    &lt;/em&gt;:&lt;em&gt;                   users:<span class="o">((</span><span class="p">&amp;</span>ldquo<span class="p">;</span>skype<span class="p">&amp;</span>rdquo<span class="p">;</span>,pid<span class="o">=</span>25943,fd<span class="o">=</span>49<span class="o">))</span>
-</span><span class='line'>LISTEN     <span class="m">0</span>      <span class="m">50</span>           &lt;/em&gt;:39964                    &lt;em&gt;:&lt;/em&gt;                   users:<span class="o">((</span><span class="p">&amp;</span>ldquo<span class="p">;</span>java<span class="p">&amp;</span>rdquo<span class="p">;</span>,pid<span class="o">=</span>6015,fd<span class="o">=</span>146<span class="o">))</span>
-</span><span class='line'>LISTEN     <span class="m">0</span>      <span class="m">5</span>      192.168.122.1:53                       &lt;em&gt;:&lt;/em&gt;                   users:<span class="o">((</span><span class="p">&amp;</span>ldquo<span class="p">;</span>dnsmasq<span class="p">&amp;</span>rdquo<span class="p">;</span>,pid<span class="o">=</span>1625,fd<span class="o">=</span>6<span class="o">))</span>
-</span><span class='line'>LISTEN     <span class="m">0</span>      <span class="m">128</span>          &lt;em&gt;:22                       &lt;/em&gt;:&lt;em&gt;                   users:<span class="o">((</span><span class="p">&amp;</span>ldquo<span class="p">;</span>sshd<span class="p">&amp;</span>rdquo<span class="p">;</span>,pid<span class="o">=</span>1442,fd<span class="o">=</span>3<span class="o">))</span>
-</span><span class='line'>LISTEN     <span class="m">0</span>      <span class="m">128</span>         :::22                      :::&lt;/em&gt;                   users:<span class="o">((</span><span class="p">&amp;</span>ldquo<span class="p">;</span>sshd<span class="p">&amp;</span>rdquo<span class="p">;</span>,pid<span class="o">=</span>1442,fd<span class="o">=</span>4<span class="o">))</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>I&rsquo;m switching from using the <code>netstat</code> command to <code>ss</code>. What about you?</p>
-
-<h2>ip</h2>
-
-<p>After years of using the <code>ifconfig</code> utility, it took me some effort to move to its modern replacement - the <code>ip</code> command. Recently, I discovered two useful features of the <code>ip</code> utility.</p>
-
-<p>To obtain a detailed information about the packets transferred by individual network interfaces, use the <code>-s</code> (statistics) parameter. For example:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>ip -s link
-</span><span class='line'>1: lo: <span class="p">&amp;</span>lt<span class="p">;</span>LOOPBACK,UP,LOWER_UP&gt; mtu <span class="m">65536</span> qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1
-</span><span class='line'>    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
-</span><span class='line'>    RX: bytes  packets  errors  dropped overrun mcast
-</span><span class='line'>    <span class="m">1416492</span>    <span class="m">20158</span>    <span class="m">0</span>       <span class="m">0</span>       <span class="m">0</span>       0
-</span><span class='line'>    TX: bytes  packets  errors  dropped carrier collsns
-</span><span class='line'>    <span class="m">1416492</span>    <span class="m">20158</span>    <span class="m">0</span>       <span class="m">0</span>       <span class="m">0</span>       0
-</span><span class='line'>2: enp0s31f6: <span class="p">&amp;</span>lt<span class="p">;</span>BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu <span class="m">1500</span> qdisc pfifo_fast state UP mode DEFAULT group default qlen 1000
-</span><span class='line'>    link/ether 18:66:da:21:33:87 brd ff:ff:ff:ff:ff:ff
-</span><span class='line'>    RX: bytes  packets  errors  dropped overrun mcast
-</span><span class='line'>    <span class="m">13776256661</span> <span class="m">26486602</span> <span class="m">0</span>       <span class="m">0</span>       <span class="m">0</span>       1661059
-</span><span class='line'>    TX: bytes  packets  errors  dropped carrier collsns
-</span><span class='line'>    <span class="m">2313484427</span> <span class="m">9811792</span>  <span class="m">0</span>       <span class="m">0</span>       <span class="m">0</span>       0
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>To figure out which network interface would be used to send a packet to the specified IP address:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>ip route get 192.168.0.1
-</span><span class='line'>192.168.0.1 via 10.5.0.1 dev enp0s31f6  src 10.5.0.225
-</span><span class='line'>    cache
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>When sending a packet to the target destination <code>192.168.0.1</code>, the kernel will route the packet via the <code>enp0s31f6</code> interface. The IP <code>10.5.0.1</code> is my default route.</p>
-
-<h2>lscpu</h2>
-
-<p>On modern machines the output of <code>cat /proc/cpuinfo</code> can be really long. To find out what CPU configuration a machine comes with I prefer to use the <code>lscpu</code> command. This is an example output of the <code>lscpu</code> command running on an OpenStack compute node:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>lscpu
-</span><span class='line'>Architecture:          x86_64
-</span><span class='line'>CPU op-mode<span class="o">(</span>s<span class="o">)</span>:        32-bit, 64-bit
-</span><span class='line'>Byte Order:            Little Endian
-</span><span class='line'>CPU<span class="o">(</span>s<span class="o">)</span>:                32
-</span><span class='line'>On-line CPU<span class="o">(</span>s<span class="o">)</span> list:   0-31
-</span><span class='line'>Thread<span class="o">(</span>s<span class="o">)</span> per core:    2
-</span><span class='line'>Core<span class="o">(</span>s<span class="o">)</span> per socket:    8
-</span><span class='line'>Socket<span class="o">(</span>s<span class="o">)</span>:             2
-</span><span class='line'>NUMA node<span class="o">(</span>s<span class="o">)</span>:          2
-</span><span class='line'>Vendor ID:             GenuineIntel
-</span><span class='line'>CPU family:            6
-</span><span class='line'>Model:                 63
-</span><span class='line'>Model name:            Intel<span class="p">&amp;</span>reg<span class="p">;</span> Xeon<span class="p">&amp;</span>reg<span class="p">;</span> CPU E5-2640 v3 @ 2.60GHz
-</span><span class='line'>Stepping:              2
-</span><span class='line'>CPU MHz:               1200.062
-</span><span class='line'>BogoMIPS:              5198.45
-</span><span class='line'>Virtualization:        VT-x
-</span><span class='line'>L1d cache:             32K
-</span><span class='line'>L1i cache:             32K
-</span><span class='line'>L2 cache:              256K
-</span><span class='line'>L3 cache:              20480K
-</span><span class='line'>NUMA node0 CPU<span class="o">(</span>s<span class="o">)</span>:     0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30
-</span><span class='line'>NUMA node1 CPU<span class="o">(</span>s<span class="o">)</span>:     1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>In the above output, the interesting lines are the <code>Socket(s)</code>, <code>Core(s) per socket</code>, <code>Thread(s) per core</code> and <code>CPU(s)</code>. In our case, we&rsquo;re looking at a machine with 2 physical CPUs (Sockets), each of them having 8 physical cores (Cores per socket). Each of the physical cores has 2 processing threads (Threads per core) aka logical CPUs due to the Hyper-Threading technology. In total, there are 32 logical CPUs available to the Linux scheduler to schedule a task on.</p>
-
-<h2>lspci</h2>
-
-<p>The last command in our overview is the <code>lspci</code> command. If you ever wondered which kernel driver is controlling your hardware device, you can find out with:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>lspci -k&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;<span class="p">&amp;</span>hellip<span class="p">;</span>&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;01:05.0 VGA compatible controller: Advanced Micro Devices, Inc. <span class="o">[</span>AMD/ATI<span class="o">]</span> RS880 <span class="o">[</span>Radeon HD 4250<span class="o">]</span>
-</span><span class='line'>        Subsystem: ASUSTeK Computer Inc. M5A88-V EVO
-</span><span class='line'>        Kernel driver in use: radeon
-</span><span class='line'>01:05.1 Audio device: Advanced Micro Devices, Inc. <span class="o">[</span>AMD/ATI<span class="o">]</span> RS880 HDMI Audio <span class="o">[</span>Radeon HD <span class="m">4200</span> Series<span class="o">]</span>
-</span><span class='line'>        Subsystem: ASUSTeK Computer Inc. M5A88-V EVO
-</span><span class='line'>        Kernel driver in use: snd_hda_intel
-</span><span class='line'>02:00.0 FireWire <span class="o">(</span>IEEE 1394<span class="o">)</span>: VIA Technologies, Inc. VT6315 Series Firewire Controller
-</span><span class='line'>        Subsystem: ASUSTeK Computer Inc. M5A88-V EVO
-</span><span class='line'>        Kernel driver in use: firewire_ohci
-</span><span class='line'>02:00.1 IDE interface: VIA Technologies, Inc. VT6415 PATA IDE Host Controller <span class="o">(</span>rev a0<span class="o">)</span>
-</span><span class='line'>        Subsystem: ASUSTeK Computer Inc. Motherboard
-</span><span class='line'>        Kernel driver in use: pata_via
-</span><span class='line'>03:00.0 USB controller: ASMedia Technology Inc. ASM1042 SuperSpeed USB Host Controller
-</span><span class='line'>        Subsystem: ASUSTeK Computer Inc. P8B WS Motherboard
-</span><span class='line'>        Kernel driver in use: xhci_hcd
-</span><span class='line'>05:00.0 Network controller: Realtek Semiconductor Co., Ltd. RTL8192CE PCIe Wireless Network Adapter <span class="o">(</span>rev 01<span class="o">)</span>
-</span><span class='line'>        Subsystem: Realtek Semiconductor Co., Ltd. RTL8192CE PCIe Wireless Network Adapter
-</span><span class='line'>        Kernel driver in use: rtl8192ce
-</span><span class='line'>06:00.0 Ethernet controller: Realtek Semiconductor Co., Ltd. RTL8111/8168/8411 PCI Express Gigabit Ethernet Controller <span class="o">(</span>rev 06<span class="o">)</span>
-</span><span class='line'>        Subsystem: ASUSTeK Computer Inc. P8P67 and other motherboards
-</span><span class='line'>        Kernel driver in use: r8169
-</span></code></pre></td></tr></table></div></figure></p>
 ]]></content>
   </entry>
 

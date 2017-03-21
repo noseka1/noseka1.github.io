@@ -4,7 +4,7 @@
   <title><![CDATA[Category: cloud | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/cloud/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2017-02-25T09:57:10-08:00</updated>
+  <updated>2017-03-20T21:21:52-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,60 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[An Introduction to Building on OpenShift]]></title>
+    <link href="http://alesnosek.com/blog/2017/03/19/an-introduction-to-building-on-openshift/"/>
+    <updated>2017-03-19T10:48:32-07:00</updated>
+    <id>http://alesnosek.com/blog/2017/03/19/an-introduction-to-building-on-openshift</id>
+    <content type="html"><![CDATA[<p>For years a Jenkins server has been driving the software builds in our company. Some time ago, we deployed an OpenShift cluster. The primary purpose of our OpenShift cluster was to support the efforts of dockerizing our software products. However, as OpeShift is a complete PaaS solution we started thinking about leveraging OpenShift for software builds, too. In this blog post I&rsquo;d like to share what we learned about building on OpenShift so far.</p>
+
+<!-- more -->
+
+
+<p>Before we begin talking about OpenShift, let&rsquo;s briefly discuss our current build environment. In the center of our build environment there is a Jenkins server. In Jenkins, we maintain numerous jobs to build our software, run automated tests, drive various devops tasks and much more. Jenkins is our central place from where the automated processes are started and monitored. As Jenkins is greatly extensible via plugins, we were able to easily integrate Jenkins with other tools, too.</p>
+
+<h2>Building the OpenShift way</h2>
+
+<p><img class="right" src="/images/posts/openshift_logo.gif" width="200" height="200"></p>
+
+<p>In OpenShift, one has to create a <em>BuildConfig</em> resource to describe the <a href="https://docs.openshift.org/latest/dev_guide/builds/index.html">build process</a>. The BuildConfig resource in OpenShift is roughly equivalent to a job definition in Jenkins. When creating a BuildConfig resource, a build strategy has to be chosen. The build strategy resembles a job type in Jenkins. Currently, there are four build strategies available in OpenShift:</p>
+
+<p><strong>Source-to-Image strategy</strong>. Allows you to create a container image starting from the application source code. During the build process, the source code is downloaded into a container and compiled there. The finished binary artifacts are installed into the container. The complete container image is then pushed into the Docker registry from where it can be deployed as an application on OpenShift.</p>
+
+<p><strong>Docker strategy</strong>. The input of the build process is a Dockerfile. OpenShift will execute a Docker build using the provided Dockerfile and upload the resulting image into the Docker registry from where it can be deployed.</p>
+
+<p><strong>Custom strategy</strong>. Custom strategy could be compared to a free style job in Jenkins. The outcome of the build doesn&rsquo;t have to be a Docker image. Instead, the custom strategy allows you to create JARs, tarballs, RPMs or other artifacts which you have to upload to the repository of your choice by the end of the build.</p>
+
+<p><strong>Pipeline strategy</strong>. In OpenShift 3.3, a new build strategy was introduced called <em>Pipeline</em>. This strategy doesn&rsquo;t really build anything but enables you to implement workflows on OpenShift. The great article <a href="https://blog.openshift.com/openshift-3-3-pipelines-deep-dive/">OpenShift 3.3 Pipelines - Deep Dive</a> describes how the Pipeline strategy works. In summary, you can create a BuildConfig in OpenShift that contains a definition of a Jenkins pipeline (using the Groovy DSL language). Based on this definition, OpenShift will create a pipeline job in Jenkins and execute it. Among other things, the Jenkins job can trigger a build on OpenShift, verify that the build succeeded and trigger a deployment. This approach allows OpenShift to leverage Jenkins pipelines to orchestrate a more involved CI/CD workflow possibly encompassing a conditional execution of multiple OpenShift builds and deployments.</p>
+
+<p>An alternative to using the Pipeline strategy in OpenShift would be defining the pipeline job directly in Jenkins. With the <a href="https://plugins.jenkins.io/openshift-pipeline">OpenShift pipeline plugin</a> installed, one can trigger OpenShift operations from within the pipeline job.</p>
+
+<p>As I didn&rsquo;t really work with the OpenShift strategies much I&rsquo;m not going to elaborate any further. Instead, in the next section, I&rsquo;m going to mention two Jenkins plugins that we are successfully using to run builds on OpenShift.</p>
+
+<h2>Builds on Openshift driven by Jenkins</h2>
+
+<p><img class="right" src="/images/posts/jenkins_logo.png" width="200" height="200"></p>
+
+<p>There are two Jenkins plugins that can leverage OpenShift containers as build slaves:</p>
+
+<p><strong><a href="https://wiki.jenkins-ci.org/display/JENKINS/Swarm+Plugin">Swarm plugin</a></strong>. The Swarm plugin consists of two parts: a Jenkins plugin and a CLI client. Jenkins plugin exposes an endpoint where the CLI clients can register themselves. A CLI client acts as a Jenkins slave. It runs indefinitely within a Docker container and provides Jenkins with a configurable number of build executors. While the plugin is called a Swarm plugin it doesn&rsquo;t really need any Swarm orchestration. It can happily run in a Docker container on OpenShift.</p>
+
+<p><strong><a href="https://wiki.jenkins-ci.org/display/JENKINS/Kubernetes+Plugin">Kubernetes plugin</a></strong>. Works perfectly with OpenShift. In contrast to the Swarm plugin, Kubernetes plugin spins up a new Docker slave for each job on the fly and destroys it as soon as the job has finished running.</p>
+
+<p>Because the Jenkins workspace is created inside of the container, it will be deleted as soon as the Docker container is terminated. If you&rsquo;d like to reuse the same workspace for subsequent builds, I&rsquo;d like to offer you two options how to create persistent workspaces:</p>
+
+<ol>
+<li><p>You can attach a volume of type <em>hostPath</em> to your slave pods and place your workspace on that volume. At the same time you have to speficy a <em>nodeSelector</em> on your slave pods that would instruct OpenShift to schedule all your slave pods onto the same OpenShift node. With this approach the Jenkins slave can access its workspace on the local storage. Unfortunately, all the slaves that need to share a workspace have to run on the same OpenShift node which can get overloaded.</p></li>
+<li><p>You can attach a volume with the <em>ReadWriteMany</em> capability to your slave pods and place your workspace on this volume. Eligible volume types are NFS, GlusterFS or CephFS. Using this method a Jenkins slave running on any node in the cluster can access the shared workspace. The downside is that the access is over the network and hence slower than an access to the local storage.</p></li>
+</ol>
+
+
+<h2>Conclusion</h2>
+
+<p>In the this blog post we reviewed different approaches how to leverage an OpenShift cluster for software builds. On one hand, builds can be defined within OpenShift by creating the BuildConfig resources. This approach might be less flexible than using a full-fledged build server like Jenkins, however, one can be sure that the builds will work on any OpenShift cluster including the public cloud. On the other hand, we have seen that in an environment where Jenkins is already the king, we can leverage the Swarm or Kubernetes plugin to allow Jenkins to schedule build jobs on OpenShift.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[Accessing Kubernetes Pods from Outside of the Cluster]]></title>
@@ -777,75 +831,6 @@
 <p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo mount -t nfs 10.13.243.173:/shares/share-b87367aa-3ef3-4282-a6b5-e45cab991b6c /mnt
 </span></code></pre></td></tr></table></div></figure></p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[TripleO Installer - the Good, the Bad and the Ugly]]></title>
-    <link href="http://alesnosek.com/blog/2016/03/27/tripleo-installer-the-good/"/>
-    <updated>2016-03-27T19:39:15-07:00</updated>
-    <id>http://alesnosek.com/blog/2016/03/27/tripleo-installer-the-good</id>
-    <content type="html"><![CDATA[<p><a href="https://wiki.openstack.org/wiki/TripleO">TripleO</a> is an OpenStack deployment and management tool I&rsquo;ve been using since the Kilo release of OpenStack. It does its job pretty well, however not everything is perfect. My experience presented in this article applies more or less to the Red Hat&rsquo;s OpenStack director too, as the Red Hat OpenStack director is a downstream version of TripleO.</p>
-
-<!-- more -->
-
-
-<h2>The good things about TripleO</h2>
-
-<h3>TripleO is a great idea</h3>
-
-<p>TripleO, aka OpenStack-on-OpenStack, installs OpenStack cluster using OpenStack. At first, a minimum one-node OpenStack installation is created which is in turn used to provision a much bigger workload OpenStack cluster. I find this TripleO idea amazing. If OpenStack is the best way to manage your infrastructure, then why use something else to install it? As an administrator I would prefer to provision my OpenStack nodes with Ironic before introducing yet another tool like <a href="http://cobbler.github.io/">Cobbler</a> to do the same job. Needless to say that as the Ironic and Heat components improve, so improves the OpenStack installation experience.</p>
-
-<p>One could argue that using the OpenStack to form an installer comes with a ton of complexity when installing the installer itself. In my experience, however, the installation of the undercloud OpenStack using the provided Puppet scripts doesn&rsquo;t impose any problem.</p>
-
-<h3>TripleO has a vibrant community</h3>
-
-<p>TripleO is used to continuously deploy and test the OpenStack cloud during its development. The RDO project adopted TripleO as their OpenStack installation tool. Red Hat derives their OpenStack director installer from the RDO project. A large community of TripleO users is a great plus.</p>
-
-<h2>The bad things about TripleO</h2>
-
-<h3>Configuration flexibility</h3>
-
-<p>TripleO installer consists of a bunch of Heat templates to orchestrate the overcloud image provisioning and a number of Puppet and shell scripts for the following configuration of the overcloud nodes. These templates and scripts are heavily developed from release to release as the new TripleO features come in. To avoid the upgrade headaches, you should not modify the TripleO templates and scripts directly. Instead, TripleO provides extension points (via extra config) where you can put your customizations. This didn&rsquo;t work for me. My goal was to deploy an Ironic service in the overcloud OpenStack. For that to work, I needed to provision an additional undercloud network including a VIP for the load balancer. This was not possible without patching the Heat templates and Puppet scripts. I dread the day when I&rsquo;ll have to port these patches to the next TripleO release.</p>
-
-<p>Furthermore, the current way to modify OpenStack configuration properties is less straight forward. To configure a property, I have to first grep through the Puppet scripts to find out whether the desired property is managed by Puppet or not. Afterwards, I grep through the TripleO Heat templates to find out whether TripleO provides a direct template parameter to set the Puppet variable or not. Afterwards, I can either pass the parameter to the TripleO template or I set the Puppet variable in the extra config section or I&rsquo;m on my own.</p>
-
-<p><blockquote><p>I&rsquo;d like to be able to easily modify any property in any configuration file on any OpenStack node.</p></blockquote></p>
-
-<p>OpenStack comes with tons of configuration properties and I think it would be great to have a more straight forward way to configure them.</p>
-
-<h3>Deployment control</h3>
-
-<p>TripleO uses Heat to deploy and configure the overcloud OpenStack. Heat orchestrates the infrastracture based on the description provided by the user in the Heat templates. In the Heat templates, we tell Heat what our deployment should look like, but we have no control over the steps Heat will take to get to the desired state. I find this lack of control rather problematic.</p>
-
-<p><blockquote><p>A fine-grained deployment control would be desirable.</p></blockquote></p>
-
-<p>Let&rsquo;s say I have an overcloud consisting of 100 nodes. After changing the configuration in my Heat templates, I can only re-run the entire Heat configuration process and hope that I won&rsquo;t end up with a broken cloud. Instead, I&rsquo;d like to apply the configuration changes to a couple of nodes to make sure that everything works before I continue with the rest of the cloud. The ability to apply only part of the configuration would be useful as well.</p>
-
-<h2>The ugly experience with TripleO</h2>
-
-<p>I&rsquo;d like to share one scary experience I had with the TripleO installer. While using TripleO for a couple of months, I have to say that this was the only serious problem I&rsquo;ve encountered.</p>
-
-<p>One day I uploaded an updated node image into the undercloud OpenStack. I was about to create new nodes in the overcloud cluster and wanted to have them provisioned with this new image. After starting the Heat stack update, it occurred to me that the processing took longer than usual. Well, after I SSHed into the overcloud nodes I realized why. Heat simply wiped out the entire disk content of the existing nodes and replaced it with the fresh disk image. Wow, my entire workload cloud was gone!</p>
-
-<p>I learned that when you update the disk image in the undercloud, Heat will find out what nodes have to be updated and will simply replace their disk content with the new image. If you are orchestrating cloud deployments where your machines are cattle, this is what you want, however:</p>
-
-<p><blockquote><p>The overcloud baremetal nodes are pets and should not be handled as cattle.</p></blockquote></p>
-
-<p>To protect the overcloud nodes from deletion, I run the following command for each node against the undercloud Nova database:
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">UPDATE</span> <span class="n">instances</span> <span class="k">SET</span> <span class="n">disable_terminate</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">WHERE</span> <span class="n">uuid</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="o">&lt;</span><span class="n">uuid</span> <span class="k">of</span> <span class="n">the</span> <span class="n">overcloud</span> <span class="n">instance</span><span class="o">&gt;&amp;</span><span class="n">rsquo</span><span class="p">;;</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>So far, I haven&rsquo;t found a better way how to do it. This effectively prevents deleting the node whether by issuing a <code>nova delete</code> command or by Heat when updating the stack.</p>
-
-<h2>Conclusion and suggestions</h2>
-
-<p>TripleO installer is a great tool to deploy an OpenStack cloud. It&rsquo;s backed by a large user community and doesn&rsquo;t invent any new tools to install OpenStack.</p>
-
-<p>On the other hand, I&rsquo;m somewhat sceptical about Heat being the right tool to do software configuration. Funneling the configuration options through the Heat templates down to the Puppet scripts seems cumbersome to me.</p>
-
-<p>I&rsquo;d like to suggest the following approach: let Heat do the node provisioning, network configuration and perhaps a minimum node setup using cloud-init. At the end of the deployment, Heat would provide the information about the deployment in the format understandable to the configuration management tools like Puppet, Chef or Ansible. The configuration management tool then merges the facts provided by Heat with the tons of OpenStack configuration settings provided by the user. The following OpenStack installation, configuration, and later orchestration would solely be done by the configuration management tool more suitable for this job. Heat would not be involved at all in this stage.</p>
 ]]></content>
   </entry>
 

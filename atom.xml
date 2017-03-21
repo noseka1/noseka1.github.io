@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2017-02-25T09:57:10-08:00</updated>
+  <updated>2017-03-20T21:21:52-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,60 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[An Introduction to Building on OpenShift]]></title>
+    <link href="http://alesnosek.com/blog/2017/03/19/an-introduction-to-building-on-openshift/"/>
+    <updated>2017-03-19T10:48:32-07:00</updated>
+    <id>http://alesnosek.com/blog/2017/03/19/an-introduction-to-building-on-openshift</id>
+    <content type="html"><![CDATA[<p>For years a Jenkins server has been driving the software builds in our company. Some time ago, we deployed an OpenShift cluster. The primary purpose of our OpenShift cluster was to support the efforts of dockerizing our software products. However, as OpeShift is a complete PaaS solution we started thinking about leveraging OpenShift for software builds, too. In this blog post I&rsquo;d like to share what we learned about building on OpenShift so far.</p>
+
+<!-- more -->
+
+
+<p>Before we begin talking about OpenShift, let&rsquo;s briefly discuss our current build environment. In the center of our build environment there is a Jenkins server. In Jenkins, we maintain numerous jobs to build our software, run automated tests, drive various devops tasks and much more. Jenkins is our central place from where the automated processes are started and monitored. As Jenkins is greatly extensible via plugins, we were able to easily integrate Jenkins with other tools, too.</p>
+
+<h2>Building the OpenShift way</h2>
+
+<p><img class="right" src="http://alesnosek.com/images/posts/openshift_logo.gif" width="200" height="200"></p>
+
+<p>In OpenShift, one has to create a <em>BuildConfig</em> resource to describe the <a href="https://docs.openshift.org/latest/dev_guide/builds/index.html">build process</a>. The BuildConfig resource in OpenShift is roughly equivalent to a job definition in Jenkins. When creating a BuildConfig resource, a build strategy has to be chosen. The build strategy resembles a job type in Jenkins. Currently, there are four build strategies available in OpenShift:</p>
+
+<p><strong>Source-to-Image strategy</strong>. Allows you to create a container image starting from the application source code. During the build process, the source code is downloaded into a container and compiled there. The finished binary artifacts are installed into the container. The complete container image is then pushed into the Docker registry from where it can be deployed as an application on OpenShift.</p>
+
+<p><strong>Docker strategy</strong>. The input of the build process is a Dockerfile. OpenShift will execute a Docker build using the provided Dockerfile and upload the resulting image into the Docker registry from where it can be deployed.</p>
+
+<p><strong>Custom strategy</strong>. Custom strategy could be compared to a free style job in Jenkins. The outcome of the build doesn&rsquo;t have to be a Docker image. Instead, the custom strategy allows you to create JARs, tarballs, RPMs or other artifacts which you have to upload to the repository of your choice by the end of the build.</p>
+
+<p><strong>Pipeline strategy</strong>. In OpenShift 3.3, a new build strategy was introduced called <em>Pipeline</em>. This strategy doesn&rsquo;t really build anything but enables you to implement workflows on OpenShift. The great article <a href="https://blog.openshift.com/openshift-3-3-pipelines-deep-dive/">OpenShift 3.3 Pipelines - Deep Dive</a> describes how the Pipeline strategy works. In summary, you can create a BuildConfig in OpenShift that contains a definition of a Jenkins pipeline (using the Groovy DSL language). Based on this definition, OpenShift will create a pipeline job in Jenkins and execute it. Among other things, the Jenkins job can trigger a build on OpenShift, verify that the build succeeded and trigger a deployment. This approach allows OpenShift to leverage Jenkins pipelines to orchestrate a more involved CI/CD workflow possibly encompassing a conditional execution of multiple OpenShift builds and deployments.</p>
+
+<p>An alternative to using the Pipeline strategy in OpenShift would be defining the pipeline job directly in Jenkins. With the <a href="https://plugins.jenkins.io/openshift-pipeline">OpenShift pipeline plugin</a> installed, one can trigger OpenShift operations from within the pipeline job.</p>
+
+<p>As I didn&rsquo;t really work with the OpenShift strategies much I&rsquo;m not going to elaborate any further. Instead, in the next section, I&rsquo;m going to mention two Jenkins plugins that we are successfully using to run builds on OpenShift.</p>
+
+<h2>Builds on Openshift driven by Jenkins</h2>
+
+<p><img class="right" src="http://alesnosek.com/images/posts/jenkins_logo.png" width="200" height="200"></p>
+
+<p>There are two Jenkins plugins that can leverage OpenShift containers as build slaves:</p>
+
+<p><strong><a href="https://wiki.jenkins-ci.org/display/JENKINS/Swarm+Plugin">Swarm plugin</a></strong>. The Swarm plugin consists of two parts: a Jenkins plugin and a CLI client. Jenkins plugin exposes an endpoint where the CLI clients can register themselves. A CLI client acts as a Jenkins slave. It runs indefinitely within a Docker container and provides Jenkins with a configurable number of build executors. While the plugin is called a Swarm plugin it doesn&rsquo;t really need any Swarm orchestration. It can happily run in a Docker container on OpenShift.</p>
+
+<p><strong><a href="https://wiki.jenkins-ci.org/display/JENKINS/Kubernetes+Plugin">Kubernetes plugin</a></strong>. Works perfectly with OpenShift. In contrast to the Swarm plugin, Kubernetes plugin spins up a new Docker slave for each job on the fly and destroys it as soon as the job has finished running.</p>
+
+<p>Because the Jenkins workspace is created inside of the container, it will be deleted as soon as the Docker container is terminated. If you&rsquo;d like to reuse the same workspace for subsequent builds, I&rsquo;d like to offer you two options how to create persistent workspaces:</p>
+
+<ol>
+<li><p>You can attach a volume of type <em>hostPath</em> to your slave pods and place your workspace on that volume. At the same time you have to speficy a <em>nodeSelector</em> on your slave pods that would instruct OpenShift to schedule all your slave pods onto the same OpenShift node. With this approach the Jenkins slave can access its workspace on the local storage. Unfortunately, all the slaves that need to share a workspace have to run on the same OpenShift node which can get overloaded.</p></li>
+<li><p>You can attach a volume with the <em>ReadWriteMany</em> capability to your slave pods and place your workspace on this volume. Eligible volume types are NFS, GlusterFS or CephFS. Using this method a Jenkins slave running on any node in the cluster can access the shared workspace. The downside is that the access is over the network and hence slower than an access to the local storage.</p></li>
+</ol>
+
+
+<h2>Conclusion</h2>
+
+<p>In the this blog post we reviewed different approaches how to leverage an OpenShift cluster for software builds. On one hand, builds can be defined within OpenShift by creating the BuildConfig resources. This approach might be less flexible than using a full-fledged build server like Jenkins, however, one can be sure that the builds will work on any OpenShift cluster including the public cloud. On the other hand, we have seen that in an environment where Jenkins is already the king, we can leverage the Swarm or Kubernetes plugin to allow Jenkins to schedule build jobs on OpenShift.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[Accessing Kubernetes Pods from Outside of the Cluster]]></title>
@@ -2511,123 +2565,6 @@
 <h2>Alternative solution</h2>
 
 <p>I discovered an <a href="https://github.com/pyther/upstream_sync" title="upstream_sync">upstream_sync</a> script that allows you to mirror multiple RHEL/CentOS repositories from a single machine. It uses a specific client SSL certificate and key to access each of the repositories. This solution is much simpler than the approach described in this article.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[Improving Ansible's ini_file Module]]></title>
-    <link href="http://alesnosek.com/blog/2015/08/03/improving-ansibles-ini-file-module/"/>
-    <updated>2015-08-03T20:01:30-07:00</updated>
-    <id>http://alesnosek.com/blog/2015/08/03/improving-ansibles-ini-file-module</id>
-    <content type="html"><![CDATA[<p><strong> Update 3/31/2016: </strong> The implementation of the ini_file module described in this blogpost has been merged into Ansible version 2.0.</p>
-
-<p>For editing Windows INI files, Ansible comes with an <code>ini_file</code> module built in. Unfortunately, this module uses Python&rsquo;s <code>ConfigParser</code> module which reformats the entire INI file whenever you want to change a single line. It removes all the comment lines, too. For me this was not acceptable. After looking for a possible solution I decided to improve the <code>ini_file</code> module and created <code>ini_file2</code>. I realized how easy it is to create an Ansible module.</p>
-
-<!-- more -->
-
-
-<p>On Debian Linux, the Ansible&rsquo;s built-in <code>ini_file</code> module can be found at <code>/usr/share/ansible/files/ini_file</code>. This file is the base for our own <code>ini_file2</code>. The question was, at what location should one store the <code>ini_file2</code> module for Ansible to find it? From Ansible&rsquo;s <a href="http://docs.ansible.com/ansible/developing_modules.html" title="Developing Modules">documentation</a> I learned that when looking for modules, Ansible searches the <code>./library</code> directory alongside of the top level playbooks. That sounds perfect to me.</p>
-
-<p>After a while working with the Python code, I created the <code>ini_file2</code> module. This module provides an equivalent functionality to the original <code>ini_file</code> module, however, it does only the minimum changes when editing the INI file. It typically modifies only one line. When removing options, it doesn&rsquo;t delete the lines but comment them out instead. If there was a commented out option it comments it in when required.</p>
-
-<h2>The ini_file and ini_file2 comparison</h2>
-
-<p>Let&rsquo;s compare the <code>ini_file</code> and <code>ini_file2</code> on a practical example. Our input INI file looks as follows:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-</pre></td><td class='code'><pre><code class='ini'><span class='line'><span class="c1"># This is the main configuration section</span>
-</span><span class='line'><span class="c1"># There are some important options to configure</span>
-</span><span class='line'><span class="k">[main]</span>
-</span><span class='line'><span class="c1"># This is the first option</span>
-</span><span class='line'><span class="na">option1</span> <span class="o">=</span> <span class="s">orig_value</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># This is the second option</span>
-</span><span class='line'><span class="c1"># If not set, the default value is def_value</span>
-</span><span class='line'><span class="c1"># option2 = def_value</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># This is the last option</span>
-</span><span class='line'><span class="c1"># If not set, the default value is def_value</span>
-</span><span class='line'><span class="na">option3</span> <span class="o">=</span> <span class="s">some_value</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>The Ansible test script will set the <code>option1</code> and <code>option2</code> to <code>new_value</code> and it will remove the <code>option3</code> from the INI file:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>- name: Set option1 to new_value
-</span><span class='line'>  ini_file: dest=settings.ini section=main option=option1 value=new_value
-</span><span class='line'>
-</span><span class='line'>- name: Set option2 to new_value
-</span><span class='line'>  ini_file: dest=settings.ini section=main option=option2 value=new_value
-</span><span class='line'>
-</span><span class='line'>- name: Remove option3
-</span><span class='line'>  ini_file: dest=settings.ini section=main option=option3 state=absent</span></code></pre></td></tr></table></div></figure>
-
-
-<p>When using the original <code>ini_file</code> module, the resulting INI file looks like this:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='ini'><span class='line'><span class="k">[main]</span>
-</span><span class='line'><span class="na">option1</span> <span class="o">=</span> <span class="s">new_value</span>
-</span><span class='line'><span class="na">option2</span> <span class="o">=</span> <span class="s">new_value</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>You can see that there&rsquo;s not much left from the input file. All comments are gone. In contrast, the <code>ini_file2</code> module does the editing operations with more precision:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-</pre></td><td class='code'><pre><code class='ini'><span class='line'><span class="c1"># This is the main configuration section</span>
-</span><span class='line'><span class="c1"># There are some important options to configure</span>
-</span><span class='line'><span class="k">[main]</span>
-</span><span class='line'><span class="c1"># This is the first option</span>
-</span><span class='line'><span class="na">option1</span> <span class="o">=</span> <span class="s">new_value</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># This is the second option</span>
-</span><span class='line'><span class="c1"># If not set, the default value is def_value</span>
-</span><span class='line'><span class="na">option2</span> <span class="o">=</span> <span class="s">new_value</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1"># This is the last option</span>
-</span><span class='line'><span class="c1"># If not set, the default value is def_value</span>
-</span><span class='line'><span class="c1">#option3 = some_value</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>References</h2>
-
-<p>The <code>ini_file2</code> source code as well as test scripts can be found at <a href="https://github.com/noseka1/ini_file2" title="ini_file2">GitHub</a>.</p>
 ]]></content>
   </entry>
 
