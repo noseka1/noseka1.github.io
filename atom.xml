@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2017-03-20T21:21:52-07:00</updated>
+  <updated>2017-04-10T00:24:55-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,28 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[Passed the OpenShift EX280 certification!]]></title>
+    <link href="http://alesnosek.com/blog/2017/04/04/passed-the-openshift-ex280-certification/"/>
+    <updated>2017-04-04T23:00:22-07:00</updated>
+    <id>http://alesnosek.com/blog/2017/04/04/passed-the-openshift-ex280-certification</id>
+    <content type="html"><![CDATA[<p>It&rsquo;s been more than half a year since I started working with OpenShift. Today I successfully passed the <a href="https://www.redhat.com/en/services/training/ex280-red-hat-certificate-expertise-platform-service-exam">EX280 Red Hat Certificate of Expertise in Platform-as-a-Service exam</a> and earned a certificate. I&rsquo;m going to share a few details about the exam in this blog post.</p>
+
+<!-- more -->
+
+
+<p>Similar to the RHCSA/RHCE exams that I <a href="http://alesnosek.com/blog/2016/11/07/rhcsa-slash-rhce-exam-experience/">completed</a> some time ago, the EX280 OpenShift exam is also purely practical. You will have to install OpenShift 3.0, configure it and deploy multiple containerized applications on it.</p>
+
+<p>For preparation I used the <a href="https://www.redhat.com/en/services/training/do280-openshift-enterprise-administration">DO280 OpenShift Enterprise Administration</a> materials that were included in my <a href="https://www.redhat.com/en/services/training/learning-subscription">Red Hat Learning Subscription</a>. I practiced the provided lab exercices over and over again until I gained a good confidence.</p>
+
+<p><img class="right" src="http://alesnosek.com/images/posts/openshift_container_platform.png" width="250" height="300"></p>
+
+<p>The exam took three hours and I have to say that I was very busy typing the whole time. Despite of my best effort I ran out of time with three tasks left untouched. How happy I was when I received my exam results. Passing score for the exam was 210 points. I made it through with 225 points.</p>
+
+<p>I truly enjoy the Red Hat certification program and want to keep growing my collection of certificates. The list of my current certifications can be found on the <a href="https://www.redhat.com/rhtapps/certification/verify/?certId=160-216-727">Verify a Red Hat Certified Professional</a> website.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[An Introduction to Building on OpenShift]]></title>
@@ -2505,66 +2527,6 @@
 <h2>References</h2>
 
 <p>When writing this blogpost I referred to the very useful article <a href="http://blog.davidvassallo.me/2012/05/05/kvm-brctl-in-linux-bringing-vlans-to-the-guests/">KVM &amp; BRCTL in Linux – bringing VLANs to the guests</a> describing the issues of VLAN bridging in a great detail.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[Multiple RHEL Mirrors on a Single Machine]]></title>
-    <link href="http://alesnosek.com/blog/2015/08/16/multiple-rhel-mirrors-on-a-single-machine/"/>
-    <updated>2015-08-16T22:23:11-07:00</updated>
-    <id>http://alesnosek.com/blog/2015/08/16/multiple-rhel-mirrors-on-a-single-machine</id>
-    <content type="html"><![CDATA[<p><em>Reposync</em> can mirror the yum repository to which your machine is subscribed to. However, you cannot subscribe your machine to the RHEL6 and RHEL7 at the same time. Let&rsquo;s take a look at how Docker can help us here.</p>
-
-<!-- more -->
-
-
-<p>The RHEL Docker images are available in the public registry. For example, the following command downloads a RHEL6 Docker image:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>docker pull rhel6
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>The downloaded image is not registered with <a href="https://access.redhat.com/" title="Red Hat Customer Portal">Red Hat Customer Portal</a> and hence cannot receive any software updates. To register the Docker image, you&rsquo;ll need the <em>username</em> and <em>password</em> you use to log in to the Red Hat Customer Portal.</p>
-
-<h2>Docker and the build-time secrets</h2>
-
-<p>You will encounter a problem when building and registering the RHEL image using a Dockerfile. How to register the RHEL image using your credentials without Docker baking those credentials into the image? You don&rsquo;t want others to discover your secrets in the image&rsquo;s metadata or the history log. As a matter of fact, there doesn&rsquo;t seem to be a secure way to pass the secrets to the Docker in build-time. And there is a nice <a href="https://github.com/docker/docker/issues/13490" title="Secrets in Docker">write-up</a> available in the Docker issue tracker describing the different approaches how to workaround this deficiency.</p>
-
-<p>The following approach worked for me:</p>
-
-<ol>
-<li>Store the credentials into a file on the Docker host</li>
-<li>Start a RHEL container with the credentials file mounted into it</li>
-<li>Use the credentials to register the RHEL system</li>
-<li>Stop the RHEL container</li>
-<li>Commit the RHEL container into a new Docker image</li>
-</ol>
-
-
-<h2>Creating RHEL images with Ansible</h2>
-
-<p>You can find the <code>rhel_reposync</code> Ansible role at <a href="https://github.com/noseka1/rhel_reposync" title="rhel_reposync">GitHub</a>. You want to run this role on your Docker host. It will download the RHEL6 and RHEL7 images, and register them with the Red Hat Customer Portal. You have to supply your Red Hat credentials on the command-line. For example:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>ansible-playbook -i hosts playbook.yml -e <span class="nv">redhat_portal_username</span><span class="o">=</span>username@company.com -e <span class="nv">redhat_portal_password</span><span class="o">=</span>secretpassword
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>After the Ansible run is finished you&rsquo;ll find two images in your local Docker repository: <code>rhel6_reposync_registered</code> and <code>rhel7_reposync_registered</code>.</p>
-
-<h2>Mirroring the RHEL repository</h2>
-
-<p>To begin the RHEL repository mirroring you just start a container based on the registered image. The container expects a volume to be mounted at <code>/repodir</code>. It will save the downloaded RPM packages at this location.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>docker run --rm -v /var/www/html/RHEL6:/repodir rhel6_reposync_registered
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Alternative solution</h2>
-
-<p>I discovered an <a href="https://github.com/pyther/upstream_sync" title="upstream_sync">upstream_sync</a> script that allows you to mirror multiple RHEL/CentOS repositories from a single machine. It uses a specific client SSL certificate and key to access each of the repositories. This solution is much simpler than the approach described in this article.</p>
 ]]></content>
   </entry>
 
