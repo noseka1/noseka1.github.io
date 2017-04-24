@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>http://alesnosek.com/blog/2017/04/22/two-years-of-technical-blogging/</loc>
+    <lastmod>2017-04-22T15:06:57-07:00</lastmod>
+  </url>
+  <url>
     <loc>http://alesnosek.com/blog/2017/04/04/passed-the-openshift-ex280-certification/</loc>
     <lastmod>2017-04-04T23:00:22-07:00</lastmod>
   </url>

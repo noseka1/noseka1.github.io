@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>First Impressions about ansible-container - Ales Nosek - The Software Practitioner</title>
+  <title>Two Years of Technical Blogging - Ales Nosek - The Software Practitioner</title>
   <meta name="author" content="Ales Nosek">
 
 
-  <meta name="description" content="At Red Hat summit I learned about the new project ansible-container. I was very excited and looked forward to building Docker containers with Ansible &hellip;">
+  <meta name="description" content="Wow, the time goes by so fast. It&rsquo;s been two years since I began writing this blog. Why did I start and am I having fun? Let&rsquo;s take a &hellip;">
 
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
 
-  <link rel="canonical" href="http://alesnosek.com/blog/2016/09/12/first-impressions-about-ansible-container/">
+  <link rel="canonical" href="http://alesnosek.com/blog/2017/04/22/two-years-of-technical-blogging/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Ales Nosek - The Software Practitioner" type="application/atom+xml">
@@ -81,7 +81,7 @@
 
   <header>
 
-      <h1 class="entry-title">First Impressions about ansible-container</h1>
+      <h1 class="entry-title">Two Years of Technical Blogging</h1>
 
 
       <p class="meta">
@@ -90,52 +90,46 @@
 
 
 
-<time class='entry-date' datetime='2016-09-12T20:06:49-07:00'><span class='date'><span class='date-month'>Sep</span> <span class='date-day'>12</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>8:06 pm</span></time>
+<time class='entry-date' datetime='2017-04-22T15:06:57-07:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>22</span><span class='date-suffix'>nd</span>, <span class='date-year'>2017</span></span> <span class='time'>3:06 pm</span></time>
 
       </p>
 
   </header>
 
 
-<div class="entry-content"><p>At Red Hat summit I learned about the new project <a href="https://www.ansible.com/ansible-container">ansible-container</a>. I was very excited and looked forward to building Docker containers with Ansible instead of the Dockerfiles. The project seemed to came just on time as in our company we&rsquo;re starting to Dockerize our software products. How did <em>ansible-container</em> work out for us? Read on!</p>
+<div class="entry-content"><p>Wow, the time goes by so fast. It&rsquo;s been two years since I began writing this blog. Why did I start and am I having fun? Let&rsquo;s take a closer look.</p>
 
 <!-- more -->
 
 
-<p>The ansible-container is a very young project. The first release 0.1.0 came out on July 28, 2016. The project&rsquo;s Git repository is hosted on <a href="https://github.com/ansible/ansible-container">GitHub</a>. Additionaly, there&rsquo;s a repository with examples of how to use ansible-container available <a href="https://github.com/ansible/ansible-container-examples">here</a>.</p>
+<p>I think that there are two kinds of authors. The first kind are the extroverted authors, that can fill pages and pages of paper without difficulty. They love to communicate and writing is yet another way of communication for them. The second kind of authors would be the introverted authors. Communication is not necessarily the second nature for them. Before creating an article, they are concerned whether they have really something interesting to share.</p>
 
-<h2>How ansible-container works</h2>
+<p>It seems to me that in the developer community the introverted authors prevail and I personally count myself to this category, too. Only after a decade of software development and now heading towards software architecture I finally decided to start my own technical blog.</p>
 
-<p>Here is how you build Docker containers with ansible-container. After crafting your Ansible playbook, you run the command <code>ansible-container build</code> which roughly executes these steps:</p>
+<p><img class="right" src="/images/posts/octopress_github.png" width="200" height="200"></p>
+
+<h2>Getting my blog started</h2>
+
+<p>Coming late to the game, there was plenty of technical blogs out there to draw inspiration from. I quickly settled on <a href="http://octopress.org/">Octopress</a> as the engine for my blog. Octopress is a blog generator. I can write articles using the Markdown format and Octopress generates the entire website for me. As the generated website is completely static I&rsquo;m hosting it on GitHub. No PHP or MySQL databases are needed to run my blog. Currently, the development of the Octopress engine is stalled for more than a year. However, I still like to ride this horse even when it might be dead.</p>
+
+<p>Before I get going I typically need to read at least one book on the subject. Regarding technical blogging, I would recommend the <a href="http://technicalblogging.com/book/">Technical Blogging</a> book from The Pragmatic Programmers. I read the first several chapters beforing creating this blog and it was a great eye opener for me.</p>
+
+<h2>Why is technical blogging fun?</h2>
+
+<p>Technical blogging takes some effort, however, I really keep enjoying it. Here are my top five reasons why I like technical blogging:</p>
 
 <ol>
-<li>Spin up a <em>builder container</em> and mount your Ansible playbook directory as a volume inside of this container.</li>
-<li>Spin up a <em>base container</em> from the Docker image of your choice.</li>
-<li>Run ansible-playbook inside of the <em>builder container</em>. Ansible will connect to the <em>base container</em> and configure it accordingly to the playbook.</li>
-<li>Shutdown the <em>base container</em> and commit it as a new image.</li>
+<li><em>Blog gives others insight into what you&rsquo;re working on</em>. People with similar interests will find you if you show what you&rsquo;re passionate about.</li>
+<li><em>Blog as a contribution to open source.</em> Creating articles and tutorials about open source software is a form of contribution to the software we all love.</li>
+<li><em>Blogging helps you to deeper understand the subject you are writing about.</em> The best way to learn something is to teach it. And I would say that besides teaching a good way is to write about it, too.</li>
+<li><em>Blog is a documentation you can refer to in the future.</em> It happened to me several times that I had to come back to my own article to refresh my memory on the subject.</li>
+<li><em>Blogging advances your writing skills.</em> Concise and easy to understand written communication is certainly appreciated by other developers on your team.</li>
 </ol>
 
 
-<p>Besides building one Docker image at a time, it&rsquo;s rather straight forward to build a group of images at once. Under the hood, ansible-container leverages Docker Compose to start any number of containers to configure them with Ansible.</p>
+<h2>Let me know how I&rsquo;m doing</h2>
 
-<p>After your images are built, you can start them as containers on the local machine using the <code>ansible-container run</code> command. And finally, the <code>ansible-container shipit</code> command can help you to deploy your containers to Kubernetes or OpenShift.</p>
-
-<h2>Evaluating ansible-container</h2>
-
-<p>Software development in our company is organized in a way that can probably be found in many other places, too. We maintain base software libraries in a project called <em>platform</em>. On top of <em>platform</em>, many different product components are developed. We distribute our software in the form of RPM packages. As a first step on our way towards containers, we are going to install the RPMs on top of the Docker base images.</p>
-
-<p>After spending a week with ansible-container, we decided that we are not going to adopt it at this time. The main reasons were:</p>
-
-<ol>
-<li><p>We would have to introduce another dependency to our build process. Our build machines would need to have Ansible, ansible-container and Docker Compose installed in order to build Docker containers. We prefer to keep our build dependencies to the minimum.</p></li>
-<li><p>We need to build around 20 containers. During the container build we run a shell script to install an RPM package and to do a few more modifications. Our container build process is rather simple and Dockerfiles can just get the job done. For a more involved build process, Ansible would be preferable.</p></li>
-<li><p>The ansible-container project shows its potential while it&rsquo;s still in its infancy. The builds with ansible-container take longer than the Dockerfile builds that leverage caching of image layers. The build specification file <code>container.yml</code> is not flexible enough for us. For example, it&rsquo;s not easy to build only a subset of the declared containers. Also it&rsquo;s not possible to build in one pass containers which inherit from each other.</p></li>
-</ol>
-
-
-<h2>Conclusion</h2>
-
-<p>The ansible-container project is definitely very promising and we will keep our eye on it. For now, we&rsquo;re moving forward with generating and running Dockerfiles.</p>
+<p>Feedback is always greatly appreciated. If you find some time, I&rsquo;ll be happy to hear how I&rsquo;m doing as a blogger. You can leave your comments in the comment section below.</p>
 </div>
 
 
@@ -151,21 +145,15 @@
 
 
 
-<time class='entry-date' datetime='2016-09-12T20:06:49-07:00'><span class='date'><span class='date-month'>Sep</span> <span class='date-day'>12</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>8:06 pm</span></time>
+<time class='entry-date' datetime='2017-04-22T15:06:57-07:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>22</span><span class='date-suffix'>nd</span>, <span class='date-year'>2017</span></span> <span class='time'>3:06 pm</span></time>
 
-
-<span class="categories">
-
-    <a class='category' href='/blog/categories/devops/'>devops</a>
-
-</span>
 
 
     </p>
 
       <div class="sharing">
 
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://alesnosek.com/blog/2016/09/12/first-impressions-about-ansible-container/" data-via="" data-counturl="http://alesnosek.com/blog/2016/09/12/first-impressions-about-ansible-container/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://alesnosek.com/blog/2017/04/22/two-years-of-technical-blogging/" data-via="" data-counturl="http://alesnosek.com/blog/2017/04/22/two-years-of-technical-blogging/" >Tweet</a>
 
 
   <div class="g-plusone" data-size="medium"></div>
@@ -178,10 +166,8 @@
 
     <p class="meta">
 
-        <a class="basic-alignment left" href="/blog/2016/07/04/what-i-learned-from-the-open-organization/" title="Previous Post: What I learned from The Open Organization">&laquo; What I learned from The Open Organization</a>
+        <a class="basic-alignment left" href="/blog/2017/04/04/passed-the-openshift-ex280-certification/" title="Previous Post: Passed the OpenShift EX280 certification!">&laquo; Passed the OpenShift EX280 certification!</a>
 
-
-        <a class="basic-alignment right" href="/blog/2016/11/01/5-linux-commands-you-didnt-know-you-needed/" title="Next Post: 5 Linux Commands You Didn't Know You Needed">5 Linux Commands You Didn&#8217;t Know You Needed &raquo;</a>
 
     </p>
   </footer>
@@ -247,8 +233,8 @@
 
 
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://alesnosek.com/blog/2016/09/12/first-impressions-about-ansible-container/';
-        var disqus_url = 'http://alesnosek.com/blog/2016/09/12/first-impressions-about-ansible-container/';
+        var disqus_identifier = 'http://alesnosek.com/blog/2017/04/22/two-years-of-technical-blogging/';
+        var disqus_url = 'http://alesnosek.com/blog/2017/04/22/two-years-of-technical-blogging/';
         var disqus_script = 'embed.js';
 
     (function () {
