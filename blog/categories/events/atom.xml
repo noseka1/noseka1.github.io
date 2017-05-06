@@ -4,7 +4,7 @@
   <title><![CDATA[Category: events | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/events/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2017-04-23T23:29:24-07:00</updated>
+  <updated>2017-05-05T23:26:28-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,115 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[What I Learned at Red Hat Summit 2017]]></title>
+    <link href="http://alesnosek.com/blog/2017/05/05/what-i-learned-at-red-hat-summit-2017/"/>
+    <updated>2017-05-05T18:46:14-07:00</updated>
+    <id>http://alesnosek.com/blog/2017/05/05/what-i-learned-at-red-hat-summit-2017</id>
+    <content type="html"><![CDATA[<p>I had the great opportunity to visit the Red Hat Summit 2017. It was hosted in the Boston Convention and Exhibition Center in Boston in May 2-4, 2017. This blog post summarizes the interesting things I learned at the summit.</p>
+
+<!-- more -->
+
+
+<h2>Major announcements</h2>
+
+<p><img class="right" src="/images/posts/rh_summit.png" width="200" height="200"></p>
+
+<p><strong><a href="https://www.redhat.com/en/about/press-releases/red-hat-and-aws-extend-strategic-alliance-package-access-aws-services-within-red-hat-openshift">Red Hat OpenShift &amp; Amazon Web Services</a>.</strong> Red Hat will make AWS services accessible directly from the OpenShift web console. From within the OpenShift web console developers will be able to provision and configure AWS services such as CloudFront, ElastiCache, ELB, RDS, EMR, RedShift, S3 and Lambda.</p>
+
+<p><strong><a href="https://www.redhat.com/en/about/press-releases/red-hat-unveils-end-end-cloud-native-development-environment-red-hat-openshiftio">Red Hat OpenShift.io</a>.</strong> <a href="https://openshift.io/">OpenShift.io</a> is an online development environment for building container-based applications. OpenShift.io can create a project in GitHub for you to store your source code. The source code editing can be done in the integrated Eclipse Che. OpenShift.io can create a project in OpenShift Online in order to build your application and deploy it. Jenkins pipelines are used to orchestrate the CI/CD process. Currently, OpenShift.io is available in a limited developer preview. You can sign up at <a href="https://openshift.io">https://openshift.io</a></p>
+
+<h2>Sessions attended</h2>
+
+<ul>
+<li><strong>The future Red Hat Middleware portfolio: Stacks and services and solutions</strong>
+
+<ul>
+<li>Netflix OSS is interesting and Red Hat will support it because customers like it. However, some of the Netflix OSS features might be more efficiently implemented directly in Kubernetes instead of on top of Kubernetes. Netflix had to make architectural choices based on how AWS looked several years ago. AWS evolved since that time.</li>
+<li>Architectural evolution: monolith -> n-tier architecture -> microservices.</li>
+</ul>
+</li>
+<li><strong>Red Hat container technology strategy</strong>
+
+<ul>
+<li>Kubernetes has won. You may have just not realized it yet.</li>
+<li>There are two reasons why the Kubernetes open source project is winning. First, it brings value to people. Second, people are excited to work on it.</li>
+<li>Kubernetes = kernel of the cloud operating systems</li>
+</ul>
+</li>
+<li><strong>Reproducible development to live applications with Java and Red Hat CDK</strong>
+
+<ul>
+<li>When developing containerized applications, developers can run them locally (outside of a container), locally on <a href="https://github.com/minishift/minishift">MiniShift</a>, or hosted on <a href="https://www.openshift.com/">OpenShift Online</a>.</li>
+<li><a href="https://developers.redhat.com/products/cdk">Red Hat Container Development Kit</a> can help you develop container-based applications quickly. It uses MiniShift under the hood.</li>
+</ul>
+</li>
+<li><strong>Modern Java and DevOps lightning talks</strong>
+
+<ul>
+<li>You can issue <code>oc cluster up</code> to create a local OpenShift all-in-one cluster (requires Origin >= 1.3).</li>
+<li><a href="https://projects.eclipse.org/proposals/eclipse-microprofile">Eclipse MicroProfile</a> project is aimed at optimizing Enterprise Java for the microservices architecture. It focuses, among others, on application configuration, health-checking, fault tolerance and security.</li>
+<li>You can use API Gateway (e.g <a href="https://apigee.com/about/cp/api-gateway">Apigee</a>, <a href="https://www.3scale.net/">3scale</a>) to dynamically route traffic into different OpenShift namespaces (test, staging, production).</li>
+</ul>
+</li>
+<li><strong>Atomic BOF</strong>
+
+<ul>
+<li>In the future, the classic RHEL will be derived from the RHEL Atomic Host. It means that the new features will appear in the RHEL Atomic Host before being included into RHEL.</li>
+</ul>
+</li>
+<li><strong>Stepping off a cliff: Common sense approaches to cloud security</strong>
+
+<ul>
+<li>VMs in the cloud are created and destroyed dynamically. This is one of the challenges for the security team.</li>
+</ul>
+</li>
+<li><strong>Wicked fast PaaS: Performance tuning of OpenShift and Docker</strong>
+
+<ul>
+<li>RHEL 7.4 should support OverlayFS. For Docker storage, the OverlayFS is more memory efficient than the LVM thin pool provisioning, as with OverlayFS, the pages in the page cache can be shared between multiple containers.</li>
+<li>Beginning with OpenShift 3.5, the container image metadata will be stored only in the Docker registry. In previous versions of OpenShift, a duplicate of the image metadata was stored in etcd, too.</li>
+</ul>
+</li>
+<li><strong>The Truth about Microservices</strong>
+
+<ul>
+<li>&ldquo;Building a single microservice is easy. Building a microservices architecture is hard.&rdquo;</li>
+</ul>
+</li>
+<li><strong>The hardest part of microservices is your data</strong>
+
+<ul>
+<li><a href="http://debezium.io/">Debezium</a> monitors the changes committed to the database (MySQL, MongoDB, PostgreSQL). For each database change, Debezium publishes an event to the Kafka broker. To consume the change events, an application can create a Kafka consumer that will consume all events for the topics associated with the database. In summary, Debezium turns a database transaction log into a Kafka stream that other applications can consume.</li>
+</ul>
+</li>
+<li><strong>Reactive systems with Eclipse Vert.x and Red Hat OpenShift</strong>
+
+<ul>
+<li><a href="http://vertx.io/">Vert.x</a> is a toolkit for building reactive applications on the JVM. It can discover services on OpenShift and Kubernetes.</li>
+</ul>
+</li>
+<li><strong>Container infrastructure trends: Optimizing for production workloads</strong>
+
+<ul>
+<li><a href="https://github.com/projectatomic/skopeo">skopeo</a> is a command line utility that allows you to inspect Docker images and image registries. It retrieves the required information from the repository metadata without the need to download the actual image. For example, with skopeo you can find out which tags are available for the given repository.</li>
+<li><a href="https://github.com/projectatomic/buildah">buildah</a> a tool for building Docker images. It can build container images without using the Docker daemon. Ansible-container and OpenShift&rsquo;s S2I will be modified to use buildah under the hood.</li>
+</ul>
+</li>
+<li><strong>Function as a Service (Faas) - why you should care and what you need to know</strong>
+
+<ul>
+<li>Architectural evolution: service -> microservice -> function.</li>
+<li>Good serverless use-cases: processing web-hooks, scheduled tasks (a la cron), data transformation (converting small images).</li>
+<li>Serverless architecture challenges: cannot use a larger programming framework to implement the function, as this would be too slow to initialize, increased latency in comparison to a long-running server process, large variance in latency, very complex at scale, debugging of functions is hard.</li>
+<li>Red Hat participates on development of <a href="https://funktion.fabric8.io/">Funktion</a> that is part of the project <a href="https://fabric8.io/">fabric8</a>.</li>
+</ul>
+</li>
+</ul>
+
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[Red Hat Summit 2016]]></title>
