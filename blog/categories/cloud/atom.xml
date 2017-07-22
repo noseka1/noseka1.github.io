@@ -4,7 +4,7 @@
   <title><![CDATA[Category: cloud | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/cloud/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2017-06-26T23:00:50-07:00</updated>
+  <updated>2017-07-22T16:47:45-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,348 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[First Look at the Key-Value Store in Consul]]></title>
+    <link href="http://alesnosek.com/blog/2017/07/15/first-look-at-the-key-value-store-in-consul/"/>
+    <updated>2017-07-15T20:38:38-07:00</updated>
+    <id>http://alesnosek.com/blog/2017/07/15/first-look-at-the-key-value-store-in-consul</id>
+    <content type="html"><![CDATA[<p>If you are developing a distributed application that consists of multiple services, you might be thinking about how to manage the ever growing application configuration data. Instead of maintaining individual configuration files for each service, you can store all your configuration data in a key-value store. In this blog post we&rsquo;ll check out the key-value store in Consul.</p>
+
+<!-- more -->
+
+
+<p><img class="right" src="/images/posts/consul_logo.png" width="200" height="300"></p>
+
+<p>Consul is an open-source product developed by <a href="https://www.hashicorp.com/">HashiCorp</a> and licensed under the <a href="https://github.com/hashicorp/consul/blob/master/LICENSE">MPL 2.0</a>. While Consul uses an open core business model, it comes with a great deal of functionality in its free edition. The top two features of Consul would be the service discovery combined with health checking and the key-value store functionality that we are going to review in this article. They both come handy when building distributed applications.</p>
+
+<h2>Getting started</h2>
+
+<p>HashiCorp products are known for its thorough documentation and the Consul&rsquo;s <a href="https://www.consul.io/docs/index.html">documenation</a> is not an exception.</p>
+
+<p>What I like about Consul is its installation. Written in the Go language, Consul is distributed as a single statically linked binary. Download <a href="https://www.consul.io/downloads.html">links</a> for various platforms are provided. After unzipping the distribution archive you can directly run the <code>consul</code> executable.</p>
+
+<p>Let&rsquo;s put togher a command-line to start the Consul cluster. Our test cluster consists of a single node (<code>-bootstrap-expect 1</code>). For a production deployment, you should be looking at a cluster of three or five Consul nodes that is able to survive node failures. We will make the Consul Web UI available at <code>http://localhost:8500</code> by appending the <code>-ui</code> parameter. Consul needs a location where it will persist its data. In our example, we instruct Consul to create a directory <code>mydata</code> and store all its data in this directory. After a bit of typing, the complete commmand-line to start the Consul cluster looks as follows:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>./consul agent -ui -server -data-dir mydata -advertise 127.0.0.1 -bootstrap-expect 1
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>In several seconds the one-node Consul cluster is up and running:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">==</span>&gt; WARNING: BootstrapExpect Mode is specified as 1<span class="p">;</span> this is the same as Bootstrap mode.
+</span><span class='line'><span class="o">==</span>&gt; WARNING: Bootstrap mode enabled! Do not <span class="nb">enable </span>unless <span class="nv">necessary</span>
+</span><span class='line'><span class="o">==</span>&gt; Starting Consul agent<span class="p">&amp;</span>hellip<span class="p">;</span>
+</span><span class='line'><span class="o">==</span>&gt; Consul agent running!
+</span><span class='line'>           Version: <span class="p">&amp;</span>lsquo<span class="p">;</span>v0.8.5<span class="p">&amp;</span>rsquo<span class="p">;</span>
+</span><span class='line'>           Node ID: <span class="p">&amp;</span>lsquo<span class="p">;</span>be79786e-749d-758c-2b65-824c1e956788<span class="p">&amp;</span>rsquo<span class="p">;</span>
+</span><span class='line'>         Node name: <span class="p">&amp;</span>lsquo<span class="p">;</span>zihadlo<span class="p">&amp;</span>rsquo<span class="p">;</span>
+</span><span class='line'>        Datacenter: <span class="p">&amp;</span>lsquo<span class="p">;</span>dc1<span class="p">&amp;</span>rsquo<span class="p">;</span>
+</span><span class='line'>            Server: <span class="nb">true</span> <span class="o">(</span>bootstrap: <span class="nb">true</span><span class="o">)</span>
+</span><span class='line'>       Client Addr: 127.0.0.1 <span class="o">(</span>&lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;HTTP:&quot;</span>&gt;HTTP:&lt;/a&gt; 8500, &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;HTTPS:&quot;</span>&gt;HTTPS:&lt;/a&gt; -1, DNS: 8600<span class="o">)</span>
+</span><span class='line'>      Cluster Addr: 127.0.0.1 <span class="o">(</span>LAN: 8301, WAN: 8302<span class="o">)</span>
+</span><span class='line'>    Gossip encrypt: <span class="nb">false</span>, RPC-TLS: <span class="nb">false</span>, TLS-Incoming: <span class="nb">false</span>&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;<span class="o">==</span>&gt; Log data will now stream in as it occurs:&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;pre&gt;&lt;code&gt;2017/07/15 20:37:57 <span class="o">[</span>INFO<span class="o">]</span> raft: Initial configuration <span class="o">(</span><span class="nv">index</span><span class="o">=</span>1<span class="o">)</span>: <span class="o">[{</span>Suffrage:Voter ID:127.0.0.1:8300 Address:127.0.0.1:8300<span class="o">}]</span>
+</span><span class='line'>2017/07/15 20:37:57 <span class="o">[</span>INFO<span class="o">]</span> raft: Node at 127.0.0.1:8300 <span class="o">[</span>Follower<span class="o">]</span> entering Follower state <span class="o">(</span>Leader: <span class="s2">&quot;&quot;</span><span class="o">)</span>
+</span><span class='line'>2017/07/15 20:37:57 <span class="o">[</span>INFO<span class="o">]</span> serf: EventMemberJoin: zihadlo 127.0.0.1
+</span><span class='line'>2017/07/15 20:37:57 <span class="o">[</span>INFO<span class="o">]</span> consul: Adding LAN server zihadlo <span class="o">(</span>Addr: tcp/127.0.0.1:8300<span class="o">)</span> <span class="o">(</span>DC: dc1<span class="o">)</span>
+</span><span class='line'>2017/07/15 20:37:57 <span class="o">[</span>INFO<span class="o">]</span> serf: EventMemberJoin: zihadlo.dc1 127.0.0.1
+</span><span class='line'>2017/07/15 20:37:57 <span class="o">[</span>INFO<span class="o">]</span> consul: Handled member-join event <span class="k">for</span> server <span class="s2">&quot;zihadlo.dc1&quot;</span> in area <span class="s2">&quot;wan&quot;</span>
+</span><span class='line'>2017/07/15 20:37:57 <span class="o">[</span>INFO<span class="o">]</span> agent: Started DNS server 127.0.0.1:8600 <span class="o">(</span>udp<span class="o">)</span>
+</span><span class='line'>2017/07/15 20:37:57 <span class="o">[</span>INFO<span class="o">]</span> agent: Started DNS server 127.0.0.1:8600 <span class="o">(</span>tcp<span class="o">)</span>
+</span><span class='line'>2017/07/15 20:37:57 <span class="o">[</span>INFO<span class="o">]</span> agent: Started HTTP server on 127.0.0.1:8500
+</span><span class='line'>2017/07/15 20:38:02 <span class="o">[</span>WARN<span class="o">]</span> raft: Heartbeat timeout from <span class="s2">&quot;&quot;</span> reached, starting election
+</span><span class='line'>2017/07/15 20:38:02 <span class="o">[</span>INFO<span class="o">]</span> raft: Node at 127.0.0.1:8300 <span class="o">[</span>Candidate<span class="o">]</span> entering Candidate state in term 2
+</span><span class='line'>2017/07/15 20:38:02 <span class="o">[</span>INFO<span class="o">]</span> raft: Election won. Tally: 1
+</span><span class='line'>2017/07/15 20:38:02 <span class="o">[</span>INFO<span class="o">]</span> raft: Node at 127.0.0.1:8300 <span class="o">[</span>Leader<span class="o">]</span> entering Leader state
+</span><span class='line'>2017/07/15 20:38:02 <span class="o">[</span>INFO<span class="o">]</span> consul: cluster leadership acquired
+</span><span class='line'>2017/07/15 20:38:02 <span class="o">[</span>INFO<span class="o">]</span> consul: New leader elected: zihadlo
+</span><span class='line'>2017/07/15 20:38:02 <span class="o">[</span>INFO<span class="o">]</span> consul: member <span class="s1">&#39;zihadlo&#39;</span> joined, marking health alive
+</span><span class='line'>2017/07/15 20:38:02 <span class="o">[</span>INFO<span class="o">]</span> agent: Synced service <span class="s1">&#39;consul&#39;</span>
+</span><span class='line'>&lt;/code&gt;&lt;/pre&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>In the log output, Consul informs us that the Consul API is available at 127.0.0.1:8500. That&rsquo;s where the Consul client will connect to by default. In the following, you want to make sure that you&rsquo;re running the Consul commands on the same box as you started your Consul cluster.</p>
+
+<p>The single <code>consul</code> binary provides the server as well as the client functionality. Let&rsquo;s list our current cluster members to verify that the client can connect to the cluster:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul members
+</span><span class='line'>Node     Address         Status  Type    Build  Protocol  DC
+</span><span class='line'>zihadlo  127.0.0.1:8301  alive   server  0.8.5  <span class="m">2</span>         dc1
+</span></code></pre></td></tr></table></div></figure></p>
+
+<h2>Basic CRUD with Consul</h2>
+
+<p>In this section, we&rsquo;re going the exercise the basic Create, Read, Update and Delete functionality of the Consul key-store. First, let&rsquo;s store the value <code>12345</code> under the key <code>foo</code>:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv put foo 12345
+</span><span class='line'>Success! Data written to: foo
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Great, the value is saved in the store. To retrieve the value under the key <code>foo</code> from Consul we can type:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv get foo
+</span><span class='line'>12345
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>By the way, Consul doesn&rsquo;t impose any restrictions on what kind of data you may store. Only the size of the data is limited to 512KB of data per key. It&rsquo;s up to your application, what data format you choose to use. For example, you can decide to store numbers, strings, JSON-formatted data or arbitrary binary data. For instance, when designing a centralized configuration management solution for your application, you have the flexibility of storing individual configuration options as key-value pairs or decide to save entire configuration files as values in Consul.</p>
+
+<p>To replace the value, simply put an new value in Consul under the existing key:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv put foo bar
+</span><span class='line'>Success! Data written to: foo
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>The value has been successfully updated as we can tell:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv get foo
+</span><span class='line'>bar
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>To remove the value from the key-value store you can use the <code>delete</code> command:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv delete foo
+</span><span class='line'>Success! Deleted key: foo
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>To verify that the value is really gone, try to retrieve it:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv get foo
+</span><span class='line'>Error! No key exists at: foo
+</span></code></pre></td></tr></table></div></figure></p>
+
+<h2>Hierarchical keys and prefix matching</h2>
+
+<p>Keys in Consul can be organized in a hierarchy where different levels of the hierarchy are separated by the slash character (<code>/</code>). For example, you can create a database that holds the population numbers in different continents and countries (in millions of inhabitants) like this:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv put europe 743.1
+</span><span class='line'><span class="nv">$ </span>./consul kv put europe/germany 82.67
+</span><span class='line'><span class="nv">$ </span>./consul kv put europe/france 66.9
+</span><span class='line'><span class="nv">$ </span>./consul kv put asia 4436
+</span><span class='line'><span class="nv">$ </span>./consul kv put asia/india 1324
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Now that you organized your keys hierarchically, you can use the Consul&rsquo;s prefix matching to discover the keys on the single level of hierarchy. For example, to retrive the keys with the prefix <code>e</code>:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv get -recurse -keys e
+</span><span class='line'>europe
+</span><span class='line'>europe/
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Prefix matching can be used to retrieve the values, too. For example, to retrieve the population numbers in Europe, you can type:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv get -recurse e
+</span><span class='line'>europe:743.1
+</span><span class='line'>europe/france:66.9
+</span><span class='line'>europe/germany:82.67
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Note that when retrieving the keys recursively, only the keys on the single level of hierarchy were returned whereas when retrieving the values recursively, values on all the nested levels of hierarchy were returned.</p>
+
+<p>To obtain the population numbers for the European countries, you can append a slash to the keys name (<code>europe/</code>):</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv get -recurse europe/
+</span><span class='line'>europe/france:66.9
+</span><span class='line'>europe/germany:82.67
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>And if you are interested only in the European countries that start with letter <code>g</code>, you can use the prefix <code>europe/g</code>:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>./consul kv get -recurse europe/g
+</span><span class='line'>europe/germany:82.67
+</span></code></pre></td></tr></table></div></figure></p>
+
+<h2>Export/import of key-value pairs</h2>
+
+<p>Another useful feaure of the Consul&rsquo;s key-value store is the bulk export and import of key-value pairs. To export the entire key-value store database, you can type:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv <span class="nb">export</span>
+</span><span class='line'><span class="o">[</span>
+</span><span class='line'>        <span class="o">{</span>
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>key<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span>asia<span class="p">&amp;</span>rdquo<span class="p">;</span>,
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>flags<span class="p">&amp;</span>rdquo<span class="p">;</span>: 0,
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>value<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span><span class="nv">NDQzNg</span><span class="o">==</span><span class="p">&amp;</span>rdquo<span class="p">;</span>
+</span><span class='line'>        <span class="o">}</span>,
+</span><span class='line'>        <span class="o">{</span>
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>key<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span>asia/india<span class="p">&amp;</span>rdquo<span class="p">;</span>,
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>flags<span class="p">&amp;</span>rdquo<span class="p">;</span>: 0,
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>value<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span><span class="nv">MTMyNA</span><span class="o">==</span><span class="p">&amp;</span>rdquo<span class="p">;</span>
+</span><span class='line'>        <span class="o">}</span>,
+</span><span class='line'>        <span class="o">{</span>
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>key<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span>europe<span class="p">&amp;</span>rdquo<span class="p">;</span>,
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>flags<span class="p">&amp;</span>rdquo<span class="p">;</span>: 0,
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>value<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span><span class="nv">NzQzLjE</span><span class="o">=</span><span class="p">&amp;</span>rdquo<span class="p">;</span>
+</span><span class='line'>        <span class="o">}</span>,
+</span><span class='line'>        <span class="o">{</span>
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>key<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span>europe/france<span class="p">&amp;</span>rdquo<span class="p">;</span>,
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>flags<span class="p">&amp;</span>rdquo<span class="p">;</span>: 0,
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>value<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span><span class="nv">NjYuOQ</span><span class="o">==</span><span class="p">&amp;</span>rdquo<span class="p">;</span>
+</span><span class='line'>        <span class="o">}</span>,
+</span><span class='line'>        <span class="o">{</span>
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>key<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span>europe/germany<span class="p">&amp;</span>rdquo<span class="p">;</span>,
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>flags<span class="p">&amp;</span>rdquo<span class="p">;</span>: 0,
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>value<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span><span class="nv">ODIuNjc</span><span class="o">=</span><span class="p">&amp;</span>rdquo<span class="p">;</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'><span class="o">]</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Consul exports the key-value pairs into the JSON format which is currently the only supported format. In the sample output, you can see that all the values are <a href="https://en.wikipedia.org/wiki/Base64">base64</a> encoded. The base64 encoding is commonly used in the text-based formats like JSON and XML to allow embedding of binary data.</p>
+
+<p>You can export a subset of the key-value pairs by specifying the prefix. For instance, to export the data pertaining Europe, you can speficy the <code>europe</code> prefix:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv <span class="nb">export </span>europe
+</span><span class='line'><span class="o">[</span>
+</span><span class='line'>        <span class="o">{</span>
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>key<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span>europe<span class="p">&amp;</span>rdquo<span class="p">;</span>,
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>flags<span class="p">&amp;</span>rdquo<span class="p">;</span>: 0,
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>value<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span><span class="nv">NzQzLjE</span><span class="o">=</span><span class="p">&amp;</span>rdquo<span class="p">;</span>
+</span><span class='line'>        <span class="o">}</span>,
+</span><span class='line'>        <span class="o">{</span>
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>key<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span>europe/france<span class="p">&amp;</span>rdquo<span class="p">;</span>,
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>flags<span class="p">&amp;</span>rdquo<span class="p">;</span>: 0,
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>value<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span><span class="nv">NjYuOQ</span><span class="o">==</span><span class="p">&amp;</span>rdquo<span class="p">;</span>
+</span><span class='line'>        <span class="o">}</span>,
+</span><span class='line'>        <span class="o">{</span>
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>key<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span>europe/germany<span class="p">&amp;</span>rdquo<span class="p">;</span>,
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>flags<span class="p">&amp;</span>rdquo<span class="p">;</span>: 0,
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>value<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span><span class="nv">ODIuNjc</span><span class="o">=</span><span class="p">&amp;</span>rdquo<span class="p">;</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'><span class="o">]</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>To import the JSON-formatted data back to the Consul key-value store, you can use the command <code>./consul kv import</code>.</p>
+
+<h2>Web UI</h2>
+
+<p>Besides the commmand-line client, you can access Consul through its beautiful Web interface. Point your web browser to <a href="http://localhost:8500">http://localhost:8500</a>.</p>
+
+<p><img class="right" src="/images/posts/consul_ui.png"></p>
+
+<h2>Conclusion</h2>
+
+<p>In this blog post, we reviewed the basics of the key-value store in Consul. There are many other cool features of the key-value store that we didn&rsquo;t cover like atomic key updates using Check-and-Set operations, <a href="https://www.consul.io/api/txn.html">transactions</a>, <a href="https://www.consul.io/docs/commands/lock.html">locks</a> or <a href="https://www.consul.io/docs/commands/watch.html">watches</a>. Also, I recommend to you to take a look at the great Consul&rsquo;s <a href="https://www.consul.io/api/index.html">RESTful API</a> that allows you to interact with Consul programatically.</p>
+
+<p>If you&rsquo;re looking for a key-value store that would enhance your distributed application, Consul is definitely a candidate to consider. Besides that, Consul will be ready when you later on realize that service discovery is what you need to address next.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[Acing the Red Hat OpenStack Certification Exams]]></title>
@@ -472,63 +814,6 @@
 <p>Overall, when exposing pods to the outside of the Kubernetes cluster, the Ingress seems to be a very flexible and convenient solution. Unfortunately, it&rsquo;s also the less mature among the discussed approaches. When choosing the NodePort service, you might want to deploy a load balancer in front of your cluster as well. If you are hosting Kubernetes on one of the supported clouds, the LoadBalancer service is another option for you.</p>
 
 <p>How do you route the external traffic to the Kubernetes pods? Glad to hear about your experience in the Comments section below!</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[TripleO Installer, Production Ready?]]></title>
-    <link href="http://alesnosek.com/blog/2017/01/15/tripleo-installer-production-ready/"/>
-    <updated>2017-01-15T23:13:32-08:00</updated>
-    <id>http://alesnosek.com/blog/2017/01/15/tripleo-installer-production-ready</id>
-    <content type="html"><![CDATA[<p><a href="https://wiki.openstack.org/wiki/TripleO">TripleO</a> is an OpenStack deployment and management tool we&rsquo;ve been using on the production systems for a while now. As TripleO is an upstream project for the Red Hat OpenStack Platform Director one would expect a decently working tool able to manage large-scale OpenStack deployments. What is our experience with TripleO?</p>
-
-<!-- more -->
-
-
-<h2>Introduction</h2>
-
-<p>Six months have passed since we deployed a private cloud in our company. Our cloud is based on the RDO distribution of OpenStack Mitaka running on top of RHEL 7. I have to say that we&rsquo;re very happy with our cloud-based environment. OpenStack simplified the management of virtual machines and boosted the productivity of our engineering team which enjoys the self-service provided by the OpenStack APIs. Our test automation creates and destroys many virtual machines a day making sure that our software product is tested in a clean and well-defined environment. OpenStack quickly became a critical part of our infrastructure.</p>
-
-<p>Hence we were less pleased when the last week a routine maintenance of the OpenStack cluster turned into an unplanned downtime of two compute nodes. But before we get to the problem itself let me introduce you to the specifics of how we manage the OpenStack cluster.</p>
-
-<h2>Overcloud maintenance is a challenge</h2>
-
-<p>A cloud life-cycle management tool of choice in the RDO distribution is TripleO. I published an article about my initial experience with TripleO a while ago: <a href="/blog/2016/03/27/tripleo-installer-the-good/">TripleO Installer - the Good, the Bad and the Ugly</a>. Overall, the way how TripleO configures the OpenStack cluster is rather less flexible. After spending time on customizing and patching TripleO we decided that there must be an easier way. Eventually, we implemented our own set of Ansible scripts that allow an additional fine-grained configuration of OpenStack nodes. After the <code>openstack overcloud deploy</code> command is complete we run our Ansible scripts to apply an additional configuration to the overcloud. There are two benefits to this approach. First, we don&rsquo;t have to patch TripleO scripts which will be upgraded in the next release of OpenStack. And second, we can keep using Ansible which is our favorite configuration tool.</p>
-
-<p>Having updated the overcloud using TripleO several times we realized that the update procedure is rather unreliable. Some time the TripleO update would fail with an error. Other time the overcloud update would just hang forever. Probably due to the undeterministic behaviour of the Puppet scripts that constitute a substantial part of TripleO we experienced random errors that would not occur again after restarting the update procedure. Situation got worse after we configured the overcloud Keystone to authenticate OpenStack users against Active Directory. The overcloud update would not run into completion anymore due to a defect in the Puppet scripts.</p>
-
-<p>Because fixing the TripleO scripts would require additional effort and the overcloud update would remain a risky operation either way we concluded that we will require a downtime when updating the overcloud. During the downtime period the existing virtual machines are fully operational only the OpenStack services that allow users to create or delete virtual machines or other cloud resources are not available. In the case of our private cloud this was an acceptable albeit not ideal solution.</p>
-
-<p>In summary, we can depict our OpenStack maintenance process like this:</p>
-
-<p><img src="/images/posts/openstack_maintenance_process.svg" width="500" height="700" title="OpenStack Maintenance Process" ></p>
-
-<h2>TripleO installer and the resulting downtime</h2>
-
-<p>On all our OpenStack nodes we use bonded network interfaces to protect the nodes against network failures. In network interface bonding a pair of physical network interfaces is combined into a single logical interface. This provides redundancy by allowing failover from one physical interface to another in the case of failure.</p>
-
-<p>It happened to us that on two of our compute nodes one physical network interface per bond was not working. In this situation the network connection is still functional but not redundant anymore. Unfortunately, for the TripleO installer this was not good enough. Normally, during the overcloud update the <code>os-net-config</code> utility configures the node networking. Due to the single network interface down <code>os-net-config</code> failed to create a correct network configuration. A &ldquo;safe&rdquo; default configuration was generated instead which configured all available network interfaces to use DHCP. Unfortunately, we prefer a static network configuration of overcloud nodes and so no DHCP server was available. Hence this &ldquo;safe&rdquo; default configuration rendered the two compute nodes unreachable including all the virtual machines that were running on top of them!</p>
-
-<p>We were able to fix the networking issue on the first compute node quickly. However, the physical network interfaces on the second compute node were seriously falling apart. Unfortunately:</p>
-
-<p><blockquote><p>The TripleO installer requires that all the overcloud nodes are reachable during the overcloud update.</p></blockquote></p>
-
-<p>In the opposite case the update just stays hanging. It turned out that it was not possible to bring all the network interfaces on the second compute node up but eventually we were able to get at least the management interface working. This allowed us to re-run the overcloud update during which we fooled the TripleO installer to believe that the configuration of the problematic compute node was applied sucessfully. After exceeding the two-hour maintanance window by several hours we were finally done.</p>
-
-<h2>Conclusion</h2>
-
-<p>Here I&rsquo;d like to summarize our six-months long experience with the TripleO installer:</p>
-
-<ol>
-<li>In our experience, the configuration of the OpenStack cluster using only the TripleO installer is not flexible enough. As a workaround, we ended up writing a bunch of Ansible scripts.</li>
-<li>The overcloud update can take a very long time to complete and it can fail because of random errors. Also during the update operation all the overcloud nodes have to be reachable by the TripleO installer. For this reason, I personally cannot imagine using TripleO to manage a cluster with more than one hundred nodes.</li>
-<li>As we experienced, the TripleO installer can easily break a working OpenStack cluster. This is a big no-no for a production system.</li>
-</ol>
-
-
-<p>Overall, I think that the TripleO installer in the Mitaka version of OpenStack would need more work to become production ready. In the meantime, we&rsquo;re continuing with patching of what we have.</p>
-
-<p>In the future, there are other projects that could replace the TripleO installer. I found the <a href="https://github.com/openstack/kolla-ansible">kolla-ansible</a> and <a href="https://github.com/openstack/kolla-kubernetes">kolla-kubernetes</a> rather promising.</p>
 ]]></content>
   </entry>
 

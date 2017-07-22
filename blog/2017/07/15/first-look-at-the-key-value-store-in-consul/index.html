@@ -1,0 +1,602 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>First Look at the Key-Value Store in Consul - Ales Nosek - The Software Practitioner</title>
+  <meta name="author" content="Ales Nosek">
+
+
+  <meta name="description" content="If you are developing a distributed application that consists of multiple services, you might be thinking about how to manage the ever growing &hellip;">
+
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <link rel="canonical" href="http://alesnosek.com/blog/2017/07/15/first-look-at-the-key-value-store-in-consul/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Ales Nosek - The Software Practitioner" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-61965164-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <img src="/images/computers.png" align="right">
+  <h1><a href="/">Ales Nosek - The Software Practitioner</a></h1>
+
+    <h2>Practicing to make software perfect.</h2>
+
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+
+</ul>
+
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="alesnosek.com">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+
+  <header>
+
+      <h1 class="entry-title">First Look at the Key-Value Store in Consul</h1>
+
+
+      <p class="meta">
+
+
+
+
+
+<time class='entry-date' datetime='2017-07-15T20:38:38-07:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>15</span><span class='date-suffix'>th</span>, <span class='date-year'>2017</span></span> <span class='time'>8:38 pm</span></time>
+
+      </p>
+
+  </header>
+
+
+<div class="entry-content"><p>If you are developing a distributed application that consists of multiple services, you might be thinking about how to manage the ever growing application configuration data. Instead of maintaining individual configuration files for each service, you can store all your configuration data in a key-value store. In this blog post we&rsquo;ll check out the key-value store in Consul.</p>
+
+<!-- more -->
+
+
+<p><img class="right" src="/images/posts/consul_logo.png" width="200" height="300"></p>
+
+<p>Consul is an open-source product developed by <a href="https://www.hashicorp.com/">HashiCorp</a> and licensed under the <a href="https://github.com/hashicorp/consul/blob/master/LICENSE">MPL 2.0</a>. While Consul uses an open core business model, it comes with a great deal of functionality in its free edition. The top two features of Consul would be the service discovery combined with health checking and the key-value store functionality that we are going to review in this article. They both come handy when building distributed applications.</p>
+
+<h2>Getting started</h2>
+
+<p>HashiCorp products are known for its thorough documentation and the Consul&rsquo;s <a href="https://www.consul.io/docs/index.html">documenation</a> is not an exception.</p>
+
+<p>What I like about Consul is its installation. Written in the Go language, Consul is distributed as a single statically linked binary. Download <a href="https://www.consul.io/downloads.html">links</a> for various platforms are provided. After unzipping the distribution archive you can directly run the <code>consul</code> executable.</p>
+
+<p>Let&rsquo;s put togher a command-line to start the Consul cluster. Our test cluster consists of a single node (<code>-bootstrap-expect 1</code>). For a production deployment, you should be looking at a cluster of three or five Consul nodes that is able to survive node failures. We will make the Consul Web UI available at <code>http://localhost:8500</code> by appending the <code>-ui</code> parameter. Consul needs a location where it will persist its data. In our example, we instruct Consul to create a directory <code>mydata</code> and store all its data in this directory. After a bit of typing, the complete commmand-line to start the Consul cluster looks as follows:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>./consul agent -ui -server -data-dir mydata -advertise 127.0.0.1 -bootstrap-expect 1
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>In several seconds the one-node Consul cluster is up and running:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">==</span>&gt; WARNING: BootstrapExpect Mode is specified as 1<span class="p">;</span> this is the same as Bootstrap mode.
+</span><span class='line'><span class="o">==</span>&gt; WARNING: Bootstrap mode enabled! Do not <span class="nb">enable </span>unless <span class="nv">necessary</span>
+</span><span class='line'><span class="o">==</span>&gt; Starting Consul agent...
+</span><span class='line'><span class="o">==</span>&gt; Consul agent running!
+</span><span class='line'>           Version: <span class="s1">&#39;v0.8.5&#39;</span>
+</span><span class='line'>           Node ID: <span class="s1">&#39;be79786e-749d-758c-2b65-824c1e956788&#39;</span>
+</span><span class='line'>         Node name: <span class="s1">&#39;zihadlo&#39;</span>
+</span><span class='line'>        Datacenter: <span class="s1">&#39;dc1&#39;</span>
+</span><span class='line'>            Server: <span class="nb">true</span> <span class="o">(</span>bootstrap: <span class="nb">true</span><span class="o">)</span>
+</span><span class='line'>       Client Addr: 127.0.0.1 <span class="o">(</span>HTTP: 8500, HTTPS: -1, DNS: 8600<span class="o">)</span>
+</span><span class='line'>      Cluster Addr: 127.0.0.1 <span class="o">(</span>LAN: 8301, WAN: 8302<span class="o">)</span>
+</span><span class='line'>    Gossip encrypt: <span class="nb">false</span>, RPC-TLS: <span class="nb">false</span>, TLS-Incoming: <span class="nb">false</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">==</span>&gt; Log data will now stream in as it occurs:
+</span><span class='line'>
+</span><span class='line'>    2017/07/15 20:37:57 <span class="o">[</span>INFO<span class="o">]</span> raft: Initial configuration <span class="o">(</span><span class="nv">index</span><span class="o">=</span>1<span class="o">)</span>: <span class="o">[{</span>Suffrage:Voter ID:127.0.0.1:8300 Address:127.0.0.1:8300<span class="o">}]</span>
+</span><span class='line'>    2017/07/15 20:37:57 <span class="o">[</span>INFO<span class="o">]</span> raft: Node at 127.0.0.1:8300 <span class="o">[</span>Follower<span class="o">]</span> entering Follower state <span class="o">(</span>Leader: <span class="s2">&quot;&quot;</span><span class="o">)</span>
+</span><span class='line'>    2017/07/15 20:37:57 <span class="o">[</span>INFO<span class="o">]</span> serf: EventMemberJoin: zihadlo 127.0.0.1
+</span><span class='line'>    2017/07/15 20:37:57 <span class="o">[</span>INFO<span class="o">]</span> consul: Adding LAN server zihadlo <span class="o">(</span>Addr: tcp/127.0.0.1:8300<span class="o">)</span> <span class="o">(</span>DC: dc1<span class="o">)</span>
+</span><span class='line'>    2017/07/15 20:37:57 <span class="o">[</span>INFO<span class="o">]</span> serf: EventMemberJoin: zihadlo.dc1 127.0.0.1
+</span><span class='line'>    2017/07/15 20:37:57 <span class="o">[</span>INFO<span class="o">]</span> consul: Handled member-join event <span class="k">for</span> server <span class="s2">&quot;zihadlo.dc1&quot;</span> in area <span class="s2">&quot;wan&quot;</span>
+</span><span class='line'>    2017/07/15 20:37:57 <span class="o">[</span>INFO<span class="o">]</span> agent: Started DNS server 127.0.0.1:8600 <span class="o">(</span>udp<span class="o">)</span>
+</span><span class='line'>    2017/07/15 20:37:57 <span class="o">[</span>INFO<span class="o">]</span> agent: Started DNS server 127.0.0.1:8600 <span class="o">(</span>tcp<span class="o">)</span>
+</span><span class='line'>    2017/07/15 20:37:57 <span class="o">[</span>INFO<span class="o">]</span> agent: Started HTTP server on 127.0.0.1:8500
+</span><span class='line'>    2017/07/15 20:38:02 <span class="o">[</span>WARN<span class="o">]</span> raft: Heartbeat timeout from <span class="s2">&quot;&quot;</span> reached, starting election
+</span><span class='line'>    2017/07/15 20:38:02 <span class="o">[</span>INFO<span class="o">]</span> raft: Node at 127.0.0.1:8300 <span class="o">[</span>Candidate<span class="o">]</span> entering Candidate state in term 2
+</span><span class='line'>    2017/07/15 20:38:02 <span class="o">[</span>INFO<span class="o">]</span> raft: Election won. Tally: 1
+</span><span class='line'>    2017/07/15 20:38:02 <span class="o">[</span>INFO<span class="o">]</span> raft: Node at 127.0.0.1:8300 <span class="o">[</span>Leader<span class="o">]</span> entering Leader state
+</span><span class='line'>    2017/07/15 20:38:02 <span class="o">[</span>INFO<span class="o">]</span> consul: cluster leadership acquired
+</span><span class='line'>    2017/07/15 20:38:02 <span class="o">[</span>INFO<span class="o">]</span> consul: New leader elected: zihadlo
+</span><span class='line'>    2017/07/15 20:38:02 <span class="o">[</span>INFO<span class="o">]</span> consul: member <span class="s1">&#39;zihadlo&#39;</span> joined, marking health alive
+</span><span class='line'>    2017/07/15 20:38:02 <span class="o">[</span>INFO<span class="o">]</span> agent: Synced service <span class="s1">&#39;consul&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>In the log output, Consul informs us that the Consul API is available at 127.0.0.1:8500. That&rsquo;s where the Consul client will connect to by default. In the following, you want to make sure that you&rsquo;re running the Consul commands on the same box as you started your Consul cluster.</p>
+
+<p>The single <code>consul</code> binary provides the server as well as the client functionality. Let&rsquo;s list our current cluster members to verify that the client can connect to the cluster:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul members
+</span><span class='line'>Node     Address         Status  Type    Build  Protocol  DC
+</span><span class='line'>zihadlo  127.0.0.1:8301  alive   server  0.8.5  <span class="m">2</span>         dc1
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Basic CRUD with Consul</h2>
+
+<p>In this section, we&rsquo;re going the exercise the basic Create, Read, Update and Delete functionality of the Consul key-store. First, let&rsquo;s store the value <code>12345</code> under the key <code>foo</code>:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv put foo 12345
+</span><span class='line'>Success! Data written to: foo
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Great, the value is saved in the store. To retrieve the value under the key <code>foo</code> from Consul we can type:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv get foo
+</span><span class='line'>12345
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>By the way, Consul doesn&rsquo;t impose any restrictions on what kind of data you may store. Only the size of the data is limited to 512KB of data per key. It&rsquo;s up to your application, what data format you choose to use. For example, you can decide to store numbers, strings, JSON-formatted data or arbitrary binary data. For instance, when designing a centralized configuration management solution for your application, you have the flexibility of storing individual configuration options as key-value pairs or decide to save entire configuration files as values in Consul.</p>
+
+<p>To replace the value, simply put an new value in Consul under the existing key:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv put foo bar
+</span><span class='line'>Success! Data written to: foo
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The value has been successfully updated as we can tell:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv get foo
+</span><span class='line'>bar
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>To remove the value from the key-value store you can use the <code>delete</code> command:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv delete foo
+</span><span class='line'>Success! Deleted key: foo
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>To verify that the value is really gone, try to retrieve it:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv get foo
+</span><span class='line'>Error! No key exists at: foo
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Hierarchical keys and prefix matching</h2>
+
+<p>Keys in Consul can be organized in a hierarchy where different levels of the hierarchy are separated by the slash character (<code>/</code>). For example, you can create a database that holds the population numbers in different continents and countries (in millions of inhabitants) like this:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv put europe 743.1
+</span><span class='line'><span class="nv">$ </span>./consul kv put europe/germany 82.67
+</span><span class='line'><span class="nv">$ </span>./consul kv put europe/france 66.9
+</span><span class='line'><span class="nv">$ </span>./consul kv put asia 4436
+</span><span class='line'><span class="nv">$ </span>./consul kv put asia/india 1324
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now that you organized your keys hierarchically, you can use the Consul&rsquo;s prefix matching to discover the keys on the single level of hierarchy. For example, to retrive the keys with the prefix <code>e</code>:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv get -recurse -keys e
+</span><span class='line'>europe
+</span><span class='line'>europe/
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Prefix matching can be used to retrieve the values, too. For example, to retrieve the population numbers in Europe, you can type:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv get -recurse e
+</span><span class='line'>europe:743.1
+</span><span class='line'>europe/france:66.9
+</span><span class='line'>europe/germany:82.67
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Note that when retrieving the keys recursively, only the keys on the single level of hierarchy were returned whereas when retrieving the values recursively, values on all the nested levels of hierarchy were returned.</p>
+
+<p>To obtain the population numbers for the European countries, you can append a slash to the keys name (<code>europe/</code>):</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv get -recurse europe/
+</span><span class='line'>europe/france:66.9
+</span><span class='line'>europe/germany:82.67
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And if you are interested only in the European countries that start with letter <code>g</code>, you can use the prefix <code>europe/g</code>:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>./consul kv get -recurse europe/g
+</span><span class='line'>europe/germany:82.67
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Export/import of key-value pairs</h2>
+
+<p>Another useful feaure of the Consul&rsquo;s key-value store is the bulk export and import of key-value pairs. To export the entire key-value store database, you can type:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv <span class="nb">export</span>
+</span><span class='line'><span class="o">[</span>
+</span><span class='line'>        <span class="o">{</span>
+</span><span class='line'>                <span class="s2">&quot;key&quot;</span>: <span class="s2">&quot;asia&quot;</span>,
+</span><span class='line'>                <span class="s2">&quot;flags&quot;</span>: 0,
+</span><span class='line'>                <span class="s2">&quot;value&quot;</span>: <span class="s2">&quot;NDQzNg==&quot;</span>
+</span><span class='line'>        <span class="o">}</span>,
+</span><span class='line'>        <span class="o">{</span>
+</span><span class='line'>                <span class="s2">&quot;key&quot;</span>: <span class="s2">&quot;asia/india&quot;</span>,
+</span><span class='line'>                <span class="s2">&quot;flags&quot;</span>: 0,
+</span><span class='line'>                <span class="s2">&quot;value&quot;</span>: <span class="s2">&quot;MTMyNA==&quot;</span>
+</span><span class='line'>        <span class="o">}</span>,
+</span><span class='line'>        <span class="o">{</span>
+</span><span class='line'>                <span class="s2">&quot;key&quot;</span>: <span class="s2">&quot;europe&quot;</span>,
+</span><span class='line'>                <span class="s2">&quot;flags&quot;</span>: 0,
+</span><span class='line'>                <span class="s2">&quot;value&quot;</span>: <span class="s2">&quot;NzQzLjE=&quot;</span>
+</span><span class='line'>        <span class="o">}</span>,
+</span><span class='line'>        <span class="o">{</span>
+</span><span class='line'>                <span class="s2">&quot;key&quot;</span>: <span class="s2">&quot;europe/france&quot;</span>,
+</span><span class='line'>                <span class="s2">&quot;flags&quot;</span>: 0,
+</span><span class='line'>                <span class="s2">&quot;value&quot;</span>: <span class="s2">&quot;NjYuOQ==&quot;</span>
+</span><span class='line'>        <span class="o">}</span>,
+</span><span class='line'>        <span class="o">{</span>
+</span><span class='line'>                <span class="s2">&quot;key&quot;</span>: <span class="s2">&quot;europe/germany&quot;</span>,
+</span><span class='line'>                <span class="s2">&quot;flags&quot;</span>: 0,
+</span><span class='line'>                <span class="s2">&quot;value&quot;</span>: <span class="s2">&quot;ODIuNjc=&quot;</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'><span class="o">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Consul exports the key-value pairs into the JSON format which is currently the only supported format. In the sample output, you can see that all the values are <a href="https://en.wikipedia.org/wiki/Base64">base64</a> encoded. The base64 encoding is commonly used in the text-based formats like JSON and XML to allow embedding of binary data.</p>
+
+<p>You can export a subset of the key-value pairs by specifying the prefix. For instance, to export the data pertaining Europe, you can speficy the <code>europe</code> prefix:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv <span class="nb">export </span>europe
+</span><span class='line'><span class="o">[</span>
+</span><span class='line'>        <span class="o">{</span>
+</span><span class='line'>                <span class="s2">&quot;key&quot;</span>: <span class="s2">&quot;europe&quot;</span>,
+</span><span class='line'>                <span class="s2">&quot;flags&quot;</span>: 0,
+</span><span class='line'>                <span class="s2">&quot;value&quot;</span>: <span class="s2">&quot;NzQzLjE=&quot;</span>
+</span><span class='line'>        <span class="o">}</span>,
+</span><span class='line'>        <span class="o">{</span>
+</span><span class='line'>                <span class="s2">&quot;key&quot;</span>: <span class="s2">&quot;europe/france&quot;</span>,
+</span><span class='line'>                <span class="s2">&quot;flags&quot;</span>: 0,
+</span><span class='line'>                <span class="s2">&quot;value&quot;</span>: <span class="s2">&quot;NjYuOQ==&quot;</span>
+</span><span class='line'>        <span class="o">}</span>,
+</span><span class='line'>        <span class="o">{</span>
+</span><span class='line'>                <span class="s2">&quot;key&quot;</span>: <span class="s2">&quot;europe/germany&quot;</span>,
+</span><span class='line'>                <span class="s2">&quot;flags&quot;</span>: 0,
+</span><span class='line'>                <span class="s2">&quot;value&quot;</span>: <span class="s2">&quot;ODIuNjc=&quot;</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'><span class="o">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>To import the JSON-formatted data back to the Consul key-value store, you can use the command <code>./consul kv import</code>.</p>
+
+<h2>Web UI</h2>
+
+<p>Besides the commmand-line client, you can access Consul through its beautiful Web interface. Point your web browser to <a href="http://localhost:8500">http://localhost:8500</a>.</p>
+
+<p><img class="right" src="/images/posts/consul_ui.png"></p>
+
+<h2>Conclusion</h2>
+
+<p>In this blog post, we reviewed the basics of the key-value store in Consul. There are many other cool features of the key-value store that we didn&rsquo;t cover like atomic key updates using Check-and-Set operations, <a href="https://www.consul.io/api/txn.html">transactions</a>, <a href="https://www.consul.io/docs/commands/lock.html">locks</a> or <a href="https://www.consul.io/docs/commands/watch.html">watches</a>. Also, I recommend to you to take a look at the great Consul&rsquo;s <a href="https://www.consul.io/api/index.html">RESTful API</a> that allows you to interact with Consul programatically.</p>
+
+<p>If you&rsquo;re looking for a key-value store that would enhance your distributed application, Consul is definitely a candidate to consider. Besides that, Consul will be ready when you later on realize that service discovery is what you need to address next.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+
+
+
+<span class="byline author vcard">Posted by <span class="fn">Ales Nosek</span></span>
+
+
+
+
+
+
+<time class='entry-date' datetime='2017-07-15T20:38:38-07:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>15</span><span class='date-suffix'>th</span>, <span class='date-year'>2017</span></span> <span class='time'>8:38 pm</span></time>
+
+
+<span class="categories">
+
+    <a class='category' href='/blog/categories/cloud/'>cloud</a>, <a class='category' href='/blog/categories/devops/'>devops,</a>
+
+</span>
+
+
+    </p>
+
+      <div class="sharing">
+
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://alesnosek.com/blog/2017/07/15/first-look-at-the-key-value-store-in-consul/" data-via="" data-counturl="http://alesnosek.com/blog/2017/07/15/first-look-at-the-key-value-store-in-consul/" >Tweet</a>
+
+
+  <div class="g-plusone" data-size="medium"></div>
+
+
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+
+</div>
+
+
+    <p class="meta">
+
+        <a class="basic-alignment left" href="/blog/2017/06/26/acing-the-red-hat-openstack-certification-exams/" title="Previous Post: Acing the Red Hat OpenStack Certification Exams">&laquo; Acing the Red Hat OpenStack Certification Exams</a>
+
+
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+
+      <li class="post">
+        <a href="/blog/2017/07/15/first-look-at-the-key-value-store-in-consul/">First Look at the Key-Value Store in Consul</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2017/06/26/acing-the-red-hat-openstack-certification-exams/">Acing the Red Hat OpenStack Certification Exams</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2017/05/05/what-i-learned-at-red-hat-summit-2017/">What I Learned at Red Hat Summit 2017</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2017/04/22/two-years-of-technical-blogging/">Two Years of Technical Blogging</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2017/04/04/passed-the-openshift-ex280-certification/">Passed the OpenShift EX280 certification!</a>
+      </li>
+
+  </ul>
+</section>
+
+
+
+
+
+
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2017 - Ales Nosek -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'alesnosekcom';
+
+
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://alesnosek.com/blog/2017/07/15/first-look-at-the-key-value-store-in-consul/';
+        var disqus_url = 'http://alesnosek.com/blog/2017/07/15/first-look-at-the-key-value-store-in-consul/';
+        var disqus_script = 'embed.js';
+
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

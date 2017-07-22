@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: devops | Ales Nosek - The Software Practitioner]]></title>
+  <title><![CDATA[Category: devops, | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/devops/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2017-06-26T23:00:50-07:00</updated>
+  <updated>2017-07-22T16:47:45-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -14,261 +14,32 @@
 
 
   <entry>
-    <title type="html"><![CDATA[An Introduction to Building on OpenShift]]></title>
-    <link href="http://alesnosek.com/blog/2017/03/19/an-introduction-to-building-on-openshift/"/>
-    <updated>2017-03-19T10:48:32-07:00</updated>
-    <id>http://alesnosek.com/blog/2017/03/19/an-introduction-to-building-on-openshift</id>
-    <content type="html"><![CDATA[<p>For years a Jenkins server has been driving the software builds in our company. Some time ago, we deployed an OpenShift cluster. The primary purpose of our OpenShift cluster was to support the efforts of dockerizing our software products. However, as OpeShift is a complete PaaS solution we started thinking about leveraging OpenShift for software builds, too. In this blog post I&rsquo;d like to share what we learned about building on OpenShift so far.</p>
+    <title type="html"><![CDATA[First Look at the Key-Value Store in Consul]]></title>
+    <link href="http://alesnosek.com/blog/2017/07/15/first-look-at-the-key-value-store-in-consul/"/>
+    <updated>2017-07-15T20:38:38-07:00</updated>
+    <id>http://alesnosek.com/blog/2017/07/15/first-look-at-the-key-value-store-in-consul</id>
+    <content type="html"><![CDATA[<p>If you are developing a distributed application that consists of multiple services, you might be thinking about how to manage the ever growing application configuration data. Instead of maintaining individual configuration files for each service, you can store all your configuration data in a key-value store. In this blog post we&rsquo;ll check out the key-value store in Consul.</p>
 
 <!-- more -->
 
 
-<p>Before we begin talking about OpenShift, let&rsquo;s briefly discuss our current build environment. In the center of our build environment there is a Jenkins server. In Jenkins, we maintain numerous jobs to build our software, run automated tests, drive various devops tasks and much more. Jenkins is our central place from where the automated processes are started and monitored. As Jenkins is greatly extensible via plugins, we were able to easily integrate Jenkins with other tools, too.</p>
+<p><img class="right" src="/images/posts/consul_logo.png" width="200" height="300"></p>
 
-<h2>Building the OpenShift way</h2>
+<p>Consul is an open-source product developed by <a href="https://www.hashicorp.com/">HashiCorp</a> and licensed under the <a href="https://github.com/hashicorp/consul/blob/master/LICENSE">MPL 2.0</a>. While Consul uses an open core business model, it comes with a great deal of functionality in its free edition. The top two features of Consul would be the service discovery combined with health checking and the key-value store functionality that we are going to review in this article. They both come handy when building distributed applications.</p>
 
-<p><img class="right" src="/images/posts/openshift_logo.gif" width="200" height="200"></p>
+<h2>Getting started</h2>
 
-<p>In OpenShift, one has to create a <em>BuildConfig</em> resource to describe the <a href="https://docs.openshift.org/latest/dev_guide/builds/index.html">build process</a>. The BuildConfig resource in OpenShift is roughly equivalent to a job definition in Jenkins. When creating a BuildConfig resource, a build strategy has to be chosen. The build strategy resembles a job type in Jenkins. Currently, there are four build strategies available in OpenShift:</p>
+<p>HashiCorp products are known for its thorough documentation and the Consul&rsquo;s <a href="https://www.consul.io/docs/index.html">documenation</a> is not an exception.</p>
 
-<p><strong>Source-to-Image strategy</strong>. Allows you to create a container image starting from the application source code. During the build process, the source code is downloaded into a container and compiled there. The finished binary artifacts are installed into the container. The complete container image is then pushed into the Docker registry from where it can be deployed as an application on OpenShift.</p>
+<p>What I like about Consul is its installation. Written in the Go language, Consul is distributed as a single statically linked binary. Download <a href="https://www.consul.io/downloads.html">links</a> for various platforms are provided. After unzipping the distribution archive you can directly run the <code>consul</code> executable.</p>
 
-<p><strong>Docker strategy</strong>. The input of the build process is a Dockerfile. OpenShift will execute a Docker build using the provided Dockerfile and upload the resulting image into the Docker registry from where it can be deployed.</p>
-
-<p><strong>Custom strategy</strong>. Custom strategy could be compared to a free style job in Jenkins. The outcome of the build doesn&rsquo;t have to be a Docker image. Instead, the custom strategy allows you to create JARs, tarballs, RPMs or other artifacts which you have to upload to the repository of your choice by the end of the build.</p>
-
-<p><strong>Pipeline strategy</strong>. In OpenShift 3.3, a new build strategy was introduced called <em>Pipeline</em>. This strategy doesn&rsquo;t really build anything but enables you to implement workflows on OpenShift. The great article <a href="https://blog.openshift.com/openshift-3-3-pipelines-deep-dive/">OpenShift 3.3 Pipelines - Deep Dive</a> describes how the Pipeline strategy works. In summary, you can create a BuildConfig in OpenShift that contains a definition of a Jenkins pipeline (using the Groovy DSL language). Based on this definition, OpenShift will create a pipeline job in Jenkins and execute it. Among other things, the Jenkins job can trigger a build on OpenShift, verify that the build succeeded and trigger a deployment. This approach allows OpenShift to leverage Jenkins pipelines to orchestrate a more involved CI/CD workflow possibly encompassing a conditional execution of multiple OpenShift builds and deployments.</p>
-
-<p>An alternative to using the Pipeline strategy in OpenShift would be defining the pipeline job directly in Jenkins. With the <a href="https://plugins.jenkins.io/openshift-pipeline">OpenShift pipeline plugin</a> installed, one can trigger OpenShift operations from within the pipeline job.</p>
-
-<p>As I didn&rsquo;t really work with the OpenShift strategies much I&rsquo;m not going to elaborate any further. Instead, in the next section, I&rsquo;m going to mention two Jenkins plugins that we are successfully using to run builds on OpenShift.</p>
-
-<h2>Builds on Openshift driven by Jenkins</h2>
-
-<p><img class="right" src="/images/posts/jenkins_logo.png" width="200" height="200"></p>
-
-<p>There are two Jenkins plugins that can leverage OpenShift containers as build slaves:</p>
-
-<p><strong><a href="https://wiki.jenkins-ci.org/display/JENKINS/Swarm+Plugin">Swarm plugin</a></strong>. The Swarm plugin consists of two parts: a Jenkins plugin and a CLI client. Jenkins plugin exposes an endpoint where the CLI clients can register themselves. A CLI client acts as a Jenkins slave. It runs indefinitely within a Docker container and provides Jenkins with a configurable number of build executors. While the plugin is called a Swarm plugin it doesn&rsquo;t really need any Swarm orchestration. It can happily run in a Docker container on OpenShift.</p>
-
-<p><strong><a href="https://wiki.jenkins-ci.org/display/JENKINS/Kubernetes+Plugin">Kubernetes plugin</a></strong>. Works perfectly with OpenShift. In contrast to the Swarm plugin, Kubernetes plugin spins up a new Docker slave for each job on the fly and destroys it as soon as the job has finished running.</p>
-
-<p>Because the Jenkins workspace is created inside of the container, it will be deleted as soon as the Docker container is terminated. If you&rsquo;d like to reuse the same workspace for subsequent builds, I&rsquo;d like to offer you two options how to create persistent workspaces:</p>
-
-<ol>
-<li><p>You can attach a volume of type <em>hostPath</em> to your slave pods and place your workspace on that volume. At the same time you have to speficy a <em>nodeSelector</em> on your slave pods that would instruct OpenShift to schedule all your slave pods onto the same OpenShift node. With this approach the Jenkins slave can access its workspace on the local storage. Unfortunately, all the slaves that need to share a workspace have to run on the same OpenShift node which can get overloaded.</p></li>
-<li><p>You can attach a volume with the <em>ReadWriteMany</em> capability to your slave pods and place your workspace on this volume. Eligible volume types are NFS, GlusterFS or CephFS. Using this method a Jenkins slave running on any node in the cluster can access the shared workspace. The downside is that the access is over the network and hence slower than an access to the local storage.</p></li>
-</ol>
-
-
-<h2>Conclusion</h2>
-
-<p>In the this blog post we reviewed different approaches how to leverage an OpenShift cluster for software builds. On one hand, builds can be defined within OpenShift by creating the BuildConfig resources. This approach might be less flexible than using a full-fledged build server like Jenkins, however, one can be sure that the builds will work on any OpenShift cluster including the public cloud. On the other hand, we have seen that in an environment where Jenkins is already the king, we can leverage the Swarm or Kubernetes plugin to allow Jenkins to schedule build jobs on OpenShift.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[Accessing Kubernetes Pods from Outside of the Cluster]]></title>
-    <link href="http://alesnosek.com/blog/2017/02/14/accessing-kubernetes-pods-from-outside-of-the-cluster/"/>
-    <updated>2017-02-14T23:36:37-08:00</updated>
-    <id>http://alesnosek.com/blog/2017/02/14/accessing-kubernetes-pods-from-outside-of-the-cluster</id>
-    <content type="html"><![CDATA[<p>There are several ways how to expose your application running on the Kubernetes cluster to the outside world. When reading the <a href="https://kubernetes.io/docs/">Kubernetes documentation</a> I had a hard time ordering the different approaches in my head. I created this blog post for my future reference but will be happy if it can be of any use to you. Without further ado let&rsquo;s discuss the <em>hostNetwork</em>, <em>hostPort</em>, <em>NodePort</em>, <em>LoadBalancer</em> and <em>Ingress</em> features of Kubernetes.</p>
-
-<!-- more -->
-
-
-<h2>hostNetwork: true</h2>
-
-<p>The <code>hostNetwork</code> setting applies to the Kubernetes pods. When a pod is configured with <code>hostNetwork: true</code>, the applications running in such a pod can directly see the network interfaces of the host machine where the pod was started. An application that is configured to listen on all network interfaces will in turn be accessible on all network interfaces of the host machine. Here is an example definition of a pod that uses host networking:</p>
-
-<p><figure class='code'><figcaption><span>influxdb-hostnetwork.yml </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">apiVersion</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">v1</span>
-</span><span class='line'><span class="l-Scalar-Plain">kind</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Pod</span>
-</span><span class='line'><span class="l-Scalar-Plain">metadata</span><span class="p-Indicator">:</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">influxdb</span>
-</span><span class='line'><span class="l-Scalar-Plain">spec</span><span class="p-Indicator">:</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">hostNetwork</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">true</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">containers</span><span class="p-Indicator">:</span>
-</span><span class='line'>    <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">influxdb</span>
-</span><span class='line'>      <span class="l-Scalar-Plain">image</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">influxdb</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>You can start the pod with the following command:</p>
+<p>Let&rsquo;s put togher a command-line to start the Consul cluster. Our test cluster consists of a single node (<code>-bootstrap-expect 1</code>). For a production deployment, you should be looking at a cluster of three or five Consul nodes that is able to survive node failures. We will make the Consul Web UI available at <code>http://localhost:8500</code> by appending the <code>-ui</code> parameter. Consul needs a location where it will persist its data. In our example, we instruct Consul to create a directory <code>mydata</code> and store all its data in this directory. After a bit of typing, the complete commmand-line to start the Consul cluster looks as follows:</p>
 
 <p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>kubectl create -f influxdb-hostnetwork.yml
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>./consul agent -ui -server -data-dir mydata -advertise 127.0.0.1 -bootstrap-expect 1
 </span></code></pre></td></tr></table></div></figure></p>
 
-<p>You can check that the InfluxDB application is running with:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>curl -v &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;http://kubenode01.example.com:8086/ping&quot;</span>&gt;http://kubenode01.example.com:8086/ping&lt;/a&gt;
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Remember to replace the host name in the above URL with the host name or IP address of the Kubernetes node where your pod has been scheduled to run. InfluxDB will respond with HTTP 204 No Content when working properly.</p>
-
-<p>Note that every time the pod is restarted Kubernetes can reschedule the pod onto a different node and so the application will change its IP address. Besides that two applications requiring the same port cannot run on the same node. This can lead to port conflicts when the number of applications running on the cluster grows. On top of that, creating a pod with <code>hostNetwork: true</code> on OpenShift is a privileged operation. For these reasons, the host networking is not a good way to make your applications accessible from outside of the cluster.</p>
-
-<p>What is the host networking good for? For cases where a direct access to the host networking is required. For example, the Kubernetes networking plugin Flannel can be deployed as a daemon set on all nodes of the Kubernetes cluster. Due to <code>hostNetwork: true</code> the Flannel has full control of the networking on every node in the cluster allowing it to manage the overlay network to which the pods with <code>hostNetwork: false</code> are connected to.</p>
-
-<h2>hostPort</h2>
-
-<p>The <code>hostPort</code> setting applies to the Kubernetes containers. The container port will be exposed to the external network at <em>&lt;hostIP>:&lt;hostPort></em>, where the <em>hostIP</em> is the IP address of the Kubernetes node where the container is running and the <em>hostPort</em> is the port requested by the user. Here comes a sample pod definition:</p>
-
-<p><figure class='code'><figcaption><span>influxdb-hostport.yml </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">apiVersion</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">v1</span>
-</span><span class='line'><span class="l-Scalar-Plain">kind</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Pod</span>
-</span><span class='line'><span class="l-Scalar-Plain">metadata</span><span class="p-Indicator">:</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">influxdb</span>
-</span><span class='line'><span class="l-Scalar-Plain">spec</span><span class="p-Indicator">:</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">containers</span><span class="p-Indicator">:</span>
-</span><span class='line'>    <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">influxdb</span>
-</span><span class='line'>      <span class="l-Scalar-Plain">image</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">influxdb</span>
-</span><span class='line'>      <span class="l-Scalar-Plain">ports</span><span class="p-Indicator">:</span>
-</span><span class='line'>        <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">containerPort</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">8086</span>
-</span><span class='line'>          <span class="l-Scalar-Plain">hostPort</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">8086</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>The hostPort feature allows to expose a single container port on the host IP. Using the hostPort to expose an application to the outside of the Kubernetes cluster has the same drawbacks as the hostNetwork approach discussed in the previous section. The host IP can change when the container is restarted, two containers using the same hostPort cannot be scheduled on the same node and the usage of the hostPort is considered a privileged operation on OpenShift.</p>
-
-<p>What is the hostPort used for? For example, the nginx based <a href="https://github.com/kubernetes/ingress/tree/master/controllers/nginx">Ingress controller</a> is deployed as a set of containers running on top of Kubernetes. These containers are configured to use hostPorts 80 and 443 to allow the inbound traffic on these ports from the outside of the Kubernetes cluster.</p>
-
-<h2>NodePort</h2>
-
-<p>The <code>NodePort</code> setting applies to the Kubernetes services. By default Kubernetes services are accessible at the ClusterIP which is an internal IP address reachable from inside of the Kubernetes cluster only. The ClusterIP enables the applications running within the pods to access the service. To make the service accessible from outside of the cluster a user can create a service of type NodePort. At first, let&rsquo;s review the definition of the pod that we&rsquo;ll expose using a NodePort service:</p>
-
-<p><figure class='code'><figcaption><span>influxdb-pod.yml </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">apiVersion</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">v1</span>
-</span><span class='line'><span class="l-Scalar-Plain">kind</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Pod</span>
-</span><span class='line'><span class="l-Scalar-Plain">metadata</span><span class="p-Indicator">:</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">influxdb</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">labels</span><span class="p-Indicator">:</span>
-</span><span class='line'>    <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">influxdb</span>
-</span><span class='line'><span class="l-Scalar-Plain">spec</span><span class="p-Indicator">:</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">containers</span><span class="p-Indicator">:</span>
-</span><span class='line'>    <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">influxdb</span>
-</span><span class='line'>      <span class="l-Scalar-Plain">image</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">influxdb</span>
-</span><span class='line'>      <span class="l-Scalar-Plain">ports</span><span class="p-Indicator">:</span>
-</span><span class='line'>        <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">containerPort</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">8086</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>When creating a NodePort service, the user can specify a port from the range 30000-32767, and each Kubernetes node will proxy that port to the pods selected by the service. A sample definition of a NodePort service looks as follows:</p>
-
-<p><figure class='code'><figcaption><span>influxdb-nodeport.yml </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">kind</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Service</span>
-</span><span class='line'><span class="l-Scalar-Plain">apiVersion</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">v1</span>
-</span><span class='line'><span class="l-Scalar-Plain">metadata</span><span class="p-Indicator">:</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">influxdb</span>
-</span><span class='line'><span class="l-Scalar-Plain">spec</span><span class="p-Indicator">:</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">type</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">NodePort</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">ports</span><span class="p-Indicator">:</span>
-</span><span class='line'>    <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">port</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">8086</span>
-</span><span class='line'>      <span class="l-Scalar-Plain">nodePort</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">30000</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">selector</span><span class="p-Indicator">:</span>
-</span><span class='line'>    <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">influxdb</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Note that on OpenShift more privileges are required to create a NodePort service. After the service has been created, the kube-proxy component that runs on each node of the Kubernetes cluster and listens on all network interfaces is instructed to accept connections on port 30000. The incoming traffic is forwarded by the kube-proxy to the selected pods in a round-robin fashion. You should be able to access the InfluxDB application from outside of the cluster using the command:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>curl -v &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;http://kubenode01.example.com:30000/ping&quot;</span>&gt;http://kubenode01.example.com:30000/ping&lt;/a&gt;
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>The NodePort service represents a static endpoint through which the selected pods can be reached. If you prefer serving your application on a different port than the 30000-32767 range, you can deploy an external load balancer in front of the Kubernetes nodes and forward the traffic to the NodePort on each of the Kubernetes nodes. This gives you an extra resiliency for the case that some of the Kubernetes nodes becomes unavailable, too. If you&rsquo;re hosting your Kubernetes cluster on one of the supported cloud providers like AWS, Azure or GCE, Kubernetes can provision an external load balancer for you. We&rsquo;ll take a look at how to do it in the next section.</p>
-
-<h2>LoadBalancer</h2>
-
-<p>The <code>LoadBalancer</code> setting applies to the Kubernetes service. In order to be able to create a service of type LoadBalancer, a cloud provider has to be enabled in the configuration of the Kubernetes cluster. As of version 1.6, Kubernetes can provision load balancers on AWS, Azure, CloudStack, GCE and OpenStack. Here is an example definition of the LoadBalancer service:</p>
-
-<p><figure class='code'><figcaption><span>influxdb-loadbalancer.yml </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">kind</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Service</span>
-</span><span class='line'><span class="l-Scalar-Plain">apiVersion</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">v1</span>
-</span><span class='line'><span class="l-Scalar-Plain">metadata</span><span class="p-Indicator">:</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">influxdb</span>
-</span><span class='line'><span class="l-Scalar-Plain">spec</span><span class="p-Indicator">:</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">type</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">LoadBalancer</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">ports</span><span class="p-Indicator">:</span>
-</span><span class='line'>    <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">port</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">8086</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">selector</span><span class="p-Indicator">:</span>
-</span><span class='line'>    <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">influxdb</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Let&rsquo;s take a look at what Kubernetes created for us:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>kubectl get svc influxdb
-</span><span class='line'>NAME       CLUSTER-IP     EXTERNAL-IP     PORT<span class="o">(</span>S<span class="o">)</span>          AGE
-</span><span class='line'>influxdb   10.97.121.42   10.13.242.236   8086:30051/TCP   39s
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>In the command output we can read that the influxdb service is internally reachable at the ClusterIP 10.97.121.42. Next, Kubernetes allocated a NodePort 30051. Because we didn&rsquo;t specify a desired NodePort number, Kubernetes picked one for us. We can check the reachability of the InfluxDB application through the NodePort with the command:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>curl -v &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;http://kubenode01.example.com:30051/ping&quot;</span>&gt;http://kubenode01.example.com:30051/ping&lt;/a&gt;
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Finally, Kubernetes reached out to the cloud provider to provision a load balancer. The VIP of the load balancer is 10.13.242.236 as it is shown in the command output. Now we can access the InfluxDB application through the load balancer like this:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>curl -v &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;http://10.13.242.236:8086/ping&quot;</span>&gt;http://10.13.242.236:8086/ping&lt;/a&gt;
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>My cloud provider is OpenStack. Let&rsquo;s examine how the provisioned load balancer on OpenStack looks like:</p>
+<p>In several seconds the one-node Consul cluster is up and running:</p>
 
 <p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -305,273 +76,170 @@
 <span class='line-number'>33</span>
 <span class='line-number'>34</span>
 <span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-<span class='line-number'>44</span>
-<span class='line-number'>45</span>
-<span class='line-number'>46</span>
-<span class='line-number'>47</span>
-<span class='line-number'>48</span>
-<span class='line-number'>49</span>
-<span class='line-number'>50</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>neutron lb-vip-show 9bf2a580-2ba4-4494-93fd-9b6969c55ac3
-</span><span class='line'>+<span class="p">&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;</span>+<span class="p">&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>ndash<span class="p">;</span>+
-</span><span class='line'><span class="p">|</span> Field               <span class="p">|</span> Value                                                        <span class="p">|</span>
-</span><span class='line'>+<span class="p">&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;</span>+<span class="p">&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>ndash<span class="p">;</span>+
-</span><span class='line'><span class="p">|</span> address             <span class="p">|</span> 10.13.242.236                                                <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> admin_state_up      <span class="p">|</span> True                                                         <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> connection_limit    <span class="p">|</span> -1                                                           <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> description         <span class="p">|</span> Kubernetes external service a6ffa4dadf99711e68ea2fa163e0b082 <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> id                  <span class="p">|</span> 9bf2a580-2ba4-4494-93fd-9b6969c55ac3                         <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> name                <span class="p">|</span> a6ffa4dadf99711e68ea2fa163e0b082                             <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> pool_id             <span class="p">|</span> 392917a6-ed61-4924-acb2-026cd4181755                         <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> port_id             <span class="p">|</span> e450b80b-6da1-4b31-a008-280abdc6400b                         <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> protocol            <span class="p">|</span> TCP                                                          <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> protocol_port       <span class="p">|</span> <span class="m">8086</span>                                                         <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> session_persistence <span class="p">|</span>                                                              <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> status              <span class="p">|</span> ACTIVE                                                       <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> status_description  <span class="p">|</span>                                                              <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> subnet_id           <span class="p">|</span> 73f8eb91-90cf-42f4-85d0-dcff44077313                         <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> tenant_id           <span class="p">|</span> 4d68886fea6e45b0bc2e05cd302cccb9                             <span class="p">|</span>
-</span><span class='line'>+<span class="p">&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;</span>+<span class="p">&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>ndash<span class="p">;</span>+&lt;/p&gt;
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">==</span>&gt; WARNING: BootstrapExpect Mode is specified as 1<span class="p">;</span> this is the same as Bootstrap mode.
+</span><span class='line'><span class="o">==</span>&gt; WARNING: Bootstrap mode enabled! Do not <span class="nb">enable </span>unless <span class="nv">necessary</span>
+</span><span class='line'><span class="o">==</span>&gt; Starting Consul agent<span class="p">&amp;</span>hellip<span class="p">;</span>
+</span><span class='line'><span class="o">==</span>&gt; Consul agent running!
+</span><span class='line'>           Version: <span class="p">&amp;</span>lsquo<span class="p">;</span>v0.8.5<span class="p">&amp;</span>rsquo<span class="p">;</span>
+</span><span class='line'>           Node ID: <span class="p">&amp;</span>lsquo<span class="p">;</span>be79786e-749d-758c-2b65-824c1e956788<span class="p">&amp;</span>rsquo<span class="p">;</span>
+</span><span class='line'>         Node name: <span class="p">&amp;</span>lsquo<span class="p">;</span>zihadlo<span class="p">&amp;</span>rsquo<span class="p">;</span>
+</span><span class='line'>        Datacenter: <span class="p">&amp;</span>lsquo<span class="p">;</span>dc1<span class="p">&amp;</span>rsquo<span class="p">;</span>
+</span><span class='line'>            Server: <span class="nb">true</span> <span class="o">(</span>bootstrap: <span class="nb">true</span><span class="o">)</span>
+</span><span class='line'>       Client Addr: 127.0.0.1 <span class="o">(</span>&lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;HTTP:&quot;</span>&gt;HTTP:&lt;/a&gt; 8500, &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;HTTPS:&quot;</span>&gt;HTTPS:&lt;/a&gt; -1, DNS: 8600<span class="o">)</span>
+</span><span class='line'>      Cluster Addr: 127.0.0.1 <span class="o">(</span>LAN: 8301, WAN: 8302<span class="o">)</span>
+</span><span class='line'>    Gossip encrypt: <span class="nb">false</span>, RPC-TLS: <span class="nb">false</span>, TLS-Incoming: <span class="nb">false</span>&lt;/p&gt;
 </span><span class='line'>
-</span><span class='line'>&lt;p&gt;<span class="nv">$ </span>neutron lb-pool-show 392917a6-ed61-4924-acb2-026cd4181755
-</span><span class='line'>+<span class="p">&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;</span>+<span class="p">&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>ndash<span class="p">;</span>+
-</span><span class='line'><span class="p">|</span> Field                  <span class="p">|</span> Value                                <span class="p">|</span>
-</span><span class='line'>+<span class="p">&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;</span>+<span class="p">&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>ndash<span class="p">;</span>+
-</span><span class='line'><span class="p">|</span> admin_state_up         <span class="p">|</span> True                                 <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> description            <span class="p">|</span>                                      <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> health_monitors        <span class="p">|</span>                                      <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> health_monitors_status <span class="p">|</span>                                      <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> id                     <span class="p">|</span> 392917a6-ed61-4924-acb2-026cd4181755 <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> lb_method              <span class="p">|</span> ROUND_ROBIN                          <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> members                <span class="p">|</span> d0825cc2-46a3-43bd-af82-e9d8f1f85299 <span class="p">|</span>
-</span><span class='line'><span class="p">|</span>                        <span class="p">|</span> 3f73d3bb-bc40-478d-8d0e-df05cdfb9734 <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> name                   <span class="p">|</span> a6ffa4dadf99711e68ea2fa163e0b082     <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> protocol               <span class="p">|</span> TCP                                  <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> provider               <span class="p">|</span> haproxy                              <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> status                 <span class="p">|</span> ACTIVE                               <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> status_description     <span class="p">|</span>                                      <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> subnet_id              <span class="p">|</span> 73f8eb91-90cf-42f4-85d0-dcff44077313 <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> tenant_id              <span class="p">|</span> 4d68886fea6e45b0bc2e05cd302cccb9     <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> vip_id                 <span class="p">|</span> 9bf2a580-2ba4-4494-93fd-9b6969c55ac3 <span class="p">|</span>
-</span><span class='line'>+<span class="p">&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;</span>+<span class="p">&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>ndash<span class="p">;</span>+&lt;/p&gt;
+</span><span class='line'>&lt;p&gt;<span class="o">==</span>&gt; Log data will now stream in as it occurs:&lt;/p&gt;
 </span><span class='line'>
-</span><span class='line'>&lt;p&gt;<span class="nv">$ </span>neutron lb-member-list
-</span><span class='line'>+<span class="p">&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>ndash<span class="p">;</span>+<span class="p">&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>ndash<span class="p">;</span>+<span class="p">&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;</span>+<span class="p">&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>ndash<span class="p">;</span>+<span class="p">&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;</span>-+<span class="p">&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>ndash<span class="p">;</span>+
-</span><span class='line'><span class="p">|</span> id                                   <span class="p">|</span> address      <span class="p">|</span> protocol_port <span class="p">|</span> weight <span class="p">|</span> admin_state_up <span class="p">|</span> status <span class="p">|</span>
-</span><span class='line'>+<span class="p">&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>ndash<span class="p">;</span>+<span class="p">&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>ndash<span class="p">;</span>+<span class="p">&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;</span>+<span class="p">&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>ndash<span class="p">;</span>+<span class="p">&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;</span>-+<span class="p">&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>ndash<span class="p">;</span>+
-</span><span class='line'><span class="p">|</span> 3f73d3bb-bc40-478d-8d0e-df05cdfb9734 <span class="p">|</span> 10.13.241.89 <span class="p">|</span>         <span class="m">30051</span> <span class="p">|</span>      <span class="m">1</span> <span class="p">|</span> True           <span class="p">|</span> ACTIVE <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> d0825cc2-46a3-43bd-af82-e9d8f1f85299 <span class="p">|</span> 10.13.241.10 <span class="p">|</span>         <span class="m">30051</span> <span class="p">|</span>      <span class="m">1</span> <span class="p">|</span> True           <span class="p">|</span> ACTIVE <span class="p">|</span>
-</span><span class='line'>+<span class="p">&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>ndash<span class="p">;</span>+<span class="p">&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>ndash<span class="p">;</span>+<span class="p">&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;</span>+<span class="p">&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>ndash<span class="p">;</span>+<span class="p">&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;</span>-+<span class="p">&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>ndash<span class="p">;</span>+
+</span><span class='line'>&lt;pre&gt;&lt;code&gt;2017/07/15 20:37:57 <span class="o">[</span>INFO<span class="o">]</span> raft: Initial configuration <span class="o">(</span><span class="nv">index</span><span class="o">=</span>1<span class="o">)</span>: <span class="o">[{</span>Suffrage:Voter ID:127.0.0.1:8300 Address:127.0.0.1:8300<span class="o">}]</span>
+</span><span class='line'>2017/07/15 20:37:57 <span class="o">[</span>INFO<span class="o">]</span> raft: Node at 127.0.0.1:8300 <span class="o">[</span>Follower<span class="o">]</span> entering Follower state <span class="o">(</span>Leader: <span class="s2">&quot;&quot;</span><span class="o">)</span>
+</span><span class='line'>2017/07/15 20:37:57 <span class="o">[</span>INFO<span class="o">]</span> serf: EventMemberJoin: zihadlo 127.0.0.1
+</span><span class='line'>2017/07/15 20:37:57 <span class="o">[</span>INFO<span class="o">]</span> consul: Adding LAN server zihadlo <span class="o">(</span>Addr: tcp/127.0.0.1:8300<span class="o">)</span> <span class="o">(</span>DC: dc1<span class="o">)</span>
+</span><span class='line'>2017/07/15 20:37:57 <span class="o">[</span>INFO<span class="o">]</span> serf: EventMemberJoin: zihadlo.dc1 127.0.0.1
+</span><span class='line'>2017/07/15 20:37:57 <span class="o">[</span>INFO<span class="o">]</span> consul: Handled member-join event <span class="k">for</span> server <span class="s2">&quot;zihadlo.dc1&quot;</span> in area <span class="s2">&quot;wan&quot;</span>
+</span><span class='line'>2017/07/15 20:37:57 <span class="o">[</span>INFO<span class="o">]</span> agent: Started DNS server 127.0.0.1:8600 <span class="o">(</span>udp<span class="o">)</span>
+</span><span class='line'>2017/07/15 20:37:57 <span class="o">[</span>INFO<span class="o">]</span> agent: Started DNS server 127.0.0.1:8600 <span class="o">(</span>tcp<span class="o">)</span>
+</span><span class='line'>2017/07/15 20:37:57 <span class="o">[</span>INFO<span class="o">]</span> agent: Started HTTP server on 127.0.0.1:8500
+</span><span class='line'>2017/07/15 20:38:02 <span class="o">[</span>WARN<span class="o">]</span> raft: Heartbeat timeout from <span class="s2">&quot;&quot;</span> reached, starting election
+</span><span class='line'>2017/07/15 20:38:02 <span class="o">[</span>INFO<span class="o">]</span> raft: Node at 127.0.0.1:8300 <span class="o">[</span>Candidate<span class="o">]</span> entering Candidate state in term 2
+</span><span class='line'>2017/07/15 20:38:02 <span class="o">[</span>INFO<span class="o">]</span> raft: Election won. Tally: 1
+</span><span class='line'>2017/07/15 20:38:02 <span class="o">[</span>INFO<span class="o">]</span> raft: Node at 127.0.0.1:8300 <span class="o">[</span>Leader<span class="o">]</span> entering Leader state
+</span><span class='line'>2017/07/15 20:38:02 <span class="o">[</span>INFO<span class="o">]</span> consul: cluster leadership acquired
+</span><span class='line'>2017/07/15 20:38:02 <span class="o">[</span>INFO<span class="o">]</span> consul: New leader elected: zihadlo
+</span><span class='line'>2017/07/15 20:38:02 <span class="o">[</span>INFO<span class="o">]</span> consul: member <span class="s1">&#39;zihadlo&#39;</span> joined, marking health alive
+</span><span class='line'>2017/07/15 20:38:02 <span class="o">[</span>INFO<span class="o">]</span> agent: Synced service <span class="s1">&#39;consul&#39;</span>
+</span><span class='line'>&lt;/code&gt;&lt;/pre&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;
 </span></code></pre></td></tr></table></div></figure></p>
 
-<p>Kubernetes created a TCP load balancer with the VIP 10.13.242.236 and port 8086. There are two pool members associated with the load balancer: 10.13.241.89 and 10.13.241.10. These are the IP addresses of the nodes in my two-node Kubernetes cluster. The traffic is forwarded to the NodePort 30051 of these two nodes.</p>
+<p>In the log output, Consul informs us that the Consul API is available at 127.0.0.1:8500. That&rsquo;s where the Consul client will connect to by default. In the following, you want to make sure that you&rsquo;re running the Consul commands on the same box as you started your Consul cluster.</p>
 
-<p>The load balancer created by Kubernetes is a plain TCP round-robin load balancer. It doesn&rsquo;t offer SSL termination or HTTP routing. Besides that, Kubernetes will create a separate load balancer for each service. This can become quite costly when the number of your services increases. Instead of letting Kubernetes manage the load balancer, you can go back to deploying NodePort services and provision and configure an external load balancer yourself. Another option is leveraging the Kubernetes Ingress resource that we will discuss in the next section.</p>
-
-<h2>Ingress</h2>
-
-<p>The <code>Ingress</code> resource type was introduced in Kubernetes version 1.1. The Kubernetes cluster must have an <a href="https://github.com/kubernetes/ingress/tree/master/controllers/nginx">Ingress controller</a> deployed in order for you to be able to create Ingress resources. What is the Ingress controller? The Ingress controller is deployed as a Docker container on top of Kubernetes. Its Docker image contains a load balancer like nginx or HAProxy and a controller daemon. The controller daemon receives the desired Ingress configuration from Kubernetes. It generates an nginx or HAProxy configuration file and restarts the load balancer process for changes to take effect. In other words, Ingress controller is a load balancer managed by Kubernetes.</p>
-
-<p>The Kubernetes Ingress provides features typical for a load balancer: HTTP routing, sticky sessions, SSL termination, SSL passthrough, TCP and UDP load balancing &hellip; At the moment not every Ingress controller implements all the available features. You have to consult the documentation of your Ingress controller to learn about its capabilities.</p>
-
-<p>Let&rsquo;s expose our InfluxDB application to the outside world via Ingress. An example Ingress definition looks like this:</p>
-
-<p><figure class='code'><figcaption><span>influxdb-ingress.yml </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">apiVersion</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">extensions/v1beta1</span>
-</span><span class='line'><span class="l-Scalar-Plain">kind</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Ingress</span>
-</span><span class='line'><span class="l-Scalar-Plain">metadata</span><span class="p-Indicator">:</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">influxdb</span>
-</span><span class='line'><span class="l-Scalar-Plain">spec</span><span class="p-Indicator">:</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">rules</span><span class="p-Indicator">:</span>
-</span><span class='line'>    <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">host</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">influxdb.kube.example.com</span>
-</span><span class='line'>      <span class="l-Scalar-Plain">&lt;a href=&quot;http:&quot;&gt;http:&lt;/a&gt;</span>
-</span><span class='line'>        <span class="l-Scalar-Plain">paths</span><span class="p-Indicator">:</span>
-</span><span class='line'>          <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">backend</span><span class="p-Indicator">:</span>
-</span><span class='line'>              <span class="l-Scalar-Plain">serviceName</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">influxdb</span>
-</span><span class='line'>              <span class="l-Scalar-Plain">servicePort</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">8086</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Our DNS is setup to resolve *.kube.example.com to the IP address 10.13.241.10. This is the IP address of the Kubernetes node where the Ingress controller is running. As we already mentioned when discussing the hostPort, the Ingress listens for the incoming connections on two hostPorts 80 and 443 for the HTTP and HTTPS requests, respectively. Let&rsquo;s check that we can reach the InfluxDB application via Ingress:</p>
+<p>The single <code>consul</code> binary provides the server as well as the client functionality. Let&rsquo;s list our current cluster members to verify that the client can connect to the cluster:</p>
 
 <p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>curl -v &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;http://influxdb.kube.example.com/ping&quot;</span>&gt;http://influxdb.kube.example.com/ping&lt;/a&gt;
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul members
+</span><span class='line'>Node     Address         Status  Type    Build  Protocol  DC
+</span><span class='line'>zihadlo  127.0.0.1:8301  alive   server  0.8.5  <span class="m">2</span>         dc1
 </span></code></pre></td></tr></table></div></figure></p>
 
-<p>When everything is setup correctly, the InfluxDB will respond with HTTP 204 No Content.</p>
+<h2>Basic CRUD with Consul</h2>
 
-<p>There&rsquo;s a difference between the LoadBalancer service and the Ingress in how the traffic routing is realized. In the case of the LoadBalancer service, the traffic that enters through the external load balancer is forwarded to the kube-proxy that in turn forwards the traffic to the selected pods. In contrast, the Ingress load balancer forwards the traffic straight to the selected pods which is more efficient.</p>
+<p>In this section, we&rsquo;re going the exercise the basic Create, Read, Update and Delete functionality of the Consul key-store. First, let&rsquo;s store the value <code>12345</code> under the key <code>foo</code>:</p>
 
-<h2>Conclusion</h2>
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv put foo 12345
+</span><span class='line'>Success! Data written to: foo
+</span></code></pre></td></tr></table></div></figure></p>
 
-<p>Overall, when exposing pods to the outside of the Kubernetes cluster, the Ingress seems to be a very flexible and convenient solution. Unfortunately, it&rsquo;s also the less mature among the discussed approaches. When choosing the NodePort service, you might want to deploy a load balancer in front of your cluster as well. If you are hosting Kubernetes on one of the supported clouds, the LoadBalancer service is another option for you.</p>
+<p>Great, the value is saved in the store. To retrieve the value under the key <code>foo</code> from Consul we can type:</p>
 
-<p>How do you route the external traffic to the Kubernetes pods? Glad to hear about your experience in the Comments section below!</p>
-]]></content>
-  </entry>
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv get foo
+</span><span class='line'>12345
+</span></code></pre></td></tr></table></div></figure></p>
 
-  <entry>
-    <title type="html"><![CDATA[TripleO Installer, Production Ready?]]></title>
-    <link href="http://alesnosek.com/blog/2017/01/15/tripleo-installer-production-ready/"/>
-    <updated>2017-01-15T23:13:32-08:00</updated>
-    <id>http://alesnosek.com/blog/2017/01/15/tripleo-installer-production-ready</id>
-    <content type="html"><![CDATA[<p><a href="https://wiki.openstack.org/wiki/TripleO">TripleO</a> is an OpenStack deployment and management tool we&rsquo;ve been using on the production systems for a while now. As TripleO is an upstream project for the Red Hat OpenStack Platform Director one would expect a decently working tool able to manage large-scale OpenStack deployments. What is our experience with TripleO?</p>
+<p>By the way, Consul doesn&rsquo;t impose any restrictions on what kind of data you may store. Only the size of the data is limited to 512KB of data per key. It&rsquo;s up to your application, what data format you choose to use. For example, you can decide to store numbers, strings, JSON-formatted data or arbitrary binary data. For instance, when designing a centralized configuration management solution for your application, you have the flexibility of storing individual configuration options as key-value pairs or decide to save entire configuration files as values in Consul.</p>
 
-<!-- more -->
+<p>To replace the value, simply put an new value in Consul under the existing key:</p>
 
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv put foo bar
+</span><span class='line'>Success! Data written to: foo
+</span></code></pre></td></tr></table></div></figure></p>
 
-<h2>Introduction</h2>
+<p>The value has been successfully updated as we can tell:</p>
 
-<p>Six months have passed since we deployed a private cloud in our company. Our cloud is based on the RDO distribution of OpenStack Mitaka running on top of RHEL 7. I have to say that we&rsquo;re very happy with our cloud-based environment. OpenStack simplified the management of virtual machines and boosted the productivity of our engineering team which enjoys the self-service provided by the OpenStack APIs. Our test automation creates and destroys many virtual machines a day making sure that our software product is tested in a clean and well-defined environment. OpenStack quickly became a critical part of our infrastructure.</p>
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv get foo
+</span><span class='line'>bar
+</span></code></pre></td></tr></table></div></figure></p>
 
-<p>Hence we were less pleased when the last week a routine maintenance of the OpenStack cluster turned into an unplanned downtime of two compute nodes. But before we get to the problem itself let me introduce you to the specifics of how we manage the OpenStack cluster.</p>
+<p>To remove the value from the key-value store you can use the <code>delete</code> command:</p>
 
-<h2>Overcloud maintenance is a challenge</h2>
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv delete foo
+</span><span class='line'>Success! Deleted key: foo
+</span></code></pre></td></tr></table></div></figure></p>
 
-<p>A cloud life-cycle management tool of choice in the RDO distribution is TripleO. I published an article about my initial experience with TripleO a while ago: <a href="/blog/2016/03/27/tripleo-installer-the-good/">TripleO Installer - the Good, the Bad and the Ugly</a>. Overall, the way how TripleO configures the OpenStack cluster is rather less flexible. After spending time on customizing and patching TripleO we decided that there must be an easier way. Eventually, we implemented our own set of Ansible scripts that allow an additional fine-grained configuration of OpenStack nodes. After the <code>openstack overcloud deploy</code> command is complete we run our Ansible scripts to apply an additional configuration to the overcloud. There are two benefits to this approach. First, we don&rsquo;t have to patch TripleO scripts which will be upgraded in the next release of OpenStack. And second, we can keep using Ansible which is our favorite configuration tool.</p>
+<p>To verify that the value is really gone, try to retrieve it:</p>
 
-<p>Having updated the overcloud using TripleO several times we realized that the update procedure is rather unreliable. Some time the TripleO update would fail with an error. Other time the overcloud update would just hang forever. Probably due to the undeterministic behaviour of the Puppet scripts that constitute a substantial part of TripleO we experienced random errors that would not occur again after restarting the update procedure. Situation got worse after we configured the overcloud Keystone to authenticate OpenStack users against Active Directory. The overcloud update would not run into completion anymore due to a defect in the Puppet scripts.</p>
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv get foo
+</span><span class='line'>Error! No key exists at: foo
+</span></code></pre></td></tr></table></div></figure></p>
 
-<p>Because fixing the TripleO scripts would require additional effort and the overcloud update would remain a risky operation either way we concluded that we will require a downtime when updating the overcloud. During the downtime period the existing virtual machines are fully operational only the OpenStack services that allow users to create or delete virtual machines or other cloud resources are not available. In the case of our private cloud this was an acceptable albeit not ideal solution.</p>
+<h2>Hierarchical keys and prefix matching</h2>
 
-<p>In summary, we can depict our OpenStack maintenance process like this:</p>
+<p>Keys in Consul can be organized in a hierarchy where different levels of the hierarchy are separated by the slash character (<code>/</code>). For example, you can create a database that holds the population numbers in different continents and countries (in millions of inhabitants) like this:</p>
 
-<p><img src="/images/posts/openstack_maintenance_process.svg" width="500" height="700" title="OpenStack Maintenance Process" ></p>
-
-<h2>TripleO installer and the resulting downtime</h2>
-
-<p>On all our OpenStack nodes we use bonded network interfaces to protect the nodes against network failures. In network interface bonding a pair of physical network interfaces is combined into a single logical interface. This provides redundancy by allowing failover from one physical interface to another in the case of failure.</p>
-
-<p>It happened to us that on two of our compute nodes one physical network interface per bond was not working. In this situation the network connection is still functional but not redundant anymore. Unfortunately, for the TripleO installer this was not good enough. Normally, during the overcloud update the <code>os-net-config</code> utility configures the node networking. Due to the single network interface down <code>os-net-config</code> failed to create a correct network configuration. A &ldquo;safe&rdquo; default configuration was generated instead which configured all available network interfaces to use DHCP. Unfortunately, we prefer a static network configuration of overcloud nodes and so no DHCP server was available. Hence this &ldquo;safe&rdquo; default configuration rendered the two compute nodes unreachable including all the virtual machines that were running on top of them!</p>
-
-<p>We were able to fix the networking issue on the first compute node quickly. However, the physical network interfaces on the second compute node were seriously falling apart. Unfortunately:</p>
-
-<p><blockquote><p>The TripleO installer requires that all the overcloud nodes are reachable during the overcloud update.</p></blockquote></p>
-
-<p>In the opposite case the update just stays hanging. It turned out that it was not possible to bring all the network interfaces on the second compute node up but eventually we were able to get at least the management interface working. This allowed us to re-run the overcloud update during which we fooled the TripleO installer to believe that the configuration of the problematic compute node was applied sucessfully. After exceeding the two-hour maintanance window by several hours we were finally done.</p>
-
-<h2>Conclusion</h2>
-
-<p>Here I&rsquo;d like to summarize our six-months long experience with the TripleO installer:</p>
-
-<ol>
-<li>In our experience, the configuration of the OpenStack cluster using only the TripleO installer is not flexible enough. As a workaround, we ended up writing a bunch of Ansible scripts.</li>
-<li>The overcloud update can take a very long time to complete and it can fail because of random errors. Also during the update operation all the overcloud nodes have to be reachable by the TripleO installer. For this reason, I personally cannot imagine using TripleO to manage a cluster with more than one hundred nodes.</li>
-<li>As we experienced, the TripleO installer can easily break a working OpenStack cluster. This is a big no-no for a production system.</li>
-</ol>
-
-
-<p>Overall, I think that the TripleO installer in the Mitaka version of OpenStack would need more work to become production ready. In the meantime, we&rsquo;re continuing with patching of what we have.</p>
-
-<p>In the future, there are other projects that could replace the TripleO installer. I found the <a href="https://github.com/openstack/kolla-ansible">kolla-ansible</a> and <a href="https://github.com/openstack/kolla-kubernetes">kolla-kubernetes</a> rather promising.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[Controlling a Multi-Service Application with systemd]]></title>
-    <link href="http://alesnosek.com/blog/2016/12/04/controlling-a-multi-service-application-with-systemd/"/>
-    <updated>2016-12-04T23:15:39-08:00</updated>
-    <id>http://alesnosek.com/blog/2016/12/04/controlling-a-multi-service-application-with-systemd</id>
-    <content type="html"><![CDATA[<p>Is your application delivered as a set of services running on top of Linux? Did you think about writing a custom controller service that would start your application services in the correct order and monitor their health? Please, stop thinking about it! In this blog post I would like to convince you that you can leverage the existing <em>systemd</em> service manager to control your application services to your greatest benefit.</p>
-
-<!-- more -->
-
-
-<p><a href="https://www.freedesktop.org/wiki/Software/systemd/">systemd</a> is the default service manager on all major Linux distributions. We&rsquo;re going to demonstrate how it can be used to control a custom multi-service application.</p>
-
-<p><img class="right" src="/images/posts/systemd-logo.png" width="200" height="300"></p>
-
-<p>Our application consists of three services: Service 1, Service 2 and Service 3. The following set of requirements should be met when controlling the services using systemd:</p>
-
-<ol>
-<li>User can permanently enable/disable any of the services</li>
-<li>User can start and stop the services as a group</li>
-<li>User can start and stop each service independently</li>
-<li>Service 2 should start before the Service 3 can start</li>
-<li>Service 3 should be stopped before the Service 2 can be stopped</li>
-<li>Services 1 and 2 should start in parallel to speed up the application startup</li>
-<li>Components should be monitored and restarted in the case of failure</li>
-</ol>
-
-
-<p>Required service startup order:</p>
-
-<p><img src="/images/posts/systemd_startup_dependencies.svg" width="300" height="400" title="Service startup order" ></p>
-
-<h2>Creating the systemd unit files</h2>
-
-<p>Let&rsquo;s begin creating the systemd unit files. First, we&rsquo;ll define a pseudo-service called <code>app</code>. This service doesn&rsquo;t run any deamon. Instead, it will allow us to start/stop the three application services at once.</p>
-
-<p><figure class='code'><figcaption><span>app.service </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
 <span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-</pre></td><td class='code'><pre><code class='ini'><span class='line'><span class="k">[Unit]</span>
-</span><span class='line'><span class="na">Description</span><span class="o">=</span><span class="s">Application&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;p&gt;[Service]&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;h1&gt;The</span> <span class="err">dummy</span> <span class="err">program</span> <span class="err">will</span> <span class="err">exit&lt;/h1&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="na">&lt;p&gt;Type</span><span class="o">=</span><span class="s">oneshot&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;h1&gt;Execute</span> <span class="err">a</span> <span class="err">dummy</span> <span class="err">program&lt;/h1&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="na">&lt;p&gt;ExecStart</span><span class="o">=</span><span class="s">/bin/true&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;h1&gt;This</span> <span class="err">service</span> <span class="err">shall</span> <span class="err">be</span> <span class="err">considered</span> <span class="err">active</span> <span class="err">after</span> <span class="err">start&lt;/h1&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="na">&lt;p&gt;RemainAfterExit</span><span class="o">=</span><span class="s">yes&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;p&gt;[Install]&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;h1&gt;Components</span> <span class="err">of</span> <span class="err">this</span> <span class="err">application</span> <span class="err">should</span> <span class="err">be</span> <span class="err">started</span> <span class="err">at</span> <span class="err">boot</span> <span class="err">time&lt;/h1&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="na">&lt;p&gt;WantedBy</span><span class="o">=</span><span class="s">multi-user.target</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv put europe 743.1
+</span><span class='line'><span class="nv">$ </span>./consul kv put europe/germany 82.67
+</span><span class='line'><span class="nv">$ </span>./consul kv put europe/france 66.9
+</span><span class='line'><span class="nv">$ </span>./consul kv put asia 4436
+</span><span class='line'><span class="nv">$ </span>./consul kv put asia/india 1324
 </span></code></pre></td></tr></table></div></figure></p>
 
-<p>In the next step, we&rsquo;ll create systemd unit files for the three services that constitute our application. I included some explanatory comments in the first <code>app-component1</code> service definition. The definitions of the remaining two services <code>app-component2</code> and <code>app-component3</code> follow the same schema.</p>
+<p>Now that you organized your keys hierarchically, you can use the Consul&rsquo;s prefix matching to discover the keys on the single level of hierarchy. For example, to retrive the keys with the prefix <code>e</code>:</p>
 
-<p><figure class='code'><figcaption><span>app-component1.service </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv get -recurse -keys e
+</span><span class='line'>europe
+</span><span class='line'>europe/
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Prefix matching can be used to retrieve the values, too. For example, to retrieve the population numbers in Europe, you can type:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv get -recurse e
+</span><span class='line'>europe:743.1
+</span><span class='line'>europe/france:66.9
+</span><span class='line'>europe/germany:82.67
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Note that when retrieving the keys recursively, only the keys on the single level of hierarchy were returned whereas when retrieving the values recursively, values on all the nested levels of hierarchy were returned.</p>
+
+<p>To obtain the population numbers for the European countries, you can append a slash to the keys name (<code>europe/</code>):</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv get -recurse europe/
+</span><span class='line'>europe/france:66.9
+</span><span class='line'>europe/germany:82.67
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>And if you are interested only in the European countries that start with letter <code>g</code>, you can use the prefix <code>europe/g</code>:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>./consul kv get -recurse europe/g
+</span><span class='line'>europe/germany:82.67
+</span></code></pre></td></tr></table></div></figure></p>
+
+<h2>Export/import of key-value pairs</h2>
+
+<p>Another useful feaure of the Consul&rsquo;s key-value store is the bulk export and import of key-value pairs. To export the entire key-value store database, you can type:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -597,65 +265,43 @@
 <span class='line-number'>24</span>
 <span class='line-number'>25</span>
 <span class='line-number'>26</span>
-</pre></td><td class='code'><pre><code class='ini'><span class='line'><span class="k">[Unit]</span>
-</span><span class='line'><span class="na">Description</span><span class="o">=</span><span class="s">Application Component 1&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;h1&gt;When</span> <span class="err">systemd</span> <span class="err">stops</span> <span class="err">or</span> <span class="err">restarts</span> <span class="err">the</span> <span class="err">app.service,</span> <span class="err">the</span> <span class="err">action</span> <span class="err">is</span> <span class="err">propagated</span> <span class="err">to</span> <span class="err">this</span> <span class="err">unit&lt;/h1&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="na">&lt;p&gt;PartOf</span><span class="o">=</span><span class="s">app.service&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;h1&gt;Start</span> <span class="err">this</span> <span class="err">unit</span> <span class="err">after</span> <span class="err">the</span> <span class="err">app.service</span> <span class="err">start&lt;/h1&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="na">&lt;p&gt;After</span><span class="o">=</span><span class="s">app.service&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;p&gt;[Service]&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;h1&gt;Pretend</span> <span class="err">that</span> <span class="err">the</span> <span class="err">component</span> <span class="err">is</span> <span class="err">running&lt;/h1&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="na">&lt;p&gt;ExecStart</span><span class="o">=</span><span class="s">/bin/sleep infinity&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;h1&gt;Restart</span> <span class="err">the</span> <span class="err">service</span> <span class="err">on</span> <span class="err">non-zero</span> <span class="err">exit</span> <span class="err">code</span> <span class="err">when</span> <span class="err">terminated</span> <span class="err">by</span> <span class="err">a</span> <span class="err">signal</span> <span class="err">other</span> <span class="err">than</span> <span class="err">SIGHUP,</span> <span class="err">SIGINT,</span> <span class="err">SIGTERM</span> <span class="err">or</span> <span class="err">SIGPIPE&lt;/h1&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="na">&lt;p&gt;Restart</span><span class="o">=</span><span class="s">on-failure&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;p&gt;[Install]&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;h1&gt;This</span> <span class="err">unit</span> <span class="err">should</span> <span class="err">start</span> <span class="err">when</span> <span class="err">app.service</span> <span class="err">is</span> <span class="err">starting&lt;/h1&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="na">&lt;p&gt;WantedBy</span><span class="o">=</span><span class="s">app.service</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv <span class="nb">export</span>
+</span><span class='line'><span class="o">[</span>
+</span><span class='line'>        <span class="o">{</span>
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>key<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span>asia<span class="p">&amp;</span>rdquo<span class="p">;</span>,
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>flags<span class="p">&amp;</span>rdquo<span class="p">;</span>: 0,
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>value<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span><span class="nv">NDQzNg</span><span class="o">==</span><span class="p">&amp;</span>rdquo<span class="p">;</span>
+</span><span class='line'>        <span class="o">}</span>,
+</span><span class='line'>        <span class="o">{</span>
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>key<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span>asia/india<span class="p">&amp;</span>rdquo<span class="p">;</span>,
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>flags<span class="p">&amp;</span>rdquo<span class="p">;</span>: 0,
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>value<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span><span class="nv">MTMyNA</span><span class="o">==</span><span class="p">&amp;</span>rdquo<span class="p">;</span>
+</span><span class='line'>        <span class="o">}</span>,
+</span><span class='line'>        <span class="o">{</span>
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>key<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span>europe<span class="p">&amp;</span>rdquo<span class="p">;</span>,
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>flags<span class="p">&amp;</span>rdquo<span class="p">;</span>: 0,
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>value<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span><span class="nv">NzQzLjE</span><span class="o">=</span><span class="p">&amp;</span>rdquo<span class="p">;</span>
+</span><span class='line'>        <span class="o">}</span>,
+</span><span class='line'>        <span class="o">{</span>
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>key<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span>europe/france<span class="p">&amp;</span>rdquo<span class="p">;</span>,
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>flags<span class="p">&amp;</span>rdquo<span class="p">;</span>: 0,
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>value<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span><span class="nv">NjYuOQ</span><span class="o">==</span><span class="p">&amp;</span>rdquo<span class="p">;</span>
+</span><span class='line'>        <span class="o">}</span>,
+</span><span class='line'>        <span class="o">{</span>
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>key<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span>europe/germany<span class="p">&amp;</span>rdquo<span class="p">;</span>,
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>flags<span class="p">&amp;</span>rdquo<span class="p">;</span>: 0,
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>value<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span><span class="nv">ODIuNjc</span><span class="o">=</span><span class="p">&amp;</span>rdquo<span class="p">;</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'><span class="o">]</span>
 </span></code></pre></td></tr></table></div></figure></p>
 
-<p>The definition of the service <code>app-component2</code> resembles the definition of service <code>app-component1</code>:</p>
+<p>Consul exports the key-value pairs into the JSON format which is currently the only supported format. In the sample output, you can see that all the values are <a href="https://en.wikipedia.org/wiki/Base64">base64</a> encoded. The base64 encoding is commonly used in the text-based formats like JSON and XML to allow embedding of binary data.</p>
 
-<p><figure class='code'><figcaption><span>app-component2.service </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='ini'><span class='line'><span class="k">[Unit]</span>
-</span><span class='line'><span class="na">Description</span><span class="o">=</span><span class="s">Application Component 2</span>
-</span><span class='line'><span class="na">PartOf</span><span class="o">=</span><span class="s">app.service</span>
-</span><span class='line'><span class="na">After</span><span class="o">=</span><span class="s">app.service&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;p&gt;</span><span class="k">[Service]</span>
-</span><span class='line'><span class="na">ExecStart</span><span class="o">=</span><span class="s">/bin/sleep infinity</span>
-</span><span class='line'><span class="na">Restart</span><span class="o">=</span><span class="s">on-failure&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;p&gt;</span><span class="k">[Install]</span>
-</span><span class='line'><span class="na">WantedBy</span><span class="o">=</span><span class="s">app.service</span>
-</span></code></pre></td></tr></table></div></figure></p>
+<p>You can export a subset of the key-value pairs by specifying the prefix. For instance, to export the data pertaining Europe, you can speficy the <code>europe</code> prefix:</p>
 
-<p>We would like the service <code>app-component3</code> to start after the service <code>app-component2</code>. Systemd provides the directive <code>After</code> to configure the start ordering. Note that we don&rsquo;t use a <code>Wants</code> directive to create a dependency of <code>app-component3</code> on <code>app-component2</code>. This <code>Wants</code> dependency would instruct systemd to start the <code>app-component2</code> whenever the <code>app-component3</code> should be started. The <code>app-component2</code> would be started even in the case that it was disabled before. This is however not what we wanted as we require the user to be able to permanently disable any of the components. If <code>app-component2</code> is not enabled, systemd should just skip it when starting the application services.</p>
-
-<p><figure class='code'><figcaption><span>app-component3.service </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -670,211 +316,42 @@
 <span class='line-number'>13</span>
 <span class='line-number'>14</span>
 <span class='line-number'>15</span>
-</pre></td><td class='code'><pre><code class='ini'><span class='line'><span class="k">[Unit]</span>
-</span><span class='line'><span class="na">Description</span><span class="o">=</span><span class="s">Application Component 3</span>
-</span><span class='line'><span class="na">PartOf</span><span class="o">=</span><span class="s">app.service</span>
-</span><span class='line'><span class="na">After</span><span class="o">=</span><span class="s">app.service&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;h1&gt;This</span> <span class="err">unit</span> <span class="err">should</span> <span class="err">start</span> <span class="err">after</span> <span class="err">the</span> <span class="err">app-component2</span> <span class="err">started&lt;/h1&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="na">&lt;p&gt;After</span><span class="o">=</span><span class="s">app-component2.service&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;p&gt;</span><span class="k">[Service]</span>
-</span><span class='line'><span class="na">ExecStart</span><span class="o">=</span><span class="s">/bin/sleep infinity</span>
-</span><span class='line'><span class="na">Restart</span><span class="o">=</span><span class="s">on-failure&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;p&gt;</span><span class="k">[Install]</span>
-</span><span class='line'><span class="na">WantedBy</span><span class="o">=</span><span class="s">app.service</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv <span class="nb">export </span>europe
+</span><span class='line'><span class="o">[</span>
+</span><span class='line'>        <span class="o">{</span>
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>key<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span>europe<span class="p">&amp;</span>rdquo<span class="p">;</span>,
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>flags<span class="p">&amp;</span>rdquo<span class="p">;</span>: 0,
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>value<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span><span class="nv">NzQzLjE</span><span class="o">=</span><span class="p">&amp;</span>rdquo<span class="p">;</span>
+</span><span class='line'>        <span class="o">}</span>,
+</span><span class='line'>        <span class="o">{</span>
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>key<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span>europe/france<span class="p">&amp;</span>rdquo<span class="p">;</span>,
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>flags<span class="p">&amp;</span>rdquo<span class="p">;</span>: 0,
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>value<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span><span class="nv">NjYuOQ</span><span class="o">==</span><span class="p">&amp;</span>rdquo<span class="p">;</span>
+</span><span class='line'>        <span class="o">}</span>,
+</span><span class='line'>        <span class="o">{</span>
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>key<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span>europe/germany<span class="p">&amp;</span>rdquo<span class="p">;</span>,
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>flags<span class="p">&amp;</span>rdquo<span class="p">;</span>: 0,
+</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>value<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span><span class="nv">ODIuNjc</span><span class="o">=</span><span class="p">&amp;</span>rdquo<span class="p">;</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'><span class="o">]</span>
 </span></code></pre></td></tr></table></div></figure></p>
 
-<h2>Adding the application services to systemd</h2>
+<p>To import the JSON-formatted data back to the Consul key-value store, you can use the command <code>./consul kv import</code>.</p>
 
-<p>After we finished the creation of the four systemd unit files, we need to copy them to the systemd configuration directory:</p>
+<h2>Web UI</h2>
 
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>sudo cp app-component1.service app-component2.service app-component3.service app.service /etc/systemd/system/
-</span></code></pre></td></tr></table></div></figure></p>
+<p>Besides the commmand-line client, you can access Consul through its beautiful Web interface. Point your web browser to <a href="http://localhost:8500">http://localhost:8500</a>.</p>
 
-<p>Next, we have to ask systemd to reload its configuration:
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>sudo systemctl daemon-reload
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>If everything went well, you should be able to see the new services in the unit file list:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>systemctl list-unit-files app*
-</span><span class='line'>UNIT FILE              STATE
-</span><span class='line'>app-component1.service disabled
-</span><span class='line'>app-component2.service disabled
-</span><span class='line'>app-component3.service disabled
-</span><span class='line'>app.service            disabled&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;4 unit files listed.
-</span></code></pre></td></tr></table></div></figure></p>
-
-<h2>Testing the application services</h2>
-
-<p>After all the hard work we&rsquo;re now ready to exercise our configuration. First, let&rsquo;s enable all the application services:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>sudo systemctl <span class="nb">enable </span>app app-component1 app-component2 app-component3
-</span><span class='line'>Created symlink from /etc/systemd/system/multi-user.target.wants/app.service to /etc/systemd/system/app.service.
-</span><span class='line'>Created symlink from /etc/systemd/system/app.service.wants/app-component1.service to /etc/systemd/system/app-component1.service.
-</span><span class='line'>Created symlink from /etc/systemd/system/app.service.wants/app-component2.service to /etc/systemd/system/app-component2.service.
-</span><span class='line'>Created symlink from /etc/systemd/system/app.service.wants/app-component3.service to /etc/systemd/system/app-component3.service.
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>To start all the services, you can type:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>sudo systemctl start app
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>The systemd status command should display all the services as <code>active</code>:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>sudo systemctl status app*
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Note that while the component services are marked as <code>running</code>, the pseudo-service <code>app</code> is showed as <code>exited</code>. This is an expected behaviour as the service <code>app</code> is of type <code>oneshot</code>. (I&rsquo;m not showing the output of the systemctl status command here).</p>
-
-<p>Next, let&rsquo;s check the starting order of the services. Systemd logs its messages into the journal. Let&rsquo;s list the recent log entries with:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>journalctl -e
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>In our sample output we can see that the service <code>app-component3</code> was indeed started after the service <code>app-component2</code>:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>Dec 05 20:34:57 localhost.localdomain systemd[1]: Starting Application&hellip;
-</span><span class='line'>Dec 05 20:34:57 localhost.localdomain systemd[1]: Started Application.
-</span><span class='line'>Dec 05 20:34:57 localhost.localdomain systemd[1]: Started Application Component 1.
-</span><span class='line'>Dec 05 20:34:57 localhost.localdomain systemd[1]: Starting Application Component 1&hellip;
-</span><span class='line'>Dec 05 20:34:57 localhost.localdomain systemd[1]: Started Application Component 2.
-</span><span class='line'>Dec 05 20:34:57 localhost.localdomain systemd[1]: Starting Application Component 2&hellip;
-</span><span class='line'>Dec 05 20:34:57 localhost.localdomain systemd[1]: Started Application Component 3.
-</span><span class='line'>Dec 05 20:34:57 localhost.localdomain systemd[1]: Starting Application Component 3&hellip;</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Now we&rsquo;re going to check that we can disable any service independently of other services. Let&rsquo;s stop the service <code>app-component2</code> and disable it:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>sudo systemctl stop app-component2
-</span><span class='line'><span class="nv">$ </span>sudo systemctl disable app-component2
-</span><span class='line'>Removed symlink /etc/systemd/system/app.service.wants/app-component2.service.
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>When we stop and start our application the service <code>app-component2</code> will remain disabled.</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>sudo systemctl stop app
-</span><span class='line'><span class="nv">$ </span>sudo systemctl start app
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Unfortunately, I realized that when using the <code>restart</code> command, systemd will enable the service <code>app-component2</code>:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>sudo systemctl restart app
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>The behaviour of the systemd <code>stop</code> command followed by the <code>start</code> command is not consistent with the behaviour of the systemd <code>restart</code> command. As a workaround, you can use the systemd <code>mask</code> command to really disable the application service, for example:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>sudo systemctl mask app-component2
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>This way, the service <code>app-component2</code> remains disabled no matter what.</p>
+<p><img class="right" src="/images/posts/consul_ui.png"></p>
 
 <h2>Conclusion</h2>
 
-<p>systemd provides a feature-rich service manager. Instead of implementing a home-grown solution you might want to think about using systemd to control your application services. Some of the benefits of opting for systemd are:</p>
+<p>In this blog post, we reviewed the basics of the key-value store in Consul. There are many other cool features of the key-value store that we didn&rsquo;t cover like atomic key updates using Check-and-Set operations, <a href="https://www.consul.io/api/txn.html">transactions</a>, <a href="https://www.consul.io/docs/commands/lock.html">locks</a> or <a href="https://www.consul.io/docs/commands/watch.html">watches</a>. Also, I recommend to you to take a look at the great Consul&rsquo;s <a href="https://www.consul.io/api/index.html">RESTful API</a> that allows you to interact with Consul programatically.</p>
 
-<ol>
-<li>systemd is a standard service manager any Linux administrator is familiar with</li>
-<li>systemd is battle tested to the extent your proprietary solution probably cannot be</li>
-<li>You can discover many other useful systemd features which you can employ right away</li>
-</ol>
-
-
-<p>Have fun!</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[RHCSA/RHCE Exam Experience]]></title>
-    <link href="http://alesnosek.com/blog/2016/11/07/rhcsa-slash-rhce-exam-experience/"/>
-    <updated>2016-11-07T23:45:38-08:00</updated>
-    <id>http://alesnosek.com/blog/2016/11/07/rhcsa-slash-rhce-exam-experience</id>
-    <content type="html"><![CDATA[<p>Today was the great day when I passed the RHCE certification exam. If you&rsquo;re thinking about getting a Linux certification or you&rsquo;re already working towards RHCSA/RHCE, this blog post is for you.</p>
-
-<!-- more -->
-
-
-<p>The RHCSA/RHCE certification is a part of the <a href="https://en.wikipedia.org/wiki/Red_Hat_Certification_Program">Red Hat Certification Program</a>. You have to pass two practical exams, RHCSA (Red Hat Certified System Administrator) and RHCE (Red Hat Certified Engineer).</p>
-
-<h2>Modus operandi</h2>
-
-<p>Both the RHCSA and RHCE exams are hands on. You will be presented with one or more RHEL7 virtual machines and a list of Linux configuration tasks. Your goal is to set up the virtual machines as described in the tasks. After your exam is finished, the Red Hat test automation will reboot the virtual machines and run the grading scripts that will compute your score. An hour or two after the exam end you will receive your exam results in the email.</p>
-
-<p>The exam strictly tests your practical skills which makes it in my opinion very valuable. Several years ago I passed some of the exams from the Oracle Java certification path. The major part of the Java exams was based on the multiple choice questions. It was less fun for me to prepare for it and I think that a hands on exam would test the Java development skills much accurately.</p>
-
-<p>If you&rsquo;re a hiring manager searching for the Linux talent, you should know that:</p>
-
-<p><blockquote><p>Job candidates that passed the RHCSA/RHCE certification really demonstrated their Linux administration skills at some point.</p></blockquote></p>
-
-<h2>Tips</h2>
-
-<p>You can find a ton of tips for the RHCSA/RHCE exams on the Internet already. I&rsquo;d like to share some more advice here.</p>
-
-<p>The RHEL7 virtual machines you will be working on have manual pages installed. Before taking the exam, make sure you know where to look for the useful configuration examples. For instance, when configuring the network interfaces you can refer to:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>man <span class="m">5</span> nmcli-examples
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Full examples of commands to configure the firewall can be found at:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>man <span class="m">5</span> firewalld.richlanguage
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>When wrestling with the Apache server configuration you can leverage the Apache manual. After you installed the <code>httpd-manual</code> RPM package, you can browse the manual using the <em>elinks</em> web browser:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>yum install elinks httpd-manual
-</span><span class='line'>elinks /usr/share/httpd/manual/index.html
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>If it is feasible for you, make yourself a favor and buy the <a href="https://www.redhat.com/en/services/training/learning-subscription">Red Hat Learning Subscription</a>. You will get access to the training materials that walk you through the tasks very similar to what you&rsquo;ll see on the real exam. It includes mock exams. And you&rsquo;ll be provided with the virtual machines that you can practice on over and over again until you&rsquo;re ready to take the test.</p>
-
-<p>I found the Red Hat learning materials to be of a high quality. Besides the prep for the exam, I&rsquo;m using them to learn about further technologies from the Red Hat portfolio.</p>
-
-<h2>Is the RHCSA/RHCE for me?</h2>
-
-<p>In my opinion, the RHCSA/RHCE is one of the best Linux certifications available. If you mean it with Linux seriously - and it doesn&rsquo;t necessarily have to be the Red Hat flavor of Linux - go get certified!</p>
+<p>If you&rsquo;re looking for a key-value store that would enhance your distributed application, Consul is definitely a candidate to consider. Besides that, Consul will be ready when you later on realize that service discovery is what you need to address next.</p>
 ]]></content>
   </entry>
 
