@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2017-07-22T16:47:45-07:00</updated>
+  <updated>2017-07-22T19:34:52-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -124,7 +124,7 @@
 
 <h2>Basic CRUD with Consul</h2>
 
-<p>In this section, we&rsquo;re going the exercise the basic Create, Read, Update and Delete functionality of the Consul key-store. First, let&rsquo;s store the value <code>12345</code> under the key <code>foo</code>:</p>
+<p>In this section, we&rsquo;re going to exercise the basic Create, Read, Update and Delete functionality of the Consul key-store. First, let&rsquo;s store the value <code>12345</code> under the key <code>foo</code>:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -144,7 +144,7 @@
 
 <p>By the way, Consul doesn&rsquo;t impose any restrictions on what kind of data you may store. Only the size of the data is limited to 512KB of data per key. It&rsquo;s up to your application, what data format you choose to use. For example, you can decide to store numbers, strings, JSON-formatted data or arbitrary binary data. For instance, when designing a centralized configuration management solution for your application, you have the flexibility of storing individual configuration options as key-value pairs or decide to save entire configuration files as values in Consul.</p>
 
-<p>To replace the value, simply put an new value in Consul under the existing key:</p>
+<p>To replace the value, simply put a new value in Consul under the existing key:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -153,7 +153,7 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>The value has been successfully updated as we can tell:</p>
+<p>The value has been successfully updated as we can see:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -359,9 +359,11 @@
 
 <h2>Conclusion</h2>
 
-<p>In this blog post, we reviewed the basics of the key-value store in Consul. There are many other cool features of the key-value store that we didn&rsquo;t cover like atomic key updates using Check-and-Set operations, <a href="https://www.consul.io/api/txn.html">transactions</a>, <a href="https://www.consul.io/docs/commands/lock.html">locks</a> or <a href="https://www.consul.io/docs/commands/watch.html">watches</a>. Also, I recommend to you to take a look at the great Consul&rsquo;s <a href="https://www.consul.io/api/index.html">RESTful API</a> that allows you to interact with Consul programatically.</p>
+<p>In this blog post, we reviewed the basics of the key-value store in Consul. There are many other cool features of the key-value store that we didn&rsquo;t cover like atomic key updates using Check-and-Set operations, <a href="https://www.consul.io/api/txn.html">transactions</a>, <a href="https://www.consul.io/docs/commands/lock.html">locks</a> or <a href="https://www.consul.io/docs/commands/watch.html">watches</a>. Also, I recommend to you to take a look at the Consul&rsquo;s great <a href="https://www.consul.io/api/index.html">RESTful API</a> that allows you to interact with Consul programatically.</p>
 
 <p>If you&rsquo;re looking for a key-value store that would enhance your distributed application, Consul is definitely a candidate to consider. Besides that, Consul will be ready when you later on realize that service discovery is what you need to address next.</p>
+
+<p>Are you considering or already using Consul at your company? I would like to hear your experiences, please leave your comments below.</p>
 ]]></content>
   </entry>
 
