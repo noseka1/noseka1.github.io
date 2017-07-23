@@ -76,7 +76,7 @@ zihadlo  127.0.0.1:8301  alive   server  0.8.5  2         dc1
 
 ## Basic CRUD with Consul
 
-In this section, we're going the exercise the basic Create, Read, Update and Delete functionality of the Consul key-store. First, let's store the value `12345` under the key `foo`:
+In this section, we're going to exercise the basic Create, Read, Update and Delete functionality of the Consul key-store. First, let's store the value `12345` under the key `foo`:
 
 {% codeblock lang:sh %}
 $ ./consul kv put foo 12345
@@ -92,14 +92,14 @@ $ ./consul kv get foo
 
 By the way, Consul doesn't impose any restrictions on what kind of data you may store. Only the size of the data is limited to 512KB of data per key. It's up to your application, what data format you choose to use. For example, you can decide to store numbers, strings, JSON-formatted data or arbitrary binary data. For instance, when designing a centralized configuration management solution for your application, you have the flexibility of storing individual configuration options as key-value pairs or decide to save entire configuration files as values in Consul.
 
-To replace the value, simply put an new value in Consul under the existing key:
+To replace the value, simply put a new value in Consul under the existing key:
 
 {% codeblock lang:sh %}
 $ ./consul kv put foo bar
 Success! Data written to: foo
 {% endcodeblock %}
 
-The value has been successfully updated as we can tell:
+The value has been successfully updated as we can see:
 
 {% codeblock lang:sh %}
 $ ./consul kv get foo
@@ -236,6 +236,8 @@ Besides the commmand-line client, you can access Consul through its beautiful We
 
 ## Conclusion
 
-In this blog post, we reviewed the basics of the key-value store in Consul. There are many other cool features of the key-value store that we didn't cover like atomic key updates using Check-and-Set operations, [transactions](https://www.consul.io/api/txn.html), [locks](https://www.consul.io/docs/commands/lock.html) or [watches](https://www.consul.io/docs/commands/watch.html). Also, I recommend to you to take a look at the great Consul's [RESTful API](https://www.consul.io/api/index.html) that allows you to interact with Consul programatically.
+In this blog post, we reviewed the basics of the key-value store in Consul. There are many other cool features of the key-value store that we didn't cover like atomic key updates using Check-and-Set operations, [transactions](https://www.consul.io/api/txn.html), [locks](https://www.consul.io/docs/commands/lock.html) or [watches](https://www.consul.io/docs/commands/watch.html). Also, I recommend to you to take a look at the Consul's great [RESTful API](https://www.consul.io/api/index.html) that allows you to interact with Consul programatically.
 
 If you're looking for a key-value store that would enhance your distributed application, Consul is definitely a candidate to consider. Besides that, Consul will be ready when you later on realize that service discovery is what you need to address next.
+
+Are you considering or already using Consul at your company? I would like to hear your experiences, please leave your comments below.
