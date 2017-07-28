@@ -24,7 +24,7 @@ What I like about Consul is its installation. Written in the Go language, Consul
 Let's put togher a command-line to start the Consul cluster. Our test cluster consists of a single node (`-bootstrap-expect 1`). For a production deployment, you should be looking at a cluster of three or five Consul nodes that is able to survive node failures. We will make the Consul Web UI available at `http://localhost:8500` by appending the `-ui` parameter. Consul needs a location where it will persist its data. In our example, we instruct Consul to create a directory `mydata` and store all its data in this directory. After a bit of typing, the complete commmand-line to start the Consul cluster looks as follows:
 
 {% codeblock lang:sh %}
-./consul agent -ui -server -data-dir mydata -advertise 127.0.0.1 -bootstrap-expect 1
+$ ./consul agent -ui -server -data-dir mydata -advertise 127.0.0.1 -bootstrap-expect 1
 {% endcodeblock %}
 
 In several seconds the one-node Consul cluster is up and running:
