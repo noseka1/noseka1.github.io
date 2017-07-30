@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2017-07-29T22:25:56-07:00</updated>
+  <updated>2017-07-30T13:13:16-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,34 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[Passed the Red Hat Container Certifications EX270 and EX276]]></title>
+    <link href="http://alesnosek.com/blog/2017/07/29/passed-the-red-hat-container-certifications-ex270-and-ex276/"/>
+    <updated>2017-07-29T22:44:56-07:00</updated>
+    <id>http://alesnosek.com/blog/2017/07/29/passed-the-red-hat-container-certifications-ex270-and-ex276</id>
+    <content type="html"><![CDATA[<p>Recently I passed two Red Hat certification exams: <a href="https://www.redhat.com/en/services/training/ex270-red-hat-certificate-expertise-atomic-host-container-administration">EX270 Red Hat Certificate of Expertise in Atomic Host Container Administration</a> and the <a href="https://www.redhat.com/en/services/training/ex276-red-hat-certificate-expertise-containerized-application-development">EX276 Red Hat Certificate of Expertise in Containerized Application Development</a>. I&rsquo;d like to share some of my experience with you in this blog post.</p>
+
+<!-- more -->
+
+
+<p><img class="right" src="http://alesnosek.com/images/posts/redhat_logo.png" width="150" height="150"></p>
+
+<p>As you might already know, all the Red hat certification exams are purely practical. You&rsquo;ll have to configure the provided virtual machines based on the list of instructions given to you in the exam.</p>
+
+<p><img class="right" src="http://alesnosek.com/images/posts/docker_logo.png" width="100" height="100"></p>
+
+<p>From my experience, I can say that the scope of exams EX270 and EX276 is highly overlapping. Both exams are focused on working with Docker, concretely: creating Docker images using Dockerfiles, pulling and pushing images into Docker registries, running Docker containers, linking Docker containers, creating and sharing volumes between containers, exposing network ports. This pretty much covers the content of the EX276 exam and the major part of the EX270 exam. In addition, the exam EX270 includes several tasks related to Red Hat Atomic Host.</p>
+
+<p>To prepare for the exams, I used the online courses Managing Containers with Red Hat Enterprise Linux Atomic Host (RH270R) and Containerizing Software Applications (DO276R) that are included in my <a href="https://www.redhat.com/en/services/training/learning-subscription">Red Hat Learning Subscription</a>. In comparison to prep materials for other exams, these materials are not that large but they covered the exam requirements well.</p>
+
+<p>And how did I score? I achieved 260 points on the EX270 exam and 291 points on the EX276 exam. For both exams, the minimum passing score was 210 points and the maximum score was 300. Subjectively, I found the difficulty of the EX270 to be on par with the other Red Hat exams I did in the past. On the other hand, the EX276 appeared to me as a rather easy exam. I was able to complete all my tasks, including double-checking, 45 minutes before the exam end.</p>
+
+<p>Passing these two exams concluded my <a href="https://www.redhat.com/en/services/certification/rhca">RHCA</a> journey and earned me the Red Hat Certified Architect certificate. Here is the obligatory link to my current list of certifications on the <a href="https://www.redhat.com/rhtapps/certification/verify/?certId=160-216-727">Verify a Red Hat Certified Professional</a> website.</p>
+
+<p>I believe that many folks are on their way to become RHCA. How are you doing on your journey? Would you like to share your experiences with the Red Hat certification program? Please, leave your comments below.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[Check-and-Set Operation and Transactions in Consul]]></title>
@@ -2716,76 +2744,6 @@
 <p>On the other hand, I&rsquo;m somewhat sceptical about Heat being the right tool to do software configuration. Funneling the configuration options through the Heat templates down to the Puppet scripts seems cumbersome to me.</p>
 
 <p>I&rsquo;d like to suggest the following approach: let Heat do the node provisioning, network configuration and perhaps a minimum node setup using cloud-init. At the end of the deployment, Heat would provide the information about the deployment in the format understandable to the configuration management tools like Puppet, Chef or Ansible. The configuration management tool then merges the facts provided by Heat with the tons of OpenStack configuration settings provided by the user. The following OpenStack installation, configuration, and later orchestration would solely be done by the configuration management tool more suitable for this job. Heat would not be involved at all in this stage.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[Bootstrapping a Galera Cluster on RHEL7]]></title>
-    <link href="http://alesnosek.com/blog/2016/01/31/bootstrapping-a-galera-cluster-on-rhel7/"/>
-    <updated>2016-01-31T15:24:55-08:00</updated>
-    <id>http://alesnosek.com/blog/2016/01/31/bootstrapping-a-galera-cluster-on-rhel7</id>
-    <content type="html"><![CDATA[<p>The MariaDB Galera packages provided by the RDO project in their OpenStack repositories don&rsquo;t seem to include a command or script to bootstrap the cluster. Let&rsquo;s look at an alternative way to bring the cluster up.</p>
-
-<!-- more -->
-
-
-<p>RHEL7 comes with the init system <code>systemd</code>. Unfortunately, systemd doesn&rsquo;t provide a way to pass command-line arguments to the unit files. Hence, doing something like this won&rsquo;t work:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">[</span>root@rhel1 ~<span class="o">]</span><span class="nv">$ </span>systemctl start mariadb --wsrep_new_cluster
-</span><span class='line'>systemctl: unrecognized option <span class="s1">&#39;--wsrep_new_cluster&#39;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Instead of passing command-line arguments, systemd allows for creating <a href="http://0pointer.de/blog/projects/instances.html">multiple instances</a> of the same service where each instance can obtain it&rsquo;s own set of environment variables. The Percona XtraDB Cluster includes the standard and the bootstrap service instance definitions in the RPM package <code>Percona-XtraDB-Cluster-server</code>. To boostrap the Percona cluster, the first node can be started with the following command:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">[</span>root@percona1 ~<span class="o">]</span><span class="nv">$ </span>systemctl start mysql@bootstrap.service
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>At the moment, this boostrap service definition is missing in the RDO OpenStack packages. Before a similar <code>mysql@.service</code> script is available in RDO you can start the MariaDB Galera cluster as follows:</p>
-
-<ul>
-<li>On the first node, start the MariaDB with the <code>--wsrep-new-cluster</code> to create a new cluster:</li>
-</ul>
-
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">[</span>root@rhel1 ~<span class="o">]</span><span class="nv">$ </span>/usr/bin/mysqld_safe --wsrep-new-cluster
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Let the command run in the foreground.</p>
-
-<ul>
-<li>On the remaining cluster nodes start the mariadb service as usual:</li>
-</ul>
-
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">[</span>root@rhel2 ~<span class="o">]</span><span class="nv">$ </span>systemctl start mariadb
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li><p>After the cluster has been fully formed, stop the mariadb on the first node by sending it a SIGQUIT (press CTRL + \ on the console).</p></li>
-<li><p>On the first node, start the mariadb service via systemd:</p></li>
-</ul>
-
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">[</span>root@rhel1 ~<span class="o">]</span><span class="nv">$ </span>systemctl start mariadb
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>That&rsquo;s it. You can check the status of each of the cluster nodes by running the following command:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">[</span>root@rhel1 ~<span class="o">]</span><span class="nv">$ </span>mysql -e <span class="s2">&quot;SHOW GLOBAL STATUS LIKE &#39;wsrep%&#39;;&quot;</span>
-</span></code></pre></td></tr></table></div></figure>
-
 ]]></content>
   </entry>
 
