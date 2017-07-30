@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2017-07-30T13:13:16-07:00</updated>
+  <updated>2017-07-30T13:14:56-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -14,10 +14,10 @@
 
 
   <entry>
-    <title type="html"><![CDATA[Passed the Red Hat Container Certifications EX270 and EX276]]></title>
-    <link href="http://alesnosek.com/blog/2017/07/29/passed-the-red-hat-container-certifications-ex270-and-ex276/"/>
+    <title type="html"><![CDATA[Passed Red Hat Container Certifications EX270 and EX276]]></title>
+    <link href="http://alesnosek.com/blog/2017/07/29/passed-red-hat-container-certifications-ex270-and-ex276/"/>
     <updated>2017-07-29T22:44:56-07:00</updated>
-    <id>http://alesnosek.com/blog/2017/07/29/passed-the-red-hat-container-certifications-ex270-and-ex276</id>
+    <id>http://alesnosek.com/blog/2017/07/29/passed-red-hat-container-certifications-ex270-and-ex276</id>
     <content type="html"><![CDATA[<p>Recently I passed two Red Hat certification exams: <a href="https://www.redhat.com/en/services/training/ex270-red-hat-certificate-expertise-atomic-host-container-administration">EX270 Red Hat Certificate of Expertise in Atomic Host Container Administration</a> and the <a href="https://www.redhat.com/en/services/training/ex276-red-hat-certificate-expertise-containerized-application-development">EX276 Red Hat Certificate of Expertise in Containerized Application Development</a>. I&rsquo;d like to share some of my experience with you in this blog post.</p>
 
 <!-- more -->
