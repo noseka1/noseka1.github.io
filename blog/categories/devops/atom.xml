@@ -4,7 +4,7 @@
   <title><![CDATA[Category: devops, | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/devops/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2017-07-22T19:34:52-07:00</updated>
+  <updated>2017-07-29T21:46:35-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -36,7 +36,7 @@
 <p>Let&rsquo;s put togher a command-line to start the Consul cluster. Our test cluster consists of a single node (<code>-bootstrap-expect 1</code>). For a production deployment, you should be looking at a cluster of three or five Consul nodes that is able to survive node failures. We will make the Consul Web UI available at <code>http://localhost:8500</code> by appending the <code>-ui</code> parameter. Consul needs a location where it will persist its data. In our example, we instruct Consul to create a directory <code>mydata</code> and store all its data in this directory. After a bit of typing, the complete commmand-line to start the Consul cluster looks as follows:</p>
 
 <p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>./consul agent -ui -server -data-dir mydata -advertise 127.0.0.1 -bootstrap-expect 1
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul agent -ui -server -data-dir mydata -advertise 127.0.0.1 -bootstrap-expect 1
 </span></code></pre></td></tr></table></div></figure></p>
 
 <p>In several seconds the one-node Consul cluster is up and running:</p>
