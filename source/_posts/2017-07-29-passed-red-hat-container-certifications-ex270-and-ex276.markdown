@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Passed the Red Hat Container Certifications EX270 and EX276"
+title: "Passed Red Hat Container Certifications EX270 and EX276"
 date: 2017-07-29 22:44:56 -0700
 comments: true
 categories: devops
