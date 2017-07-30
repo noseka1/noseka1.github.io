@@ -10,7 +10,7 @@ Recently I passed two Red Hat certification exams: [EX270 Red Hat Certificate of
 
 <!-- more -->
 
-{% img right /images/posts/redhat_logo.png 150 150 %}
+{% img right /images/posts/redhat_logo.png 110 110 %}
 
 
 As you might already know, all the Red hat certification exams are purely practical. You'll have to configure the provided virtual machines based on the list of instructions given to you in the exam.
