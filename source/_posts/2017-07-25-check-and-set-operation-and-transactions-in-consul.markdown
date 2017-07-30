@@ -6,7 +6,7 @@ comments: true
 categories: cloud devops
 ---
 
-In the [previous](/blog/2017/07/15/first-look-at-the-key-value-store-in-consul/) blog post, we were checking out the basic functionality of the key-value store in Consul. In this article, we will explore two of the more advanced features of the Consul's key-value store, namely: Check-and-Set operation and transactions.
+In the [previous](/blog/2017/07/15/first-look-at-the-key-value-store-in-consul/) blog post, we were checking out the basic functionality of the key-value store in Consul. In this article, we will explore two of the more advanced features of Consul's key-value store, namely: Check-and-Set operation and transactions.
 
 <!-- more -->
 
@@ -68,7 +68,7 @@ $ curl http://localhost:8500/v1/kv/mylock?pretty
 ]
 {% endcodeblock %}
 
-The value of the key in the Consul's response is still empty (null) which indicates that nobody is holding the lock. Second important item in the Consul's response is the `ModifyIndex`. Each key in the key-value store has its own `ModifyIndex`. The `ModifyIndex` is incremented by Consul each time the respective key is modified.
+The value of the key in the Consul's response is still empty (null) which indicates that nobody is holding the lock. The second important item in the Consul's response is the `ModifyIndex`. Each key in the key-value store has its own `ModifyIndex`. The `ModifyIndex` is incremented by Consul each time the respective key is modified.
 
 After verifying that the lock is not taken, the client can try to acquire it:
 
@@ -86,7 +86,7 @@ $ curl --request PUT http://localhost:8500/v1/kv/mylock?cas=5638 --data "client2
 false
 {% endcodeblock %}
 
-Consul's reponse sent to the `client2` shows that Consul refused to update the `mylock` value as, in the meantime, this value has been modified. In order to check the current status of the lock, `client2` can follow up with a get request:
+Consul's response sent to `client2` shows that Consul refused to update the `mylock` value as, in the meantime, this value has been modified. In order to check the current status of the lock, `client2` can follow up with a get request:
 
 {% codeblock lang:sh %}
 $ curl http://localhost:8500/v1/kv/mylock?pretty
@@ -102,7 +102,7 @@ $ curl http://localhost:8500/v1/kv/mylock?pretty
 ]
 {% endcodeblock %}
 
-In the Consul's response we can see that the lock is currently being held by `client1`. Until the `client1` hasn't released the lock, `client2` must not try to acquire it. It can only periodically check the status of the lock and wait until it is released. To release the lock, `clent1` will simply set its value to an empty-value:
+In Consul's response we can see that the lock is currently being held by `client1`. Until `client1` hasn't released the lock, `client2` must not try to acquire it. It can only periodically check the status of the lock and wait until it is released. To release the lock, `clent1` will simply set its value to an empty-value:
 
 {% codeblock lang:sh %}
 curl --request PUT http://localhost:8500/v1/kv/mylock --data ""
