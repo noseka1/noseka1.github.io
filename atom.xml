@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2017-07-30T13:17:56-07:00</updated>
+  <updated>2017-08-07T21:00:21-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,54 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[How I Became a Red Hat Certified Architect in One Year]]></title>
+    <link href="http://alesnosek.com/blog/2017/08/01/how-i-became-a-red-hat-certified-architect-in-one-year/"/>
+    <updated>2017-08-01T22:47:14-07:00</updated>
+    <id>http://alesnosek.com/blog/2017/08/01/how-i-became-a-red-hat-certified-architect-in-one-year</id>
+    <content type="html"><![CDATA[<p>Roughly a year ago, my boss offered to me a Red Hat Learning Subscription. Because continuous education belongs to the habits of a good software practitioner, I appreciated this opportunity to deepen my knowledge of Red hat technologies. At that time I didn&rsquo;t have an idea about how much fun I was going to have on my journey to become a Red Hat Certified Architect. Read more, if you want to find out!</p>
+
+<!-- more -->
+
+
+<p>In Wikipedia, you can find a great <a href="https://en.wikipedia.org/wiki/Red_Hat_Certification_Program">overview</a> of the Red Hat certification program. To achieve the Red Hat Certified Architect level, you have to pass seven exams in total. The certification path starts with the RHCSA and RHCE exams. After becoming RHCE, you will have to pass five more exams based on your choice to obtain the RHCA certificate.</p>
+
+<h2>Starting off with RHCSA and RHCE</h2>
+
+<p><img class="right" src="http://alesnosek.com/images/posts/rhcsa_logo.png" width="130" height="130"></p>
+
+<p>The certification path begins with an entry-level certification Red Hat Certified System Administrator (<a href="https://www.redhat.com/en/services/certification/rhcsa">RHCSA</a>). In the exam, I had to demonstrate basic Linux administration skills like creating users and groups, managing file system permissions including POSIX access control lists (ACLs), creating cron jobs, basics of SELinux, managing software packages with yum, creating and mounting local file systems, working with LVM, network configuration, mounting NFS and SMB file systems and firewall configuration. I had plenty of time to complete all the exam tasks. Overall, RHCSA didn&rsquo;t occur too difficult to me.</p>
+
+<p><img class="right" src="http://alesnosek.com/images/posts/rhce_logo.png" width="80" height="80"></p>
+
+<p>The next exam that I took about two weeks after passing the RHCSA was the Red Hat Certified Engineer (<a href="https://www.redhat.com/en/services/certification/rhce">RHCE</a>) exam. The main focus of this exam was configuration of a caching DNS server (unbound), SMTP nullclient (Postfix), configuration of an iSCSI target and initiator, configuration of Apache web server including HTTPS, running MariaDB, configuration of NFS and SMB servers and basic shell scripting. Based on the experience from the RHCSA exam, I thought that I will have ton of time again to complete my tasks and perhaps make myself a coffee, too. How wrong I was! The RHCE exam is loaded with so many tasks that you will be very busy for the entire 3.5 hours. Due to my rather slow and relaxed approach at the beginning of the exam, I was not able to complete all the tasks in time. In the end, I was very happy that I still passed.</p>
+
+<p>You can find further details about my RHCSA/RHCE experience in <a href="http://alesnosek.com/blog/2016/11/07/rhcsa-slash-rhce-exam-experience/">this</a> blog post.</p>
+
+<h2>Climbing to the top</h2>
+
+<p><img class="right" src="http://alesnosek.com/images/posts/rhca_logo.png" width="150" height="150"></p>
+
+<p>After becoming a Red Hat Certified Engineer, I turned my attention to the Red Hat Certified Architect (<a href="https://www.redhat.com/en/services/certification/rhca">RHCA</a>) certification. To achieve this highest level of certification, I had to pass five additional exams based on my own selection. Red Hat provides about twenty exams to choose from, divided into concentrations like Datacenter, DevOps, Application platform or Cloud. The concentrations are only advisory. You can pick exams across concentrations which I also did.</p>
+
+<p>At the time I was choosing my next exam, I was already working with OpenShift for several months. In order to increase my knowledge of OpenShift, I decided to take the OpenShift certification exam next. You can find my experience from the Red Hat Certificate of Expertise in Platform-as-a-Service (<a href="https://www.redhat.com/en/services/training/ex280-red-hat-certificate-expertise-platform-service-exam">EX280</a>) exam in <a href="http://alesnosek.com/blog/2017/04/04/passed-the-openshift-ex280-certification/">this</a> blog post. I passed this exam with the lowest score ever but yeah, I did pass.</p>
+
+<p>During the preparation for the OpenShift exam, I had to work with Docker containers rather intensively. It would make sense to continue down the container route and take the container exams <a href="https://www.redhat.com/en/services/training/ex270-red-hat-certificate-expertise-atomic-host-container-administration">EX270</a> and <a href="https://www.redhat.com/en/services/training/ex276-red-hat-certificate-expertise-containerized-application-development">EX276</a> next. However, I realized that the OpenStack certification exams which I planned to take, too, were not available at my location. As I already had travel plans to Prague where the OpenStack exams were available, I decided to shift the gears and started preparing for the two OpenStack exams Red Hat Certified System Administrator in Red Hat OpenStack (<a href="https://www.redhat.com/en/services/training/ex210-red-hat-certified-system-administrator-red-hat-openstack-exam">EX210</a>) and Red Hat Certified Engineer in Red Hat OpenStack (<a href="https://www.redhat.com/en/services/training/ex310-red-hat-certified-engineer-red-hat-openstack-exam">EX310</a>). I was able to pass these two exams with the maximum score of 300 points as you can read in <a href="http://alesnosek.com/blog/2017/06/26/acing-the-red-hat-openstack-certification-exams/">this</a> article.</p>
+
+<p>The last two exams on my journey were the Red Hat Certificate of Expertise in Atomic Host Container Administration (<a href="https://www.redhat.com/en/services/training/ex270-red-hat-certificate-expertise-atomic-host-container-administration">EX270</a>) and the Red Hat Certificate of Expertise in Containerized Application Development (<a href="https://www.redhat.com/en/services/training/ex276-red-hat-certificate-expertise-containerized-application-development">EX276</a>). I wrote about my experiences from these two exams <a href="http://alesnosek.com/blog/2017/07/29/passed-red-hat-container-certifications-ex270-and-ex276/">here</a>. These two exams concluded my journey and I became a Red Hat Certified Architect.</p>
+
+<p>Red Hat maintains a web page showing a track record of each Red Hat Certified Professional. The list of my Red Hat certifications can be found on this <a href="https://www.redhat.com/rhtapps/certification/verify/?certId=160-216-727">Verify a Red Hat Certified Professional</a> page.</p>
+
+<h2>What&rsquo;s next?</h2>
+
+<p>The RHCA status doesn&rsquo;t last forever as I learned on the Red Hat web page describing how to <a href="http://servicesblog.redhat.com/2016/09/23/stay-current/">stay current</a>. In order for my RHCA to stay current, I must maintain five eligible credentials beyond the RHCE level. Certificates that I obtained beyond the RHCE are valid for three years. That means that I must take five exams every three years in order to maintain my RHCA status. Those five exams can be the same five exams I already passed before or I can pick any other exams from the selection of exams eligible for RHCA. Besides that, as a RHCA I&rsquo;m entitled to a 50 percent discount on the <a href="https://www.redhat.com/en/about/videos/red-hat-learning-subscription-standard">Red Hat Learning Subscription - Standard</a>. This subscription includes all the prep materials and five first exam attempts.</p>
+
+<p>It seems to me that the best way to maintain my RHCA status would be to buy the Learning Subscription every three years and use it to pass five exams. Currently, the Learning Subscription costs $7000 which would be $3500 after the 50 percent discount. In three years from now, I&rsquo;m looking forward to the respective conversation with my boss ;-)</p>
+
+<p>Are you a fellow RHCA? Would you like to share some details about your certification journey? And do you plan do maintain your RHCA? I would like to hear from you, feel free to leave your comments below.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[Passed Red Hat Container Certifications EX270 and EX276]]></title>
@@ -2670,80 +2718,6 @@
 </pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo mount -t nfs 10.13.243.173:/shares/share-b87367aa-3ef3-4282-a6b5-e45cab991b6c /mnt
 </span></code></pre></td></tr></table></div></figure>
 
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[TripleO Installer - the Good, the Bad and the Ugly]]></title>
-    <link href="http://alesnosek.com/blog/2016/03/27/tripleo-installer-the-good/"/>
-    <updated>2016-03-27T19:39:15-07:00</updated>
-    <id>http://alesnosek.com/blog/2016/03/27/tripleo-installer-the-good</id>
-    <content type="html"><![CDATA[<p><a href="https://wiki.openstack.org/wiki/TripleO">TripleO</a> is an OpenStack deployment and management tool I&rsquo;ve been using since the Kilo release of OpenStack. It does its job pretty well, however not everything is perfect. My experience presented in this article applies more or less to the Red Hat&rsquo;s OpenStack director too, as the Red Hat OpenStack director is a downstream version of TripleO.</p>
-
-<!-- more -->
-
-
-<h2>The good things about TripleO</h2>
-
-<h3>TripleO is a great idea</h3>
-
-<p>TripleO, aka OpenStack-on-OpenStack, installs OpenStack cluster using OpenStack. At first, a minimum one-node OpenStack installation is created which is in turn used to provision a much bigger workload OpenStack cluster. I find this TripleO idea amazing. If OpenStack is the best way to manage your infrastructure, then why use something else to install it? As an administrator I would prefer to provision my OpenStack nodes with Ironic before introducing yet another tool like <a href="http://cobbler.github.io/">Cobbler</a> to do the same job. Needless to say that as the Ironic and Heat components improve, so improves the OpenStack installation experience.</p>
-
-<p>One could argue that using the OpenStack to form an installer comes with a ton of complexity when installing the installer itself. In my experience, however, the installation of the undercloud OpenStack using the provided Puppet scripts doesn&rsquo;t impose any problem.</p>
-
-<h3>TripleO has a vibrant community</h3>
-
-<p>TripleO is used to continuously deploy and test the OpenStack cloud during its development. The RDO project adopted TripleO as their OpenStack installation tool. Red Hat derives their OpenStack director installer from the RDO project. A large community of TripleO users is a great plus.</p>
-
-<h2>The bad things about TripleO</h2>
-
-<h3>Configuration flexibility</h3>
-
-<p>TripleO installer consists of a bunch of Heat templates to orchestrate the overcloud image provisioning and a number of Puppet and shell scripts for the following configuration of the overcloud nodes. These templates and scripts are heavily developed from release to release as the new TripleO features come in. To avoid the upgrade headaches, you should not modify the TripleO templates and scripts directly. Instead, TripleO provides extension points (via extra config) where you can put your customizations. This didn&rsquo;t work for me. My goal was to deploy an Ironic service in the overcloud OpenStack. For that to work, I needed to provision an additional undercloud network including a VIP for the load balancer. This was not possible without patching the Heat templates and Puppet scripts. I dread the day when I&rsquo;ll have to port these patches to the next TripleO release.</p>
-
-<p>Furthermore, the current way to modify OpenStack configuration properties is less straight forward. To configure a property, I have to first grep through the Puppet scripts to find out whether the desired property is managed by Puppet or not. Afterwards, I grep through the TripleO Heat templates to find out whether TripleO provides a direct template parameter to set the Puppet variable or not. Afterwards, I can either pass the parameter to the TripleO template or I set the Puppet variable in the extra config section or I&rsquo;m on my own.</p>
-
-<blockquote><p>I&#8217;d like to be able to easily modify any property in any configuration file on any OpenStack node.</p></blockquote>
-
-
-<p>OpenStack comes with tons of configuration properties and I think it would be great to have a more straight forward way to configure them.</p>
-
-<h3>Deployment control</h3>
-
-<p>TripleO uses Heat to deploy and configure the overcloud OpenStack. Heat orchestrates the infrastracture based on the description provided by the user in the Heat templates. In the Heat templates, we tell Heat what our deployment should look like, but we have no control over the steps Heat will take to get to the desired state. I find this lack of control rather problematic.</p>
-
-<blockquote><p>A fine-grained deployment control would be desirable.</p></blockquote>
-
-
-<p>Let&rsquo;s say I have an overcloud consisting of 100 nodes. After changing the configuration in my Heat templates, I can only re-run the entire Heat configuration process and hope that I won&rsquo;t end up with a broken cloud. Instead, I&rsquo;d like to apply the configuration changes to a couple of nodes to make sure that everything works before I continue with the rest of the cloud. The ability to apply only part of the configuration would be useful as well.</p>
-
-<h2>The ugly experience with TripleO</h2>
-
-<p>I&rsquo;d like to share one scary experience I had with the TripleO installer. While using TripleO for a couple of months, I have to say that this was the only serious problem I&rsquo;ve encountered.</p>
-
-<p>One day I uploaded an updated node image into the undercloud OpenStack. I was about to create new nodes in the overcloud cluster and wanted to have them provisioned with this new image. After starting the Heat stack update, it occurred to me that the processing took longer than usual. Well, after I SSHed into the overcloud nodes I realized why. Heat simply wiped out the entire disk content of the existing nodes and replaced it with the fresh disk image. Wow, my entire workload cloud was gone!</p>
-
-<p>I learned that when you update the disk image in the undercloud, Heat will find out what nodes have to be updated and will simply replace their disk content with the new image. If you are orchestrating cloud deployments where your machines are cattle, this is what you want, however:</p>
-
-<blockquote><p>The overcloud baremetal nodes are pets and should not be handled as cattle.</p></blockquote>
-
-
-<p>To protect the overcloud nodes from deletion, I run the following command for each node against the undercloud Nova database:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">UPDATE</span> <span class="n">instances</span> <span class="k">SET</span> <span class="n">disable_terminate</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">WHERE</span> <span class="n">uuid</span> <span class="o">=</span> <span class="s1">&#39;&lt;uuid of the overcloud instance&gt;&#39;</span><span class="p">;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>So far, I haven&rsquo;t found a better way how to do it. This effectively prevents deleting the node whether by issuing a <code>nova delete</code> command or by Heat when updating the stack.</p>
-
-<h2>Conclusion and suggestions</h2>
-
-<p>TripleO installer is a great tool to deploy an OpenStack cloud. It&rsquo;s backed by a large user community and doesn&rsquo;t invent any new tools to install OpenStack.</p>
-
-<p>On the other hand, I&rsquo;m somewhat sceptical about Heat being the right tool to do software configuration. Funneling the configuration options through the Heat templates down to the Puppet scripts seems cumbersome to me.</p>
-
-<p>I&rsquo;d like to suggest the following approach: let Heat do the node provisioning, network configuration and perhaps a minimum node setup using cloud-init. At the end of the deployment, Heat would provide the information about the deployment in the format understandable to the configuration management tools like Puppet, Chef or Ansible. The configuration management tool then merges the facts provided by Heat with the tons of OpenStack configuration settings provided by the user. The following OpenStack installation, configuration, and later orchestration would solely be done by the configuration management tool more suitable for this job. Heat would not be involved at all in this stage.</p>
 ]]></content>
   </entry>
 

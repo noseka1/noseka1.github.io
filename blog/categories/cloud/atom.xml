@@ -4,7 +4,7 @@
   <title><![CDATA[Category: cloud | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/cloud/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2017-07-30T13:17:56-07:00</updated>
+  <updated>2017-08-07T21:00:21-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,54 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[How I Became a Red Hat Certified Architect in One Year]]></title>
+    <link href="http://alesnosek.com/blog/2017/08/01/how-i-became-a-red-hat-certified-architect-in-one-year/"/>
+    <updated>2017-08-01T22:47:14-07:00</updated>
+    <id>http://alesnosek.com/blog/2017/08/01/how-i-became-a-red-hat-certified-architect-in-one-year</id>
+    <content type="html"><![CDATA[<p>Roughly a year ago, my boss offered to me a Red Hat Learning Subscription. Because continuous education belongs to the habits of a good software practitioner, I appreciated this opportunity to deepen my knowledge of Red hat technologies. At that time I didn&rsquo;t have an idea about how much fun I was going to have on my journey to become a Red Hat Certified Architect. Read more, if you want to find out!</p>
+
+<!-- more -->
+
+
+<p>In Wikipedia, you can find a great <a href="https://en.wikipedia.org/wiki/Red_Hat_Certification_Program">overview</a> of the Red Hat certification program. To achieve the Red Hat Certified Architect level, you have to pass seven exams in total. The certification path starts with the RHCSA and RHCE exams. After becoming RHCE, you will have to pass five more exams based on your choice to obtain the RHCA certificate.</p>
+
+<h2>Starting off with RHCSA and RHCE</h2>
+
+<p><img class="right" src="/images/posts/rhcsa_logo.png" width="130" height="130"></p>
+
+<p>The certification path begins with an entry-level certification Red Hat Certified System Administrator (<a href="https://www.redhat.com/en/services/certification/rhcsa">RHCSA</a>). In the exam, I had to demonstrate basic Linux administration skills like creating users and groups, managing file system permissions including POSIX access control lists (ACLs), creating cron jobs, basics of SELinux, managing software packages with yum, creating and mounting local file systems, working with LVM, network configuration, mounting NFS and SMB file systems and firewall configuration. I had plenty of time to complete all the exam tasks. Overall, RHCSA didn&rsquo;t occur too difficult to me.</p>
+
+<p><img class="right" src="/images/posts/rhce_logo.png" width="80" height="80"></p>
+
+<p>The next exam that I took about two weeks after passing the RHCSA was the Red Hat Certified Engineer (<a href="https://www.redhat.com/en/services/certification/rhce">RHCE</a>) exam. The main focus of this exam was configuration of a caching DNS server (unbound), SMTP nullclient (Postfix), configuration of an iSCSI target and initiator, configuration of Apache web server including HTTPS, running MariaDB, configuration of NFS and SMB servers and basic shell scripting. Based on the experience from the RHCSA exam, I thought that I will have ton of time again to complete my tasks and perhaps make myself a coffee, too. How wrong I was! The RHCE exam is loaded with so many tasks that you will be very busy for the entire 3.5 hours. Due to my rather slow and relaxed approach at the beginning of the exam, I was not able to complete all the tasks in time. In the end, I was very happy that I still passed.</p>
+
+<p>You can find further details about my RHCSA/RHCE experience in <a href="/blog/2016/11/07/rhcsa-slash-rhce-exam-experience/">this</a> blog post.</p>
+
+<h2>Climbing to the top</h2>
+
+<p><img class="right" src="/images/posts/rhca_logo.png" width="150" height="150"></p>
+
+<p>After becoming a Red Hat Certified Engineer, I turned my attention to the Red Hat Certified Architect (<a href="https://www.redhat.com/en/services/certification/rhca">RHCA</a>) certification. To achieve this highest level of certification, I had to pass five additional exams based on my own selection. Red Hat provides about twenty exams to choose from, divided into concentrations like Datacenter, DevOps, Application platform or Cloud. The concentrations are only advisory. You can pick exams across concentrations which I also did.</p>
+
+<p>At the time I was choosing my next exam, I was already working with OpenShift for several months. In order to increase my knowledge of OpenShift, I decided to take the OpenShift certification exam next. You can find my experience from the Red Hat Certificate of Expertise in Platform-as-a-Service (<a href="https://www.redhat.com/en/services/training/ex280-red-hat-certificate-expertise-platform-service-exam">EX280</a>) exam in <a href="/blog/2017/04/04/passed-the-openshift-ex280-certification/">this</a> blog post. I passed this exam with the lowest score ever but yeah, I did pass.</p>
+
+<p>During the preparation for the OpenShift exam, I had to work with Docker containers rather intensively. It would make sense to continue down the container route and take the container exams <a href="https://www.redhat.com/en/services/training/ex270-red-hat-certificate-expertise-atomic-host-container-administration">EX270</a> and <a href="https://www.redhat.com/en/services/training/ex276-red-hat-certificate-expertise-containerized-application-development">EX276</a> next. However, I realized that the OpenStack certification exams which I planned to take, too, were not available at my location. As I already had travel plans to Prague where the OpenStack exams were available, I decided to shift the gears and started preparing for the two OpenStack exams Red Hat Certified System Administrator in Red Hat OpenStack (<a href="https://www.redhat.com/en/services/training/ex210-red-hat-certified-system-administrator-red-hat-openstack-exam">EX210</a>) and Red Hat Certified Engineer in Red Hat OpenStack (<a href="https://www.redhat.com/en/services/training/ex310-red-hat-certified-engineer-red-hat-openstack-exam">EX310</a>). I was able to pass these two exams with the maximum score of 300 points as you can read in <a href="/blog/2017/06/26/acing-the-red-hat-openstack-certification-exams/">this</a> article.</p>
+
+<p>The last two exams on my journey were the Red Hat Certificate of Expertise in Atomic Host Container Administration (<a href="https://www.redhat.com/en/services/training/ex270-red-hat-certificate-expertise-atomic-host-container-administration">EX270</a>) and the Red Hat Certificate of Expertise in Containerized Application Development (<a href="https://www.redhat.com/en/services/training/ex276-red-hat-certificate-expertise-containerized-application-development">EX276</a>). I wrote about my experiences from these two exams <a href="/blog/2017/07/29/passed-red-hat-container-certifications-ex270-and-ex276/">here</a>. These two exams concluded my journey and I became a Red Hat Certified Architect.</p>
+
+<p>Red Hat maintains a web page showing a track record of each Red Hat Certified Professional. The list of my Red Hat certifications can be found on this <a href="https://www.redhat.com/rhtapps/certification/verify/?certId=160-216-727">Verify a Red Hat Certified Professional</a> page.</p>
+
+<h2>What&rsquo;s next?</h2>
+
+<p>The RHCA status doesn&rsquo;t last forever as I learned on the Red Hat web page describing how to <a href="http://servicesblog.redhat.com/2016/09/23/stay-current/">stay current</a>. In order for my RHCA to stay current, I must maintain five eligible credentials beyond the RHCE level. Certificates that I obtained beyond the RHCE are valid for three years. That means that I must take five exams every three years in order to maintain my RHCA status. Those five exams can be the same five exams I already passed before or I can pick any other exams from the selection of exams eligible for RHCA. Besides that, as a RHCA I&rsquo;m entitled to a 50 percent discount on the <a href="https://www.redhat.com/en/about/videos/red-hat-learning-subscription-standard">Red Hat Learning Subscription - Standard</a>. This subscription includes all the prep materials and five first exam attempts.</p>
+
+<p>It seems to me that the best way to maintain my RHCA status would be to buy the Learning Subscription every three years and use it to pass five exams. Currently, the Learning Subscription costs $7000 which would be $3500 after the 50 percent discount. In three years from now, I&rsquo;m looking forward to the respective conversation with my boss ;-)</p>
+
+<p>Are you a fellow RHCA? Would you like to share some details about your certification journey? And do you plan do maintain your RHCA? I would like to hear from you, feel free to leave your comments below.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[Check-and-Set Operation and Transactions in Consul]]></title>
@@ -750,60 +798,6 @@
 <p>The exam took three hours and I have to say that I was very busy typing the whole time. Despite of my best effort I ran out of time with three tasks left untouched. How happy I was when I received my exam results. Passing score for the exam was 210 points. I made it through with 225 points.</p>
 
 <p>I truly enjoy the Red Hat certification program and want to keep growing my collection of certificates. The list of my current certifications can be found on the <a href="https://www.redhat.com/rhtapps/certification/verify/?certId=160-216-727">Verify a Red Hat Certified Professional</a> website.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[An Introduction to Building on OpenShift]]></title>
-    <link href="http://alesnosek.com/blog/2017/03/19/an-introduction-to-building-on-openshift/"/>
-    <updated>2017-03-19T10:48:32-07:00</updated>
-    <id>http://alesnosek.com/blog/2017/03/19/an-introduction-to-building-on-openshift</id>
-    <content type="html"><![CDATA[<p>For years a Jenkins server has been driving the software builds in our company. Some time ago, we deployed an OpenShift cluster. The primary purpose of our OpenShift cluster was to support the efforts of dockerizing our software products. However, as OpeShift is a complete PaaS solution we started thinking about leveraging OpenShift for software builds, too. In this blog post I&rsquo;d like to share what we learned about building on OpenShift so far.</p>
-
-<!-- more -->
-
-
-<p>Before we begin talking about OpenShift, let&rsquo;s briefly discuss our current build environment. In the center of our build environment there is a Jenkins server. In Jenkins, we maintain numerous jobs to build our software, run automated tests, drive various devops tasks and much more. Jenkins is our central place from where the automated processes are started and monitored. As Jenkins is greatly extensible via plugins, we were able to easily integrate Jenkins with other tools, too.</p>
-
-<h2>Building the OpenShift way</h2>
-
-<p><img class="right" src="/images/posts/openshift_logo.gif" width="200" height="200"></p>
-
-<p>In OpenShift, one has to create a <em>BuildConfig</em> resource to describe the <a href="https://docs.openshift.org/latest/dev_guide/builds/index.html">build process</a>. The BuildConfig resource in OpenShift is roughly equivalent to a job definition in Jenkins. When creating a BuildConfig resource, a build strategy has to be chosen. The build strategy resembles a job type in Jenkins. Currently, there are four build strategies available in OpenShift:</p>
-
-<p><strong>Source-to-Image strategy</strong>. Allows you to create a container image starting from the application source code. During the build process, the source code is downloaded into a container and compiled there. The finished binary artifacts are installed into the container. The complete container image is then pushed into the Docker registry from where it can be deployed as an application on OpenShift.</p>
-
-<p><strong>Docker strategy</strong>. The input of the build process is a Dockerfile. OpenShift will execute a Docker build using the provided Dockerfile and upload the resulting image into the Docker registry from where it can be deployed.</p>
-
-<p><strong>Custom strategy</strong>. Custom strategy could be compared to a free style job in Jenkins. The outcome of the build doesn&rsquo;t have to be a Docker image. Instead, the custom strategy allows you to create JARs, tarballs, RPMs or other artifacts which you have to upload to the repository of your choice by the end of the build.</p>
-
-<p><strong>Pipeline strategy</strong>. In OpenShift 3.3, a new build strategy was introduced called <em>Pipeline</em>. This strategy doesn&rsquo;t really build anything but enables you to implement workflows on OpenShift. The great article <a href="https://blog.openshift.com/openshift-3-3-pipelines-deep-dive/">OpenShift 3.3 Pipelines - Deep Dive</a> describes how the Pipeline strategy works. In summary, you can create a BuildConfig in OpenShift that contains a definition of a Jenkins pipeline (using the Groovy DSL language). Based on this definition, OpenShift will create a pipeline job in Jenkins and execute it. Among other things, the Jenkins job can trigger a build on OpenShift, verify that the build succeeded and trigger a deployment. This approach allows OpenShift to leverage Jenkins pipelines to orchestrate a more involved CI/CD workflow possibly encompassing a conditional execution of multiple OpenShift builds and deployments.</p>
-
-<p>An alternative to using the Pipeline strategy in OpenShift would be defining the pipeline job directly in Jenkins. With the <a href="https://plugins.jenkins.io/openshift-pipeline">OpenShift pipeline plugin</a> installed, one can trigger OpenShift operations from within the pipeline job.</p>
-
-<p>As I didn&rsquo;t really work with the OpenShift strategies much I&rsquo;m not going to elaborate any further. Instead, in the next section, I&rsquo;m going to mention two Jenkins plugins that we are successfully using to run builds on OpenShift.</p>
-
-<h2>Builds on Openshift driven by Jenkins</h2>
-
-<p><img class="right" src="/images/posts/jenkins_logo.png" width="200" height="200"></p>
-
-<p>There are two Jenkins plugins that can leverage OpenShift containers as build slaves:</p>
-
-<p><strong><a href="https://wiki.jenkins-ci.org/display/JENKINS/Swarm+Plugin">Swarm plugin</a></strong>. The Swarm plugin consists of two parts: a Jenkins plugin and a CLI client. Jenkins plugin exposes an endpoint where the CLI clients can register themselves. A CLI client acts as a Jenkins slave. It runs indefinitely within a Docker container and provides Jenkins with a configurable number of build executors. While the plugin is called a Swarm plugin it doesn&rsquo;t really need any Swarm orchestration. It can happily run in a Docker container on OpenShift.</p>
-
-<p><strong><a href="https://wiki.jenkins-ci.org/display/JENKINS/Kubernetes+Plugin">Kubernetes plugin</a></strong>. Works perfectly with OpenShift. In contrast to the Swarm plugin, Kubernetes plugin spins up a new Docker slave for each job on the fly and destroys it as soon as the job has finished running.</p>
-
-<p>Because the Jenkins workspace is created inside of the container, it will be deleted as soon as the Docker container is terminated. If you&rsquo;d like to reuse the same workspace for subsequent builds, I&rsquo;d like to offer you two options how to create persistent workspaces:</p>
-
-<ol>
-<li><p>You can attach a volume of type <em>hostPath</em> to your slave pods and place your workspace on that volume. At the same time you have to speficy a <em>nodeSelector</em> on your slave pods that would instruct OpenShift to schedule all your slave pods onto the same OpenShift node. With this approach the Jenkins slave can access its workspace on the local storage. Unfortunately, all the slaves that need to share a workspace have to run on the same OpenShift node which can get overloaded.</p></li>
-<li><p>You can attach a volume with the <em>ReadWriteMany</em> capability to your slave pods and place your workspace on this volume. Eligible volume types are NFS, GlusterFS or CephFS. Using this method a Jenkins slave running on any node in the cluster can access the shared workspace. The downside is that the access is over the network and hence slower than an access to the local storage.</p></li>
-</ol>
-
-
-<h2>Conclusion</h2>
-
-<p>In the this blog post we reviewed different approaches how to leverage an OpenShift cluster for software builds. On one hand, builds can be defined within OpenShift by creating the BuildConfig resources. This approach might be less flexible than using a full-fledged build server like Jenkins, however, one can be sure that the builds will work on any OpenShift cluster including the public cloud. On the other hand, we have seen that in an environment where Jenkins is already the king, we can leverage the Swarm or Kubernetes plugin to allow Jenkins to schedule build jobs on OpenShift.</p>
 ]]></content>
   </entry>
 
