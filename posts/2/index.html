@@ -9,7 +9,7 @@
   <meta name="author" content="Ales Nosek">
 
 
-  <meta name="description" content="TripleO is an OpenStack deployment and management tool we&rsquo;ve been using on the production systems for a while now. As TripleO is an upstream &hellip;">
+  <meta name="description" content="There are several ways how to expose your application running on the Kubernetes cluster to the outside world. When reading the Kubernetes &hellip;">
 
 
   <!-- http://t.co/dKP3o1e -->
@@ -78,6 +78,40 @@
     <div id="content">
       <div class="blog-index">
 
+
+
+    <article>
+
+  <header>
+
+      <h1 class="entry-title"><a href="/blog/2017/02/14/accessing-kubernetes-pods-from-outside-of-the-cluster/">Accessing Kubernetes Pods from Outside of the Cluster</a></h1>
+
+
+      <p class="meta">
+
+
+
+
+
+<time class='entry-date' datetime='2017-02-14T23:36:37-08:00'><span class='date'><span class='date-month'>Feb</span> <span class='date-day'>14</span><span class='date-suffix'>th</span>, <span class='date-year'>2017</span></span> <span class='time'>11:36 pm</span></time>
+
+      </p>
+
+  </header>
+
+
+  <div class="entry-content"><p>There are several ways how to expose your application running on the Kubernetes cluster to the outside world. When reading the <a href="https://kubernetes.io/docs/">Kubernetes documentation</a> I had a hard time ordering the different approaches in my head. I created this blog post for my future reference but will be happy if it can be of any use to you. Without further ado let&rsquo;s discuss the <em>hostNetwork</em>, <em>hostPort</em>, <em>NodePort</em>, <em>LoadBalancer</em> and <em>Ingress</em> features of Kubernetes.</p>
+
+</div>
+
+
+    <footer>
+      <a rel="full-article" href="/blog/2017/02/14/accessing-kubernetes-pods-from-outside-of-the-cluster/">Read on &rarr;</a>
+    </footer>
+
+
+
+    </article>
 
 
     <article>
@@ -385,40 +419,6 @@
 
     </article>
 
-
-    <article>
-
-  <header>
-
-      <h1 class="entry-title"><a href="/blog/2016/05/22/test-driving-openstack-manila/">Test-Driving OpenStack Manila</a></h1>
-
-
-      <p class="meta">
-
-
-
-
-
-<time class='entry-date' datetime='2016-05-22T16:59:30-07:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>22</span><span class='date-suffix'>nd</span>, <span class='date-year'>2016</span></span> <span class='time'>4:59 pm</span></time>
-
-      </p>
-
-  </header>
-
-
-  <div class="entry-content"><p>Do you need to provision an NFS share for your Hadoop cluster? And what about creating a CIFS share to make your files accesible to the Windows clients? Manila is a provisioning and management service for shared file systems within OpenStack. Let&rsquo;s test-drive it in this blogpost.</p>
-
-</div>
-
-
-    <footer>
-      <a rel="full-article" href="/blog/2016/05/22/test-driving-openstack-manila/">Read on &rarr;</a>
-    </footer>
-
-
-
-    </article>
-
   <div class="pagination">
 
       <a class="prev" href="/posts/3">&larr; Older</a>
@@ -436,6 +436,10 @@
   <ul id="recent_posts">
 
       <li class="post">
+        <a href="/blog/2017/08/20/centralized-configuration-management/">Centralized Configuration Management, Our Approach</a>
+      </li>
+
+      <li class="post">
         <a href="/blog/2017/08/01/how-i-became-a-red-hat-certified-architect-in-one-year/">How I Became a Red Hat Certified Architect in One Year</a>
       </li>
 
@@ -449,10 +453,6 @@
 
       <li class="post">
         <a href="/blog/2017/07/15/first-look-at-the-key-value-store-in-consul/">First Look at the Key-Value Store in Consul</a>
-      </li>
-
-      <li class="post">
-        <a href="/blog/2017/06/26/acing-the-red-hat-openstack-certification-exams/">Acing the Red Hat OpenStack Certification Exams</a>
       </li>
 
   </ul>

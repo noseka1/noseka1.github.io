@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2017-08-07T22:19:33-07:00</updated>
+  <updated>2017-08-21T23:10:08-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,59 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[Centralized Configuration Management, Our Approach]]></title>
+    <link href="http://alesnosek.com/blog/2017/08/20/centralized-configuration-management/"/>
+    <updated>2017-08-20T13:09:28-07:00</updated>
+    <id>http://alesnosek.com/blog/2017/08/20/centralized-configuration-management</id>
+    <content type="html"><![CDATA[<p>Are you migrating your existing application to the cloud? Are you missing a solution for the centralized configuration management? Read on to learn, how we implemented the centralized configuration management on top of our existing application and got it ready for the cloud.</p>
+
+<!-- more -->
+
+
+<p>Our existing application is a <a href="https://en.wikipedia.org/wiki/Service-oriented_architecture">SOA-based</a> application, i.e an application consisting of multiple services that communicate with each other and that are deployed across multiple nodes. Services are configured using configuration files located on the local filesystem. Currently, the operator has to edit multiple configuration files across multiple nodes by hand. Besides that, for the sake of performance and redundancy, there are multiple instances of a each service deployed behind a load balancer. This increases the configuration burden even further as the operator has to keep the configuration files consistent across several instances of the same service.</p>
+
+<p>With the growing number of services and the need to deploy our application into the dynamic cloud environments, a centralized configuration management became a necessity.</p>
+
+<h2>Looking for a solution</h2>
+
+<p>It would be possible to leverage the standard DevOps tools like Puppet, Chef or Ansible to manage the configuration files on each of the deployed nodes. For bare metal deployments or when deploying on virtual machines in the cloud, these tools could do a decent job. However, on our way to the cloud, we’re looking at containerizing all of our services. Furthermore, down the route we would like to leverage the serverless architecture, too. For updating a handful of configuration files inside of a Docker container, Puppet, Chef or Ansible just seem too heavy. Needless to say that these tools would not be usable when considering the serverless architecture.</p>
+
+<p>When searching for a solution, we came across the <a href="https://github.com/kelseyhightower/confd">confd</a> and <a href="https://github.com/hashicorp/consul-template">consul-template</a> projects. Both tools are based on the same principle. First, the values of the configuration options are persisted in a backend store. While consul-template can store values in Consul only, confd supports a host of different backends like Consul, etcd, Redis or DynamoDB. Second, a set of templates on the filesystem is populated with the values from the backend store and hence forming valid configuration files. These configuration files are then consumed by the application. We drew a great deal of inspiration from this approach.</p>
+
+<h2>Our approach</h2>
+
+<p>Our centralized configuration management consists of two components: <em>CCS</em> (Centralized Configuration Store) which is a Consul cluster holding the configuration data, and <em>CCT</em> (Centralized Configuration Tool) which is a command-line client. CCT implements two functions. First, it allows the operator to query and modify the configuration values persisted in CCS. Second, it syncs up the configuration files on the local filesystem with their state in CCS. The following diagram depicts the components involved in the centralized configuration management:</p>
+
+<p><img class="left" src="http://alesnosek.com/images/posts/centralized_configuration_management.png"></p>
+
+<p>Besides the configuration values, the CCS component also stores all the additional data that is needed to completely recreate a given configuration file on the local filesystem. For instance, in the case of an ini file, CCS stores the absolute file path, file owner, file group, file mode, sections of the ini file, ini options with their values and all comment lines. Each ini option is also assigned a type or a set of allowed values and any configuration changes made by the operator are checked against the type information before they are accepted.</p>
+
+<p>Apart from the ini file format, Java properties and XML files are also supported. The configuration management verifies that the XML file either conforms to a specific XML schema or is well-formed, before it is accepted. Lastly, all other configuration files that are not parsed by the configuration management are marked as &ldquo;unmanaged&rdquo; and the entire content of such a file is stored under a single key in the key-value store in Consul.</p>
+
+<p>Next, let&rsquo;s review an example scenario where an operator wants to modify a configuration of a specific service. The individual steps are depicted in the diagram above:</p>
+
+<ol>
+<li><p>Using the CCT command-line client, the operator obtains a list of configuration files for a specific service managed by CCS. The operator uses CCT to edit the selected configuration file. CCT fetches all the data from CCS that are required to recreate the configuration file and present it to the operator for editing (for example by opening the file in the operator&rsquo;s favorite editor).</p></li>
+<li><p>After the operator made changes to the configuration file, the CCT parses the file to find out which values have been modified. The modified values are checked for corectness by CCT before they are saved in CCS.</p></li>
+<li><p>Upon request, CCT fetches the configuration data from CCS in order to use it in the next step.</p></li>
+<li><p>CCT syncs up the configuration files on the local filesystem with the data fetched from CCS.</p></li>
+<li><p>The new configuration takes effect after the respective service has been restarted by the operator.</p></li>
+</ol>
+
+
+<p>Overall, CCS is a single source of truth for the application configuration. This is in contrast with the confd or consul-template approach where the configuration values are stored in the backend while the templates are stored on the filesystem. When a new release of the application is deployed, having all configuration data in one place makes the upgrade of the configuration data easier.</p>
+
+<h2>Future directions</h2>
+
+<p>It was important to us to introduce the centralized configuration management into our existing application without breaking the existing operational workflows. For example, operators should be able to edit the configuration files as they did in the previous versions of our application. Also, as the configuration files are written to the filesystem, the existing services continue to work without any modification from the previous versions. Hence the centralized configuration management can be deployed as a truly optional component on top of the existing application.</p>
+
+<p>In the future, when some of our services will be deployed as (Lambda) functions in the serverless environment, those services will need to fetch their configuration by directly contacting CCS. However, nothing will change from the operator&rsquo;s standpoint. The operator will continue editing configuration files even when those won&rsquo;t exist on any filesystem anymore.</p>
+
+<p>Do you use confd or consul-template to configure your application? Or did you build your own centralized configuration management? I would like to hear your comments. Feel free to use the comment section below.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[How I Became a Red Hat Certified Architect in One Year]]></title>
@@ -2597,127 +2650,6 @@
 
 
 <p>Note that you want to replace the <code>kubernetes.installer.com</code> with the name of your Kubernetes installer machine. When accessing the Kubernetes installer machine on port 8080, the request will be forwarded to your Kubernetes master node.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[Test-Driving OpenStack Manila]]></title>
-    <link href="http://alesnosek.com/blog/2016/05/22/test-driving-openstack-manila/"/>
-    <updated>2016-05-22T16:59:30-07:00</updated>
-    <id>http://alesnosek.com/blog/2016/05/22/test-driving-openstack-manila</id>
-    <content type="html"><![CDATA[<p>Do you need to provision an NFS share for your Hadoop cluster? And what about creating a CIFS share to make your files accesible to the Windows clients? Manila is a provisioning and management service for shared file systems within OpenStack. Let&rsquo;s test-drive it in this blogpost.</p>
-
-<!-- more -->
-
-
-<p>In this introductory article, we&rsquo;re going to allocate a volume in Cinder and provide that volume as an NFS share to our Nova instances. For this, I&rsquo;m using the OpenStack Mitaka installed via TripleO on RHEL7. The Manila version included in the Mitaka release is version 2.0.</p>
-
-<p>After installing Manila, the following Manila services are running on the controller nodes:</p>
-
-<ul>
-<li><em>openstack-manila-api</em> exposes REST APIs that the Manila client talks to.</li>
-<li><em>openstack-manila-scheduler</em> makes provisioning decisions when creating a new share.</li>
-<li><em>openstack-manila-share</em> comes with a host of drivers to talk to the storage systems.</li>
-</ul>
-
-
-<h2>Configuring the generic share driver</h2>
-
-<p>In order for Manila to allocate shares on Cinder volumes, we&rsquo;ll have to configure Manila to use the <em>generic</em> share driver. For that we&rsquo;ll add a new Manila backend <code>generic_backend</code> into <code>/etc/manila/manila.conf</code>:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-</pre></td><td class='code'><pre><code class='ini'><span class='line'><span class="k">[DEFAULT]</span>
-</span><span class='line'><span class="na">enabled_share_backends</span> <span class="o">=</span> <span class="s">generic_backend</span>
-</span><span class='line'><span class="na">default_share_type</span> <span class="o">=</span> <span class="s">generic</span>
-</span><span class='line'><span class="k">[generic_backend]</span>
-</span><span class='line'><span class="na">share_driver</span> <span class="o">=</span> <span class="s">manila.share.drivers.generic.GenericShareDriver</span>
-</span><span class='line'><span class="na">share_backend_name</span> <span class="o">=</span> <span class="s">generic_backend</span>
-</span><span class='line'><span class="na">service_instance_name_template</span> <span class="o">=</span> <span class="s">manila_service_instance_%s</span>
-</span><span class='line'><span class="na">service_image_name</span> <span class="o">=</span> <span class="s">manila-service-image-master</span>
-</span><span class='line'><span class="na">driver_handles_share_servers</span> <span class="o">=</span> <span class="s">True</span>
-</span><span class='line'><span class="na">service_instance_flavor_id</span> <span class="o">=</span> <span class="s">103</span>
-</span><span class='line'><span class="na">connect_share_server_to_tenant_network</span> <span class="o">=</span> <span class="s">True</span>
-</span><span class='line'><span class="na">service_instance_user</span> <span class="o">=</span> <span class="s">manila</span>
-</span><span class='line'><span class="na">path_to_public_key</span> <span class="o">=</span> <span class="s">/etc/manila/id_rsa.pub</span>
-</span><span class='line'><span class="na">path_to_private_key</span> <span class="o">=</span> <span class="s">/etc/manila/id_rsa</span>
-</span><span class='line'><span class="na">manila_service_keypair_name</span> <span class="o">=</span> <span class="s">manila-service</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Before explaining the configuration settings, I&rsquo;ll briefly describe how the <em>generic</em> driver actually works. Behind the scenes, the generic driver creates a so called <em>service instance</em>. The service instance is a Nova instance owned by the Manila service. It&rsquo;s not even visible to the tenant users. Manila allocates a Cinder volume and asks Nova to attach that volume to the service instance. Afterwards, Manila connects to the service instance using SSH in order to create the filesytem on the attached Cinder volume and mount it and export that as a NFS/CIFS share to the tenant instances.</p>
-
-<p>The service instance can be created by the OpenStack administrator or we can configure Manila to create the service instance by itself (option <code>driver_handles_share_servers = True</code>).</p>
-
-<p>The service instance will be created from the image that we have to upload into Glance beforehand. I downloaded an existing Manila service image from <a href="http://tarballs.openstack.org/manila-image-elements/images/manila-service-image-master.qcow2">here</a>. This image is based on Ubuntu 14.04.4 LTS and includes the <code>manila</code> user account and the NFS and Samba server software packages. I uploaded this image into Glance under the name <code>manila-service-image-master</code>.</p>
-
-<p>Next I&rsquo;ve chosen the size of the machine used for the service instance with <code>service_instance_flavor_id = 103</code>.</p>
-
-<p>The service instance is connected to two networks. The first network is called a <em>service network</em> and is created by Manila before booting up the service instance. Manila uses this network for the SSH access to the service instance. The second network is a <em>share network</em>. The NFS server managed by Manila is accessible on this network. In our case, because we have configured <code>connect_share_server_to_tenant_network = True</code>, the share network will directly map to one of our tenant networks.</p>
-
-<p>Finally, we have to generate a public/private key pair and tell Manila about it using the options <code>path_to_public_key</code> and <code>path_to_private_key</code>. Manila will upload this keypair into Nova under the name <code>manila-service</code>. When creating the service instance, Nova injects the public key into the instance and so allows Manila the SSH access.</p>
-
-<p>In order to make our generic backend available to the Manila users, we&rsquo;re going to define a <code>generic</code> share type next.</p>
-
-<h2>Defining a share type</h2>
-
-<p>The <em>share type</em> has a similar purpose as the <em>volume type</em> in Cinder. It defines the backend used for the share creation. If there are multiple share backends available, an OpenStack administrator can define a separate share type for each of them. When creating a new share, the user can choose which share type to allocate the storage from.</p>
-
-<p>To create a <code>generic</code> share type that maps to our <code>generic</code> backend you can run the following commands as an OpenStack administrator:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>manila <span class="nb">type</span>-create generic True
-</span><span class='line'>manila <span class="nb">type</span>-key generic <span class="nb">set </span><span class="nv">share_backend_name</span><span class="o">=</span>generic_backend
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Creating a share and mounting it</h2>
-
-<p>Finally, we&rsquo;re done with all the configuration and can start enjoying our share service. All the following commands are run as an ordinary tenant user.</p>
-
-<p>At first, we&rsquo;d like to create a share network and map it to one of our tenant networks:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>manila share-network-create --neutron-net-id 4f179a8c-7068-4f0b-9be4-9cb11451b401 --neutron-subnet-id c7d753b0-039b-4f8c-9e0f-012651ff4ada --name management
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Now we can create our first NFS share called <code>myshare</code> with the size 1 GB:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>manila create --name myshare --share-network management NFS 1
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Creating the first share on a given tenant network takes longer as Manila has to spin up a new service instance in the background.</p>
-
-<p>Eventually, the status of the share turns into <code>available</code> which means that the share is ready. The <code>manila show myshare</code> command will display the location from where we can mount the share. In our case, it is <code>10.13.243.173:/shares/share-b87367aa-3ef3-4282-a6b5-e45cab991b6c</code>. Before we can mount the share we have to allow access to it by modifying the access list:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>manila access-allow --access_level rw myshare ip 10.13.244.12
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>The above command provides an instance having the IP address 10.13.244.12 with a read-write access to the share. Note that the IP addresses 10.13.243.173 and 10.13.244.12 belong to the same network. Finally, we can SSH into the instance and mount the share with:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sudo mount -t nfs 10.13.243.173:/shares/share-b87367aa-3ef3-4282-a6b5-e45cab991b6c /mnt
-</span></code></pre></td></tr></table></div></figure>
-
 ]]></content>
   </entry>
 
