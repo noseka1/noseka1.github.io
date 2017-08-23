@@ -9,7 +9,7 @@
   <meta name="author" content="Ales Nosek">
 
 
-  <meta name="description" content="Are you migrating your existing application to the cloud? Are you missing a solution for the centralized configuration management? Read on to learn, &hellip;">
+  <meta name="description" content="Are you migrating your existing application to the cloud? Are you missing a solution for centralized configuration management? Read on to learn, how &hellip;">
 
 
   <!-- http://t.co/dKP3o1e -->
@@ -97,18 +97,18 @@
   </header>
 
 
-<div class="entry-content"><p>Are you migrating your existing application to the cloud? Are you missing a solution for the centralized configuration management? Read on to learn, how we implemented the centralized configuration management on top of our existing application and got it ready for the cloud.</p>
+<div class="entry-content"><p>Are you migrating your existing application to the cloud? Are you missing a solution for centralized configuration management? Read on to learn, how we implemented centralized configuration management on top of our existing application and got it ready for the cloud.</p>
 
 <!-- more -->
 
 
-<p>Our existing application is a <a href="https://en.wikipedia.org/wiki/Service-oriented_architecture">SOA-based</a> application, i.e an application consisting of multiple services that communicate with each other and that are deployed across multiple nodes. Services are configured using configuration files located on the local filesystem. Currently, the operator has to edit multiple configuration files across multiple nodes by hand. Besides that, for the sake of performance and redundancy, there are multiple instances of a each service deployed behind a load balancer. This increases the configuration burden even further as the operator has to keep the configuration files consistent across several instances of the same service.</p>
+<p>Our existing application is a <a href="https://en.wikipedia.org/wiki/Service-oriented_architecture">SOA-based</a> application, i.e an application consisting of multiple services that communicate with each other and that are deployed across multiple nodes. Services are configured using configuration files located on the local filesystem. Currently, the operator has to edit multiple configuration files across multiple nodes by hand. In addition to that, for the sake of performance and redundancy, there are multiple instances of each service deployed behind a load balancer. This increases the configuration burden even further as the operator has to keep the configuration files consistent across several instances of the same service.</p>
 
-<p>With the growing number of services and the need to deploy our application into the dynamic cloud environments, a centralized configuration management became a necessity.</p>
+<p>With the growing number of services and the need to deploy our application into dynamic cloud environments, a centralized configuration management became a necessity.</p>
 
 <h2>Looking for a solution</h2>
 
-<p>It would be possible to leverage the standard DevOps tools like Puppet, Chef or Ansible to manage the configuration files on each of the deployed nodes. For bare metal deployments or when deploying on virtual machines in the cloud, these tools could do a decent job. However, on our way to the cloud, we’re looking at containerizing all of our services. Furthermore, down the route we would like to leverage the serverless architecture, too. For updating a handful of configuration files inside of a Docker container, Puppet, Chef or Ansible just seem too heavy. Needless to say that these tools would not be usable when considering the serverless architecture.</p>
+<p>It would be possible to leverage the standard DevOps tools like Puppet, Chef or Ansible to manage the configuration files on each of the deployed nodes. For bare metal deployments or when deploying on virtual machines in the cloud, these tools could do a decent job. However, on our way to the cloud, we’re looking at containerizing all of our services. Furthermore, down the road we would also like to leverage serverless architecture as well. For updating a handful of configuration files inside of a Docker container, Puppet, Chef or Ansible just seem too heavy. Needless to say that these tools would not be usable when considering serverless architecture.</p>
 
 <p>When searching for a solution, we came across the <a href="https://github.com/kelseyhightower/confd">confd</a> and <a href="https://github.com/hashicorp/consul-template">consul-template</a> projects. Both tools are based on the same principle. First, the values of the configuration options are persisted in a backend store. While consul-template can store values in Consul only, confd supports a host of different backends like Consul, etcd, Redis or DynamoDB. Second, a set of templates on the filesystem is populated with the values from the backend store and hence forming valid configuration files. These configuration files are then consumed by the application. We drew a great deal of inspiration from this approach.</p>
 
@@ -118,7 +118,7 @@
 
 <p><img class="left" src="/images/posts/centralized_configuration_management.png"></p>
 
-<p>Besides the configuration values, the CCS component also stores all the additional data that is needed to completely recreate a given configuration file on the local filesystem. For instance, in the case of an ini file, CCS stores the absolute file path, file owner, file group, file mode, sections of the ini file, ini options with their values and all comment lines. Each ini option is also assigned a type or a set of allowed values and any configuration changes made by the operator are checked against the type information before they are accepted.</p>
+<p>In addition to the configuration values, the CCS component also stores all the additional data that is needed to completely recreate a given configuration file on the local filesystem. For instance, in the case of an ini file, CCS stores the absolute file path, file owner, file group, file mode, sections of the ini file, ini options with their values and all comment lines. Each ini option is also assigned a type or a set of allowed values and any configuration changes made by the operator are checked against the type information before they are accepted.</p>
 
 <p>Apart from the ini file format, Java properties and XML files are also supported. The configuration management verifies that the XML file either conforms to a specific XML schema or is well-formed, before it is accepted. Lastly, all other configuration files that are not parsed by the configuration management are marked as &ldquo;unmanaged&rdquo; and the entire content of such a file is stored under a single key in the key-value store in Consul.</p>
 
