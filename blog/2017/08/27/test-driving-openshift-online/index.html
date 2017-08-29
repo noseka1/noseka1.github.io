@@ -1,0 +1,590 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Test-Driving OpenShift Online - Ales Nosek - The Software Practitioner</title>
+  <meta name="author" content="Ales Nosek">
+
+
+  <meta name="description" content="Did you decide to dockerize your application? Awesome! Are you looking for a place to build and host your Docker containers? OpenShift Online is a &hellip;">
+
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <link rel="canonical" href="http://alesnosek.com/blog/2017/08/27/test-driving-openshift-online/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Ales Nosek - The Software Practitioner" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-61965164-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <img src="/images/computers.png" align="right">
+  <h1><a href="/">Ales Nosek - The Software Practitioner</a></h1>
+
+    <h2>Practicing to make software perfect.</h2>
+
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+
+</ul>
+
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="alesnosek.com">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+
+  <header>
+
+      <h1 class="entry-title">Test-Driving OpenShift Online</h1>
+
+
+      <p class="meta">
+
+
+
+
+
+<time class='entry-date' datetime='2017-08-27T17:29:49-07:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>27</span><span class='date-suffix'>th</span>, <span class='date-year'>2017</span></span> <span class='time'>5:29 pm</span></time>
+
+      </p>
+
+  </header>
+
+
+<div class="entry-content"><p>Did you decide to dockerize your application? Awesome! Are you looking for a place to build and host your Docker containers? OpenShift Online is a service that allows you to build and run your Docker containers. Read on, if you want to learn more about it.</p>
+
+<!-- more -->
+
+
+<p><a href="https://manage.openshift.com/">OpenShift Online</a> is a Platform-as-a-Service cloud managed by Red Hat. It is hosted on Amazon Web Services (AWS). OpenShift Online is a multi-tenant offering. That means that containers owned by different tenants are running on the same cluster. If you&rsquo;re more interested in renting your own private OpenShift cluster, you shall consider the <a href="https://www.openshift.com/dedicated/index.html">OpenShift Dedicated</a> offering, instead.</p>
+
+<p>The information about the plans and pricing of the OpenShift Online service can be found <a href="https://www.openshift.com/pricing/index.html">here</a>. In this blog post, we&rsquo;re going to utilize the free of charge <em>Starter</em> plan. With this plan, you get 1GiB of memory for your containers, another 1GiB of memory for running builds, deployments and jobs, and finally 1GiB of persistent storage. The real limitation of the free <em>Starter</em> plan is the resource hibernation. Your containers will be forced to sleep 18 hours in a 72 hour period.</p>
+
+<h2>Welcome to OpenShift Online</h2>
+
+<p>You can login into OpenShift Online <a href="https://manage.openshift.com/">here</a>. If you don&rsquo;t have an OpenShift account, the sign up and creation of the OpenShift account doesn&rsquo;t take you long. After you login into your OpenShift account, find a small question mark icon in the top right corner of the welcome page. From the drop down menu choose the &ldquo;Command Line Tools&rdquo; option.</p>
+
+<p><img class="left" src="/images/posts/openshift_online/openshift_online_welcome.png"></p>
+
+<p>Download the <code>oc</code> client tool using one of the provided download links. We&rsquo;re going to use the <code>oc</code> tool throughout this tutorial. After downloading the distribution archive, extract the <code>oc</code> tool from it and place it somewhere on your PATH. The <code>oc</code> tool is a single statically linked binary which makes the installation straight forward. On the same page, notice the instructions on how to login into the CLI. We&rsquo;ll be logging into it in a moment.</p>
+
+<p><img class="left" src="/images/posts/openshift_online/openshift_online_command_line_tools.png"></p>
+
+<p>Go back to the welcome page and this time choose the &ldquo;About&rdquo; option from the drop down menu in the top right corner. On the &ldquo;About&rdquo; page, you can learn that OpenShift Online is built upon a fairly recent version of OpenShift. That&rsquo;s great to know, as each new version of OpenShift comes with a ton of new features. As the OpenShift Online user you would not like to be left behind with an older version of OpenShift.</p>
+
+<p>On the same &ldquo;About&rdquo; page, you can find the address of the integrated Docker registry. You can push ready images to this registry in order to make them available for deployment on OpenShift. If you build images on OpenShift, the finished images will be pushed into this registry at the end of the build process. In addition to deploying images from the integrated Docker registry, you can, of course, deploy images directly from the Docker Hub as well.</p>
+
+<p><img class="left" src="/images/posts/openshift_online/openshift_online_about.png"></p>
+
+<h2>Getting our hands dirty</h2>
+
+<p>In this section, we&rsquo;re going to use the CLI tool to exercise the OpenShift Online functionality. From the &ldquo;Command Line Tools&rdquo; page that we visited previously, copy the command to login into the CLI tool:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>oc login https://api.starter-us-west-1.openshift.com --token<span class="o">=</span>6BoQ7DQ8nUeEE3FOWzvDCgcUD0T6LdBBZEuUiPlD7Tc
+</span><span class='line'>Logged into <span class="s2">&quot;https://api.starter-us-west-1.openshift.com:443&quot;</span> as <span class="s2">&quot;anosek@example.com&quot;</span> using the token provided.
+</span><span class='line'>
+</span><span class='line'>You don<span class="err">&#39;</span>t have any projects. You can try to create a new project, by running
+</span><span class='line'>
+</span><span class='line'>    oc new-project &lt;projectname&gt;
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Note that the value of your login token will differ. Next, let&rsquo;s create a new OpenShift project called <code>php-hello</code>:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>oc new-project php-hello
+</span><span class='line'>Now using project <span class="s2">&quot;php-hello&quot;</span> on server <span class="s2">&quot;https://api.starter-us-west-1.openshift.com:443&quot;</span>.
+</span><span class='line'>
+</span><span class='line'>You can add applications to this project with the <span class="s1">&#39;new-app&#39;</span> command. For example, try:
+</span><span class='line'>
+</span><span class='line'>    oc new-app centos/ruby-22-centos7~https://github.com/openshift/ruby-ex.git
+</span><span class='line'>
+</span><span class='line'>to build a new example application in Ruby.
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The Starter plan allows you to create only a single project. Next, we&rsquo;re going to build our PHP application. The source code of the application can be found at <a href="https://github.com/noseka1/openshift-php-hello">GitHub</a>. The whole purpose of the application is to return a Hello message containing the name of the host that the application is running on. You can build the application using the <code>oc new-build</code> command:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>oc new-build https://github.com/noseka1/openshift-php-hello.git
+</span><span class='line'>--&gt; Found image 0d2f8fa <span class="o">(</span><span class="m">4</span> weeks old<span class="o">)</span> in image stream <span class="s2">&quot;openshift/php&quot;</span> under tag <span class="s2">&quot;7.0&quot;</span> <span class="k">for</span> <span class="s2">&quot;php&quot;</span>
+</span><span class='line'>
+</span><span class='line'>    Apache 2.4 with PHP 7.0
+</span><span class='line'>    -----------------------
+</span><span class='line'>    PHP 7.0 available as docker container is a base platform <span class="k">for</span> building and running various PHP 7.0 applications and frameworks. PHP is an HTML-embedded scripting language. PHP attempts to make it easy <span class="k">for</span> developers to write dynamically generated web pages. PHP also offers built-in database integration <span class="k">for</span> several commercial and non-commercial database management systems, so writing a database-enabled webpage with PHP is fairly simple. The most common use of PHP coding is probably as a replacement <span class="k">for</span> CGI scripts.
+</span><span class='line'>
+</span><span class='line'>    Tags: builder, php, php70, rh-php70
+</span><span class='line'>
+</span><span class='line'>    * The <span class="nb">source </span>repository appears to match: php
+</span><span class='line'>    * A <span class="nb">source </span>build using <span class="nb">source </span>code from https://github.com/noseka1/openshift-php-hello.git will be created
+</span><span class='line'>      * The resulting image will be pushed to image stream <span class="s2">&quot;openshift-php-hello:latest&quot;</span>
+</span><span class='line'>      * Use <span class="s1">&#39;start-build&#39;</span> to trigger a new build
+</span><span class='line'>
+</span><span class='line'>--&gt; Creating resources with label <span class="nv">build</span><span class="o">=</span>openshift-php-hello ...
+</span><span class='line'>    imagestream <span class="s2">&quot;openshift-php-hello&quot;</span> created
+</span><span class='line'>    buildconfig <span class="s2">&quot;openshift-php-hello&quot;</span> created
+</span><span class='line'>--&gt; Success
+</span><span class='line'>    Build configuration <span class="s2">&quot;openshift-php-hello&quot;</span> created and build triggered.
+</span><span class='line'>    Run <span class="s1">&#39;oc logs -f bc/openshift-php-hello&#39;</span> to stream the build progress.
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>OpenShift automatically detects, that we&rsquo;re building a PHP application and will use an appropriate build image. The build image contains a pre-installed Apache server with mod_php. During the build, the <code>index.php</code> file from the source code repository is copied into the document root of the Apache server. The build process takes a minute or two to complete. You can follow the progress of your build using the <code>oc logs</code> command:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>oc logs -f bc/openshift-php-hello
+</span><span class='line'>Cloning <span class="s2">&quot;https://github.com/noseka1/openshift-php-hello.git&quot;</span> ...
+</span><span class='line'>        Commit: 35d7f33ca8180b9a331d9bd5ce4735c941da9d03 <span class="o">(</span>Add index.php<span class="o">)</span>
+</span><span class='line'>        Author: Ales Nosek &lt;ales.nosek@gmail.com&gt;
+</span><span class='line'>        Date:   Mon Aug <span class="m">28</span> 13:50:56 <span class="m">2017</span> -0700
+</span><span class='line'>Pulling image <span class="s2">&quot;registry.access.redhat.com/rhscl/php-70-rhel7@sha256:1f12d421bfc18874c5a7fdc41634ca5dd1cbd955c437738d571088e65dd0ba51&quot;</span> ...
+</span><span class='line'>---&gt; Installing application source...
+</span><span class='line'>
+</span><span class='line'>Pushing image 172.30.148.65:5000/php-hello/openshift-php-hello:latest ...
+</span><span class='line'>Pushed 0/6 layers, 7% <span class="nb">complete</span>
+</span><span class='line'>Pushed 1/6 layers, 18% <span class="nb">complete</span>
+</span><span class='line'>Pushed 2/6 layers, 37% <span class="nb">complete</span>
+</span><span class='line'>Pushed 3/6 layers, 56% <span class="nb">complete</span>
+</span><span class='line'>Pushed 4/6 layers, 79% <span class="nb">complete</span>
+</span><span class='line'>Pushed 5/6 layers, 99% <span class="nb">complete</span>
+</span><span class='line'>Pushed 6/6 layers, 100% <span class="nb">complete</span>
+</span><span class='line'>Push successful
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The output of the build is a new <code>openshift-php-hello</code> Docker image. This image is automatically pushed into the integrated Docker registry by OpenShift. In the next step, we&rsquo;re going to create a DeploymentConfig file which describes how to deploy our brand new <code>openshift-php-hello</code> image on OpenShift. Create a file named <code>php-hello.yml</code> with the following content:</p>
+
+<figure class='code'><figcaption><span>php-hello.yml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">kind</span><span class="p-Indicator">:</span> <span class="s">&quot;DeploymentConfig&quot;</span>
+</span><span class='line'><span class="l-Scalar-Plain">apiVersion</span><span class="p-Indicator">:</span> <span class="s">&quot;v1&quot;</span>
+</span><span class='line'><span class="l-Scalar-Plain">metadata</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="s">&quot;php-hello&quot;</span>
+</span><span class='line'><span class="l-Scalar-Plain">spec</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">template</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">metadata</span><span class="p-Indicator">:</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">labels</span><span class="p-Indicator">:</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="s">&quot;php-hello&quot;</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">spec</span><span class="p-Indicator">:</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">containers</span><span class="p-Indicator">:</span>
+</span><span class='line'>        <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="s">&quot;php-hello&quot;</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">image</span><span class="p-Indicator">:</span> <span class="s">&quot;&quot;</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">imagePullPolicy</span><span class="p-Indicator">:</span> <span class="s">&quot;Always&quot;</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">ports</span><span class="p-Indicator">:</span>
+</span><span class='line'>            <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">containerPort</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">8080</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">replicas</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">1</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">selector</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="s">&quot;php-hello&quot;</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">triggers</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">type</span><span class="p-Indicator">:</span> <span class="s">&quot;ConfigChange&quot;</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">type</span><span class="p-Indicator">:</span> <span class="s">&quot;ImageChange&quot;</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">imageChangeParams</span><span class="p-Indicator">:</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">automatic</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">true</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">containerNames</span><span class="p-Indicator">:</span>
+</span><span class='line'>          <span class="p-Indicator">-</span> <span class="s">&quot;php-hello&quot;</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">from</span><span class="p-Indicator">:</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">kind</span><span class="p-Indicator">:</span> <span class="s">&quot;ImageStreamTag&quot;</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="s">&quot;openshift-php-hello:latest&quot;</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">strategy</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">type</span><span class="p-Indicator">:</span> <span class="s">&quot;Rolling&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Submit this file to OpenShift in order to launch the deployment:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>oc create -f php-hello.yml
+</span><span class='line'>deploymentconfig <span class="s2">&quot;php-hello&quot;</span> created
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Based on the DeploymentConfig descriptor, OpenShift will start one container <code>php-hello-1-XXXXX</code>. You can check whether the container is running with:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>oc get pod
+</span><span class='line'>NAME                          READY     STATUS      RESTARTS   AGE
+</span><span class='line'>openshift-php-hello-1-build   0/1       Completed   <span class="m">0</span>          2h
+</span><span class='line'>php-hello-1-zw48t             1/1       Running     <span class="m">0</span>          2m
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Verify that the <code>READY</code> column for your <code>php-hello</code> container eventually reads <code>1/1</code>. This indicates, that the deployment was successful and your container is running. In the following steps, we&rsquo;re going to configure OpenShift routing to allow the external network traffic to reach our container. For further information about the traffic routing on OpenShift, you can refer to my older blog post <a href="/blog/2017/02/14/accessing-kubernetes-pods-from-outside-of-the-cluster/">Accessing Kubernetes Pods from Outside of the Cluster</a>. First, let&rsquo;s create a service for our <code>php-hello</code> container:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>oc expose dc php-hello --port 8080
+</span><span class='line'>service <span class="s2">&quot;php-hello&quot;</span> exposed
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The created service functions as a internal load balancer. It forwards the traffic to the <code>php-hello</code> container on port 8080. The internal IP address of this load balancer is <code>172.30.80.50</code>, as we can learn when listing the existing services:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>oc get svc
+</span><span class='line'>NAME        CLUSTER-IP     EXTERNAL-IP   PORT<span class="o">(</span>S<span class="o">)</span>    AGE
+</span><span class='line'>php-hello   172.30.80.50   &lt;none&gt;        8080/TCP   4s
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Finally, we&rsquo;re going to create a route which will forward the external traffic to our service and hence to our <code>php-hello</code> container:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>oc expose svc php-hello
+</span><span class='line'>route <span class="s2">&quot;php-hello&quot;</span> exposed
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The route is assigned a public FQDN <code>php-hello-php-hello.a3c1.starter-us-west-1.openshiftapps.com</code>. As we haven&rsquo;t configured the route to use the TLS protocol, our application will be reachable on the standard HTTP port 80. The assigned FQDN can be found in the output of the <code>oc get route</code> command:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>oc get route
+</span><span class='line'>NAME        HOST/PORT                                                      PATH      SERVICES    PORT      TERMINATION   WILDCARD
+</span><span class='line'>php-hello   php-hello-php-hello.a3c1.starter-us-west-1.openshiftapps.com             php-hello   <span class="m">8080</span>                    None
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>At this moment, our application should be reachable over the public Internet. Let&rsquo;s send an HTTP request to our application:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>curl php-hello-php-hello.a3c1.starter-us-west-1.openshiftapps.com
+</span><span class='line'>Hello from php-hello-1-zw48t!
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Excellent, the application responded with the Hello message as expected. In the last exercise of our tutorial, we&rsquo;re going to scale our application. Let&rsquo;s ask OpenShift to create one more <code>php-hello</code> container:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>oc scale dc php-hello --replicas 2
+</span><span class='line'>deploymentconfig <span class="s2">&quot;php-hello&quot;</span> scaled
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The deployment of the second container will complete shortly. You can check the status of running containers using the <code>oc get pod</code> commmand:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>oc get pod
+</span><span class='line'>NAME                          READY     STATUS      RESTARTS   AGE
+</span><span class='line'>openshift-php-hello-1-build   0/1       Completed   <span class="m">0</span>          2h
+</span><span class='line'>php-hello-1-cl5nw             1/1       Running     <span class="m">0</span>          30s
+</span><span class='line'>php-hello-1-zw48t             1/1       Running     <span class="m">0</span>          21m
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>At this point, we&rsquo;re having two Docker containers ready to serve our HTTP requests. Let&rsquo;s generate some traffic and observe how OpenShift load balances the incoming requests between the two containers:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>curl php-hello-php-hello.a3c1.starter-us-west-1.openshiftapps.com
+</span><span class='line'>Hello from php-hello-1-zw48t!
+</span><span class='line'><span class="nv">$ </span>curl php-hello-php-hello.a3c1.starter-us-west-1.openshiftapps.com
+</span><span class='line'>Hello from php-hello-1-cl5nw!
+</span><span class='line'><span class="nv">$ </span>curl php-hello-php-hello.a3c1.starter-us-west-1.openshiftapps.com
+</span><span class='line'>Hello from php-hello-1-zw48t!
+</span><span class='line'><span class="nv">$ </span>curl php-hello-php-hello.a3c1.starter-us-west-1.openshiftapps.com
+</span><span class='line'>Hello from php-hello-1-cl5nw!
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+
+
+
+<span class="byline author vcard">Posted by <span class="fn">Ales Nosek</span></span>
+
+
+
+
+
+
+<time class='entry-date' datetime='2017-08-27T17:29:49-07:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>27</span><span class='date-suffix'>th</span>, <span class='date-year'>2017</span></span> <span class='time'>5:29 pm</span></time>
+
+
+<span class="categories">
+
+    <a class='category' href='/blog/categories/cloud/'>cloud</a>
+
+</span>
+
+
+    </p>
+
+      <div class="sharing">
+
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://alesnosek.com/blog/2017/08/27/test-driving-openshift-online/" data-via="" data-counturl="http://alesnosek.com/blog/2017/08/27/test-driving-openshift-online/" >Tweet</a>
+
+
+  <div class="g-plusone" data-size="medium"></div>
+
+
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+
+</div>
+
+
+    <p class="meta">
+
+        <a class="basic-alignment left" href="/blog/2017/08/20/centralized-configuration-management/" title="Previous Post: Centralized Configuration Management, Our Approach">&laquo; Centralized Configuration Management, Our Approach</a>
+
+
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+
+      <li class="post">
+        <a href="/blog/2017/08/27/test-driving-openshift-online/">Test-Driving OpenShift Online</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2017/08/20/centralized-configuration-management/">Centralized Configuration Management, Our Approach</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2017/08/01/how-i-became-a-red-hat-certified-architect-in-one-year/">How I Became a Red Hat Certified Architect in One Year</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2017/07/29/passed-red-hat-container-certifications-ex270-and-ex276/">Passed Red Hat Container Certifications EX270 and EX276</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2017/07/25/check-and-set-operation-and-transactions-in-consul/">Check-and-Set Operation and Transactions in Consul</a>
+      </li>
+
+  </ul>
+</section>
+
+
+
+
+
+
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2017 - Ales Nosek -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'alesnosekcom';
+
+
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://alesnosek.com/blog/2017/08/27/test-driving-openshift-online/';
+        var disqus_url = 'http://alesnosek.com/blog/2017/08/27/test-driving-openshift-online/';
+        var disqus_script = 'embed.js';
+
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
