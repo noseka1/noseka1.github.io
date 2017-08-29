@@ -221,3 +221,9 @@ Hello from php-hello-1-zw48t!
 $ curl php-hello-php-hello.a3c1.starter-us-west-1.openshiftapps.com
 Hello from php-hello-1-cl5nw!
 {% endcodeblock %}
+
+## Conclusion
+
+OpenShift is a feature-rich container platform. In this blog post, we were only able to scratch the surface.
+
+Are you considering to host your containerized application on OpenShift? Or are you already running your production apps on OpenShift? I would like to hear your experiences, please, leave your comments below.
