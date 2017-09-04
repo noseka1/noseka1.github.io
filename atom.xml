@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2017-08-28T20:41:10-07:00</updated>
+  <updated>2017-09-04T16:01:01-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,45 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[Ansible Certification EX407]]></title>
+    <link href="http://alesnosek.com/blog/2017/09/03/ansible-certification-ex407/"/>
+    <updated>2017-09-03T22:47:06-07:00</updated>
+    <id>http://alesnosek.com/blog/2017/09/03/ansible-certification-ex407</id>
+    <content type="html"><![CDATA[<p>Last week I passed the Red Hat certification exam <a href="https://www.redhat.com/en/services/training/ex407-red-hat-certificate-expertise-ansible-automation">EX407 Red Hat Certificate of Expertise in Ansible Automation</a>. In this blog post, I&rsquo;d like to share some of my experience with you.</p>
+
+<!-- more -->
+
+
+<p><img class="right" src="http://alesnosek.com/images/posts/ansible_logo.png" width="80" height="80"></p>
+
+<p><img class="right" src="http://alesnosek.com/images/posts/redhat_logo.png" width="130" height="130"></p>
+
+<p>In addition to the Ansible certification, Red Hat offers a certification for Puppet as well, <a href="https://www.redhat.com/en/services/training/ex405-red-hat-certificate-expertise-configuration-management-puppet">EX405 Red Hat Certificate of Expertise in Configuration Management with Puppet</a>. I was using Puppet in the years 2008/2009. Back then, Puppet was a state of the art configuration management tool that did a great job for us. However, later on Ansible showed up and I quickly realized that the problems that we were solving with Puppet could have been more easily solved with Ansible. In our company, we switched from Puppet to Ansible in 2014 and have never looked back. As I gained much more experience using Ansible, I decided to go for the Ansible certification. For you, perhaps the Puppet certification would be more interesting.</p>
+
+<p>It is the way of testing, that makes the Red Hat certification exams so enjoyable for me. Red Hat certification exams are purely practical. In the exam, you&rsquo;ll be given a list of requirements and an access to one or more virtual machines. Your goal is to configure the virtual machines based on the requirements.</p>
+
+<p>The Ansible exam focused on writing Ansible playbooks, working with Ansible inventories including dynamic inventories, running ad-hoc Ansible commands, leveraging Ansible facts, creating Jinja2 templates, error handling, playbook tags, downloading a role from Ansible Galaxy and using Ansible vault to secure passwords.</p>
+
+<p>To prepare for the exam, I used the online course Automation with Ansible I (DO407R) that is included in my <a href="https://www.redhat.com/en/services/training/learning-subscription">Red Hat Learning Subscription</a>.</p>
+
+<p>Overall, I didn&rsquo;t find the exam too difficult. There were 4 hours of time provided for the exam. I was able to complete all my tasks 1 hour and 20 minutes before the exam end while reaching the maximum score of 300 points.</p>
+
+<p>If you&rsquo;ve kept reading my blog post until this point, here are three basic exam tips for you:</p>
+
+<ol>
+<li>Use the <code>ansible-playbook --limit</code> parameter, to try out your playbook against a single host first before applying it to all your hosts.</li>
+<li>Make sure you can run Ansible modules as ad-hoc commands. They can come handy when you want to undo the effects of running an erroneous playbook.</li>
+<li>Use <code>ansible-doc --list</code> to look up a module that can achieve your goal and <code>ansible-doc &lt;module&gt;</code> to learn about the module parameters and example usage.</li>
+</ol>
+
+
+<p>Passing the Ansible exam brought me to the rank of Red Hat Certified Architect Level II. The current list of my Red Hat certifications can be found on the <a href="https://www.redhat.com/rhtapps/certification/verify/?certId=160-216-727">Verify a Red Hat Certified Professional</a> website.</p>
+
+<p>Are you working on your Red Hat certification and would like to share your experience? I would always like to hear from you! Feel free to leave your comments below.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[Test-Driving OpenShift Online]]></title>
@@ -2709,38 +2748,6 @@
 <li><p>Encourage your team to bring up ideas and proposals. Discuss the ideas, regardless of whether you move forward with them.</p></li>
 </ul>
 
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[Red Hat Summit 2016]]></title>
-    <link href="http://alesnosek.com/blog/2016/07/04/red-hat-summit-2016/"/>
-    <updated>2016-07-04T20:26:12-07:00</updated>
-    <id>http://alesnosek.com/blog/2016/07/04/red-hat-summit-2016</id>
-    <content type="html"><![CDATA[<p>I had the great opportunity to visit the Red Hat Summit 2016. Enjoy the photos attached.</p>
-
-<!-- more -->
-
-
-<p>The Red Hat summit was hosted at the Moscone Center in San Francisco in June 27-30, 2016. I greatly enjoyed the technical presentations by Red Hatters as well as the opportunity to discuss the OpenShift and Red Hat Atomic products directly with the lead engineers. At my company, we&rsquo;re looking at OpenShift+Atomic as the possible next platform to base our product upon. The frank opinions provided by the Red Hat engineers were very useful for our research. Next, take a look at the pics below.</p>
-
-<p>General sessions and the Red Hat party at the end of the summit took place at Moscone Center North:</p>
-
-<p><img class="center" src="http://alesnosek.com/images/posts/redhatsummit2016/20160629_135631.jpg">
-<img class="center" src="http://alesnosek.com/images/posts/redhatsummit2016/20160628_134625.jpg"></p>
-
-<p>Breakout sessions were hosted at the Moscone Center West:</p>
-
-<p><img class="center" src="http://alesnosek.com/images/posts/redhatsummit2016/20160630_152426.jpg">
-<img class="center" src="http://alesnosek.com/images/posts/redhatsummit2016/20160629_151110.jpg"></p>
-
-<p>The big Red Hat logo at the entrance hall. The red and black colors really catch your eyes:</p>
-
-<p><img class="center" src="http://alesnosek.com/images/posts/redhatsummit2016/20160628_195533.jpg"></p>
-
-<p>Jim Whitehurst, president and CEO of Red Hat, and myself. Check out my <a href="http://alesnosek.com/blog/2016/07/04/what-i-learned-from-the-open-organization">next post</a> to find out, what I learned from the book I&rsquo;m holding in the picture.</p>
-
-<p><img class="center" src="http://alesnosek.com/images/posts/redhatsummit2016/20160629_132338.jpg"></p>
 ]]></content>
   </entry>
 
