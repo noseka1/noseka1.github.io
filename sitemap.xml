@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>http://alesnosek.com/blog/2017/09/10/evaluating-application-metrics-solutions-prometheus/</loc>
+    <lastmod>2017-09-10T16:17:49-07:00</lastmod>
+  </url>
+  <url>
     <loc>http://alesnosek.com/blog/2017/09/03/ansible-certification-ex407/</loc>
     <lastmod>2017-09-03T22:47:06-07:00</lastmod>
   </url>

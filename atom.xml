@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2017-09-04T16:01:01-07:00</updated>
+  <updated>2017-09-13T21:40:51-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,70 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[Evaluating Application Metrics Solutions - Prometheus?]]></title>
+    <link href="http://alesnosek.com/blog/2017/09/10/evaluating-application-metrics-solutions-prometheus/"/>
+    <updated>2017-09-10T16:17:49-07:00</updated>
+    <id>http://alesnosek.com/blog/2017/09/10/evaluating-application-metrics-solutions-prometheus</id>
+    <content type="html"><![CDATA[<p>In our <a href="https://en.wikipedia.org/wiki/Service-oriented_architecture">SOA-based</a> application, the problem of application metrics hasn&rsquo;t been solved yet. We would like to have our application services expose metrics that could be used for monitoring, auto-scaling and analytics. In this blog post, I would like to present to you one of the proposals to solve the application metrics which suggests leveraging <a href="https://prometheus.io/">Prometheus</a>.</p>
+
+<!-- more -->
+
+
+<p>Our application consists of multiple services that are deployed on multiple machines. Currently, our applicaton is deployed on-premise or as a managed offering on the virtual machines in AWS. We&rsquo;re also working on containerizing the application services to achieve higher density and better manageability when deploying into the AWS cloud. Some of our services are so light-weight that we&rsquo;re going to turn them into Lambda functions in the future to further reduce the operational costs. Thus, a solution for application metrics should be able to work in the serverless environment, too.</p>
+
+<p>As of now, we deploy <a href="https://www.icinga.com/">Icinga</a> along with our application to provide system-level monitoring. Icinga collects the information about the nodes and checks that our services are still running. However, we don&rsquo;t collect any application-level metrics that would allow us to better assess the performance of our system. For example, we would like to know how many requests are processed per second, average request latency, request error rate, what are the depths of the internal queues and so forth. Application metrics would be a welcome input to the auto-scaling decisions and we would like to feed them into our analytics engine as well.</p>
+
+<h2>Getting to know Prometheus</h2>
+
+<p><img class="right" src="http://alesnosek.com/images/posts/prometheus_logo.png" width="130" height="130"></p>
+
+<p>Before jumping in and implementing our own solution for metrics collection and perhaps reinventing the wheel we started shopping around. It seemed to us, that Prometheus monitoring solution was gaining a lot of momentum in recent times. So, we took a closer look at Prometheus and this is what we found:</p>
+
+<ol>
+<li>Prometheus is an open-source monitoring solution hosted by <a href="https://www.cncf.io/">CNCF</a> - a foundation that hosts Kubernetes as well. Many companies use and contribute to Prometheus.</li>
+<li>The <a href="https://prometheus.io/docs/introduction/overview/">architecture</a> of Prometheus is easy to understand and is modular. While Prometheus provides modules for metrics collection, alerts and Web UI, we would not have to use all of them.</li>
+<li>Prometheus is a pull-based monitoring system. Each monitored target has to expose Prometheus formatted metrics. By default, targets make the metrics endpoint available at <a href="http://target/metrics.">http://target/metrics.</a> Prometheus periodically scrapes the metrics exposed by the targets.</li>
+<li>Our services would need to expose the application metrics in the <a href="https://prometheus.io/docs/instrumenting/exposition_formats/">Prometheus format</a>. There are actually two formats available: a simple text format and protobufs. There are instrumentation <a href="https://prometheus.io/docs/instrumenting/clientlibs/">libraries</a> for Java, C++ and other languages, to gather the metrics and expose them in the Prometheus format.</li>
+<li>The text-based Prometheus metrics format is so simple that it could be collected by other monitoring systems like Nagios or Icinga. Exposing metrics in the Prometheus format doesn&rsquo;t really mandate using Prometheus server for monitoring.</li>
+<li>There&rsquo;s a Prometheus <a href="https://github.com/prometheus/jmx_exporter">jmx_exporter</a> library to convert the JMX MBeans data into Prometheus format. This would come in handy for gathering Tomcat metrics, for example.</li>
+<li><a href="http://metrics.dropwizard.io/">Dropwizard metrics</a> is a popular Java instrumentation library. For instance, Vert.x toolkit can report its <a href="http://vertx.io/docs/vertx-dropwizard-metrics/java/">internal metrics</a> using the Dropwizard metrics library and there are other frameworks that supports it. Prometheus comes with a <a href="https://github.com/prometheus/client_java/tree/master/simpleclient_dropwizard">simpleclient_dropwizard</a> library that can make Dropwizard metrics available to Prometheus monitoring.</li>
+<li>To prevent unauthorized access, the metric targets would need to be protected using TLS in combination with client certs, bearer token or HTTP basic authentication.</li>
+<li>Prometheus pulls the metrics from the monitored targets. In addition, Prometheus comes with a <a href="https://prometheus.io/docs/practices/pushing/">Pushgateway</a> where clients can push their metrics to. However, as noted in the Prometheus documentation: <em>Usually, the only valid use case for the Pushgateway is for capturing the outcome of a service-level batch job</em>. Hence, Pushgateway would not work for aggregating metrics pushed by the Lambda functions.</li>
+<li>In addition to application-level metrics, system-level metrics can be collected by Prometheus as well thanks to the <a href="https://github.com/prometheus/node_exporter">node_exporter</a>.</li>
+<li>Prometheus is a great fit for dynamic environments like clouds and container clusters due to its discovery capabilities. In AWS, operator attaches tags to VMs and based on that Prometheus can discover them and start monitoring them automatically. The same principle works for container clusters like Kubernetes, too. One has to add annotations to pods and Prometheus will discover them automatically.</li>
+<li>Prometheus makes the collected metrics available for querying via an <a href="https://prometheus.io/docs/querying/api/">HTTP API</a>. We could retrieve the metrics using this API in order to feed them into our analytics engine.</li>
+<li>There is a great <a href="https://prometheus.io/docs/practices/naming/">guide</a> that would help us when designing our custom metrics.</li>
+<li>Prometheus is written in Go and comes in a form of statically-linked binaries. This makes the installation of Prometheus a breeze.</li>
+</ol>
+
+
+<h2>Instrumenting Java applications</h2>
+
+<p>In order to gather application metrics and to make them available to the Prometheus monitoring system, we would need to instrument our application services using Prometheus libraries. To get a clear idea, we created a proof-of-concept Java application instrumented using Prometheus. You can find it on <a href="https://github.com/noseka1/prometheus-poc">GitHub</a>.</p>
+
+<p>Alternatively, we are thinking about leveraging Dropwizard metrics library for instrumentation. The Dropwizard metrics library is rather popular and is not connected with any particular monitoring solution. We would still be able to expose the Dropwizard metrics to Prometheus using a wrapper <a href="https://github.com/prometheus/client_java/tree/master/simpleclient_dropwizard">simpleclient_dropwizard</a>.</p>
+
+<h2>Monitoring AWS Lambda functions</h2>
+
+<p>AWS Lambda functions are extremely short-lived processes. Prometheus won&rsquo;t be able to pull the application metrics from them. Instead, Lambdas will have to push their metrics to Prometheus. At the first glance, we thought that the Prometheus Pushgateway could help here, however, reading the Pushgateway&rsquo;s documentation more carefully we found that <em>the Pushgateway is explicitly not an aggregator or distributed counter but rather a metrics cache</em>. And that&rsquo;s a problem, as we would like to count how many Lambda instances are being invoked per second and so on.</p>
+
+<p>At the moment, we can see two approaches how to make the monitoring of Lambda functions work with Prometheus. Either, push the application metrics from the Lambda functions using a StatsD client. Prometheus&#8217; <a href="https://github.com/prometheus/statsd_exporter">statsd_exporter</a> would play a role of a StastD server and make the metrics available to Prometheus. Or, the second approach would be to create our own metrics aggregator that would receive the metrics from Lambda functions in the Prometheus format, aggregate them and expose them to the Prometheus server.</p>
+
+<h2>Alternatives</h2>
+
+<p>Besides using Prometheus, we were also thinking about other solutions for application metrics. As we already deploy Icinga for the system-level monitoring, it would make sense to use it for application metrics, too. We really like Icinga, it&rsquo;s a great monitoring software. Unfortunately, Icinga is based on the node and services model where a statically configured set of nodes are running services on them. This doesn&rsquo;t really fit with the modern containerized deployments where containers are dynamically scheduled on the cluster nodes and are also scaled up and down. Also, Prometheus server supports all sorts of metric queries and aggregations. Icinga is lacking this feature altogether. That&rsquo;s why we&rsquo;re leaning towards replacing Icinga with Prometheus for system-level as well as application-level monitoring.</p>
+
+<p><a href="http://www.hawkular.org/">Hawkular</a> seems to be another modern monitoring project we would like to take a closer look at. In contrast to Prometheus project which is developed by many parties, it seems that Hawkular project is mostly driven by Red Hat.</p>
+
+<h2>Conclusion</h2>
+
+<p>Prometheus is a modern monitoring system. It was the first system we evaluated as we were trying to find a good solution for application metrics. In addition to application-level metrics, we could use Prometheus to collect system-level metrics as well. This would make Prometheus a single monitoring solution for our application. The only bigger issue for us is the absence of the AWS Lambda monitoring story.</p>
+
+<p>If you have an application that you deliver on-premise as well as in the cloud, how did you solve the application metrics collection and monitoring? Is Prometheus a good way to go? Please, leave your comments below.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[Ansible Certification EX407]]></title>
@@ -2708,46 +2772,6 @@
 <h2>Conclusion</h2>
 
 <p>The ansible-container project is definitely very promising and we will keep our eye on it. For now, we&rsquo;re moving forward with generating and running Dockerfiles.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[What I learned from The Open Organization]]></title>
-    <link href="http://alesnosek.com/blog/2016/07/04/what-i-learned-from-the-open-organization/"/>
-    <updated>2016-07-04T21:04:22-07:00</updated>
-    <id>http://alesnosek.com/blog/2016/07/04/what-i-learned-from-the-open-organization</id>
-    <content type="html"><![CDATA[<p>Red Hat is one of the most successful software companies that makes billions of dollars selling open source software. The book <em>The Open Organization</em> written by Jim Whitehurst, CEO of Red Hat, provides a great insight into the company culture and how things get done at Red Hat. This blogpost lists some of the ideas I learned from this book.</p>
-
-<!-- more -->
-
-
-<h2>Motivating and inspiring</h2>
-
-<ul>
-<li><p>A company should have a purpose. The purpose is not a goal a company wants to achieve but the reason why it exists. For instance, Red Hat&rsquo;s mission statement says: <em>To be the catalyst in communities of customers, contributors, and partners creating better technology the open source way</em>. This statement enables Red Hat to attract the most talented people that share the belief that open source is fundamentally good for the world.</p></li>
-<li><p>It’s important to hire passionate people. When interviewing, ask the candidates what they are passionate about and think how it resonates with the purpose of your company.</p></li>
-<li><p>Admitting mistakes builds your credibility and authority to lead.</p></li>
-<li><p>As a manager, if you want to have engaged employees, you need to share context and knowledge. Be prepared to explain your decisions.</p></li>
-<li><p>As an employee, if your manager is not providing the appropriate context, ask for it. Most bosses are happy to share. They just haven’t yet figured out that it belongs to what they should be doing.</p></li>
-</ul>
-
-
-<h2>Getting things done</h2>
-
-<ul>
-<li><p>The Open organization embraces meritocracy where the leaders are chosen based on their contributions to the project, not based on their titles or longevity within the company.</p></li>
-<li><p>If your intention is just to stick your nose into every little thing so you can be front and center, people see it. At Red Hat, one of the greatest insults to your ego comes when you put something on one of the internal discussion threads and receive nothing back - neither positive nor negative. That means the team is likely ignoring you, which means you’ve failed in some way.</p></li>
-<li><p>In the discussions, people argue and criticize not because they are trying to be difficult, but because they are so passionate about the subject. A debate involving multiple views from different people leads to better decisions made than a meeting where the goal for everyone is to be nice to each other, and every idea is treated as a good one.</p></li>
-</ul>
-
-
-<h2>Setting direction</h2>
-
-<ul>
-<li><p>The decisions that came from top down are typically harder to turn into real actions. The more open you make your decision-making process, the easier is to execute the decisions you made.</p></li>
-<li><p>Encourage your team to bring up ideas and proposals. Discuss the ideas, regardless of whether you move forward with them.</p></li>
-</ul>
-
 ]]></content>
   </entry>
 
