@@ -1,0 +1,365 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>What I Learned at KubeCon + CloudNativeCon 2017 - Ales Nosek - The Software Practitioner</title>
+  <meta name="author" content="Ales Nosek">
+
+
+  <meta name="description" content="KubeCon + CloudNativeCon North America 2017 took place in Austin, Texas on December 6-8, 2017. I greatly enjoyed this conference. This blog post &hellip;">
+
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <link rel="canonical" href="http://alesnosek.com/blog/2017/12/10/what-i-learned-at-kubecon-plus-cloudnativecon-2017/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Ales Nosek - The Software Practitioner" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-61965164-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <img src="/images/computers.png" align="right">
+  <h1><a href="/">Ales Nosek - The Software Practitioner</a></h1>
+
+    <h2>Practicing to make software perfect.</h2>
+
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+
+</ul>
+
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="alesnosek.com">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+
+  <header>
+
+      <h1 class="entry-title">What I Learned at KubeCon + CloudNativeCon 2017</h1>
+
+
+      <p class="meta">
+
+
+
+
+
+<time class='entry-date' datetime='2017-12-10T16:16:25-08:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>10</span><span class='date-suffix'>th</span>, <span class='date-year'>2017</span></span> <span class='time'>4:16 pm</span></time>
+
+      </p>
+
+  </header>
+
+
+<div class="entry-content"><p>KubeCon + CloudNativeCon North America 2017 took place in Austin, Texas on December 6-8, 2017. I greatly enjoyed this conference. This blog post presents some of the notes I made during the conference talks. Would you like to learn about Amazon EKS, Kata Containers or the CRI-O project? Do you want to better understand Docker&rsquo;s Moby project and its relation to LinuxKit and InfraKit? Then read on!</p>
+
+<!-- more -->
+
+
+<p><img class="center" src="/images/posts/kubecon_2017.png" width="500" height="200"></p>
+
+<h2>Keynotes</h2>
+
+<ul>
+<li><strong>Keynote: A Community of Builders</strong>
+
+<ul>
+<li>Linux Foundation created a <a href="https://www.edx.org/course/introduction-kubernetes-linuxfoundationx-lfs158x">Introduction to Kubernetes</a> course available to everybody who wants to learn Kubernetes. The course is provided free of charge on the edX platform.</li>
+<li>CNCF in collaboration with The Linux Foundation created a certification program <a href="https://www.cncf.io/certification/expert/">Certified Kubernetes Administrator</a> (CKA). Check it out, if you want to demonstrate your Kubernetes skills.</li>
+</ul>
+</li>
+<li><strong>Keynote: CNCF Project Updates</strong>
+
+<ul>
+<li>The recently released <a href="https://coredns.io/">CoreDNS</a> v1.0 is going to replace <a href="https://github.com/kubernetes/dns">Kube DNS</a> in Kubernetes v1.9.</li>
+<li>Container runtime <a href="https://containerd.io/">containerd</a>, originally created by Docker and now hosted by CNCF, reached its v1.0 milestone.</li>
+<li>Today, the CNCF logging project <a href="https://www.fluentd.org/">Fluentd</a> reached its v1.0 release.</li>
+<li>A rather young project <a href="http://fluentbit.io/">Fluent Bit</a> is a log forwarder which allows you to collect your data/logs from various sources and forward them to multiple destinations. Supported destinations are among others: Elasticsearch, InfluxDB or Kafka. Fluent Bit is implemented in C and it only leverages asynchronous operations to collect and deliver data. It integrates well with the <a href="https://prometheus.io/">Prometheus</a> monitoring system.</li>
+</ul>
+</li>
+<li><strong>Keynote: Cloud Native at AWS</strong>
+
+<ul>
+<li>AWS chose containerd as the runtime for their managed Kubernetes service <a href="https://aws.amazon.com/eks/">EKS</a>.</li>
+<li>With the recent announcements of <a href="https://aws.amazon.com/about-aws/whats-new/2017/11/announcing-amazon-ec2-bare-metal-instances-preview/">Amazon EC2 Bare Metal instances</a> and <a href="https://aws.amazon.com/blogs/aws/amazon-elastic-container-service-for-kubernetes/">Amazon Elastic Container Service for Kubernetes</a>, there are now four first-class deployment entities available on AWS: bare metal, VMs, containers and functions.</li>
+<li>Amazon ECS for Kubernetes will leverage IAM to authenticate identities and the Kubernetes&#8217; RBAC for authorization. Pods will be assigned IAM roles in order for them to be able to talk to other AWS services, e.g. S3.</li>
+</ul>
+</li>
+</ul>
+
+
+<h2>Sessions attended</h2>
+
+<ul>
+<li><strong>Embedding the Containerd Runtime for Fun and Profit</strong>
+
+<ul>
+<li>ShiftFS is trying to solve the problem with the access (uid/gid) to a single file system from two containers running in different user namespaces.</li>
+</ul>
+</li>
+<li><strong>Kata Containers: Hypervisor-Based Container Runtime</strong>
+
+<ul>
+<li>The <a href="https://katacontainers.io/">Kata Containers</a> project is a merger of two projects: <a href="https://github.com/clearcontainers/runtime">Intel Clear Containers</a> and <a href="https://github.com/hyperhq/runv">Hyper runV</a>. The goal of the project is to create a container runtime that would run containers as virtual machines, however, with the speed comparable to the namespace-based containers. This would allow to bring the secure hypervisor-based isolation to containers.</li>
+<li>Kata Containers would provide an alternative to the <a href="https://github.com/opencontainers/runc">runc</a> runtime which is used by the namespace-based containers. In the Kubernetes cluster, both namespace-based as well as hypervisor-based containers could run at the same time.</li>
+<li>On Kubernetes, a Kubernetes pod would be implemented as a single VM.</li>
+</ul>
+</li>
+<li><strong>Building Specialized Container-Based Systems with Moby: A Few Use Cases</strong>
+
+<ul>
+<li><a href="https://blog.docker.com/2017/04/introducing-the-moby-project/">Moby project</a> is pretty much an umbrella for all Docker open-source projects. Projects like <a href="https://github.com/containerd/containerd">containerd</a>, <a href="https://github.com/linuxkit/linuxkit">LinuxKit</a>, <a href="https://github.com/docker/infrakit">InfraKit</a>, and many more are part of the Moby project. From the components of the Moby project, Docker company builds their Docker SE product, from which the Docker EE product is derived. Moby project is governed by the Technical Steering Committee (<a href="https://github.com/moby/tsc">TSC</a>). In times before the TSC was established, technical disputes were resolved by the Benevolent Dictator for Life (BDFL) which was Solomon Hykes.</li>
+<li><a href="https://github.com/linuxkit/linuxkit">LinuxKit</a> is a toolkit for building custom Linux images. The single purpose of these images is to run containerized applications. When creating an image, you can choose a Linux kernel, choose a container runtime and pick additional services that should be started on boot. If the basic containerd runtime doesn&rsquo;t suit you, LinuxKit can even install Kubernetes for you. Resulting images include only packages that you&rsquo;ve chosen and nothing else, hence reducing the attack surface and improving security. You can spin AWS instances off of your customized images and start scheduling containerized applications on them. Instances are considered immutable. In order to apply software updates, you must build a new version of the image and replace the instances running the old image.</li>
+<li>In order simplify the managing of the infrastructure running on top of immutable images (built with LinuxKit), Docker came up with another toolkit called <a href="https://github.com/docker/infrakit.git">InfraKit</a>. InfraKit allows you to create and manage clustered infrastructure like Swarm or Kubernetes clusters. Docker&rsquo;s motivation behind InfraKit was the deployment and management of their Docker SE and Docker EE products. Behind the scenes, InfraKit leverages Terraform for resource provisioning.</li>
+</ul>
+</li>
+<li><strong>CRI-O: All the Runtime Kubernetes Needs and Nothing More</strong>
+
+<ul>
+<li>Container runtime containerd originally developed by Docker Inc. is used for various purposes. Besides Kubernetes and OpenShift, containerd powers Swarm clusters and the recently announced Amazon EKS is also going to leverage containerd. Being a general purpose runtime, containerd suffered from compatibility issues with Kubernetes, where an update of containerd would break the Kubernetes cluster. For the sake of stability and <a href="http://www.projectatomic.io/blog/2017/06/6-reasons-why-cri-o-is-the-best-runtime-for-kubernetes/">several other reasons</a>, Red Hat initiated a project <a href="http://cri-o.io/">CRI-O</a> which aims to create an alternative runtime that would be dedicated to Kubernetes only. CRI-O is available for testing in OpenShift 3.7 and it is going to ship as the default container runtime in the future OpenShift releases, replacing containerd.</li>
+</ul>
+</li>
+<li><strong>Extending Kubernetes 101</strong>
+
+<ul>
+<li>Kubernetes can be extended by implementing a custom controller also called <em>operator</em>.</li>
+<li>This controller runs as a pod on Kubernetes cluster. On startup, custom controller is supposed to register one or more custom resources with Kubernetes. After that, the controller watches the changes in the desired state of custom resources and acts upon them.</li>
+<li>The concept of <a href="https://kubernetes.io/docs/concepts/api-extension/custom-resources/">Custom Resources</a> is supported by Kubernetes since version 1.7.</li>
+<li>Custom resources are designed to feel like native Kubernetes resources. They are exposed as another API along with the native APIs. The kubectl client can discover and work with custom resources right away.</li>
+<li>Using the kubectl, user can change the desired state of custom resources (add, update, delete). The custom controller that watches the desired state of the custom resources will carry on operations required to reach the desired state.</li>
+<li>Btw., there&rsquo;s a generator available that speeds up the implementation of operators.</li>
+<li>See also <a href="https://github.com/rook/operator-kit">Kubernetes Operator Kit</a>.</li>
+</ul>
+</li>
+<li><strong>Certifik8ts: All You Need to Know about Certificates in Kubernetes</strong>
+
+<ul>
+<li>As of Kubernetes 1.8, the Kubelet can request a new client certificate when the current one is nearing its expiration.</li>
+<li>Currently, Kubernetes cannot revoke certificates. This is good to know if you use client certificates to athenticate users. Once you issue a client certificate to the user, you won&rsquo;t be able to revoke it.</li>
+</ul>
+</li>
+<li><strong>Istio: Saling to a Secure Services Mesh</strong>
+
+<ul>
+<li>Service mesh acts as a proxy on the communication path between your microservices. As a proxy, service mesh adds a host of useful functionality that you would otherwise have to implement yourself in your microservices: secure communication, traffic routing, load balancing, rate limiting, circuit breakers, timeouts and retries, metrics, reporting, etc.</li>
+<li>Somebody on the conference has noted, that the year 2018 will be the year of the service mesh. Based on how many problems the service mesh can solve for distributed microservices, I can only agree with that.</li>
+<li>In this talk, the security features of <a href="https://istio.io/">Istio</a> service mesh were presented.</li>
+<li>Istio can establish a mutually authenticated TLS connections between your microservices, without the need to change your application code. It solves the problem of bootstrapping the TLS trust for you by establishing a custom CA.</li>
+<li>Istio Ingress can expose the microservice outside of the service mesh.</li>
+<li>Istio Egress controls which external hosts (hosts outside of the service mesh) your microservices can talk to.</li>
+</ul>
+</li>
+<li><strong>Cost-effective Compute Clusters with Spot and Pre-emptible Instances</strong>
+
+<ul>
+<li>Quote: <em>Kubernetes is going to make spot instances mainstream</em>.</li>
+<li>What applications work well with spot instances? Elastic/bursting applications, HPC workloads, HA cluster apps and horizontally scalable apps.</li>
+</ul>
+</li>
+</ul>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+
+
+
+<span class="byline author vcard">Posted by <span class="fn">Ales Nosek</span></span>
+
+
+
+
+
+
+<time class='entry-date' datetime='2017-12-10T16:16:25-08:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>10</span><span class='date-suffix'>th</span>, <span class='date-year'>2017</span></span> <span class='time'>4:16 pm</span></time>
+
+
+<span class="categories">
+
+    <a class='category' href='/blog/categories/events/'>events</a>
+
+</span>
+
+
+    </p>
+
+      <div class="sharing">
+
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://alesnosek.com/blog/2017/12/10/what-i-learned-at-kubecon-plus-cloudnativecon-2017/" data-via="" data-counturl="http://alesnosek.com/blog/2017/12/10/what-i-learned-at-kubecon-plus-cloudnativecon-2017/" >Tweet</a>
+
+
+  <div class="g-plusone" data-size="medium"></div>
+
+
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+
+</div>
+
+
+    <p class="meta">
+
+        <a class="basic-alignment left" href="/blog/2017/10/18/aws-lambda-adapter-for-vert-dot-x-web-applications/" title="Previous Post: AWS Lambda Adapter for Vert.x Web Applications">&laquo; AWS Lambda Adapter for Vert.x Web Applications</a>
+
+
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+
+      <li class="post">
+        <a href="/blog/2017/12/10/what-i-learned-at-kubecon-plus-cloudnativecon-2017/">What I Learned at KubeCon + CloudNativeCon 2017</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2017/10/18/aws-lambda-adapter-for-vert-dot-x-web-applications/">AWS Lambda Adapter for Vert.x Web Applications</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2017/09/10/evaluating-application-metrics-solutions-prometheus/">Evaluating Application Metrics Solutions - Prometheus?</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2017/09/03/ansible-certification-ex407/">Ansible Certification EX407</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2017/08/27/test-driving-openshift-online/">Test-Driving OpenShift Online</a>
+      </li>
+
+  </ul>
+</section>
+
+
+
+
+
+
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2017 - Ales Nosek -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'alesnosekcom';
+
+
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://alesnosek.com/blog/2017/12/10/what-i-learned-at-kubecon-plus-cloudnativecon-2017/';
+        var disqus_url = 'http://alesnosek.com/blog/2017/12/10/what-i-learned-at-kubecon-plus-cloudnativecon-2017/';
+        var disqus_script = 'embed.js';
+
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
