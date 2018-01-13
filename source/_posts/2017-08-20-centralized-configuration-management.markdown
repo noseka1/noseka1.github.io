@@ -3,7 +3,7 @@ layout: post
 title: "Centralized Configuration Management, Our Approach"
 date: 2017-08-20 13:09:28 -0700
 comments: true
-categories: development
+categories: design development
 ---
 
 Are you migrating your existing application to the cloud? Are you missing a solution for centralized configuration management? Read on to learn, how we implemented centralized configuration management on top of our existing application and got it ready for the cloud.
@@ -32,7 +32,7 @@ Apart from the ini file format, Java properties and XML files are also supported
 
 Next, let's review an example scenario where an operator wants to modify a configuration of a specific service. The individual steps are depicted in the diagram above:
 
-1.  Using the CCT command-line client, the operator obtains a list of configuration files for a specific service managed by CCS. The operator uses CCT to edit the selected configuration file. CCT fetches all the data from CCS that are required to recreate the configuration file and present it to the operator for editing (for example by opening the file in the operator's favorite editor).
+1.  Using the CCT command-line client, the operator obtains a list of configuration files for a specific service managed by CCS. The operator uses CCT to edit the selected configuration file. CCT fetches all the data from CCS that are required to recreate the configuration file and presents it to the operator for editing (for example by opening the file in the operator's favorite editor).
 
 2.  After the operator made changes to the configuration file, the CCT parses the file to find out which values have been modified. The modified values are checked for corectness by CCT before they are saved in CCS.
 

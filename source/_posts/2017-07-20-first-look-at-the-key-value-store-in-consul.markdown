@@ -3,7 +3,7 @@ layout: post
 title: "First Look at the Key-Value Store in Consul"
 date: 2017-07-15 20:38:38 -0700
 comments: true
-categories: devops, cloud
+categories: devops cloud
 ---
 
 If you are developing a distributed application that consists of multiple services, you might be thinking about how to manage the ever growing application configuration data. Instead of maintaining individual configuration files for each service, you can store all your configuration data in a key-value store. In this blog post we'll check out the key-value store in Consul.
