@@ -4,7 +4,7 @@
   <title><![CDATA[Category: events | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/events/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2017-12-10T16:36:42-08:00</updated>
+  <updated>2018-01-12T21:36:27-08:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -77,7 +77,7 @@
 <ul>
 <li><a href="https://blog.docker.com/2017/04/introducing-the-moby-project/">Moby project</a> is pretty much an umbrella for all Docker open-source projects. Projects like <a href="https://github.com/containerd/containerd">containerd</a>, <a href="https://github.com/linuxkit/linuxkit">LinuxKit</a>, <a href="https://github.com/docker/infrakit">InfraKit</a>, and many more are part of the Moby project. From the components of the Moby project, Docker company builds their Docker SE product, from which the Docker EE product is derived. Moby project is governed by the Technical Steering Committee (<a href="https://github.com/moby/tsc">TSC</a>). In times before the TSC was established, technical disputes were resolved by the Benevolent Dictator for Life (BDFL) which was Solomon Hykes.</li>
 <li><a href="https://github.com/linuxkit/linuxkit">LinuxKit</a> is a toolkit for building custom Linux images. The single purpose of these images is to run containerized applications. When creating an image, you can choose a Linux kernel, choose a container runtime and pick additional services that should be started on boot. If the basic containerd runtime doesn&rsquo;t suit you, LinuxKit can even install Kubernetes for you. Resulting images include only packages that you&rsquo;ve chosen and nothing else, hence reducing the attack surface and improving security. You can spin AWS instances off of your customized images and start scheduling containerized applications on them. Instances are considered immutable. In order to apply software updates, you must build a new version of the image and replace the instances running the old image.</li>
-<li>In order simplify the managing of the infrastructure running on top of immutable images (built with LinuxKit), Docker came up with another toolkit called <a href="https://github.com/docker/infrakit.git">InfraKit</a>. InfraKit allows you to create and manage clustered infrastructure like Swarm or Kubernetes clusters. Docker&rsquo;s motivation behind InfraKit was the deployment and management of their Docker SE and Docker EE products. Behind the scenes, InfraKit leverages Terraform for resource provisioning.</li>
+<li>In order to simplify the managing of the infrastructure running on top of immutable images (built with LinuxKit), Docker came up with another toolkit called <a href="https://github.com/docker/infrakit.git">InfraKit</a>. InfraKit allows you to create and manage clustered infrastructure like Swarm or Kubernetes clusters. Docker&rsquo;s motivation behind InfraKit was the deployment and management of their Docker SE and Docker EE products. Behind the scenes, InfraKit leverages Terraform for resource provisioning.</li>
 </ul>
 </li>
 <li><strong>CRI-O: All the Runtime Kubernetes Needs and Nothing More</strong>

@@ -1,0 +1,868 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: design | Ales Nosek - The Software Practitioner]]></title>
+  <link href="http://alesnosek.com/blog/categories/design/atom.xml" rel="self"/>
+  <link href="http://alesnosek.com/"/>
+  <updated>2018-01-12T21:36:27-08:00</updated>
+  <id>http://alesnosek.com/</id>
+  <author>
+    <name><![CDATA[Ales Nosek]]></name>
+
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+
+  <entry>
+    <title type="html"><![CDATA[Edge Security for Your Cloud Application, Part II]]></title>
+    <link href="http://alesnosek.com/blog/2018/01/12/edge-security-for-your-cloud-application-part-ii/"/>
+    <updated>2018-01-12T21:21:19-08:00</updated>
+    <id>http://alesnosek.com/blog/2018/01/12/edge-security-for-your-cloud-application-part-ii</id>
+    <content type="html"><![CDATA[<p>In this article, we&rsquo;re going to create a proof-of-concept deployment featuring a non-TLS client connecting to our cloud application. We are going to leverage the architecture approach discussed in the <a href="/blog/2018/01/10/edge-security-for-your-cloud-application-part-i">previous blog post</a>. A secure communication channel is going to be established between the client and the cloud application including mutual authentication.</p>
+
+<!-- more -->
+
+
+<h2>Deployment overview</h2>
+
+<p>Before we get our hands dirty, let&rsquo;s gain a better understanding of what we are trying to achieve. The diagram depicting our test deployment looks as follows:</p>
+
+<p><img src="/images/posts/edge_security_for_your_cloud_application_poc_arch.svg" width="1000" title="Architecture Overview" ></p>
+
+<p>We&rsquo;re going to spin up two virtual instances. The edge instance will host our edge service. The client instance will host the client that will be accessing our edge service. For the sake of POC, the edge service is going to be an Apache web server and we&rsquo;re going to use the curl command-line utility in place of the client. The battle-proven HAProxy is going to play the role of the client-side as well as the server-side proxy, securing the client-server communication.</p>
+
+<h2>Getting started</h2>
+
+<p>You can start off with creating two CentOS 7 instances in AWS. Choose a minimalist t2.micro instance type which is sufficient for our proof of concept. In the security groups settings, make sure that in addition to the SSH port you have also enabled access to port 443 (HTTPS) from anywhere.</p>
+
+<p>After the instances booted up, install HAProxy on both instances:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>yum install -y haproxy
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>And create a directory that will hold the keys and certificates required by HAProxy:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>mkdir /etc/haproxy/ssl
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Make sure that you run the above command on both instances, too.</p>
+
+<h2>PKI keys and certificates</h2>
+
+<p>We are going to leverage the TLS protocol to establish a secure, mutually authenticated connection between the two proxies. TLS relies on PKI keys and certificates that we&rsquo;ll need to generate. The PKI setup for our company consists of a root CA, a layer of subordinate CAs and three end-entity certificates.</p>
+
+<p><img src="/images/posts/edge_security_for_your_cloud_application_pki.svg" width="500" height="600" title="PKI" ></p>
+
+<p>It is a common practice to sign the end-entity certificates by one or more subordinate CAs as it prevents the necessity of revoking a root certificate in the case that an end-entity certificate is incorrectly issued or compromised.</p>
+
+<p>In total, we are going to generate three end-entity certificates. <code>Edge Service Certificate</code> is going to be used by the reverse proxy running on the edge instance in order to authenticate itself to the clients. <code>Customer1 Client Certificate</code> and <code>Customer2 Client Certificate</code> are certificates that our company securely distributes to the tenants (customers). Each tenant uses her certificate and the associated private key to authenticate herself when accessing the cloud application.</p>
+
+<p>A PKI certificate can be created in three steps:</p>
+
+<ol>
+<li>Generate a private key.</li>
+<li>Using the private key, generate a Certificate Signing Request (CSR).</li>
+<li>Using a CA certificate along with the respective private key and the CSR, generate the certificate.</li>
+</ol>
+
+
+<p>An exeption from this three-step procedure is the root certificate which is self-signed.</p>
+
+<p>In the following, we are going to generate seven certificates. All the commands are to be issued on the edge instance. Note that you can populate the certificate fields with pretty arbitrary values with one exception: the <code>Common Name</code> field of the end-entity certificates. <code>Common Name</code> of the <code>Edge Service Certificate</code> must match the DNS name of the edge instance. <code>Common Name</code> of the <code>Customer1 Client Certificate</code> and the <code>Customer2 Client Certificate</code> must match the HAProxy configuration. By inspecting the <code>Common Name</code> field, HAProxy is able to recognize which client is trying to access the cloud application and it is able to route the client request to the appropriate backend service.</p>
+
+<h3>Company RootCA certificate</h3>
+
+<p>Let&rsquo;s generate the company&rsquo;s greatest secret - the private key of the Company&rsquo;s RootCA:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openssl genrsa -out rootca.company.example.key.pem 4096
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>And create a self-signed RootCA certificate. Below you can see the sample input data:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;h2&gt;<span class="nv">$ </span>openssl req -key rootca.company.example.key.pem -new -x509 -extensions v3_ca -out rootca.company.example.crt.pem&lt;/h2&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;Country Name <span class="o">(</span><span class="m">2</span> letter code<span class="o">)</span> <span class="o">[</span>XX<span class="o">]</span>:US
+</span><span class='line'>State or Province Name <span class="o">(</span>full name<span class="o">)</span> <span class="o">[]</span>:CA
+</span><span class='line'>Locality Name <span class="o">(</span>eg, city<span class="o">)</span> <span class="o">[</span>Default City<span class="o">]</span>:San Diego
+</span><span class='line'>Organization Name <span class="o">(</span>eg, company<span class="o">)</span> <span class="o">[</span>Default Company Ltd<span class="o">]</span>:Company RootCA
+</span><span class='line'>Organizational Unit Name <span class="o">(</span>eg, section<span class="o">)</span> <span class="o">[]</span>:
+</span><span class='line'>Common Name <span class="o">(</span>eg, your name or your server<span class="p">&amp;</span>rsquo<span class="p">;</span>s hostname<span class="o">)</span> <span class="o">[]</span>:rootca.company.example
+</span><span class='line'>Email Address <span class="o">[]</span>:
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>For the sake of conciseness, I shortened the console output a bit. Note that we are adding the command-line option <code>-extensions v3_ca</code> to denote this certificate as a CA certificate. Otherwise, an end-entity certificate would have been generated by default.</p>
+
+<h3>Company SubCA certificate</h3>
+
+<p>Next, issue the command to generate the private key of the Company&rsquo;s SubCA:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openssl genrsa -out subca.company.example.key.pem 4096
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Using the private key, let&rsquo;s create a Certificate Signing Request:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;h2&gt;<span class="nv">$ </span>openssl req -new -key subca.company.example.key.pem -out subca.company.example.csr.pem&lt;/h2&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;Country Name <span class="o">(</span><span class="m">2</span> letter code<span class="o">)</span> <span class="o">[</span>XX<span class="o">]</span>:US
+</span><span class='line'>State or Province Name <span class="o">(</span>full name<span class="o">)</span> <span class="o">[]</span>:CA
+</span><span class='line'>Locality Name <span class="o">(</span>eg, city<span class="o">)</span> <span class="o">[</span>Default City<span class="o">]</span>:San Diego
+</span><span class='line'>Organization Name <span class="o">(</span>eg, company<span class="o">)</span> <span class="o">[</span>Default Company Ltd<span class="o">]</span>:Company SubCA
+</span><span class='line'>Organizational Unit Name <span class="o">(</span>eg, section<span class="o">)</span> <span class="o">[]</span>:
+</span><span class='line'>Common Name <span class="o">(</span>eg, your name or your server<span class="p">&amp;</span>rsquo<span class="p">;</span>s hostname<span class="o">)</span> <span class="o">[]</span>:subca.company.example
+</span><span class='line'>Email Address <span class="o">[]</span>:&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;Please enter the following <span class="p">&amp;</span>lsquo<span class="p">;</span>extra<span class="p">&amp;</span>rsquo<span class="p">;</span> attributes
+</span><span class='line'>to be sent with your certificate request
+</span><span class='line'>A challenge password <span class="o">[]</span>:
+</span><span class='line'>An optional company name <span class="o">[]</span>:
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>And finally, generate the certificate of the Company&rsquo;s SubCA:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openssl x509 -req -in subca.company.example.csr.pem -CA rootca.company.example.crt.pem -CAkey rootca.company.example.key.pem -CAcreateserial -extfile /etc/pki/tls/openssl.cnf -extensions v3_ca -out subca.company.example.crt.pem
+</span></code></pre></td></tr></table></div></figure></p>
+
+<h3>Customer1 SubCA certificate</h3>
+
+<p>Steps to generate the Customer1 SubCA certificate should be quite clear now:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openssl genrsa -out subca.customer1.example.key.pem 4096
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;h2&gt;<span class="nv">$ </span>openssl req -new -key subca.customer1.example.key.pem -out subca.customer1.example.csr.pem&lt;/h2&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;Country Name <span class="o">(</span><span class="m">2</span> letter code<span class="o">)</span> <span class="o">[</span>XX<span class="o">]</span>:US
+</span><span class='line'>State or Province Name <span class="o">(</span>full name<span class="o">)</span> <span class="o">[]</span>:CA
+</span><span class='line'>Locality Name <span class="o">(</span>eg, city<span class="o">)</span> <span class="o">[</span>Default City<span class="o">]</span>:San Diego
+</span><span class='line'>Organization Name <span class="o">(</span>eg, company<span class="o">)</span> <span class="o">[</span>Default Company Ltd<span class="o">]</span>:Customer1 SubCA
+</span><span class='line'>Organizational Unit Name <span class="o">(</span>eg, section<span class="o">)</span> <span class="o">[]</span>:
+</span><span class='line'>Common Name <span class="o">(</span>eg, your name or your server<span class="p">&amp;</span>rsquo<span class="p">;</span>s hostname<span class="o">)</span> <span class="o">[]</span>:subca.customer1.example
+</span><span class='line'>Email Address <span class="o">[]</span>:&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;Please enter the following <span class="p">&amp;</span>lsquo<span class="p">;</span>extra<span class="p">&amp;</span>rsquo<span class="p">;</span> attributes
+</span><span class='line'>to be sent with your certificate request
+</span><span class='line'>A challenge password <span class="o">[]</span>:
+</span><span class='line'>An optional company name <span class="o">[]</span>:
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openssl x509 -req -in subca.customer1.example.csr.pem -CA rootca.company.example.crt.pem -CAkey rootca.company.example.key.pem -CAserial rootca.srl -extfile /etc/pki/tls/openssl.cnf -extensions v3_ca -out subca.customer1.example.crt.pem
+</span></code></pre></td></tr></table></div></figure></p>
+
+<h3>Customer2 SubCA certificate</h3>
+
+<p>Analogicaly,  we are going to generate the Customer2 SubCA certificate:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openssl genrsa -out subca.customer2.example.key.pem 4096
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;h2&gt;<span class="nv">$ </span>openssl req -new -key subca.customer2.example.key.pem -out subca.customer2.example.csr.pem&lt;/h2&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;Country Name <span class="o">(</span><span class="m">2</span> letter code<span class="o">)</span> <span class="o">[</span>XX<span class="o">]</span>:US
+</span><span class='line'>State or Province Name <span class="o">(</span>full name<span class="o">)</span> <span class="o">[]</span>:CA
+</span><span class='line'>Locality Name <span class="o">(</span>eg, city<span class="o">)</span> <span class="o">[</span>Default City<span class="o">]</span>:San Diego
+</span><span class='line'>Organization Name <span class="o">(</span>eg, company<span class="o">)</span> <span class="o">[</span>Default Company Ltd<span class="o">]</span>:Customer2 SubCA
+</span><span class='line'>Organizational Unit Name <span class="o">(</span>eg, section<span class="o">)</span> <span class="o">[]</span>:
+</span><span class='line'>Common Name <span class="o">(</span>eg, your name or your server<span class="p">&amp;</span>rsquo<span class="p">;</span>s hostname<span class="o">)</span> <span class="o">[]</span>:subca.customer2.example
+</span><span class='line'>Email Address <span class="o">[]</span>:&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;Please enter the following <span class="p">&amp;</span>lsquo<span class="p">;</span>extra<span class="p">&amp;</span>rsquo<span class="p">;</span> attributes
+</span><span class='line'>to be sent with your certificate request
+</span><span class='line'>A challenge password <span class="o">[]</span>:
+</span><span class='line'>An optional company name <span class="o">[]</span>:
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openssl x509 -req -in subca.customer2.example.csr.pem -CA rootca.company.example.crt.pem -CAkey rootca.company.example.key.pem -CAserial rootca.srl -extfile /etc/pki/tls/openssl.cnf -extensions v3_ca -out subca.customer2.example.crt.pem
+</span></code></pre></td></tr></table></div></figure></p>
+
+<h3>Edge service certificate</h3>
+
+<p>This is the first out of the three end-entity certificates. First, we will generate the private key:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openssl genrsa -out app.company.example.key.pem 2048
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Next, we are going to create the CSR. Make sure you populate the <code>Common Name</code> field exactly as you can see below:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;h2&gt;<span class="nv">$ </span>openssl req -new -key app.company.example.key.pem -out app.company.example.csr.pem&lt;/h2&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;Country Name <span class="o">(</span><span class="m">2</span> letter code<span class="o">)</span> <span class="o">[</span>XX<span class="o">]</span>:US
+</span><span class='line'>State or Province Name <span class="o">(</span>full name<span class="o">)</span> <span class="o">[]</span>:CA
+</span><span class='line'>Locality Name <span class="o">(</span>eg, city<span class="o">)</span> <span class="o">[</span>Default City<span class="o">]</span>:San Diego
+</span><span class='line'>Organization Name <span class="o">(</span>eg, company<span class="o">)</span> <span class="o">[</span>Default Company Ltd<span class="o">]</span>:Company
+</span><span class='line'>Organizational Unit Name <span class="o">(</span>eg, section<span class="o">)</span> <span class="o">[]</span>:
+</span><span class='line'>Common Name <span class="o">(</span>eg, your name or your server<span class="p">&amp;</span>rsquo<span class="p">;</span>s hostname<span class="o">)</span> <span class="o">[]</span>:app.company.example
+</span><span class='line'>Email Address <span class="o">[]</span>:&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;Please enter the following <span class="p">&amp;</span>lsquo<span class="p">;</span>extra<span class="p">&amp;</span>rsquo<span class="p">;</span> attributes
+</span><span class='line'>to be sent with your certificate request
+</span><span class='line'>A challenge password <span class="o">[]</span>:
+</span><span class='line'>An optional company name <span class="o">[]</span>:
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>And finally, type this command to generate the certificate:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openssl x509 -req -in app.company.example.csr.pem -CA subca.company.example.crt.pem -CAkey subca.company.example.key.pem -CAcreateserial -out app.company.example.crt.pem
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Note that we didn&rsquo;t include the <code>-extensions v3_ca</code> option as we wanted to create an end-entity certificate.</p>
+
+<h3>Customer1 client certificate</h3>
+
+<p>Now we are going to create a certificate for our first customer.</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openssl genrsa -out customer1.example.key.pem 2048
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;h2&gt;<span class="nv">$ </span>openssl req -new -key customer1.example.key.pem -out customer1.example.csr.pem&lt;/h2&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;Country Name <span class="o">(</span><span class="m">2</span> letter code<span class="o">)</span> <span class="o">[</span>XX<span class="o">]</span>:US
+</span><span class='line'>State or Province Name <span class="o">(</span>full name<span class="o">)</span> <span class="o">[]</span>:MA
+</span><span class='line'>Locality Name <span class="o">(</span>eg, city<span class="o">)</span> <span class="o">[</span>Default City<span class="o">]</span>:Boston
+</span><span class='line'>Organization Name <span class="o">(</span>eg, company<span class="o">)</span> <span class="o">[</span>Default Company Ltd<span class="o">]</span>:Customer1
+</span><span class='line'>Organizational Unit Name <span class="o">(</span>eg, section<span class="o">)</span> <span class="o">[]</span>:
+</span><span class='line'>Common Name <span class="o">(</span>eg, your name or your server<span class="p">&amp;</span>rsquo<span class="p">;</span>s hostname<span class="o">)</span> <span class="o">[]</span>:customer1.example
+</span><span class='line'>Email Address <span class="o">[]</span>:&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;Please enter the following <span class="p">&amp;</span>lsquo<span class="p">;</span>extra<span class="p">&amp;</span>rsquo<span class="p">;</span> attributes
+</span><span class='line'>to be sent with your certificate request
+</span><span class='line'>A challenge password <span class="o">[]</span>:
+</span><span class='line'>An optional company name <span class="o">[]</span>:
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openssl x509 -req -in customer1.example.csr.pem -CA subca.customer1.example.crt.pem -CAkey subca.customer1.example.key.pem -CAcreateserial -out customer1.example.crt.pem
+</span></code></pre></td></tr></table></div></figure></p>
+
+<h3>Customer2 client certificate</h3>
+
+<p>And finally, we are going to create a certificate for our second customer.</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openssl genrsa -out customer2.example.key.pem 2048
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;h2&gt;<span class="nv">$ </span>openssl req -new -key customer2.example.key.pem -out customer2.example.csr.pem&lt;/h2&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;Country Name <span class="o">(</span><span class="m">2</span> letter code<span class="o">)</span> <span class="o">[</span>XX<span class="o">]</span>:US
+</span><span class='line'>State or Province Name <span class="o">(</span>full name<span class="o">)</span> <span class="o">[]</span>:TX
+</span><span class='line'>Locality Name <span class="o">(</span>eg, city<span class="o">)</span> <span class="o">[</span>Default City<span class="o">]</span>:Austin
+</span><span class='line'>Organization Name <span class="o">(</span>eg, company<span class="o">)</span> <span class="o">[</span>Default Company Ltd<span class="o">]</span>:Customer2
+</span><span class='line'>Organizational Unit Name <span class="o">(</span>eg, section<span class="o">)</span> <span class="o">[]</span>:
+</span><span class='line'>Common Name <span class="o">(</span>eg, your name or your server<span class="p">&amp;</span>rsquo<span class="p">;</span>s hostname<span class="o">)</span> <span class="o">[]</span>:customer2.example
+</span><span class='line'>Email Address <span class="o">[]</span>:&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;Please enter the following <span class="p">&amp;</span>lsquo<span class="p">;</span>extra<span class="p">&amp;</span>rsquo<span class="p">;</span> attributes
+</span><span class='line'>to be sent with your certificate request
+</span><span class='line'>A challenge password <span class="o">[]</span>:
+</span><span class='line'>An optional company name <span class="o">[]</span>:
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openssl x509 -req -in customer2.example.csr.pem -CA subca.customer2.example.crt.pem -CAkey subca.customer2.example.key.pem -CAcreateserial -out customer2.example.crt.pem
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>If everything went well, your working directory should contain a collection of PKI files similar to this list:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>ls -1
+</span><span class='line'>app.company.example.crt.pem
+</span><span class='line'>app.company.example.csr.pem
+</span><span class='line'>app.company.example.key.pem
+</span><span class='line'>customer1.example.crt.pem
+</span><span class='line'>customer1.example.csr.pem
+</span><span class='line'>customer1.example.key.pem
+</span><span class='line'>customer2.example.crt.pem
+</span><span class='line'>customer2.example.csr.pem
+</span><span class='line'>customer2.example.key.pem
+</span><span class='line'>rootca.company.example.crt.pem
+</span><span class='line'>rootca.company.example.key.pem
+</span><span class='line'>rootca.srl
+</span><span class='line'>subca.company.example.crt.pem
+</span><span class='line'>subca.company.example.csr.pem
+</span><span class='line'>subca.company.example.key.pem
+</span><span class='line'>subca.customer1.example.crt.pem
+</span><span class='line'>subca.customer1.example.csr.pem
+</span><span class='line'>subca.customer1.example.key.pem
+</span><span class='line'>subca.customer2.example.crt.pem
+</span><span class='line'>subca.customer2.example.csr.pem
+</span><span class='line'>subca.customer2.example.key.pem
+</span><span class='line'>subca.srl
+</span></code></pre></td></tr></table></div></figure></p>
+
+<h2>Installing the edge service</h2>
+
+<p>In our POC project, the role of the edge service will be played by the Apache server. To install the Apache server, issue the following command on the edge instance:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>yum install -y httpd
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>You can start the Apache server by typing:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>systemctl start httpd
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>The default static web page served by Apache is for our purposes a bit too long. Let&rsquo;s replace it with a simple, one line message:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span><span class="nb">echo</span> <span class="p">&amp;</span>lsquo<span class="p">;</span>It works!<span class="p">&amp;</span>rsquo<span class="p">;</span> &gt; /var/www/html/index.html
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>To verify that Apache was installed properly and is running, issue the command:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>curl localhost
+</span><span class='line'>It works!
+</span></code></pre></td></tr></table></div></figure></p>
+
+<h2>Configuring the reverse proxy on the edge instance</h2>
+
+<p>In this section, we are going to set up the reverse proxy on the edge instance. First, let&rsquo;s prepare two files which will be referred to from the HAProxy configuration. The file <code>app.crt</code> will include the edge service certificate along with the CA chain and the respective private key. It is used by HAProxy to authenticate itself to the clients. In the following sections, we will configure the client-side HAProxy to trust these certificates and hence verify that it is connecting to the correct service and not for example to a service of an attacker. To create the <code>app.crt</code> file, you can type:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>cat <span class="se">\</span>
+</span><span class='line'>app.company.example.crt.pem <span class="se">\</span>
+</span><span class='line'>subca.company.example.crt.pem <span class="se">\</span>
+</span><span class='line'>rootca.company.example.crt.pem <span class="se">\</span>
+</span><span class='line'>app.company.example.key.pem <span class="se">\&lt;</span>/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;blockquote&gt;&lt;p&gt;/etc/haproxy/ssl/app.crt
+</span></code></pre></td></tr></table></div></figure></p></blockquote>
+
+<p>The important task of the server-side HAProxy is to authenticate the incoming client connections. In our project, we are looking at two customers that should be allowed to access our application. For that, we&rsquo;re going to include the CA certificate chains of the two customers into the <code>customer-ca.crt</code> file:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>cat <span class="se">\</span>
+</span><span class='line'>subca.customer1.example.crt.pem <span class="se">\</span>
+</span><span class='line'>subca.customer2.example.crt.pem <span class="se">\</span>
+</span><span class='line'>rootca.company.example.crt.pem <span class="se">\&lt;</span>/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;blockquote&gt;&lt;p&gt;/etc/haproxy/ssl/customer-ca.crt
+</span></code></pre></td></tr></table></div></figure></p></blockquote>
+
+<p>As the last step in this section, we are going to configure HAProxy. You can open the HAProxy configuration file <code>/etc/haproxy/haproxy.cfg</code> in your favorite editor and replace its content with:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>global
+</span><span class='line'>  tune.ssl.default-dh-param 1024&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;defaults
+</span><span class='line'>  timeout client 30s
+</span><span class='line'>  timeout server 30s
+</span><span class='line'>  timeout connect 5s&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;frontend proxy
+</span><span class='line'>  <span class="nb">bind </span>0.0.0.0:443 ssl crt /etc/haproxy/ssl/app.crt ca-file /etc/haproxy/ssl/customer-ca.crt verify required
+</span><span class='line'>  mode http&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;  use_backend edge_customer1 <span class="k">if</span> <span class="o">{</span> ssl_c_s_dn<span class="o">(</span>cn<span class="o">)</span> -i customer1.example <span class="o">}</span>
+</span><span class='line'>  use_backend edge_customer2 <span class="k">if</span> <span class="o">{</span> ssl_c_s_dn<span class="o">(</span>cn<span class="o">)</span> -i customer2.example <span class="o">}</span>&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;backend edge_customer1
+</span><span class='line'>  mode http
+</span><span class='line'>  server customer1 127.0.0.1:80 check&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;backend edge_customer2
+</span><span class='line'>  mode http
+</span><span class='line'>  server customer2 127.0.0.1:80 check
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>This is a minimalist configuration file, good enough for our proof of concept. HAProxy is going to listen on port 443 for incoming TLS connections. It will present the edge service certificate to the clients. At the same time, it will only accept connections from the clients sending the Customer1 or Customer2 certificate. Based on the <code>Common Name</code> field of the client&rsquo;s certificate, HAProxy will forward the request to the respective backend. In our case, both customers will be served by the same service listening on 127.0.0.1:80, however, you can imagine that in the real scenario there would be two separate edge services perhaps running on two different machines.</p>
+
+<p>You can start the HAProxy service using the following command:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>systemctl restart haproxy
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Before moving on, check the HAProxy logs. If everything worked well, there should be no errors or warnings:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>journalctl -u haproxy -e
+</span></code></pre></td></tr></table></div></figure></p>
+
+<h2>Configuring the proxy on the client instance</h2>
+
+<p>In this section, we&rsquo;re going to turn our attention to the client instance. First, we&rsquo;ll need to copy some of the PKI keys and certificates from the edge instance to the client instance. I configured SSH between the two instances, so that I can issue the following command on the edge instance to copy the files to the client instance:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>scp <span class="se">\</span>
+</span><span class='line'>customer1.example.crt.pem <span class="se">\</span>
+</span><span class='line'>customer1.example.key.pem <span class="se">\</span>
+</span><span class='line'>customer2.example.crt.pem <span class="se">\</span>
+</span><span class='line'>customer2.example.key.pem <span class="se">\</span>
+</span><span class='line'>subca.company.example.crt.pem <span class="se">\</span>
+</span><span class='line'>rootca.company.example.crt.pem <span class="se">\</span>
+</span><span class='line'>ip-172-31-33-109.us-west-2.compute.internal:
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>In the above command, make sure that you replace the target host name <code>ip-172-31-33-109.us-west-2.compute.internal</code> with the DNS name of your client instance.</p>
+
+<p>On the client instance, we are going to add a line to the <code>/etc/hosts</code> file which will make the DNS name <code>app.company.example</code> resolve to the IP address of the edge instance. In the following command, replace the IP address with the IP address of your edge instance:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span><span class="nb">echo </span>172.31.44.105 app.company.example &gt;&gt; /etc/hosts
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Let&rsquo;s check that the TLS client is able to connect to the edge service. On the client instance, type:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>curl <span class="se">\</span>
+</span><span class='line'><span class="p">&amp;</span>ndash<span class="p">;</span>cacert rootca.company.example.crt.pem <span class="se">\</span>
+</span><span class='line'><span class="p">&amp;</span>ndash<span class="p">;</span>cert ./customer1.example.crt.pem <span class="se">\</span>
+</span><span class='line'><span class="p">&amp;</span>ndash<span class="p">;</span>key ./customer1.example.key.pem <span class="se">\</span>
+</span><span class='line'>&lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;https://app.company.example&quot;</span>&gt;https://app.company.example&lt;/a&gt;
+</span><span class='line'>It works!
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Excellent! We&rsquo;ve just verified that the client with the built-in TLS support is able to successfully connect to our edge service and authenticate itself as Customer1.</p>
+
+<p>The ultimate goal of this tutorial was to allow a client without TLS support to access the edge service, too. In order to achieve this goal, we&rsquo;re going to set up a client-side HAProxy. First, let&rsquo;s prepare two files that will be needed by HAProxy. The <code>customer1.crt</code> file enables HAProxy to authenticate itself to the edge service as Customer1. You can create this file by issuing the command:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>cat <span class="se">\</span>
+</span><span class='line'>customer1.example.crt.pem <span class="se">\</span>
+</span><span class='line'>customer1.example.key.pem <span class="se">\&lt;</span>/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;blockquote&gt;&lt;p&gt;/etc/haproxy/ssl/customer1.crt
+</span></code></pre></td></tr></table></div></figure></p></blockquote>
+
+<p>Second file allows HAProxy to verify the authenticity of the edge service. It includes a chain of CA certificates, against which the certificate presented by the edge service will be verified. You can create the <code>company-ca.crt</code> file using the following command:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>cat <span class="se">\</span>
+</span><span class='line'>subca.company.example.crt.pem <span class="se">\</span>
+</span><span class='line'>rootca.company.example.crt.pem <span class="se">\&lt;</span>/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;blockquote&gt;&lt;p&gt;/etc/haproxy/ssl/company-ca.crt
+</span></code></pre></td></tr></table></div></figure></p></blockquote>
+
+<p>And finally, we are going to configure the client-side HAProxy. On the client instance, open the file <code>/etc/haproxy/haproxy.cfg</code>  in your favorite editor and replace its content with the following configuration:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>global
+</span><span class='line'>  tune.ssl.default-dh-param 1024&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;defaults
+</span><span class='line'>  timeout client 30s
+</span><span class='line'>  timeout server 30s
+</span><span class='line'>  timeout connect 5s&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;frontend proxy
+</span><span class='line'>  <span class="nb">bind </span>0.0.0.0:80
+</span><span class='line'>  mode http&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;  use_backend app&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;backend app
+</span><span class='line'>  mode http
+</span><span class='line'>  server app.company.example app.company.example:443 check ssl verify required ca-file /etc/haproxy/ssl/company-ca.crt crt /etc/haproxy/ssl/customer1.crt
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>HAProxy will listen on port 80 for the incoming HTTP connections. For each HTTP connection it will open a secure HTTPS connection to the edge service and it will pass the data back and forth between the two connections. You can start the HAProxy on the client instance by typing:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>systemctl restart haproxy
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Double-check that there are no warnings or errors in the HAProxy logs:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>journalctl -u haproxy -e
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>If everything went well, you should be able to connect to the edge service using a non-TLS client. Here we go:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>curl localhost
+</span><span class='line'>It works!
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>To verify that our client is recognized by the cloud application as Customer1, you can comment out the line <code>use_backend edge_customer1 if ...</code> in the <code>/etc/haproxy/haproxy.cfg</code> file on the edge instance. Remember to restart HAProxy after you modified the configuration. The repeated test from the client instance proves that indeed there&rsquo;s no backend for the Customer1 available anymore:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>curl localhost
+</span><span class='line'>&lt;html&gt;&lt;body&gt;&lt;h1&gt;503 Service Unavailable&lt;/h1&gt;
+</span><span class='line'>No server is available to handle this request.
+</span><span class='line'>&lt;/body&gt;&lt;/html&gt;
+</span></code></pre></td></tr></table></div></figure></p>
+
+<h2>Conclusion and final remarks</h2>
+
+<p>In this blog post, we established a secure communication channel between the client and our application running in the cloud. As demonstrated, our approach is also suitable for client applications that don&rsquo;t support TLS.</p>
+
+<p>In our example, the client certificate authentication was carried out by HAProxy and the edge service sitting behind the proxy didn&rsquo;t get any information about the client. To improve the design, HAProxy could be configured to forward the attributes of the certificate presented by the client to the backend, by setting them as HTTP request headers. HAProxy even allows to insert the entire client certificate into a request header for the backend.</p>
+
+<p>Our server presented a certificate that was signed by our own CA. In practice, we would deploy a certificate signed by a trusted third-party CA. AWS provides <a href="https://aws.amazon.com/certificate-manager">AWS Certificate Manager</a> (ACM) service to generate certificates for ELBs, API Gateway and other AWS services. Unfortunately, we cannot utilize this service for our use case as it doesn&rsquo;t provide access to the private key. Instead, we can purchase a certificate from one of the trusted certificate authorities or leverage the free of charge <a href="https://letsencrypt.org/">Let&rsquo;s Encrypt</a> certificate authority.</p>
+
+<p>This concludes our miniseries about edge security for cloud applications. We are still evaluating the proposed approach. What do you think about it? If you have any feedback, please, feel free to add your comments in the comment section below.</p>
+]]></content>
+  </entry>
+
+  <entry>
+    <title type="html"><![CDATA[Edge Security for Your Cloud Application, Part I]]></title>
+    <link href="http://alesnosek.com/blog/2018/01/10/edge-security-for-your-cloud-application-part-i/"/>
+    <updated>2018-01-10T23:09:17-08:00</updated>
+    <id>http://alesnosek.com/blog/2018/01/10/edge-security-for-your-cloud-application-part-i</id>
+    <content type="html"><![CDATA[<p>When designing a cloud application, one of the challenges you need to tackle is the secure communication of your clients with your servers over the public Internet. In this post, I&rsquo;m going to sketch a system architecture that allows you to authenticate the clients and exchange data between your clients and servers securely. The proposed architecture is also suitable when migrating an existing application, which didn&rsquo;t implement the secure communication, to the cloud.</p>
+
+<!-- more -->
+
+
+<p>In this article, we are going to assume that we&rsquo;re dealing with a multi-tenant cloud application whose architecture follows the <a href="https://en.wikipedia.org/wiki/Service-oriented_architecture">SOA</a> architecture principles. The application consists of several edge services that accept the incoming client requests. After validating the incoming request, the request is passed to the backend services for processing. Here is a diagram depicting such an application:</p>
+
+<p><img src="/images/posts/edge_security_for_your_cloud_application_soa.svg" width="800" height="1000" title="SOA architecture" ></p>
+
+<h2>Requirements</h2>
+
+<p>Before we start walking through the design, let&rsquo;s take a look at the set of requirements that drove the design decisions:</p>
+
+<ol>
+<li><p>One of the first steps of request validation should be the client authentication. Requests originating from the clients that fail to authenticate should be refused immediately.</p></li>
+<li><p>We don&rsquo;t impose any restrictions on what protocol is used by the clients to communicate with our application. Typically, clients will leverage the HTTP protocol but we want to support any TCP based protocol. In other words, our application doesn&rsquo;t have to be a web service.</p></li>
+<li><p>From the past, we inherited some clients that are not able to communicate in a secure way. For instance, they are only able to talk plain HTTP and don&rsquo;t support HTTPS. We would like to make such clients work with our application without the need to modify the clients themselves.</p></li>
+<li><p>And last but not least, we would like to avoid the need to establish a VPN connection between the client machine and the cloud. In practice, setting up a VPN connection requires quite invasive configuration of the client operating system. For our application tenants (our customers) this would impose a barrier that would hurt the adoption of our cloud application. Something we definitely don&rsquo;t want.</p></li>
+</ol>
+
+
+<h2>The edge layer</h2>
+
+<p>SSL/TLS is a family of security protocols that many VPNs rely upon. Currently, the TLS protocol is considered to be one of the strongest and most mature security protocols available. It was a clear choice for us to leverage the TLS protocol for communication between the clients and servers including the mutual authentication using PKI certificates. Finally, here is a diagram showing the edge layer of our cloud application in detail:</p>
+
+<p><img src="/images/posts/edge_security_for_your_cloud_application_server.svg" width="800" height="1000" title="The edge layer" ></p>
+
+<h2>Internet-facing ELB</h2>
+
+<p>Interestingly, AWS Elastic load balancers don&rsquo;t support client certificate authentication. Both, Classic load balancer and Application load balancer, support TLS offloading where they can terminate the TLS connection for you. However, they are not able to authenticate the client certificate and they also don&rsquo;t allow forwarding the certificate details to the backend application which could carry out the authentication by itself. In order to implement the client certificate authentication, you are pretty much left with two options: you can either use the Classic load balancer in the TCP mode, or you can employ the Network load balancer which operates on the TCP level. In both cases, the Elastic load balancer just passes the TLS connection through to your EC2 instances where you have to terminate and authenticate the TLS connection yourself. As the connection between ELB and the EC2 instances remains encrypted, you are gaining a plus from the security standpoint, too.</p>
+
+<p>While ELB doesn&rsquo;t authenticate clients, it plays an important role in our architecture. First, ELB is highly-available and distributes the traffic to several edge instances that are not highly-available. Second, ELB implements a layer 3 (e.g. UDP reflection) and layer 4 (e.g. SYN flood) DDOS attack protection.</p>
+
+<p>Btw., Amazon API Gateway doesn&rsquo;t support client certificate authentication either and so is less helpful for our scenario.</p>
+
+<h2>Reverse proxy on edge instances</h2>
+
+<p>Depending on your architecture, your edge services may or may not have a support for accepting TLS connections built in. I personally see the connection security to be a job for the infrastructure and would vote against implementing the TLS support in your application services. Here are some concrete arguments why to terminate the TLS connection outside of your application services:</p>
+
+<ol>
+<li><p>Your application services may be written in different languages. For each language and its runtime, the TLS configuration is different. You don&rsquo;t want to spend your time figuring out, how to configure TLS on Apache Tomcat, Eclipse Jetty, Apache server, Node.js and others, do you? Different technologies support different TLS features. For example, TLS SNI is supported only in Tomcat >= 8.5. Researching the supported feature set of every runtime is time consuming.</p></li>
+<li><p>The proxy provides a good place to monitor and log what&rsquo;s going on on the wire. Remember that ELB won&rsquo;t have any insight into your traffic as the traffic is TLS encrypted.</p></li>
+<li><p>You may want to automate the TLS certificate rotation and revocation. You&rsquo;ll have to implement this for all your different web servers. That&rsquo;s quite a bit of work.</p></li>
+</ol>
+
+
+<p>Instead of handling TLS in your application services, I would recommend deploying a reverse proxy in front of your services. This proxy will terminate the incoming TLS connection. This will allow you to manage all the TLS related settings in one place. The battle-tested proxies like <a href="http://www.haproxy.org/">HAProxy</a> or <a href="https://www.nginx.com/">NGINX</a> can authenticate the client certificate against a trusted certificate authority. They can also forward the certificate details to your edge service which can implement a more complex authentication logic if you need it.</p>
+
+<p>You should deploy the reverse proxy on the same instance with your edge service. This way, the decrypted communication between the proxy and your service will never leave the instance. In order to capture the decrypted traffic, one would need to have a root access on the instance. The possibility to capture the communication in the clear will come handy when troubleshooting, though.</p>
+
+<h2>The client side</h2>
+
+<p>After discussing the server-side design, let&rsquo;s talk about the client-side part of the picture. As we mentioned in the requirements section above, our architecture has to also support clients that don&rsquo;t have the TLS functionality built in. In turns out that there are actually three different client types:</p>
+
+<ol>
+<li>Clients with native TLS mutual authentication support</li>
+<li>Clients with no TLS support at all</li>
+<li>Clients supporting TLS with one-way authentication only, i.e. the client is able to authenticate the server certificate but it doesn&rsquo;t present its own certificate to the server.</li>
+</ol>
+
+
+<p>There is nothing special to do for the clients with native TLS mutual authentication support. They can directly connect to the application servers. To ensure the secure communication for the remaining two client types, we&rsquo;re going to deploy a proxy on the client machines. This proxy will enforce the TLS mutually authenticated connection over the Internet. A diagram depicting the three client types looks as follows:</p>
+
+<p><img src="/images/posts/edge_security_for_your_cloud_application_client.svg" width="600" height="800" title="The client side" ></p>
+
+<p>In the case number two, the proxy is configured in the SSL/TLS encryption mode. It accepts an unencrypted connection from the client and forwards the communication over a TLS encrypted channel to the server.  For the case number three, the proxy must be configured using the SSL/TLS bridging aka re-encryption mode. The proxy accepts an encrypted connection from the client, creates a separate encrypted connection to the server and passes the data between the two connections. Both HAProxy and Nginx support these configuration modes. You can also refer to the TLS layouts described in the HAProxy <a href="https://www.haproxy.com/documentation/aloha/7-0/deployment-guides/tls-layouts/">documentation</a>.</p>
+
+<p>Alternatively, as a proxy one could also employ <a href="https://www.stunnel.org">stunnel</a>. Before the SSL/TLS support was built into HAProxy, stunnel used to be deployed along with HAProxy to provide the SSL/TLS functionality. To accomplish the case number three using stunnel, one would actually need to combine two stunnels in series.</p>
+
+<p>Recently, a modern <a href="https://www.envoyproxy.io/">Envoy</a> proxy emerged and I would like to encourage you to check it out. It provides a really impressive set of features that goes far beyond the load balancing functionality: automatic retries, circuit breaking, zone local load balancing, very detailed metrics etc. Envoy helps to solve several networking problems common to the cloud-native applications. In our proposed architecture, Envoy would be deployed in the role of an edge proxy on the server side as well as in the role of the service proxy on the client side.</p>
+
+<p>Whichever proxy you choose on the client-side, remember to deploy it in a highly available fashion. You don&rsquo;t want to introduce a single point of failure into your system, do you?</p>
+
+<h2>Conclusion</h2>
+
+<p>In this post, we walked through the secure edge design explaining the reasoning behind the individual design decisions. In the <a href="/blog/2018/01/12/edge-security-for-your-cloud-application-part-ii">second blog post</a> of this miniseries, we&rsquo;re going to demonstrate a practical implementation of our approach using HAProxy.</p>
+]]></content>
+  </entry>
+
+  <entry>
+    <title type="html"><![CDATA[Centralized Configuration Management, Our Approach]]></title>
+    <link href="http://alesnosek.com/blog/2017/08/20/centralized-configuration-management/"/>
+    <updated>2017-08-20T13:09:28-07:00</updated>
+    <id>http://alesnosek.com/blog/2017/08/20/centralized-configuration-management</id>
+    <content type="html"><![CDATA[<p>Are you migrating your existing application to the cloud? Are you missing a solution for centralized configuration management? Read on to learn, how we implemented centralized configuration management on top of our existing application and got it ready for the cloud.</p>
+
+<!-- more -->
+
+
+<p>Our existing application is a <a href="https://en.wikipedia.org/wiki/Service-oriented_architecture">SOA-based</a> application, i.e an application consisting of multiple services that communicate with each other and that are deployed across multiple nodes. Services are configured using configuration files located on the local filesystem. Currently, the operator has to edit multiple configuration files across multiple nodes by hand. In addition to that, for the sake of performance and redundancy, there are multiple instances of each service deployed behind a load balancer. This increases the configuration burden even further as the operator has to keep the configuration files consistent across several instances of the same service.</p>
+
+<p>With the growing number of services and the need to deploy our application into dynamic cloud environments, a centralized configuration management became a necessity.</p>
+
+<h2>Looking for a solution</h2>
+
+<p>It would be possible to leverage the standard DevOps tools like Puppet, Chef or Ansible to manage the configuration files on each of the deployed nodes. For bare metal deployments or when deploying on virtual machines in the cloud, these tools could do a decent job. However, on our way to the cloud, we’re looking at containerizing all of our services. Furthermore, down the road we would also like to leverage serverless architecture as well. For updating a handful of configuration files inside of a Docker container, Puppet, Chef or Ansible just seem too heavy. Needless to say that these tools would not be usable when considering serverless architecture.</p>
+
+<p>When searching for a solution, we came across the <a href="https://github.com/kelseyhightower/confd">confd</a> and <a href="https://github.com/hashicorp/consul-template">consul-template</a> projects. Both tools are based on the same principle. First, the values of the configuration options are persisted in a backend store. While consul-template can store values in Consul only, confd supports a host of different backends like Consul, etcd, Redis or DynamoDB. Second, a set of templates on the filesystem is populated with the values from the backend store and hence forming valid configuration files. These configuration files are then consumed by the application. We drew a great deal of inspiration from this approach.</p>
+
+<h2>Our approach</h2>
+
+<p>Our centralized configuration management consists of two components: <em>CCS</em> (Centralized Configuration Store) which is a Consul cluster holding the configuration data, and <em>CCT</em> (Centralized Configuration Tool) which is a command-line client. CCT implements two functions. First, it allows the operator to query and modify the configuration values persisted in CCS. Second, it syncs up the configuration files on the local filesystem with their state in CCS. The following diagram depicts the components involved in the centralized configuration management:</p>
+
+<p><img class="left" src="/images/posts/centralized_configuration_management.png"></p>
+
+<p>In addition to the configuration values, the CCS component also stores all the additional data that is needed to completely recreate a given configuration file on the local filesystem. For instance, in the case of an ini file, CCS stores the absolute file path, file owner, file group, file mode, sections of the ini file, ini options with their values and all comment lines. Each ini option is also assigned a type or a set of allowed values and any configuration changes made by the operator are checked against the type information before they are accepted.</p>
+
+<p>Apart from the ini file format, Java properties and XML files are also supported. The configuration management verifies that the XML file either conforms to a specific XML schema or is well-formed, before it is accepted. Lastly, all other configuration files that are not parsed by the configuration management are marked as &ldquo;unmanaged&rdquo; and the entire content of such a file is stored under a single key in the key-value store in Consul.</p>
+
+<p>Next, let&rsquo;s review an example scenario where an operator wants to modify a configuration of a specific service. The individual steps are depicted in the diagram above:</p>
+
+<ol>
+<li><p>Using the CCT command-line client, the operator obtains a list of configuration files for a specific service managed by CCS. The operator uses CCT to edit the selected configuration file. CCT fetches all the data from CCS that are required to recreate the configuration file and presents it to the operator for editing (for example by opening the file in the operator&rsquo;s favorite editor).</p></li>
+<li><p>After the operator made changes to the configuration file, the CCT parses the file to find out which values have been modified. The modified values are checked for corectness by CCT before they are saved in CCS.</p></li>
+<li><p>Upon request, CCT fetches the configuration data from CCS in order to use it in the next step.</p></li>
+<li><p>CCT syncs up the configuration files on the local filesystem with the data fetched from CCS.</p></li>
+<li><p>The new configuration takes effect after the respective service has been restarted by the operator.</p></li>
+</ol>
+
+
+<p>Overall, CCS is a single source of truth for the application configuration. This is in contrast with the confd or consul-template approach where the configuration values are stored in the backend while the templates are stored on the filesystem. When a new release of the application is deployed, having all configuration data in one place makes the upgrade of the configuration data easier.</p>
+
+<h2>Future directions</h2>
+
+<p>It was important to us to introduce the centralized configuration management into our existing application without breaking the existing operational workflows. For example, operators should be able to edit the configuration files as they did in the previous versions of our application. Also, as the configuration files are written to the filesystem, the existing services continue to work without any modification from the previous versions. Hence the centralized configuration management can be deployed as a truly optional component on top of the existing application.</p>
+
+<p>In the future, when some of our services will be deployed as (Lambda) functions in the serverless environment, those services will need to fetch their configuration by directly contacting CCS. However, nothing will change from the operator&rsquo;s standpoint. The operator will continue editing configuration files even when those won&rsquo;t exist on any filesystem anymore.</p>
+
+<p>Do you use confd or consul-template to configure your application? Or did you build your own centralized configuration management? I would like to hear your comments. Feel free to use the comment section below.</p>
+]]></content>
+  </entry>
+
+</feed>

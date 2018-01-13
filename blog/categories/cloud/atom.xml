@@ -4,7 +4,7 @@
   <title><![CDATA[Category: cloud | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/cloud/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2017-12-10T16:36:42-08:00</updated>
+  <updated>2018-01-12T21:36:27-08:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,805 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[Edge Security for Your Cloud Application, Part II]]></title>
+    <link href="http://alesnosek.com/blog/2018/01/12/edge-security-for-your-cloud-application-part-ii/"/>
+    <updated>2018-01-12T21:21:19-08:00</updated>
+    <id>http://alesnosek.com/blog/2018/01/12/edge-security-for-your-cloud-application-part-ii</id>
+    <content type="html"><![CDATA[<p>In this article, we&rsquo;re going to create a proof-of-concept deployment featuring a non-TLS client connecting to our cloud application. We are going to leverage the architecture approach discussed in the <a href="/blog/2018/01/10/edge-security-for-your-cloud-application-part-i">previous blog post</a>. A secure communication channel is going to be established between the client and the cloud application including mutual authentication.</p>
+
+<!-- more -->
+
+
+<h2>Deployment overview</h2>
+
+<p>Before we get our hands dirty, let&rsquo;s gain a better understanding of what we are trying to achieve. The diagram depicting our test deployment looks as follows:</p>
+
+<p><img src="/images/posts/edge_security_for_your_cloud_application_poc_arch.svg" width="1000" title="Architecture Overview" ></p>
+
+<p>We&rsquo;re going to spin up two virtual instances. The edge instance will host our edge service. The client instance will host the client that will be accessing our edge service. For the sake of POC, the edge service is going to be an Apache web server and we&rsquo;re going to use the curl command-line utility in place of the client. The battle-proven HAProxy is going to play the role of the client-side as well as the server-side proxy, securing the client-server communication.</p>
+
+<h2>Getting started</h2>
+
+<p>You can start off with creating two CentOS 7 instances in AWS. Choose a minimalist t2.micro instance type which is sufficient for our proof of concept. In the security groups settings, make sure that in addition to the SSH port you have also enabled access to port 443 (HTTPS) from anywhere.</p>
+
+<p>After the instances booted up, install HAProxy on both instances:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>yum install -y haproxy
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>And create a directory that will hold the keys and certificates required by HAProxy:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>mkdir /etc/haproxy/ssl
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Make sure that you run the above command on both instances, too.</p>
+
+<h2>PKI keys and certificates</h2>
+
+<p>We are going to leverage the TLS protocol to establish a secure, mutually authenticated connection between the two proxies. TLS relies on PKI keys and certificates that we&rsquo;ll need to generate. The PKI setup for our company consists of a root CA, a layer of subordinate CAs and three end-entity certificates.</p>
+
+<p><img src="/images/posts/edge_security_for_your_cloud_application_pki.svg" width="500" height="600" title="PKI" ></p>
+
+<p>It is a common practice to sign the end-entity certificates by one or more subordinate CAs as it prevents the necessity of revoking a root certificate in the case that an end-entity certificate is incorrectly issued or compromised.</p>
+
+<p>In total, we are going to generate three end-entity certificates. <code>Edge Service Certificate</code> is going to be used by the reverse proxy running on the edge instance in order to authenticate itself to the clients. <code>Customer1 Client Certificate</code> and <code>Customer2 Client Certificate</code> are certificates that our company securely distributes to the tenants (customers). Each tenant uses her certificate and the associated private key to authenticate herself when accessing the cloud application.</p>
+
+<p>A PKI certificate can be created in three steps:</p>
+
+<ol>
+<li>Generate a private key.</li>
+<li>Using the private key, generate a Certificate Signing Request (CSR).</li>
+<li>Using a CA certificate along with the respective private key and the CSR, generate the certificate.</li>
+</ol>
+
+
+<p>An exeption from this three-step procedure is the root certificate which is self-signed.</p>
+
+<p>In the following, we are going to generate seven certificates. All the commands are to be issued on the edge instance. Note that you can populate the certificate fields with pretty arbitrary values with one exception: the <code>Common Name</code> field of the end-entity certificates. <code>Common Name</code> of the <code>Edge Service Certificate</code> must match the DNS name of the edge instance. <code>Common Name</code> of the <code>Customer1 Client Certificate</code> and the <code>Customer2 Client Certificate</code> must match the HAProxy configuration. By inspecting the <code>Common Name</code> field, HAProxy is able to recognize which client is trying to access the cloud application and it is able to route the client request to the appropriate backend service.</p>
+
+<h3>Company RootCA certificate</h3>
+
+<p>Let&rsquo;s generate the company&rsquo;s greatest secret - the private key of the Company&rsquo;s RootCA:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openssl genrsa -out rootca.company.example.key.pem 4096
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>And create a self-signed RootCA certificate. Below you can see the sample input data:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;h2&gt;<span class="nv">$ </span>openssl req -key rootca.company.example.key.pem -new -x509 -extensions v3_ca -out rootca.company.example.crt.pem&lt;/h2&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;Country Name <span class="o">(</span><span class="m">2</span> letter code<span class="o">)</span> <span class="o">[</span>XX<span class="o">]</span>:US
+</span><span class='line'>State or Province Name <span class="o">(</span>full name<span class="o">)</span> <span class="o">[]</span>:CA
+</span><span class='line'>Locality Name <span class="o">(</span>eg, city<span class="o">)</span> <span class="o">[</span>Default City<span class="o">]</span>:San Diego
+</span><span class='line'>Organization Name <span class="o">(</span>eg, company<span class="o">)</span> <span class="o">[</span>Default Company Ltd<span class="o">]</span>:Company RootCA
+</span><span class='line'>Organizational Unit Name <span class="o">(</span>eg, section<span class="o">)</span> <span class="o">[]</span>:
+</span><span class='line'>Common Name <span class="o">(</span>eg, your name or your server<span class="p">&amp;</span>rsquo<span class="p">;</span>s hostname<span class="o">)</span> <span class="o">[]</span>:rootca.company.example
+</span><span class='line'>Email Address <span class="o">[]</span>:
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>For the sake of conciseness, I shortened the console output a bit. Note that we are adding the command-line option <code>-extensions v3_ca</code> to denote this certificate as a CA certificate. Otherwise, an end-entity certificate would have been generated by default.</p>
+
+<h3>Company SubCA certificate</h3>
+
+<p>Next, issue the command to generate the private key of the Company&rsquo;s SubCA:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openssl genrsa -out subca.company.example.key.pem 4096
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Using the private key, let&rsquo;s create a Certificate Signing Request:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;h2&gt;<span class="nv">$ </span>openssl req -new -key subca.company.example.key.pem -out subca.company.example.csr.pem&lt;/h2&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;Country Name <span class="o">(</span><span class="m">2</span> letter code<span class="o">)</span> <span class="o">[</span>XX<span class="o">]</span>:US
+</span><span class='line'>State or Province Name <span class="o">(</span>full name<span class="o">)</span> <span class="o">[]</span>:CA
+</span><span class='line'>Locality Name <span class="o">(</span>eg, city<span class="o">)</span> <span class="o">[</span>Default City<span class="o">]</span>:San Diego
+</span><span class='line'>Organization Name <span class="o">(</span>eg, company<span class="o">)</span> <span class="o">[</span>Default Company Ltd<span class="o">]</span>:Company SubCA
+</span><span class='line'>Organizational Unit Name <span class="o">(</span>eg, section<span class="o">)</span> <span class="o">[]</span>:
+</span><span class='line'>Common Name <span class="o">(</span>eg, your name or your server<span class="p">&amp;</span>rsquo<span class="p">;</span>s hostname<span class="o">)</span> <span class="o">[]</span>:subca.company.example
+</span><span class='line'>Email Address <span class="o">[]</span>:&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;Please enter the following <span class="p">&amp;</span>lsquo<span class="p">;</span>extra<span class="p">&amp;</span>rsquo<span class="p">;</span> attributes
+</span><span class='line'>to be sent with your certificate request
+</span><span class='line'>A challenge password <span class="o">[]</span>:
+</span><span class='line'>An optional company name <span class="o">[]</span>:
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>And finally, generate the certificate of the Company&rsquo;s SubCA:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openssl x509 -req -in subca.company.example.csr.pem -CA rootca.company.example.crt.pem -CAkey rootca.company.example.key.pem -CAcreateserial -extfile /etc/pki/tls/openssl.cnf -extensions v3_ca -out subca.company.example.crt.pem
+</span></code></pre></td></tr></table></div></figure></p>
+
+<h3>Customer1 SubCA certificate</h3>
+
+<p>Steps to generate the Customer1 SubCA certificate should be quite clear now:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openssl genrsa -out subca.customer1.example.key.pem 4096
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;h2&gt;<span class="nv">$ </span>openssl req -new -key subca.customer1.example.key.pem -out subca.customer1.example.csr.pem&lt;/h2&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;Country Name <span class="o">(</span><span class="m">2</span> letter code<span class="o">)</span> <span class="o">[</span>XX<span class="o">]</span>:US
+</span><span class='line'>State or Province Name <span class="o">(</span>full name<span class="o">)</span> <span class="o">[]</span>:CA
+</span><span class='line'>Locality Name <span class="o">(</span>eg, city<span class="o">)</span> <span class="o">[</span>Default City<span class="o">]</span>:San Diego
+</span><span class='line'>Organization Name <span class="o">(</span>eg, company<span class="o">)</span> <span class="o">[</span>Default Company Ltd<span class="o">]</span>:Customer1 SubCA
+</span><span class='line'>Organizational Unit Name <span class="o">(</span>eg, section<span class="o">)</span> <span class="o">[]</span>:
+</span><span class='line'>Common Name <span class="o">(</span>eg, your name or your server<span class="p">&amp;</span>rsquo<span class="p">;</span>s hostname<span class="o">)</span> <span class="o">[]</span>:subca.customer1.example
+</span><span class='line'>Email Address <span class="o">[]</span>:&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;Please enter the following <span class="p">&amp;</span>lsquo<span class="p">;</span>extra<span class="p">&amp;</span>rsquo<span class="p">;</span> attributes
+</span><span class='line'>to be sent with your certificate request
+</span><span class='line'>A challenge password <span class="o">[]</span>:
+</span><span class='line'>An optional company name <span class="o">[]</span>:
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openssl x509 -req -in subca.customer1.example.csr.pem -CA rootca.company.example.crt.pem -CAkey rootca.company.example.key.pem -CAserial rootca.srl -extfile /etc/pki/tls/openssl.cnf -extensions v3_ca -out subca.customer1.example.crt.pem
+</span></code></pre></td></tr></table></div></figure></p>
+
+<h3>Customer2 SubCA certificate</h3>
+
+<p>Analogicaly,  we are going to generate the Customer2 SubCA certificate:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openssl genrsa -out subca.customer2.example.key.pem 4096
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;h2&gt;<span class="nv">$ </span>openssl req -new -key subca.customer2.example.key.pem -out subca.customer2.example.csr.pem&lt;/h2&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;Country Name <span class="o">(</span><span class="m">2</span> letter code<span class="o">)</span> <span class="o">[</span>XX<span class="o">]</span>:US
+</span><span class='line'>State or Province Name <span class="o">(</span>full name<span class="o">)</span> <span class="o">[]</span>:CA
+</span><span class='line'>Locality Name <span class="o">(</span>eg, city<span class="o">)</span> <span class="o">[</span>Default City<span class="o">]</span>:San Diego
+</span><span class='line'>Organization Name <span class="o">(</span>eg, company<span class="o">)</span> <span class="o">[</span>Default Company Ltd<span class="o">]</span>:Customer2 SubCA
+</span><span class='line'>Organizational Unit Name <span class="o">(</span>eg, section<span class="o">)</span> <span class="o">[]</span>:
+</span><span class='line'>Common Name <span class="o">(</span>eg, your name or your server<span class="p">&amp;</span>rsquo<span class="p">;</span>s hostname<span class="o">)</span> <span class="o">[]</span>:subca.customer2.example
+</span><span class='line'>Email Address <span class="o">[]</span>:&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;Please enter the following <span class="p">&amp;</span>lsquo<span class="p">;</span>extra<span class="p">&amp;</span>rsquo<span class="p">;</span> attributes
+</span><span class='line'>to be sent with your certificate request
+</span><span class='line'>A challenge password <span class="o">[]</span>:
+</span><span class='line'>An optional company name <span class="o">[]</span>:
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openssl x509 -req -in subca.customer2.example.csr.pem -CA rootca.company.example.crt.pem -CAkey rootca.company.example.key.pem -CAserial rootca.srl -extfile /etc/pki/tls/openssl.cnf -extensions v3_ca -out subca.customer2.example.crt.pem
+</span></code></pre></td></tr></table></div></figure></p>
+
+<h3>Edge service certificate</h3>
+
+<p>This is the first out of the three end-entity certificates. First, we will generate the private key:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openssl genrsa -out app.company.example.key.pem 2048
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Next, we are going to create the CSR. Make sure you populate the <code>Common Name</code> field exactly as you can see below:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;h2&gt;<span class="nv">$ </span>openssl req -new -key app.company.example.key.pem -out app.company.example.csr.pem&lt;/h2&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;Country Name <span class="o">(</span><span class="m">2</span> letter code<span class="o">)</span> <span class="o">[</span>XX<span class="o">]</span>:US
+</span><span class='line'>State or Province Name <span class="o">(</span>full name<span class="o">)</span> <span class="o">[]</span>:CA
+</span><span class='line'>Locality Name <span class="o">(</span>eg, city<span class="o">)</span> <span class="o">[</span>Default City<span class="o">]</span>:San Diego
+</span><span class='line'>Organization Name <span class="o">(</span>eg, company<span class="o">)</span> <span class="o">[</span>Default Company Ltd<span class="o">]</span>:Company
+</span><span class='line'>Organizational Unit Name <span class="o">(</span>eg, section<span class="o">)</span> <span class="o">[]</span>:
+</span><span class='line'>Common Name <span class="o">(</span>eg, your name or your server<span class="p">&amp;</span>rsquo<span class="p">;</span>s hostname<span class="o">)</span> <span class="o">[]</span>:app.company.example
+</span><span class='line'>Email Address <span class="o">[]</span>:&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;Please enter the following <span class="p">&amp;</span>lsquo<span class="p">;</span>extra<span class="p">&amp;</span>rsquo<span class="p">;</span> attributes
+</span><span class='line'>to be sent with your certificate request
+</span><span class='line'>A challenge password <span class="o">[]</span>:
+</span><span class='line'>An optional company name <span class="o">[]</span>:
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>And finally, type this command to generate the certificate:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openssl x509 -req -in app.company.example.csr.pem -CA subca.company.example.crt.pem -CAkey subca.company.example.key.pem -CAcreateserial -out app.company.example.crt.pem
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Note that we didn&rsquo;t include the <code>-extensions v3_ca</code> option as we wanted to create an end-entity certificate.</p>
+
+<h3>Customer1 client certificate</h3>
+
+<p>Now we are going to create a certificate for our first customer.</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openssl genrsa -out customer1.example.key.pem 2048
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;h2&gt;<span class="nv">$ </span>openssl req -new -key customer1.example.key.pem -out customer1.example.csr.pem&lt;/h2&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;Country Name <span class="o">(</span><span class="m">2</span> letter code<span class="o">)</span> <span class="o">[</span>XX<span class="o">]</span>:US
+</span><span class='line'>State or Province Name <span class="o">(</span>full name<span class="o">)</span> <span class="o">[]</span>:MA
+</span><span class='line'>Locality Name <span class="o">(</span>eg, city<span class="o">)</span> <span class="o">[</span>Default City<span class="o">]</span>:Boston
+</span><span class='line'>Organization Name <span class="o">(</span>eg, company<span class="o">)</span> <span class="o">[</span>Default Company Ltd<span class="o">]</span>:Customer1
+</span><span class='line'>Organizational Unit Name <span class="o">(</span>eg, section<span class="o">)</span> <span class="o">[]</span>:
+</span><span class='line'>Common Name <span class="o">(</span>eg, your name or your server<span class="p">&amp;</span>rsquo<span class="p">;</span>s hostname<span class="o">)</span> <span class="o">[]</span>:customer1.example
+</span><span class='line'>Email Address <span class="o">[]</span>:&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;Please enter the following <span class="p">&amp;</span>lsquo<span class="p">;</span>extra<span class="p">&amp;</span>rsquo<span class="p">;</span> attributes
+</span><span class='line'>to be sent with your certificate request
+</span><span class='line'>A challenge password <span class="o">[]</span>:
+</span><span class='line'>An optional company name <span class="o">[]</span>:
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openssl x509 -req -in customer1.example.csr.pem -CA subca.customer1.example.crt.pem -CAkey subca.customer1.example.key.pem -CAcreateserial -out customer1.example.crt.pem
+</span></code></pre></td></tr></table></div></figure></p>
+
+<h3>Customer2 client certificate</h3>
+
+<p>And finally, we are going to create a certificate for our second customer.</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openssl genrsa -out customer2.example.key.pem 2048
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;h2&gt;<span class="nv">$ </span>openssl req -new -key customer2.example.key.pem -out customer2.example.csr.pem&lt;/h2&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;Country Name <span class="o">(</span><span class="m">2</span> letter code<span class="o">)</span> <span class="o">[</span>XX<span class="o">]</span>:US
+</span><span class='line'>State or Province Name <span class="o">(</span>full name<span class="o">)</span> <span class="o">[]</span>:TX
+</span><span class='line'>Locality Name <span class="o">(</span>eg, city<span class="o">)</span> <span class="o">[</span>Default City<span class="o">]</span>:Austin
+</span><span class='line'>Organization Name <span class="o">(</span>eg, company<span class="o">)</span> <span class="o">[</span>Default Company Ltd<span class="o">]</span>:Customer2
+</span><span class='line'>Organizational Unit Name <span class="o">(</span>eg, section<span class="o">)</span> <span class="o">[]</span>:
+</span><span class='line'>Common Name <span class="o">(</span>eg, your name or your server<span class="p">&amp;</span>rsquo<span class="p">;</span>s hostname<span class="o">)</span> <span class="o">[]</span>:customer2.example
+</span><span class='line'>Email Address <span class="o">[]</span>:&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;Please enter the following <span class="p">&amp;</span>lsquo<span class="p">;</span>extra<span class="p">&amp;</span>rsquo<span class="p">;</span> attributes
+</span><span class='line'>to be sent with your certificate request
+</span><span class='line'>A challenge password <span class="o">[]</span>:
+</span><span class='line'>An optional company name <span class="o">[]</span>:
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openssl x509 -req -in customer2.example.csr.pem -CA subca.customer2.example.crt.pem -CAkey subca.customer2.example.key.pem -CAcreateserial -out customer2.example.crt.pem
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>If everything went well, your working directory should contain a collection of PKI files similar to this list:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>ls -1
+</span><span class='line'>app.company.example.crt.pem
+</span><span class='line'>app.company.example.csr.pem
+</span><span class='line'>app.company.example.key.pem
+</span><span class='line'>customer1.example.crt.pem
+</span><span class='line'>customer1.example.csr.pem
+</span><span class='line'>customer1.example.key.pem
+</span><span class='line'>customer2.example.crt.pem
+</span><span class='line'>customer2.example.csr.pem
+</span><span class='line'>customer2.example.key.pem
+</span><span class='line'>rootca.company.example.crt.pem
+</span><span class='line'>rootca.company.example.key.pem
+</span><span class='line'>rootca.srl
+</span><span class='line'>subca.company.example.crt.pem
+</span><span class='line'>subca.company.example.csr.pem
+</span><span class='line'>subca.company.example.key.pem
+</span><span class='line'>subca.customer1.example.crt.pem
+</span><span class='line'>subca.customer1.example.csr.pem
+</span><span class='line'>subca.customer1.example.key.pem
+</span><span class='line'>subca.customer2.example.crt.pem
+</span><span class='line'>subca.customer2.example.csr.pem
+</span><span class='line'>subca.customer2.example.key.pem
+</span><span class='line'>subca.srl
+</span></code></pre></td></tr></table></div></figure></p>
+
+<h2>Installing the edge service</h2>
+
+<p>In our POC project, the role of the edge service will be played by the Apache server. To install the Apache server, issue the following command on the edge instance:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>yum install -y httpd
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>You can start the Apache server by typing:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>systemctl start httpd
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>The default static web page served by Apache is for our purposes a bit too long. Let&rsquo;s replace it with a simple, one line message:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span><span class="nb">echo</span> <span class="p">&amp;</span>lsquo<span class="p">;</span>It works!<span class="p">&amp;</span>rsquo<span class="p">;</span> &gt; /var/www/html/index.html
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>To verify that Apache was installed properly and is running, issue the command:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>curl localhost
+</span><span class='line'>It works!
+</span></code></pre></td></tr></table></div></figure></p>
+
+<h2>Configuring the reverse proxy on the edge instance</h2>
+
+<p>In this section, we are going to set up the reverse proxy on the edge instance. First, let&rsquo;s prepare two files which will be referred to from the HAProxy configuration. The file <code>app.crt</code> will include the edge service certificate along with the CA chain and the respective private key. It is used by HAProxy to authenticate itself to the clients. In the following sections, we will configure the client-side HAProxy to trust these certificates and hence verify that it is connecting to the correct service and not for example to a service of an attacker. To create the <code>app.crt</code> file, you can type:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>cat <span class="se">\</span>
+</span><span class='line'>app.company.example.crt.pem <span class="se">\</span>
+</span><span class='line'>subca.company.example.crt.pem <span class="se">\</span>
+</span><span class='line'>rootca.company.example.crt.pem <span class="se">\</span>
+</span><span class='line'>app.company.example.key.pem <span class="se">\&lt;</span>/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;blockquote&gt;&lt;p&gt;/etc/haproxy/ssl/app.crt
+</span></code></pre></td></tr></table></div></figure></p></blockquote>
+
+<p>The important task of the server-side HAProxy is to authenticate the incoming client connections. In our project, we are looking at two customers that should be allowed to access our application. For that, we&rsquo;re going to include the CA certificate chains of the two customers into the <code>customer-ca.crt</code> file:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>cat <span class="se">\</span>
+</span><span class='line'>subca.customer1.example.crt.pem <span class="se">\</span>
+</span><span class='line'>subca.customer2.example.crt.pem <span class="se">\</span>
+</span><span class='line'>rootca.company.example.crt.pem <span class="se">\&lt;</span>/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;blockquote&gt;&lt;p&gt;/etc/haproxy/ssl/customer-ca.crt
+</span></code></pre></td></tr></table></div></figure></p></blockquote>
+
+<p>As the last step in this section, we are going to configure HAProxy. You can open the HAProxy configuration file <code>/etc/haproxy/haproxy.cfg</code> in your favorite editor and replace its content with:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>global
+</span><span class='line'>  tune.ssl.default-dh-param 1024&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;defaults
+</span><span class='line'>  timeout client 30s
+</span><span class='line'>  timeout server 30s
+</span><span class='line'>  timeout connect 5s&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;frontend proxy
+</span><span class='line'>  <span class="nb">bind </span>0.0.0.0:443 ssl crt /etc/haproxy/ssl/app.crt ca-file /etc/haproxy/ssl/customer-ca.crt verify required
+</span><span class='line'>  mode http&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;  use_backend edge_customer1 <span class="k">if</span> <span class="o">{</span> ssl_c_s_dn<span class="o">(</span>cn<span class="o">)</span> -i customer1.example <span class="o">}</span>
+</span><span class='line'>  use_backend edge_customer2 <span class="k">if</span> <span class="o">{</span> ssl_c_s_dn<span class="o">(</span>cn<span class="o">)</span> -i customer2.example <span class="o">}</span>&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;backend edge_customer1
+</span><span class='line'>  mode http
+</span><span class='line'>  server customer1 127.0.0.1:80 check&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;backend edge_customer2
+</span><span class='line'>  mode http
+</span><span class='line'>  server customer2 127.0.0.1:80 check
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>This is a minimalist configuration file, good enough for our proof of concept. HAProxy is going to listen on port 443 for incoming TLS connections. It will present the edge service certificate to the clients. At the same time, it will only accept connections from the clients sending the Customer1 or Customer2 certificate. Based on the <code>Common Name</code> field of the client&rsquo;s certificate, HAProxy will forward the request to the respective backend. In our case, both customers will be served by the same service listening on 127.0.0.1:80, however, you can imagine that in the real scenario there would be two separate edge services perhaps running on two different machines.</p>
+
+<p>You can start the HAProxy service using the following command:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>systemctl restart haproxy
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Before moving on, check the HAProxy logs. If everything worked well, there should be no errors or warnings:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>journalctl -u haproxy -e
+</span></code></pre></td></tr></table></div></figure></p>
+
+<h2>Configuring the proxy on the client instance</h2>
+
+<p>In this section, we&rsquo;re going to turn our attention to the client instance. First, we&rsquo;ll need to copy some of the PKI keys and certificates from the edge instance to the client instance. I configured SSH between the two instances, so that I can issue the following command on the edge instance to copy the files to the client instance:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>scp <span class="se">\</span>
+</span><span class='line'>customer1.example.crt.pem <span class="se">\</span>
+</span><span class='line'>customer1.example.key.pem <span class="se">\</span>
+</span><span class='line'>customer2.example.crt.pem <span class="se">\</span>
+</span><span class='line'>customer2.example.key.pem <span class="se">\</span>
+</span><span class='line'>subca.company.example.crt.pem <span class="se">\</span>
+</span><span class='line'>rootca.company.example.crt.pem <span class="se">\</span>
+</span><span class='line'>ip-172-31-33-109.us-west-2.compute.internal:
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>In the above command, make sure that you replace the target host name <code>ip-172-31-33-109.us-west-2.compute.internal</code> with the DNS name of your client instance.</p>
+
+<p>On the client instance, we are going to add a line to the <code>/etc/hosts</code> file which will make the DNS name <code>app.company.example</code> resolve to the IP address of the edge instance. In the following command, replace the IP address with the IP address of your edge instance:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span><span class="nb">echo </span>172.31.44.105 app.company.example &gt;&gt; /etc/hosts
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Let&rsquo;s check that the TLS client is able to connect to the edge service. On the client instance, type:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>curl <span class="se">\</span>
+</span><span class='line'><span class="p">&amp;</span>ndash<span class="p">;</span>cacert rootca.company.example.crt.pem <span class="se">\</span>
+</span><span class='line'><span class="p">&amp;</span>ndash<span class="p">;</span>cert ./customer1.example.crt.pem <span class="se">\</span>
+</span><span class='line'><span class="p">&amp;</span>ndash<span class="p">;</span>key ./customer1.example.key.pem <span class="se">\</span>
+</span><span class='line'>&lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;https://app.company.example&quot;</span>&gt;https://app.company.example&lt;/a&gt;
+</span><span class='line'>It works!
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Excellent! We&rsquo;ve just verified that the client with the built-in TLS support is able to successfully connect to our edge service and authenticate itself as Customer1.</p>
+
+<p>The ultimate goal of this tutorial was to allow a client without TLS support to access the edge service, too. In order to achieve this goal, we&rsquo;re going to set up a client-side HAProxy. First, let&rsquo;s prepare two files that will be needed by HAProxy. The <code>customer1.crt</code> file enables HAProxy to authenticate itself to the edge service as Customer1. You can create this file by issuing the command:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>cat <span class="se">\</span>
+</span><span class='line'>customer1.example.crt.pem <span class="se">\</span>
+</span><span class='line'>customer1.example.key.pem <span class="se">\&lt;</span>/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;blockquote&gt;&lt;p&gt;/etc/haproxy/ssl/customer1.crt
+</span></code></pre></td></tr></table></div></figure></p></blockquote>
+
+<p>Second file allows HAProxy to verify the authenticity of the edge service. It includes a chain of CA certificates, against which the certificate presented by the edge service will be verified. You can create the <code>company-ca.crt</code> file using the following command:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>cat <span class="se">\</span>
+</span><span class='line'>subca.company.example.crt.pem <span class="se">\</span>
+</span><span class='line'>rootca.company.example.crt.pem <span class="se">\&lt;</span>/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;blockquote&gt;&lt;p&gt;/etc/haproxy/ssl/company-ca.crt
+</span></code></pre></td></tr></table></div></figure></p></blockquote>
+
+<p>And finally, we are going to configure the client-side HAProxy. On the client instance, open the file <code>/etc/haproxy/haproxy.cfg</code>  in your favorite editor and replace its content with the following configuration:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>global
+</span><span class='line'>  tune.ssl.default-dh-param 1024&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;defaults
+</span><span class='line'>  timeout client 30s
+</span><span class='line'>  timeout server 30s
+</span><span class='line'>  timeout connect 5s&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;frontend proxy
+</span><span class='line'>  <span class="nb">bind </span>0.0.0.0:80
+</span><span class='line'>  mode http&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;  use_backend app&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;backend app
+</span><span class='line'>  mode http
+</span><span class='line'>  server app.company.example app.company.example:443 check ssl verify required ca-file /etc/haproxy/ssl/company-ca.crt crt /etc/haproxy/ssl/customer1.crt
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>HAProxy will listen on port 80 for the incoming HTTP connections. For each HTTP connection it will open a secure HTTPS connection to the edge service and it will pass the data back and forth between the two connections. You can start the HAProxy on the client instance by typing:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>systemctl restart haproxy
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Double-check that there are no warnings or errors in the HAProxy logs:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>journalctl -u haproxy -e
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>If everything went well, you should be able to connect to the edge service using a non-TLS client. Here we go:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>curl localhost
+</span><span class='line'>It works!
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>To verify that our client is recognized by the cloud application as Customer1, you can comment out the line <code>use_backend edge_customer1 if ...</code> in the <code>/etc/haproxy/haproxy.cfg</code> file on the edge instance. Remember to restart HAProxy after you modified the configuration. The repeated test from the client instance proves that indeed there&rsquo;s no backend for the Customer1 available anymore:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>curl localhost
+</span><span class='line'>&lt;html&gt;&lt;body&gt;&lt;h1&gt;503 Service Unavailable&lt;/h1&gt;
+</span><span class='line'>No server is available to handle this request.
+</span><span class='line'>&lt;/body&gt;&lt;/html&gt;
+</span></code></pre></td></tr></table></div></figure></p>
+
+<h2>Conclusion and final remarks</h2>
+
+<p>In this blog post, we established a secure communication channel between the client and our application running in the cloud. As demonstrated, our approach is also suitable for client applications that don&rsquo;t support TLS.</p>
+
+<p>In our example, the client certificate authentication was carried out by HAProxy and the edge service sitting behind the proxy didn&rsquo;t get any information about the client. To improve the design, HAProxy could be configured to forward the attributes of the certificate presented by the client to the backend, by setting them as HTTP request headers. HAProxy even allows to insert the entire client certificate into a request header for the backend.</p>
+
+<p>Our server presented a certificate that was signed by our own CA. In practice, we would deploy a certificate signed by a trusted third-party CA. AWS provides <a href="https://aws.amazon.com/certificate-manager">AWS Certificate Manager</a> (ACM) service to generate certificates for ELBs, API Gateway and other AWS services. Unfortunately, we cannot utilize this service for our use case as it doesn&rsquo;t provide access to the private key. Instead, we can purchase a certificate from one of the trusted certificate authorities or leverage the free of charge <a href="https://letsencrypt.org/">Let&rsquo;s Encrypt</a> certificate authority.</p>
+
+<p>This concludes our miniseries about edge security for cloud applications. We are still evaluating the proposed approach. What do you think about it? If you have any feedback, please, feel free to add your comments in the comment section below.</p>
+]]></content>
+  </entry>
+
+  <entry>
+    <title type="html"><![CDATA[Edge Security for Your Cloud Application, Part I]]></title>
+    <link href="http://alesnosek.com/blog/2018/01/10/edge-security-for-your-cloud-application-part-i/"/>
+    <updated>2018-01-10T23:09:17-08:00</updated>
+    <id>http://alesnosek.com/blog/2018/01/10/edge-security-for-your-cloud-application-part-i</id>
+    <content type="html"><![CDATA[<p>When designing a cloud application, one of the challenges you need to tackle is the secure communication of your clients with your servers over the public Internet. In this post, I&rsquo;m going to sketch a system architecture that allows you to authenticate the clients and exchange data between your clients and servers securely. The proposed architecture is also suitable when migrating an existing application, which didn&rsquo;t implement the secure communication, to the cloud.</p>
+
+<!-- more -->
+
+
+<p>In this article, we are going to assume that we&rsquo;re dealing with a multi-tenant cloud application whose architecture follows the <a href="https://en.wikipedia.org/wiki/Service-oriented_architecture">SOA</a> architecture principles. The application consists of several edge services that accept the incoming client requests. After validating the incoming request, the request is passed to the backend services for processing. Here is a diagram depicting such an application:</p>
+
+<p><img src="/images/posts/edge_security_for_your_cloud_application_soa.svg" width="800" height="1000" title="SOA architecture" ></p>
+
+<h2>Requirements</h2>
+
+<p>Before we start walking through the design, let&rsquo;s take a look at the set of requirements that drove the design decisions:</p>
+
+<ol>
+<li><p>One of the first steps of request validation should be the client authentication. Requests originating from the clients that fail to authenticate should be refused immediately.</p></li>
+<li><p>We don&rsquo;t impose any restrictions on what protocol is used by the clients to communicate with our application. Typically, clients will leverage the HTTP protocol but we want to support any TCP based protocol. In other words, our application doesn&rsquo;t have to be a web service.</p></li>
+<li><p>From the past, we inherited some clients that are not able to communicate in a secure way. For instance, they are only able to talk plain HTTP and don&rsquo;t support HTTPS. We would like to make such clients work with our application without the need to modify the clients themselves.</p></li>
+<li><p>And last but not least, we would like to avoid the need to establish a VPN connection between the client machine and the cloud. In practice, setting up a VPN connection requires quite invasive configuration of the client operating system. For our application tenants (our customers) this would impose a barrier that would hurt the adoption of our cloud application. Something we definitely don&rsquo;t want.</p></li>
+</ol>
+
+
+<h2>The edge layer</h2>
+
+<p>SSL/TLS is a family of security protocols that many VPNs rely upon. Currently, the TLS protocol is considered to be one of the strongest and most mature security protocols available. It was a clear choice for us to leverage the TLS protocol for communication between the clients and servers including the mutual authentication using PKI certificates. Finally, here is a diagram showing the edge layer of our cloud application in detail:</p>
+
+<p><img src="/images/posts/edge_security_for_your_cloud_application_server.svg" width="800" height="1000" title="The edge layer" ></p>
+
+<h2>Internet-facing ELB</h2>
+
+<p>Interestingly, AWS Elastic load balancers don&rsquo;t support client certificate authentication. Both, Classic load balancer and Application load balancer, support TLS offloading where they can terminate the TLS connection for you. However, they are not able to authenticate the client certificate and they also don&rsquo;t allow forwarding the certificate details to the backend application which could carry out the authentication by itself. In order to implement the client certificate authentication, you are pretty much left with two options: you can either use the Classic load balancer in the TCP mode, or you can employ the Network load balancer which operates on the TCP level. In both cases, the Elastic load balancer just passes the TLS connection through to your EC2 instances where you have to terminate and authenticate the TLS connection yourself. As the connection between ELB and the EC2 instances remains encrypted, you are gaining a plus from the security standpoint, too.</p>
+
+<p>While ELB doesn&rsquo;t authenticate clients, it plays an important role in our architecture. First, ELB is highly-available and distributes the traffic to several edge instances that are not highly-available. Second, ELB implements a layer 3 (e.g. UDP reflection) and layer 4 (e.g. SYN flood) DDOS attack protection.</p>
+
+<p>Btw., Amazon API Gateway doesn&rsquo;t support client certificate authentication either and so is less helpful for our scenario.</p>
+
+<h2>Reverse proxy on edge instances</h2>
+
+<p>Depending on your architecture, your edge services may or may not have a support for accepting TLS connections built in. I personally see the connection security to be a job for the infrastructure and would vote against implementing the TLS support in your application services. Here are some concrete arguments why to terminate the TLS connection outside of your application services:</p>
+
+<ol>
+<li><p>Your application services may be written in different languages. For each language and its runtime, the TLS configuration is different. You don&rsquo;t want to spend your time figuring out, how to configure TLS on Apache Tomcat, Eclipse Jetty, Apache server, Node.js and others, do you? Different technologies support different TLS features. For example, TLS SNI is supported only in Tomcat >= 8.5. Researching the supported feature set of every runtime is time consuming.</p></li>
+<li><p>The proxy provides a good place to monitor and log what&rsquo;s going on on the wire. Remember that ELB won&rsquo;t have any insight into your traffic as the traffic is TLS encrypted.</p></li>
+<li><p>You may want to automate the TLS certificate rotation and revocation. You&rsquo;ll have to implement this for all your different web servers. That&rsquo;s quite a bit of work.</p></li>
+</ol>
+
+
+<p>Instead of handling TLS in your application services, I would recommend deploying a reverse proxy in front of your services. This proxy will terminate the incoming TLS connection. This will allow you to manage all the TLS related settings in one place. The battle-tested proxies like <a href="http://www.haproxy.org/">HAProxy</a> or <a href="https://www.nginx.com/">NGINX</a> can authenticate the client certificate against a trusted certificate authority. They can also forward the certificate details to your edge service which can implement a more complex authentication logic if you need it.</p>
+
+<p>You should deploy the reverse proxy on the same instance with your edge service. This way, the decrypted communication between the proxy and your service will never leave the instance. In order to capture the decrypted traffic, one would need to have a root access on the instance. The possibility to capture the communication in the clear will come handy when troubleshooting, though.</p>
+
+<h2>The client side</h2>
+
+<p>After discussing the server-side design, let&rsquo;s talk about the client-side part of the picture. As we mentioned in the requirements section above, our architecture has to also support clients that don&rsquo;t have the TLS functionality built in. In turns out that there are actually three different client types:</p>
+
+<ol>
+<li>Clients with native TLS mutual authentication support</li>
+<li>Clients with no TLS support at all</li>
+<li>Clients supporting TLS with one-way authentication only, i.e. the client is able to authenticate the server certificate but it doesn&rsquo;t present its own certificate to the server.</li>
+</ol>
+
+
+<p>There is nothing special to do for the clients with native TLS mutual authentication support. They can directly connect to the application servers. To ensure the secure communication for the remaining two client types, we&rsquo;re going to deploy a proxy on the client machines. This proxy will enforce the TLS mutually authenticated connection over the Internet. A diagram depicting the three client types looks as follows:</p>
+
+<p><img src="/images/posts/edge_security_for_your_cloud_application_client.svg" width="600" height="800" title="The client side" ></p>
+
+<p>In the case number two, the proxy is configured in the SSL/TLS encryption mode. It accepts an unencrypted connection from the client and forwards the communication over a TLS encrypted channel to the server.  For the case number three, the proxy must be configured using the SSL/TLS bridging aka re-encryption mode. The proxy accepts an encrypted connection from the client, creates a separate encrypted connection to the server and passes the data between the two connections. Both HAProxy and Nginx support these configuration modes. You can also refer to the TLS layouts described in the HAProxy <a href="https://www.haproxy.com/documentation/aloha/7-0/deployment-guides/tls-layouts/">documentation</a>.</p>
+
+<p>Alternatively, as a proxy one could also employ <a href="https://www.stunnel.org">stunnel</a>. Before the SSL/TLS support was built into HAProxy, stunnel used to be deployed along with HAProxy to provide the SSL/TLS functionality. To accomplish the case number three using stunnel, one would actually need to combine two stunnels in series.</p>
+
+<p>Recently, a modern <a href="https://www.envoyproxy.io/">Envoy</a> proxy emerged and I would like to encourage you to check it out. It provides a really impressive set of features that goes far beyond the load balancing functionality: automatic retries, circuit breaking, zone local load balancing, very detailed metrics etc. Envoy helps to solve several networking problems common to the cloud-native applications. In our proposed architecture, Envoy would be deployed in the role of an edge proxy on the server side as well as in the role of the service proxy on the client side.</p>
+
+<p>Whichever proxy you choose on the client-side, remember to deploy it in a highly available fashion. You don&rsquo;t want to introduce a single point of failure into your system, do you?</p>
+
+<h2>Conclusion</h2>
+
+<p>In this post, we walked through the secure edge design explaining the reasoning behind the individual design decisions. In the <a href="/blog/2018/01/12/edge-security-for-your-cloud-application-part-ii">second blog post</a> of this miniseries, we&rsquo;re going to demonstrate a practical implementation of our approach using HAProxy.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[AWS Lambda Adapter for Vert.x Web Applications]]></title>
@@ -147,7 +946,7 @@
 <span class='line-number'>8</span>
 <span class='line-number'>9</span>
 </pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>oc login &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;https://api.starter-us-west-1.openshift.com&quot;</span>&gt;https://api.starter-us-west-1.openshift.com&lt;/a&gt; <span class="p">&amp;</span>ndash<span class="p">;</span><span class="nv">token</span><span class="o">=</span>6BoQ7DQ8nUeEE3FOWzvDCgcUD0T6LdBBZEuUiPlD7Tc
-</span><span class='line'>Logged into <span class="p">&amp;</span>ldquo<span class="p">;</span>&lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;https://api.starter-us-west-1.openshift.com:443&quot;</span>&gt;https://api.starter-us-west-1.openshift.com:443&lt;/a&gt;<span class="p">&amp;</span>rdquo<span class="p">;</span> as <span class="p">&amp;</span>ldquo<span class="p">;</span>&lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#x6d;&amp;#x61;&amp;#105;&amp;#108;&amp;#116;&amp;#x6f;&amp;#58;&amp;#97;&amp;#110;&amp;#x6f;&amp;#x73;&amp;#101;&amp;#x6b;&amp;#64;&amp;#101;&amp;#120;&amp;#97;&amp;#109;&amp;#x70;&amp;#x6c;&amp;#101;&amp;#x2e;&amp;#99;&amp;#x6f;&amp;#109;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#97;&amp;#110;&amp;#x6f;&amp;#115;&amp;#x65;&amp;#107;&amp;#x40;&amp;#101;&amp;#x78;&amp;#x61;&amp;#109;&amp;#112;&amp;#x6c;&amp;#x65;&amp;#x2e;&amp;#99;&amp;#111;&amp;#x6d;&lt;/a&gt;&amp;rdquo; using the token provided.&lt;/p&gt;</span>
+</span><span class='line'>Logged into <span class="p">&amp;</span>ldquo<span class="p">;</span>&lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;https://api.starter-us-west-1.openshift.com:443&quot;</span>&gt;https://api.starter-us-west-1.openshift.com:443&lt;/a&gt;<span class="p">&amp;</span>rdquo<span class="p">;</span> as <span class="p">&amp;</span>ldquo<span class="p">;</span>&lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#109;&amp;#97;&amp;#105;&amp;#108;&amp;#x74;&amp;#111;&amp;#x3a;&amp;#97;&amp;#x6e;&amp;#111;&amp;#115;&amp;#101;&amp;#x6b;&amp;#x40;&amp;#x65;&amp;#x78;&amp;#x61;&amp;#109;&amp;#112;&amp;#x6c;&amp;#101;&amp;#x2e;&amp;#99;&amp;#111;&amp;#x6d;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#x61;&amp;#110;&amp;#x6f;&amp;#115;&amp;#x65;&amp;#x6b;&amp;#x40;&amp;#101;&amp;#x78;&amp;#x61;&amp;#x6d;&amp;#112;&amp;#108;&amp;#x65;&amp;#x2e;&amp;#x63;&amp;#111;&amp;#x6d;&lt;/a&gt;&amp;rdquo; using the token provided.&lt;/p&gt;</span>
 </span><span class='line'>
 </span><span class='line'>&lt;p&gt;You don<span class="p">&amp;</span>rsquo<span class="p">;</span>t have any projects. You can try to create a new project, by running&lt;/p&gt;
 </span><span class='line'>
@@ -247,7 +1046,7 @@
 </pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>oc logs -f bc/openshift-php-hello
 </span><span class='line'>Cloning <span class="p">&amp;</span>ldquo<span class="p">;</span>&lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;https://github.com/noseka1/openshift-php-hello.git&quot;</span>&gt;https://github.com/noseka1/openshift-php-hello.git&lt;/a&gt;<span class="p">&amp;</span>rdquo<span class="p">;</span> <span class="p">&amp;</span>hellip<span class="p">;</span>
 </span><span class='line'>        Commit: 35d7f33ca8180b9a331d9bd5ce4735c941da9d03 <span class="o">(</span>Add index.php<span class="o">)</span>
-</span><span class='line'>        Author: Ales Nosek &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#x6d;&amp;#97;&amp;#105;&amp;#108;&amp;#116;&amp;#111;&amp;#x3a;&amp;#97;&amp;#x6c;&amp;#101;&amp;#115;&amp;#46;&amp;#110;&amp;#111;&amp;#115;&amp;#101;&amp;#107;&amp;#64;&amp;#103;&amp;#x6d;&amp;#97;&amp;#x69;&amp;#108;&amp;#x2e;&amp;#99;&amp;#x6f;&amp;#109;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#x61;&amp;#108;&amp;#101;&amp;#115;&amp;#x2e;&amp;#x6e;&amp;#111;&amp;#x73;&amp;#x65;&amp;#x6b;&amp;#64;&amp;#x67;&amp;#109;&amp;#97;&amp;#105;&amp;#108;&amp;#x2e;&amp;#99;&amp;#x6f;&amp;#x6d;&lt;/a&gt;</span>
+</span><span class='line'>        Author: Ales Nosek &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#109;&amp;#x61;&amp;#105;&amp;#108;&amp;#x74;&amp;#x6f;&amp;#58;&amp;#97;&amp;#x6c;&amp;#101;&amp;#115;&amp;#46;&amp;#x6e;&amp;#x6f;&amp;#115;&amp;#101;&amp;#x6b;&amp;#64;&amp;#x67;&amp;#109;&amp;#97;&amp;#x69;&amp;#108;&amp;#x2e;&amp;#x63;&amp;#111;&amp;#x6d;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#97;&amp;#x6c;&amp;#x65;&amp;#115;&amp;#46;&amp;#110;&amp;#111;&amp;#115;&amp;#x65;&amp;#x6b;&amp;#64;&amp;#x67;&amp;#x6d;&amp;#97;&amp;#x69;&amp;#x6c;&amp;#x2e;&amp;#99;&amp;#x6f;&amp;#x6d;&lt;/a&gt;</span>
 </span><span class='line'>        Date:   Mon Aug <span class="m">28</span> 13:50:56 <span class="m">2017</span> -0700
 </span><span class='line'>Pulling image <span class="p">&amp;</span>ldquo<span class="p">;</span>registry.access.redhat.com/rhscl/php-70-rhel7@sha256:1f12d421bfc18874c5a7fdc41634ca5dd1cbd955c437738d571088e65dd0ba51<span class="p">&amp;</span>rdquo<span class="p">;</span> <span class="p">&amp;</span>hellip<span class="p">;</span>
 </span><span class='line'><span class="p">&amp;</span>mdash<span class="p">;</span>&gt; Installing application <span class="nb">source</span><span class="p">&amp;</span>hellip<span class="p">;</span>&lt;/p&gt;
@@ -441,404 +1240,6 @@
 <p>OpenShift is a feature-rich container platform. In this blog post, we were only able to scratch the surface.</p>
 
 <p>Are you considering to host your containerized application on OpenShift? Or are you already running your production apps on OpenShift? I would like to hear your experiences, please, leave your comments below.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[How I Became a Red Hat Certified Architect in One Year]]></title>
-    <link href="http://alesnosek.com/blog/2017/08/01/how-i-became-a-red-hat-certified-architect-in-one-year/"/>
-    <updated>2017-08-01T22:47:14-07:00</updated>
-    <id>http://alesnosek.com/blog/2017/08/01/how-i-became-a-red-hat-certified-architect-in-one-year</id>
-    <content type="html"><![CDATA[<p>Roughly a year ago, my boss offered to me a Red Hat Learning Subscription. Because continuous education belongs to the habits of a good software practitioner, I appreciated this opportunity to deepen my knowledge of Red Hat technologies. At that time I didn&rsquo;t have an idea about how much fun I was going to have on my journey to become a Red Hat Certified Architect. Read more, if you want to find out!</p>
-
-<!-- more -->
-
-
-<p>In Wikipedia, you can find a great <a href="https://en.wikipedia.org/wiki/Red_Hat_Certification_Program">overview</a> of the Red Hat certification program. To achieve the Red Hat Certified Architect level, you have to pass seven exams in total. The certification path starts with the RHCSA and RHCE exams. After becoming RHCE, you will have to pass five more exams based on your choice to obtain the RHCA certificate.</p>
-
-<h2>Starting off with RHCSA and RHCE</h2>
-
-<p><img class="right" src="/images/posts/rhcsa_logo.png" width="130" height="130"></p>
-
-<p>The certification path begins with an entry-level certification - Red Hat Certified System Administrator (<a href="https://www.redhat.com/en/services/certification/rhcsa">RHCSA</a>). In the exam, I had to demonstrate basic Linux administration skills like creating users and groups, managing file system permissions including POSIX access control lists (ACLs), creating cron jobs, basics of SELinux, managing software packages with yum, creating and mounting local file systems, working with LVM, network configuration, mounting NFS and SMB file systems and firewall configuration. I had plenty of time to complete all the exam tasks. Overall, RHCSA didn&rsquo;t seem too difficult to me.</p>
-
-<p><img class="right" src="/images/posts/rhce_logo.png" width="80" height="80"></p>
-
-<p>About two weeks after passing the RHCSA, I took the next exam - the Red Hat Certified Engineer (<a href="https://www.redhat.com/en/services/certification/rhce">RHCE</a>) exam. The main focus of this exam was configuration of a caching DNS server (unbound), SMTP nullclient (Postfix), configuration of an iSCSI target and initiator, configuration of Apache web server including HTTPS, running MariaDB, configuration of NFS and SMB servers and basic shell scripting. Based on the experience from the RHCSA exam, I thought that I would have more than enough of time again to complete my tasks and perhaps make myself a coffee, too. How wrong I was! The RHCE exam is loaded with so many tasks that you will be very busy for the entire 3.5 hours. Due to my rather slow and relaxed approach at the beginning of the exam, I was not able to complete all the tasks in time. In the end, I was very happy that I still passed.</p>
-
-<p>You can find further details about my RHCSA/RHCE experience in <a href="/blog/2016/11/07/rhcsa-slash-rhce-exam-experience/">this</a> blog post.</p>
-
-<h2>Climbing to the top</h2>
-
-<p><img class="right" src="/images/posts/rhca_logo.png" width="150" height="150"></p>
-
-<p>After becoming a Red Hat Certified Engineer, I turned my attention to the Red Hat Certified Architect (<a href="https://www.redhat.com/en/services/certification/rhca">RHCA</a>) certification. To achieve this highest level of certification, I had to pass five additional exams based on my own selection. Red Hat provides about twenty exams to choose from, divided into concentrations like Datacenter, DevOps, Application platform or Cloud. The concentrations are only advisory. You can pick exams across concentrations which I also did.</p>
-
-<p>At the time I was choosing my next exam, I was already working with OpenShift for several months. In order to increase my knowledge of OpenShift, I decided to take the OpenShift certification exam next. You can find my experience from the Red Hat Certificate of Expertise in Platform-as-a-Service (<a href="https://www.redhat.com/en/services/training/ex280-red-hat-certificate-expertise-platform-service-exam">EX280</a>) exam in <a href="/blog/2017/04/04/passed-the-openshift-ex280-certification/">this</a> blog post. I passed this exam with my lowest score ever but yeah, I did pass.</p>
-
-<p>During the preparation for the OpenShift exam, I had to work with Docker containers rather intensively. It would make sense to continue down the container route and take the container exams <a href="https://www.redhat.com/en/services/training/ex270-red-hat-certificate-expertise-atomic-host-container-administration">EX270</a> and <a href="https://www.redhat.com/en/services/training/ex276-red-hat-certificate-expertise-containerized-application-development">EX276</a> next. However, I realized that the OpenStack certification exams which I planned to take, too, were not available at my location. As I already had travel plans to Prague where the OpenStack exams were available, I decided to shift the gears and started preparing for the two OpenStack exams Red Hat Certified System Administrator in Red Hat OpenStack (<a href="https://www.redhat.com/en/services/training/ex210-red-hat-certified-system-administrator-red-hat-openstack-exam">EX210</a>) and Red Hat Certified Engineer in Red Hat OpenStack (<a href="https://www.redhat.com/en/services/training/ex310-red-hat-certified-engineer-red-hat-openstack-exam">EX310</a>). I was able to pass these two exams with the maximum score of 300 points as you can read in <a href="/blog/2017/06/26/acing-the-red-hat-openstack-certification-exams/">this</a> article.</p>
-
-<p>The last two exams on my journey were the Red Hat Certificate of Expertise in Atomic Host Container Administration (<a href="https://www.redhat.com/en/services/training/ex270-red-hat-certificate-expertise-atomic-host-container-administration">EX270</a>) and the Red Hat Certificate of Expertise in Containerized Application Development (<a href="https://www.redhat.com/en/services/training/ex276-red-hat-certificate-expertise-containerized-application-development">EX276</a>). I wrote about my experiences from these two exams <a href="/blog/2017/07/29/passed-red-hat-container-certifications-ex270-and-ex276/">here</a>. These two exams concluded my journey and I became a Red Hat Certified Architect.</p>
-
-<p>Red Hat maintains a web page showing a track record of each Red Hat Certified Professional. The list of my Red Hat certifications can be found on this <a href="https://www.redhat.com/rhtapps/certification/verify/?certId=160-216-727">Verify a Red Hat Certified Professional</a> page.</p>
-
-<h2>What&rsquo;s next?</h2>
-
-<p>The RHCA status doesn&rsquo;t last forever as I learned on the Red Hat web page describing how to <a href="http://servicesblog.redhat.com/2016/09/23/stay-current/">stay current</a>. In order for my RHCA to stay current, I must maintain five eligible credentials beyond the RHCE level. Certificates that I obtained beyond the RHCE are valid for three years. That means that I must take five exams every three years in order to maintain my RHCA status. Those five exams can be the same five exams I already passed before or I can pick any other exams from the selection of exams eligible for RHCA. Besides that, as a RHCA I&rsquo;m entitled to a 50 percent discount on the <a href="https://www.redhat.com/en/about/videos/red-hat-learning-subscription-standard">Red Hat Learning Subscription - Standard</a>. This subscription includes all the prep materials and five first exam attempts.</p>
-
-<p>It seems to me that the best way to maintain my RHCA status would be to buy the Learning Subscription every three years and use it to pass five exams. Currently, the Learning Subscription costs $7000 which would be $3500 after the 50 percent discount. In three years from now, I&rsquo;m looking forward to the respective conversation with my boss ;-)</p>
-
-<p>Are you a fellow RHCA? Would you like to share some details about your certification journey? And do you plan do maintain your RHCA? I would like to hear from you, feel free to leave your comments below.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[Check-and-Set Operation and Transactions in Consul]]></title>
-    <link href="http://alesnosek.com/blog/2017/07/25/check-and-set-operation-and-transactions-in-consul/"/>
-    <updated>2017-07-25T23:07:07-07:00</updated>
-    <id>http://alesnosek.com/blog/2017/07/25/check-and-set-operation-and-transactions-in-consul</id>
-    <content type="html"><![CDATA[<p>In the <a href="/blog/2017/07/15/first-look-at-the-key-value-store-in-consul/">previous</a> blog post, we were checking out the basic functionality of the key-value store in Consul. In this article, we will explore two of the more advanced features of Consul&rsquo;s key-value store, namely: Check-and-Set operation and transactions.</p>
-
-<!-- more -->
-
-
-<p><img class="right" src="/images/posts/consul_logo.png" width="200" height="300"></p>
-
-<p>For our experimenting, let&rsquo;s start a one-node Consul cluster. The meaning of the individual command-line parameters was described in the <a href="/blog/2017/07/15/first-look-at-the-key-value-store-in-consul/">previous</a> article:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul agent -ui -server -data-dir mydata -advertise 127.0.0.1 -bootstrap-expect 1
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>In a short moment, the one-node Consul cluster should be up and ready. In the following, we&rsquo;re going to leverage Consul&rsquo;s <a href="https://www.consul.io/api/index.html">HTTP API</a> as not all the desired functionality is exposed via the command-line client. First, let&rsquo;s verify that the Consul cluster is working properly. For that, we&rsquo;ll ask it to provide us with a list of cluster nodes:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>curl &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;http://localhost:8500/v1/catalog/nodes?pretty&quot;</span>&gt;http://localhost:8500/v1/catalog/nodes?pretty&lt;/a&gt;
-</span><span class='line'><span class="o">[</span>
-</span><span class='line'>    <span class="o">{</span>
-</span><span class='line'>        <span class="p">&amp;</span>ldquo<span class="p">;</span>ID<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span>be79786e-749d-758c-2b65-824c1e956788<span class="p">&amp;</span>rdquo<span class="p">;</span>,
-</span><span class='line'>        <span class="p">&amp;</span>ldquo<span class="p">;</span>Node<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span>zihadlo<span class="p">&amp;</span>rdquo<span class="p">;</span>,
-</span><span class='line'>        <span class="p">&amp;</span>ldquo<span class="p">;</span>Address<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span>127.0.0.1<span class="p">&amp;</span>rdquo<span class="p">;</span>,
-</span><span class='line'>        <span class="p">&amp;</span>ldquo<span class="p">;</span>Datacenter<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span>dc1<span class="p">&amp;</span>rdquo<span class="p">;</span>,
-</span><span class='line'>        <span class="p">&amp;</span>ldquo<span class="p">;</span>TaggedAddresses<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="o">{</span>
-</span><span class='line'>            <span class="p">&amp;</span>ldquo<span class="p">;</span>lan<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span>127.0.0.1<span class="p">&amp;</span>rdquo<span class="p">;</span>,
-</span><span class='line'>            <span class="p">&amp;</span>ldquo<span class="p">;</span>wan<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span>127.0.0.1<span class="p">&amp;</span>rdquo<span class="p">;</span>
-</span><span class='line'>        <span class="o">}</span>,
-</span><span class='line'>        <span class="p">&amp;</span>ldquo<span class="p">;</span>Meta<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="o">{}</span>,
-</span><span class='line'>        <span class="p">&amp;</span>ldquo<span class="p">;</span>CreateIndex<span class="p">&amp;</span>rdquo<span class="p">;</span>: 5,
-</span><span class='line'>        <span class="p">&amp;</span>ldquo<span class="p">;</span>ModifyIndex<span class="p">&amp;</span>rdquo<span class="p">;</span>: 6
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'><span class="o">]</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>The response from Consul contains information about the single node which is what we expected.</p>
-
-<h2>Check-and-Set operation</h2>
-
-<p>The purpose of the Check-and-Set operation is to avoid lost updates when multiple clients are simultaneously trying to update a value of the same key. Check-and-Set operation allows the update to happen only if the value has not been changed since the client last read it. If the current value does not match what the client previously read, the client will receive a conflicting update error message and will have to retry the read-update cycle.</p>
-
-<p>The Check-and-Set operation can be used to implement a shared counter, semaphore or a distributed lock. Let&rsquo;s demonstrate how to create a basic distributed lock using the Check-and-Set operation. We&rsquo;ll start with creating a key that will represent our lock:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>curl <span class="p">&amp;</span>ndash<span class="p">;</span>request PUT &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;http://localhost:8500/v1/kv/mylock&quot;</span>&gt;http://localhost:8500/v1/kv/mylock&lt;/a&gt; <span class="p">&amp;</span>ndash<span class="p">;</span>data <span class="p">&amp;</span>ldquo<span class="p">;&amp;</span>rdquo<span class="p">;</span>
-</span><span class='line'><span class="nb">true</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>We created the <code>mylock</code> key holding an empty value. The empty value signalizes that the lock is not taken. Before trying to acquire the lock, each client has to check whether the lock is unlocked:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>curl &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;http://localhost:8500/v1/kv/mylock?pretty&quot;</span>&gt;http://localhost:8500/v1/kv/mylock?pretty&lt;/a&gt;
-</span><span class='line'><span class="o">[</span>
-</span><span class='line'>    <span class="o">{</span>
-</span><span class='line'>        <span class="p">&amp;</span>ldquo<span class="p">;</span>LockIndex<span class="p">&amp;</span>rdquo<span class="p">;</span>: 0,
-</span><span class='line'>        <span class="p">&amp;</span>ldquo<span class="p">;</span>Key<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span>mylock<span class="p">&amp;</span>rdquo<span class="p">;</span>,
-</span><span class='line'>        <span class="p">&amp;</span>ldquo<span class="p">;</span>Flags<span class="p">&amp;</span>rdquo<span class="p">;</span>: 0,
-</span><span class='line'>        <span class="p">&amp;</span>ldquo<span class="p">;</span>Value<span class="p">&amp;</span>rdquo<span class="p">;</span>: null,
-</span><span class='line'>        <span class="p">&amp;</span>ldquo<span class="p">;</span>CreateIndex<span class="p">&amp;</span>rdquo<span class="p">;</span>: 5638,
-</span><span class='line'>        <span class="p">&amp;</span>ldquo<span class="p">;</span>ModifyIndex<span class="p">&amp;</span>rdquo<span class="p">;</span>: 5638
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'><span class="o">]</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>The value of the key in the Consul&rsquo;s response is still empty (null) which indicates that nobody is holding the lock. The second important item in the Consul&rsquo;s response is the <code>ModifyIndex</code>. Each key in the key-value store has its own <code>ModifyIndex</code>. The <code>ModifyIndex</code> is incremented by Consul each time the respective key is modified.</p>
-
-<p>After verifying that the lock is not taken, the client can try to acquire it:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>curl <span class="p">&amp;</span>ndash<span class="p">;</span>request PUT &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;http://localhost:8500/v1/kv/mylock?cas=5638&quot;</span>&gt;http://localhost:8500/v1/kv/mylock?cas<span class="o">=</span>5638&lt;/a&gt; <span class="p">&amp;</span>ndash<span class="p">;</span>data <span class="p">&amp;</span>ldquo<span class="p">;</span>client1<span class="p">&amp;</span>rdquo<span class="p">;</span>
-</span><span class='line'><span class="nb">true</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>The client is trying to update the value of the key <code>mylock</code>. The value of the <code>ModifyIndex</code> is passed along as the query parameter <code>cas=5638</code> (cas meaning Check-and-Set). Because the query parameter <code>cas=5638</code> is specified in the request, Consul will update the value of the <code>mylock</code> key only if the current <code>ModifyIndex</code> of the <code>mylock</code> key matches 5638. In other words, the key has not been updated since the client last read it. In our example, the update was successful and the client is now holding the lock. Note that an arbitrary non-empty value can be stored under the <code>mylock</code> key. We chose to use the identification of the client that has acquired the lock.</p>
-
-<p>Let&rsquo;s pretend that at the same time a second client was competing for the lock. The <code>client2</code> was trying to acquire the lock by sending this request to Consul including the same query parameter <code>cas=5638</code>:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>curl <span class="p">&amp;</span>ndash<span class="p">;</span>request PUT &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;http://localhost:8500/v1/kv/mylock?cas=5638&quot;</span>&gt;http://localhost:8500/v1/kv/mylock?cas<span class="o">=</span>5638&lt;/a&gt; <span class="p">&amp;</span>ndash<span class="p">;</span>data <span class="p">&amp;</span>ldquo<span class="p">;</span>client2<span class="p">&amp;</span>rdquo<span class="p">;</span>
-</span><span class='line'><span class="nb">false</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Consul&rsquo;s response sent to <code>client2</code> shows that Consul refused to update the <code>mylock</code> value as, in the meantime, this value has been modified. In order to check the current status of the lock, <code>client2</code> can follow up with a get request:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>curl &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;http://localhost:8500/v1/kv/mylock?pretty&quot;</span>&gt;http://localhost:8500/v1/kv/mylock?pretty&lt;/a&gt;
-</span><span class='line'><span class="o">[</span>
-</span><span class='line'>    <span class="o">{</span>
-</span><span class='line'>        <span class="p">&amp;</span>ldquo<span class="p">;</span>LockIndex<span class="p">&amp;</span>rdquo<span class="p">;</span>: 0,
-</span><span class='line'>        <span class="p">&amp;</span>ldquo<span class="p">;</span>Key<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span>mylock<span class="p">&amp;</span>rdquo<span class="p">;</span>,
-</span><span class='line'>        <span class="p">&amp;</span>ldquo<span class="p">;</span>Flags<span class="p">&amp;</span>rdquo<span class="p">;</span>: 0,
-</span><span class='line'>        <span class="p">&amp;</span>ldquo<span class="p">;</span>Value<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span><span class="nv">Y2xpZW50MQ</span><span class="o">==</span><span class="p">&amp;</span>rdquo<span class="p">;</span>,
-</span><span class='line'>        <span class="p">&amp;</span>ldquo<span class="p">;</span>CreateIndex<span class="p">&amp;</span>rdquo<span class="p">;</span>: 5638,
-</span><span class='line'>        <span class="p">&amp;</span>ldquo<span class="p">;</span>ModifyIndex<span class="p">&amp;</span>rdquo<span class="p">;</span>: 5801
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'><span class="o">]</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>In Consul&rsquo;s response we can see that the lock is currently being held by <code>client1</code>. Until <code>client1</code> hasn&rsquo;t released the lock, <code>client2</code> must not try to acquire it. It can only periodically check the status of the lock and wait until it is released. To release the lock, <code>clent1</code> will simply set its value to an empty-value:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>curl <span class="p">&amp;</span>ndash<span class="p">;</span>request PUT &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;http://localhost:8500/v1/kv/mylock&quot;</span>&gt;http://localhost:8500/v1/kv/mylock&lt;/a&gt; <span class="p">&amp;</span>ndash<span class="p">;</span>data <span class="p">&amp;</span>ldquo<span class="p">;&amp;</span>rdquo<span class="p">;</span>
-</span><span class='line'><span class="nb">true</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>There are two more comments to add. First, the lock we implemented is purely advisory. All the clients working with the lock have to follow the same rules for the lock to function properly. Each client has to check that the lock was not acquired by somebody else before trying to acquire it. A misbehaved client can easily break the lock. Second, if the client holding the lock fails to release it (e.g. client crashes before releasing the lock), the lock will remain locked and no other client will be able to acquire it. More robust locks that are automatically released in the case of client failure can be implemented using the Consul&rsquo;s <a href="https://www.consul.io/docs/internals/sessions.html">sessions</a> along with the acquire and release operations.</p>
-
-<h2>Leveraging the parameter cas=0</h2>
-
-<p>In our lock implementation, we created an opened lock first and the lock acquisition comprised of two steps. In the first step, the client read the current <code>ModifyIndex</code> of the lock. In the second step, the client tried to update the lock while passing the <code>ModifyIndex</code> as a <code>cas</code> query parameter. When implementing the lock, we could have alternatively leveraged the fact that if the <code>cas</code> parameter is set to <code>0</code>, Consul will only create the key in the key-value store if it does not already exist. The state of our lock would then correspond to the existence or non-existence of the respective key in the key-value store. In order to acquire the lock, the client would send a request to create the key:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>curl <span class="p">&amp;</span>ndash<span class="p">;</span>request PUT localhost:8500/v1/kv/mykey2?cas<span class="o">=</span><span class="m">0</span> <span class="p">&amp;</span>ndash<span class="p">;</span>data <span class="p">&amp;</span>lsquo<span class="p">;</span>client1<span class="p">&amp;</span>rsquo<span class="p">;</span>
-</span><span class='line'><span class="nb">true</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>And to release the lock, the client would simply remove the respective key from the key-value store:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>curl <span class="p">&amp;</span>ndash<span class="p">;</span>request DELETE localhost:8500/v1/kv/mykey2
-</span><span class='line'><span class="nb">true</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<h2>Transactions</h2>
-
-<p><a href="https://www.consul.io/api/txn.html">Transactions</a> in Consul manage updates or selects of multiple keys within a single, atomic transaction. A list of operations that will be executed in the transaction is specified in the body of the HTTP request. First, let&rsquo;s create a list of operations and save it as a file <code>transaction1.txt</code>:</p>
-
-<p><figure class='code'><figcaption><span>transaction1.txt </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">[</span>
-</span><span class='line'>  <span class="o">{</span>
-</span><span class='line'>    <span class="p">&amp;</span>ldquo<span class="p">;</span>KV<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="o">{</span>
-</span><span class='line'>      <span class="p">&amp;</span>ldquo<span class="p">;</span>Verb<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span><span class="nb">set</span><span class="p">&amp;</span>rdquo<span class="p">;</span>,
-</span><span class='line'>      <span class="p">&amp;</span>ldquo<span class="p">;</span>Key<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span>foo<span class="p">&amp;</span>rdquo<span class="p">;</span>,
-</span><span class='line'>      <span class="p">&amp;</span>ldquo<span class="p">;</span>Value<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span><span class="nv">MQ</span><span class="o">==</span><span class="p">&amp;</span>rdquo<span class="p">;</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'>  <span class="o">}</span>,
-</span><span class='line'>  <span class="o">{</span>
-</span><span class='line'>    <span class="p">&amp;</span>ldquo<span class="p">;</span>KV<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="o">{</span>
-</span><span class='line'>      <span class="p">&amp;</span>ldquo<span class="p">;</span>Verb<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span><span class="nb">set</span><span class="p">&amp;</span>rdquo<span class="p">;</span>,
-</span><span class='line'>      <span class="p">&amp;</span>ldquo<span class="p">;</span>Key<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span>bar<span class="p">&amp;</span>rdquo<span class="p">;</span>,
-</span><span class='line'>      <span class="p">&amp;</span>ldquo<span class="p">;</span>Value<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span><span class="nv">Mg</span><span class="o">==</span><span class="p">&amp;</span>rdquo<span class="p">;</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'>  <span class="o">}</span>
-</span><span class='line'><span class="o">]</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Our transaction doesn&rsquo;t do anything spectacular. It just creates two key-value pairs <code>foo=1</code> and <code>bar=2</code>. Let&rsquo;s submit the transaction to Consul:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>curl <span class="p">&amp;</span>ndash<span class="p">;</span>request PUT <span class="p">&amp;</span>lsquo<span class="p">;</span>localhost:8500/v1/txn?pretty<span class="p">&amp;</span>rsquo<span class="p">;</span> <span class="p">&amp;</span>ndash<span class="p">;</span>data @transaction1.txt
-</span><span class='line'><span class="o">{</span>
-</span><span class='line'>    <span class="p">&amp;</span>ldquo<span class="p">;</span>Results<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="o">[</span>
-</span><span class='line'>        <span class="o">{</span>
-</span><span class='line'>            <span class="p">&amp;</span>ldquo<span class="p">;</span>KV<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="o">{</span>
-</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>LockIndex<span class="p">&amp;</span>rdquo<span class="p">;</span>: 0,
-</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>Key<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span>foo<span class="p">&amp;</span>rdquo<span class="p">;</span>,
-</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>Flags<span class="p">&amp;</span>rdquo<span class="p">;</span>: 0,
-</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>Value<span class="p">&amp;</span>rdquo<span class="p">;</span>: null,
-</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>CreateIndex<span class="p">&amp;</span>rdquo<span class="p">;</span>: 7267,
-</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>ModifyIndex<span class="p">&amp;</span>rdquo<span class="p">;</span>: 7267
-</span><span class='line'>            <span class="o">}</span>
-</span><span class='line'>        <span class="o">}</span>,
-</span><span class='line'>        <span class="o">{</span>
-</span><span class='line'>            <span class="p">&amp;</span>ldquo<span class="p">;</span>KV<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="o">{</span>
-</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>LockIndex<span class="p">&amp;</span>rdquo<span class="p">;</span>: 0,
-</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>Key<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span>bar<span class="p">&amp;</span>rdquo<span class="p">;</span>,
-</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>Flags<span class="p">&amp;</span>rdquo<span class="p">;</span>: 0,
-</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>Value<span class="p">&amp;</span>rdquo<span class="p">;</span>: null,
-</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>CreateIndex<span class="p">&amp;</span>rdquo<span class="p">;</span>: 7267,
-</span><span class='line'>                <span class="p">&amp;</span>ldquo<span class="p">;</span>ModifyIndex<span class="p">&amp;</span>rdquo<span class="p">;</span>: 7267
-</span><span class='line'>            <span class="o">}</span>
-</span><span class='line'>        <span class="o">}</span>
-</span><span class='line'>    <span class="o">]</span>,
-</span><span class='line'>    <span class="p">&amp;</span>ldquo<span class="p">;</span>Errors<span class="p">&amp;</span>rdquo<span class="p">;</span>: null
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>The transaction completed successfully. In the response from Consul, we can find the list of results. The order of results corresponds to the order of operations that we submitted in our request. The value of the <code>ModifyIndex</code> <code>7267</code> is the same for both keys <code>foo</code> and <code>bar</code> as they were updated in the same transaction.</p>
-
-<p>Next, let&rsquo;s see what happens if one of the operations in the transaction fails. To demonstrate this, we&rsquo;ll create a transaction that consists of two operations. The first operation updates the key <code>foo</code> to value <code>10</code>. The second operation updates the key <code>bar</code> to value <code>20</code> but only if the <code>ModifyIndex</code> of <code>bar</code> matches 100. We know that this condition is not fulfilled and the update should fail.</p>
-
-<p><figure class='code'><figcaption><span>transaction2.txt </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">[</span>
-</span><span class='line'>  <span class="o">{</span>
-</span><span class='line'>    <span class="p">&amp;</span>ldquo<span class="p">;</span>KV<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="o">{</span>
-</span><span class='line'>      <span class="p">&amp;</span>ldquo<span class="p">;</span>Verb<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span><span class="nb">set</span><span class="p">&amp;</span>rdquo<span class="p">;</span>,
-</span><span class='line'>      <span class="p">&amp;</span>ldquo<span class="p">;</span>Key<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span>foo<span class="p">&amp;</span>rdquo<span class="p">;</span>,
-</span><span class='line'>      <span class="p">&amp;</span>ldquo<span class="p">;</span>Value<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span><span class="nv">MTA</span><span class="o">=</span><span class="p">&amp;</span>rdquo<span class="p">;</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'>  <span class="o">}</span>,
-</span><span class='line'>  <span class="o">{</span>
-</span><span class='line'>    <span class="p">&amp;</span>ldquo<span class="p">;</span>KV<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="o">{</span>
-</span><span class='line'>      <span class="p">&amp;</span>ldquo<span class="p">;</span>Verb<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span>cas<span class="p">&amp;</span>rdquo<span class="p">;</span>,
-</span><span class='line'>      <span class="p">&amp;</span>ldquo<span class="p">;</span>Index<span class="p">&amp;</span>rdquo<span class="p">;</span>: 100,
-</span><span class='line'>      <span class="p">&amp;</span>ldquo<span class="p">;</span>Key<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span>bar<span class="p">&amp;</span>rdquo<span class="p">;</span>,
-</span><span class='line'>      <span class="p">&amp;</span>ldquo<span class="p">;</span>Value<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span><span class="nv">MjA</span><span class="o">=</span><span class="p">&amp;</span>rdquo<span class="p">;</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'>  <span class="o">}</span>
-</span><span class='line'><span class="o">]</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Let&rsquo;s submit the transaction to Consul:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>curl <span class="p">&amp;</span>ndash<span class="p">;</span>request PUT <span class="p">&amp;</span>lsquo<span class="p">;</span>localhost:8500/v1/txn?pretty<span class="p">&amp;</span>rsquo<span class="p">;</span> <span class="p">&amp;</span>ndash<span class="p">;</span>data @transaction2.txt
-</span><span class='line'><span class="o">{</span>
-</span><span class='line'>    <span class="p">&amp;</span>ldquo<span class="p">;</span>Results<span class="p">&amp;</span>rdquo<span class="p">;</span>: null,
-</span><span class='line'>    <span class="p">&amp;</span>ldquo<span class="p">;</span>Errors<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="o">[</span>
-</span><span class='line'>        <span class="o">{</span>
-</span><span class='line'>            <span class="p">&amp;</span>ldquo<span class="p">;</span>OpIndex<span class="p">&amp;</span>rdquo<span class="p">;</span>: 1,
-</span><span class='line'>            <span class="p">&amp;</span>ldquo<span class="p">;</span>What<span class="p">&amp;</span>rdquo<span class="p">;</span>: <span class="p">&amp;</span>ldquo<span class="p">;</span>failed to <span class="nb">set </span>key <span class="se">\&quot;</span>bar<span class="se">\&amp;</span>rdquo<span class="p">;</span>, index is stale<span class="err">&quot;</span>
-</span><span class='line'>        <span class="o">}</span>
-</span><span class='line'>    <span class="o">]</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>The transaction failed, indeed. The returned error list contains all errors that occurred during the transaction processing. The operations that failed are denoted by the <code>OpIndex</code> which starts from value 0. In the example output we can see that the second operation in our transaction failed because of the stale index. Let&rsquo;s check the values of the keys <code>foo</code> and <code>bar</code> after the failed transaction:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv get foo
-</span><span class='line'>1
-</span><span class='line'><span class="nv">$ </span>./consul kv get bar
-</span><span class='line'>2
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>As expected, due to the failed udpate the entire transaction has been rolled back. Keys <code>foo</code> and <code>bar</code> retained their original values <code>1</code> and <code>2</code>.</p>
-
-<h2>Conclusion</h2>
-
-<p>In this blog post, we explored the Check-and-Set operation supported by Consul and used it to implement a simple distributed lock. In the second part of the article, we poked into the transaction capabilities of Consul.</p>
-
-<p>And what about you? How is your experience with using Consul for distributed locking or leader election? Did you get a chance to use transactions? I would like to hear your experiences, feel free to use the comment section below.</p>
 ]]></content>
   </entry>
 
