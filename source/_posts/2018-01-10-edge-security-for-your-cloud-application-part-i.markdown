@@ -1,12 +1,12 @@
 ---
 layout: post
 title: "Edge Security for Your Cloud Application, Part I"
-date: 2017-12-26 23:09:17 -0800
+date: 2018-01-10 23:09:17 -0800
 comments: true
-categories:
+categories: cloud design devops
 ---
 
-When designing a cloud application, one of the challenges you need to tackle is the secure communication of your clients with your servers over the public Internet. In this post, I'm going to sketch an application architecture that allows you to authenticate the clients and exchange data between your clients and servers securely. The proposed architecture is also suitable when migrating an existing application which didn't implement the secure communication to the cloud.
+When designing a cloud application, one of the challenges you need to tackle is the secure communication of your clients with your servers over the public Internet. In this post, I'm going to sketch a system architecture that allows you to authenticate the clients and exchange data between your clients and servers securely. The proposed architecture is also suitable when migrating an existing application, which didn't implement the secure communication, to the cloud.
 
 <!-- more -->
 
@@ -28,16 +28,16 @@ Before we start walking through the design, let's take a look at the set of requ
 
 ## The edge layer
 
-SSL/TLS is a family of security protocols that many VPNs rely upon. Currently, the TLS protocol is considered to be one of the strongest and most mature security protocols available. It was a clear choice for us to leverage the TLS protocol for communication between the clients and the servers including the mutual authentication using the PKI certificates. Finally, here is the diagram showing the edge layer of our cloud application in detail:
+SSL/TLS is a family of security protocols that many VPNs rely upon. Currently, the TLS protocol is considered to be one of the strongest and most mature security protocols available. It was a clear choice for us to leverage the TLS protocol for communication between the clients and servers including the mutual authentication using PKI certificates. Finally, here is a diagram showing the edge layer of our cloud application in detail:
 
 {% img /images/posts/edge_security_for_your_cloud_application_server.svg 800 1000 The edge layer %}
 
 
 ## Internet-facing ELB
 
-Interestingly, AWS Elastic load balancers don't support client certificate authentication. Both, Classic load balancer and Application load balancer, support TLS offloading where they can terminate the TLS connection for you. However, they are not able to authenticate the client certificate and they also don't allow forwarding the certificate details to the backend application which could carry out the authentication by itself. In order to implement the client certificate authentication, you are pretty much left with two options: you can either use the Classic load balancer in the TCP mode, or you can employ the Network load balancer which operates on the TCP level. In both cases, the Elastic load balancer just passes the TLS connection through to your EC2 instances where you have to terminate and authenticate the TLS connection yourself. As the connection between the ELB and the EC2 instances remains encrypted, you are gaining a plus from the security standpoint, too.
+Interestingly, AWS Elastic load balancers don't support client certificate authentication. Both, Classic load balancer and Application load balancer, support TLS offloading where they can terminate the TLS connection for you. However, they are not able to authenticate the client certificate and they also don't allow forwarding the certificate details to the backend application which could carry out the authentication by itself. In order to implement the client certificate authentication, you are pretty much left with two options: you can either use the Classic load balancer in the TCP mode, or you can employ the Network load balancer which operates on the TCP level. In both cases, the Elastic load balancer just passes the TLS connection through to your EC2 instances where you have to terminate and authenticate the TLS connection yourself. As the connection between ELB and the EC2 instances remains encrypted, you are gaining a plus from the security standpoint, too.
 
-While the ELB doesn't authenticate clients, it plays an important role in our architecture. First, the ELB is highly-available and distributes the traffic to several edge instances that are not highly-available. Second, ELB implements a layer 3 (e.g. UDP reflection) and layer 4 (e.g. SYN flood) DDOS attack protection.
+While ELB doesn't authenticate clients, it plays an important role in our architecture. First, ELB is highly-available and distributes the traffic to several edge instances that are not highly-available. Second, ELB implements a layer 3 (e.g. UDP reflection) and layer 4 (e.g. SYN flood) DDOS attack protection.
 
 Btw., Amazon API Gateway doesn't support client certificate authentication either and so is less helpful for our scenario.
 
@@ -47,7 +47,7 @@ Depending on your architecture, your edge services may or may not have a support
 
 1. Your application services may be written in different languages. For each language and its runtime, the TLS configuration is different. You don't want to spend your time figuring out, how to configure TLS on Apache Tomcat, Eclipse Jetty, Apache server, Node.js and others, do you? Different technologies support different TLS features. For example, TLS SNI is supported only in Tomcat >= 8.5. Researching the supported feature set of every runtime is time consuming.
 
-2. The proxy provides a good place to monitor and log what's going on on the wire. Remember that the ELB won't have any insight into your traffic as it is TLS encrypted.
+2. The proxy provides a good place to monitor and log what's going on on the wire. Remember that ELB won't have any insight into your traffic as the traffic is TLS encrypted.
 
 3. You may want to automate the TLS certificate rotation and revocation. You'll have to implement this for all your different web servers. That's quite a bit of work.
 
@@ -73,6 +73,8 @@ Alternatively, as a proxy one could also employ [stunnel](https://www.stunnel.or
 
 Recently, a modern [Envoy](https://www.envoyproxy.io/) proxy emerged and I would like to encourage you to check it out. It provides a really impressive set of features that goes far beyond the load balancing functionality: automatic retries, circuit breaking, zone local load balancing, very detailed metrics etc. Envoy helps to solve several networking problems common to the cloud-native applications. In our proposed architecture, Envoy would be deployed in the role of an edge proxy on the server side as well as in the role of the service proxy on the client side.
 
+Whichever proxy you choose on the client-side, remember to deploy it in a highly available fashion. You don't want to introduce a single point of failure into your system, do you?
+
 ## Conclusion
 
-In this post, we walked through the secure edge design explaining the reasoning behind the individual design decisions. In the [second blog post](/blog/2017/12/28/edge-security-for-your-cloud-application-part-ii) of this miniseries, we're going to demonstrate a practical implementation of our approach using HAProxy.
+In this post, we walked through the secure edge design explaining the reasoning behind the individual design decisions. In the [second blog post](/blog/2018/01/12/edge-security-for-your-cloud-application-part-ii) of this miniseries, we're going to demonstrate a practical implementation of our approach using HAProxy.
