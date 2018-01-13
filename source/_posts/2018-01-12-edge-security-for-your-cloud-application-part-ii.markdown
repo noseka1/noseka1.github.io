@@ -6,7 +6,7 @@ comments: true
 categories: cloud design devops
 ---
 
-In this article, we're going to create a proof-of-concept deployment featuring a non-TLS client connecting to an edge service of our cloud application. We are going to leverage the architecture approach discussed in the [previous blog post](/blog/2018/01/10/edge-security-for-your-cloud-application-part-i). A secure communication channel is going to be established between the client and the edge service including the mutual authentication.
+In this article, we're going to create a proof-of-concept deployment featuring a non-TLS client connecting to our cloud application. We are going to leverage the architecture approach discussed in the [previous blog post](/blog/2018/01/10/edge-security-for-your-cloud-application-part-i). A secure communication channel is going to be established between the client and the cloud application including mutual authentication.
 
 <!-- more -->
 
@@ -16,13 +16,13 @@ Before we get our hands dirty, let's gain a better understanding of what we are 
 
 {% img /images/posts/edge_security_for_your_cloud_application_poc_arch.svg 1000 Architecture Overview %}
 
-We're going to spin up two virtual instances. The edge instance will host our service running in the cloud. The client instance will be host a client that will be accessing our edge service. For the sake of POC, the edge service is going to be an Apache web server and we're going to use the curl command-line utility in place of the client. The battle-proven HAProxy is going to play the role of the client-side as well as the server-side proxy.
+We're going to spin up two virtual instances. The edge instance will host our edge service. The client instance will host the client that will be accessing our edge service. For the sake of POC, the edge service is going to be an Apache web server and we're going to use the curl command-line utility in place of the client. The battle-proven HAProxy is going to play the role of the client-side as well as the server-side proxy, securing the client-server communication.
 
 ## Getting started
 
 You can start off with creating two CentOS 7 instances in AWS. Choose a minimalist t2.micro instance type which is sufficient for our proof of concept. In the security groups settings, make sure that in addition to the SSH port you have also enabled access to port 443 (HTTPS) from anywhere.
 
-After the instances booted up, let's install HAProxy on both instances:
+After the instances booted up, install HAProxy on both instances:
 
 {% codeblock lang:sh %}
 $ yum install -y haproxy
@@ -38,7 +38,7 @@ Make sure that you run the above command on both instances, too.
 
 ## PKI keys and certificates
 
-We are going to leverage the TLS protocol to establish a secure, mutually authenticated connection. TLS relies on PKI keys and certificates that we'll need to generate. The PKI setup for our company consists of a root CA, a layer of subordinate CAs and three end-entity certificates.
+We are going to leverage the TLS protocol to establish a secure, mutually authenticated connection between the two proxies. TLS relies on PKI keys and certificates that we'll need to generate. The PKI setup for our company consists of a root CA, a layer of subordinate CAs and three end-entity certificates.
 
 {% img /images/posts/edge_security_for_your_cloud_application_pki.svg 500 600 PKI %}
 
@@ -52,13 +52,13 @@ A PKI certificate can be created in three steps:
 2. Using the private key, generate a Certificate Signing Request (CSR).
 3. Using a CA certificate along with the respective private key and the CSR, generate the certificate.
 
-An exeption from this three-step procedure is a root certificate which is self-signed.
+An exeption from this three-step procedure is the root certificate which is self-signed.
 
-In the following, we are going to generate seven certificates. All the commands are to be issued on the edge instance. Note that you can populate the certificate fields with pretty arbitrary values with one exception: the `Common Name` field of the end-entity certificates. `Common Name` of the `Edge Service Certificate` must match the DNS name of the edge instance. `Common Name` of the `Customer1 Client Certificate` and the `Customer2 Client Certificate` must match the HAProxy configuration. By inspecting the `Common Name` field, HAProxy is able to recognize which client is trying to access the cloud application and it is able to route the client request to the appropriate service.
+In the following, we are going to generate seven certificates. All the commands are to be issued on the edge instance. Note that you can populate the certificate fields with pretty arbitrary values with one exception: the `Common Name` field of the end-entity certificates. `Common Name` of the `Edge Service Certificate` must match the DNS name of the edge instance. `Common Name` of the `Customer1 Client Certificate` and the `Customer2 Client Certificate` must match the HAProxy configuration. By inspecting the `Common Name` field, HAProxy is able to recognize which client is trying to access the cloud application and it is able to route the client request to the appropriate backend service.
 
 ### Company RootCA certificate
 
-Let's generate the private key of the Company's RootCA:
+Let's generate the company's greatest secret - the private key of the Company's RootCA:
 
 {% codeblock lang:sh %}
 $ openssl genrsa -out rootca.company.example.key.pem 4096
@@ -265,7 +265,7 @@ An optional company name []:
 $ openssl x509 -req -in customer2.example.csr.pem -CA subca.customer2.example.crt.pem -CAkey subca.customer2.example.key.pem -CAcreateserial -out customer2.example.crt.pem
 {% endcodeblock %}
 
-If everything went well, your working directory should contain a collection of files similar to this list:
+If everything went well, your working directory should contain a collection of PKI files similar to this list:
 
 {% codeblock lang:sh %}
 $ ls -1
@@ -295,7 +295,7 @@ subca.srl
 
 ## Installing the edge service
 
-In our POC project, the role of the edge service will be played by an Apache server. To install the Apache server issue the following command on the edge instance:
+In our POC project, the role of the edge service will be played by the Apache server. To install the Apache server, issue the following command on the edge instance:
 
 {% codeblock lang:sh %}
 $ yum install -y httpd
@@ -307,7 +307,7 @@ You can start the Apache server by typing:
 $ systemctl start httpd
 {% endcodeblock %}
 
-The default static web page served by Apache is for our purposes a bit too complicated. Let's replace it with a simple one line message:
+The default static web page served by Apache is for our purposes a bit too long. Let's replace it with a simple, one line message:
 
 {% codeblock lang:sh %}
 $ echo 'It works!' > /var/www/html/index.html
@@ -322,7 +322,7 @@ It works!
 
 ## Configuring the reverse proxy on the edge instance
 
-In this section, we are going to set up the reverse proxy on the edge instance. First, let's prepare two files which will be referred to from the HAProxy configuration. The file `app.crt` will include the edge service certificate along with the CA chain and the respective private key. It is used by HAProxy to authenticate itself to the clients. In the following section, we're going to configure the client-side HAProxy to trust these certificates and hence verify that it is connecting to the correct service and not for example to a service of an attacker. To create the `app.crt` file, you can type:
+In this section, we are going to set up the reverse proxy on the edge instance. First, let's prepare two files which will be referred to from the HAProxy configuration. The file `app.crt` will include the edge service certificate along with the CA chain and the respective private key. It is used by HAProxy to authenticate itself to the clients. In the following sections, we will configure the client-side HAProxy to trust these certificates and hence verify that it is connecting to the correct service and not for example to a service of an attacker. To create the `app.crt` file, you can type:
 
 {% codeblock lang:sh %}
 $ cat \
@@ -333,7 +333,7 @@ app.company.example.key.pem \
 > /etc/haproxy/ssl/app.crt
 {% endcodeblock %}
 
-The important task of the server-side HAProxy is to authenticate the incoming client requests. In our project, we are looking at two customers that should be allowed to access our application. For that, we're going to include the CA certificate chains of the two customers into the `customer-ca.crt` file:
+The important task of the server-side HAProxy is to authenticate the incoming client connections. In our project, we are looking at two customers that should be allowed to access our application. For that, we're going to include the CA certificate chains of the two customers into the `customer-ca.crt` file:
 
 {% codeblock lang:sh %}
 $ cat \
@@ -343,7 +343,7 @@ rootca.company.example.crt.pem \
 > /etc/haproxy/ssl/customer-ca.crt
 {% endcodeblock %}
 
-As a last step in this section, we are going to configure HAProxy. You can open the HAProxy configuration file `/etc/haproxy/haproxy.cfg` in your favorite editor and replace its content with:
+As the last step in this section, we are going to configure HAProxy. You can open the HAProxy configuration file `/etc/haproxy/haproxy.cfg` in your favorite editor and replace its content with:
 
 {% codeblock lang:sh %}
 global
@@ -370,7 +370,7 @@ backend edge_customer2
   server customer2 127.0.0.1:80 check
 {% endcodeblock %}
 
-This is a minimalist configuration file good enough for our proof of concept. HAProxy is going to listen on port 443 for incoming TLS connections. It will present the edge service certificate to the clients. At the same time, it will only accept connections from the clients sending the Customer1 or Customer2 certificate. Based on the `Common Name` field of the client's certificate, HAProxy will forward the request to the respective edge service. In our case, both customers will be served by the same service listening on 127.0.0.1:80, however, you can imagine that in the real scenario there would be two separate edge services perhaps running on two different machines.
+This is a minimalist configuration file, good enough for our proof of concept. HAProxy is going to listen on port 443 for incoming TLS connections. It will present the edge service certificate to the clients. At the same time, it will only accept connections from the clients sending the Customer1 or Customer2 certificate. Based on the `Common Name` field of the client's certificate, HAProxy will forward the request to the respective backend. In our case, both customers will be served by the same service listening on 127.0.0.1:80, however, you can imagine that in the real scenario there would be two separate edge services perhaps running on two different machines.
 
 You can start the HAProxy service using the following command:
 
@@ -399,7 +399,7 @@ rootca.company.example.crt.pem \
 ip-172-31-33-109.us-west-2.compute.internal:
 {% endcodeblock %}
 
-In the above command, make sure that you replace the target host name `ip-172-31-33-109.us-west-2.compute.internal` with the DNS name of your edge instance.
+In the above command, make sure that you replace the target host name `ip-172-31-33-109.us-west-2.compute.internal` with the DNS name of your client instance.
 
 On the client instance, we are going to add a line to the `/etc/hosts` file which will make the DNS name `app.company.example` resolve to the IP address of the edge instance. In the following command, replace the IP address with the IP address of your edge instance:
 
@@ -479,7 +479,7 @@ $ curl localhost
 It works!
 {% endcodeblock %}
 
-To verify that our client is recognized by the cloud application as Customer1, you can comment out the line `use_backend edge_customer1 if ...` in the `/etc/haproxy/haproxy.cfg` file on the edge instance. Remember to restart HAProxy after you modified the configuration. The repeated test from the edge instance proves that indeed there's no backend for the Customer1 available anymore:
+To verify that our client is recognized by the cloud application as Customer1, you can comment out the line `use_backend edge_customer1 if ...` in the `/etc/haproxy/haproxy.cfg` file on the edge instance. Remember to restart HAProxy after you modified the configuration. The repeated test from the client instance proves that indeed there's no backend for the Customer1 available anymore:
 
 {% codeblock lang:sh %}
 $ curl localhost
