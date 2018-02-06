@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2018-01-12T21:36:27-08:00</updated>
+  <updated>2018-02-05T18:31:49-08:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -1495,7 +1495,7 @@
 
 <p>The certification path begins with an entry-level certification - Red Hat Certified System Administrator (<a href="https://www.redhat.com/en/services/certification/rhcsa">RHCSA</a>). In the exam, I had to demonstrate basic Linux administration skills like creating users and groups, managing file system permissions including POSIX access control lists (ACLs), creating cron jobs, basics of SELinux, managing software packages with yum, creating and mounting local file systems, working with LVM, network configuration, mounting NFS and SMB file systems and firewall configuration. I had plenty of time to complete all the exam tasks. Overall, RHCSA didn&rsquo;t seem too difficult to me.</p>
 
-<p><img class="right" src="http://alesnosek.com/images/posts/rhce_logo.png" width="80" height="80"></p>
+<p><img class="right" src="http://alesnosek.com/images/posts/rhce_logo.png" width="130" height="130"></p>
 
 <p>About two weeks after passing the RHCSA, I took the next exam - the Red Hat Certified Engineer (<a href="https://www.redhat.com/en/services/certification/rhce">RHCE</a>) exam. The main focus of this exam was configuration of a caching DNS server (unbound), SMTP nullclient (Postfix), configuration of an iSCSI target and initiator, configuration of Apache web server including HTTPS, running MariaDB, configuration of NFS and SMB servers and basic shell scripting. Based on the experience from the RHCSA exam, I thought that I would have more than enough of time again to complete my tasks and perhaps make myself a coffee, too. How wrong I was! The RHCE exam is loaded with so many tasks that you will be very busy for the entire 3.5 hours. Due to my rather slow and relaxed approach at the beginning of the exam, I was not able to complete all the tasks in time. In the end, I was very happy that I still passed.</p>
 
@@ -1503,7 +1503,7 @@
 
 <h2>Climbing to the top</h2>
 
-<p><img class="right" src="http://alesnosek.com/images/posts/rhca_logo.png" width="150" height="150"></p>
+<p><img class="right" src="http://alesnosek.com/images/posts/rhca_logo.png" width="130" height="130"></p>
 
 <p>After becoming a Red Hat Certified Engineer, I turned my attention to the Red Hat Certified Architect (<a href="https://www.redhat.com/en/services/certification/rhca">RHCA</a>) certification. To achieve this highest level of certification, I had to pass five additional exams based on my own selection. Red Hat provides about twenty exams to choose from, divided into concentrations like Datacenter, DevOps, Application platform or Cloud. The concentrations are only advisory. You can pick exams across concentrations which I also did.</p>
 
