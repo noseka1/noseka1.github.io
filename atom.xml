@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2018-03-08T20:19:23-08:00</updated>
+  <updated>2018-03-08T20:47:56-08:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -39,7 +39,7 @@
 
 <p>When planning an OpenStack cluster, you will have to choose from a variety of underlying technologies. For instance, in addition to the KVM hypervisor, OpenStack also supports Xen, VMware vSphere and Hyper-V. Most of the time you will just pick the technology you already run at your place and for which you have the staff to manage it. The freedom of choice you have with OpenStack is amazing, however, I would recommend to always look at the most popular choices first because their integration with OpenStack tends to be more solid. In our case, we chose KVM as a hypervisor, <a href="http://www.openvswitch.org/">Open vSwitch</a> as a networking implementation and <a href="https://ceph.com/">Ceph</a> to provide object and block storage.</p>
 
-<p>OpenStack is an umbrella project under which you can find a host of projects each dealing with a different portion of the cloud functionality. The core projects that can find installed in the majority of OpenStack deployments are:</p>
+<p>OpenStack is an umbrella project under which you can find a host of projects each dealing with a different portion of the cloud functionality. The core projects that one can find installed in the majority of OpenStack deployments are:</p>
 
 <ul>
 <li><a href="https://wiki.openstack.org/wiki/Nova">Nova</a>. Manages virtual machines.</li>
