@@ -4,7 +4,7 @@
   <title><![CDATA[Category: devops | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/devops/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2018-02-12T19:35:10-08:00</updated>
+  <updated>2018-03-08T20:11:04-08:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,106 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[18 Months with OpenStack, Our Experience, Part I]]></title>
+    <link href="http://alesnosek.com/blog/2018/02/19/18-months-with-openstack-our-experience-part-i/"/>
+    <updated>2018-02-19T21:06:17-08:00</updated>
+    <id>http://alesnosek.com/blog/2018/02/19/18-months-with-openstack-our-experience-part-i</id>
+    <content type="html"><![CDATA[<p>It has been 18 months since we deployed OpenStack cloud in our company. In this article, I would like to review our time with OpenStack and describe some of the experience we gained. Are you thinking about building an OpenStack-based cloud? This article might provide you with additional insights and tips that will help you succeed.</p>
+
+<!-- more -->
+
+
+<h2>Introduction</h2>
+
+<p>Right at the beginning, I&rsquo;d like to say that our company is not a cloud provider. We didn&rsquo;t build a cloud to provide a service to customers. Instead, we built a private cloud to support our engineering team in their software development efforts. Our OpenStack is running development machines, build machines and test machines. The requirements on the availability and reliability of our OpenStack cluster are therefore lower than the requirements that a public cloud would have to meet.</p>
+
+<p>We started evaluating OpenStack around the Kilo release and ended up going with Mitaka into production. Around that time, Internet was flooded with articles criticizing the complexity of OpenStack including scary stories of companies failing their OpenStack projects. I can confirm that deploying OpenStack was a real challenge and that as we were working on it, the OpenStack version of the Kennedy&rsquo;s famous words passed through my mind several times:</p>
+
+<blockquote><p>We choose to deploy OpenStack not because it is easy, but because it is hard.</p></blockquote>
+
+<p>However, nothing can scare away a proficent software practitioner. Eventually, we got the job done and the invested effort did pay off.</p>
+
+<h2>OpenStack essentials</h2>
+
+<p><a href="https://www.openstack.org/">OpenStack</a> is an open-source infrastructure-as-a-service (IaaS) cloud platform. It&rsquo;s important to understand that OpenStack itself is only a controlling layer that relies on other software projects to provide the implementation of the underlying functionality. For instance, OpenStack can spin up virtual machines, however, you would not find any code in the OpenStack project that would actually implement a hypervisor. Instead, OpenStack integrates with an existing hypervisor software to do the job. A very popular choice of the hypervisor used along with OpenStack is <a href="https://www.linux-kvm.org">KVM</a> and so when the user creates a virtual machine on OpenStack, OpenStack merely calls the KVM hypervisor to spin up the virtual machine. The same holds true for other areas of OpenStack functionality like networking and storage where OpenStack drives the underlying networking and storage software to do the actual job.</p>
+
+<p>When planning an OpenStack cluster, you will have to choose from a variety of underlying technologies. For instance, in addition to the KVM hypervisor, OpenStack also supports Xen, VMware vSphere and Hyper-V. Most of the time you will just pick the technology you already run at your place and for which you have the staff to manage it. The freedom of choice you have with OpenStack is amazing, however, I would recommend to always look at the most popular choices first because their integration with OpenStack tends to be more solid. In our case, we chose KVM as a hypervisor, <a href="http://www.openvswitch.org/">Open vSwitch</a> as a networking implementation and <a href="https://ceph.com/">Ceph</a> to provide object and block storage.</p>
+
+<p>OpenStack is an umbrella project under which you can find a host of projects each dealing with a different portion of the cloud functionality. The core projects that can find installed in the majority of OpenStack deployments are:</p>
+
+<ul>
+<li><a href="https://wiki.openstack.org/wiki/Nova">Nova</a>. Manages virtual machines.</li>
+<li><a href="https://wiki.openstack.org/wiki/Neutron">Neutron</a>. Provides networking to virtual machines.</li>
+<li><a href="https://wiki.openstack.org/wiki/Cinder">Cinder</a>. Provides block storage that can be attached to virtual machines.</li>
+<li><a href="https://wiki.openstack.org/wiki/Glance">Glance</a>. Stores virtual machine images.</li>
+<li><a href="https://wiki.openstack.org/wiki/Horizon">Horizon</a>. Web-based user interface to OpenStack services.</li>
+<li><a href="https://wiki.openstack.org/wiki/Keystone">Keystone</a>. Identity service.</li>
+</ul>
+
+
+<p>Additionally, project <a href="https://wiki.openstack.org/wiki/Heat">Heat</a>, <a href="https://wiki.openstack.org/wiki/Swift">Swift</a>, and <a href="https://wiki.openstack.org/wiki/Telemetry">Ceilometer</a> are also rather popular. You can find plenty of other OpenStack projects listed on the <a href="https://www.openstack.org/software/project-navigator">Project navigator</a> page. When choosing OpenStack projects for your deployment, you should always consider the adoption and the maturity of the projects. Many projects on the list are still in the early stages of development and not ready for production use.</p>
+
+<p>OpenStack was designed for massive scale deployments as you can tell if you look at the <a href="https://docs.openstack.org/arch-design/design.html">OpenStack architecture diagram</a>. Each OpenStack project consists of multiple services (daemons) that can be deployed on separate physical machines allowing OpenStack to scale out. OpenStack services communicate with each other over the network using RESTful APIs. In addition, some of the projects like Nova, Neutron and Cinder chose to leverage a message broker for internal communication. The high number of services that form an OpenStack deployment contributes to its operational complexity.</p>
+
+<h2>Getting started with OpenStack</h2>
+
+<p>If you are new to OpenStack, a great place to start learning OpenStack is the <a href="https://docs.openstack.org/devstack/latest/">DevStack project</a>. DevStack allows you to create an all-in-one deployment of OpenStack. With DevStack you can access debug logs of individual OpenStack services as well as easily restart OpenStack services after you changed their configuration. It took me a while to figure out which configuration option affects which OpenStack service and how OpenStack services communicate with each other. I learned a lot by re-deploying DevStack many times, trying to make the individual OpenStack features work properly.</p>
+
+<p>OpenStack is a fast moving project with two major releases per year. Especially in the past, the project documentation could not keep up with the many changes packed in each release. The documentation was outdated on many places or was missing altogether. When working with OpenStack I quickly realized that reading the OpenStack&rsquo;s Python code was necessary in order to understand how some of the configuration options worked or when troubleshooting various issues.</p>
+
+<blockquote><p> Ability to read the OpenStack source code was required to succeed.</p></blockquote>
+
+<p>OpenStack is written using a beautiful idiomatic Python code which was most of the time a pleasure to read. At first, I started walking through the code of simpler projects like Glance and learned the patterns that were commonly used in other OpenStack projects, too. Only later I dived deeper into the internals of Nova, the OpenStack&rsquo;s brain that schedules and creates virtual machines. When between OpenStack releases configuration options were renamed or moved to different INI file sections, I just grepped through the source code and learned about the changes avoiding any further frustration.</p>
+
+<p>If you are getting started with OpenStack, prepare for a steep learning curve. Apart from studying the OpenStack project documentation, you will have to refer to the documentation of the technologies that you integrate with OpenStack, too. For instance, I spend quite a bit of time studying the documentation of <a href="https://www.rabbitmq.com/documentation.html">RabbitMQ</a>, <a href="https://libvirt.org/docs.html">libvirt</a>, <a href="http://docs.openvswitch.org">Open vSwitch</a>, and <a href="http://docs.ceph.com">Ceph</a>.</p>
+
+<h2>Choosing an OpenStack distribution</h2>
+
+<p>There are several OpenStack distributions available out there. For us the choice was pretty straight forward. As we are a Red Hat shop, we went with <a href="https://www.rdoproject.org/">RDO</a> installed on top of RHEL7. I spent large amounts of time working with RDO and yeah, it was challenging, at least in its Mitaka release. For further details on our experience with OpenStack RDO, you can refer to articles: <a href="/blog/2016/03/27/tripleo-installer-the-good/">1</a>, <a href="/blog/2017/01/15/tripleo-installer-production-ready">2</a>. Due to the complexity of OpenStack, it is rather difficult to create a tool to manage its life-cycle and I&rsquo;m certain that further development effort will have to be spent before reaching perfection.</p>
+
+<p>By the way, some OpenStack distributions come with a GUI-based installer. As there are dozens of configuration parameters to set during the installation, I don&rsquo;t see the point of using a graphical interface to do this. Instead, a well commented configuration file seems more desirable to me. Does the GUI-based installer enable product managers to make a check mark on their data sheet? I would say yes, but you can safely ignore it when choosing your OpenStack distribution.</p>
+
+<h2>Choosing server hardware</h2>
+
+<p>We started with a small OpenStack deployment comprised of 3 controller nodes, 2 compute nodes and 3 Ceph nodes. Over time, we added further nodes to meet the growing demand and ended up with the current size of the cluster being 3 controller nodes, 13 compute nodes and 7 Ceph nodes. Majority of the nodes are HP ProLiant DL360 Gen9 machines with the following hardware parameters:</p>
+
+<ul>
+<li><strong>Controller nodes.</strong> 96GB RAM, 2 x 300GB SAS 10K HDD in RAID1, 1Gbit Ethernet NICs</li>
+<li><strong>Compute nodes.</strong> 288GB RAM, 8 x 300GB SAS 10K HDD in RAID10 (for the OS + instance ephemeral storage), 1Gbit and 10Gbit Ethernet NICs</li>
+<li><strong>Ceph nodes.</strong> 32GB RAM, 2 x 300GB SAS 10K HDD in RAID1 (for the OS), 6 x 1.2TB SAS 10K HDD (Ceph OSD storage drives), 1Gbit and 10Gbit Ethernet NICs</li>
+</ul>
+
+
+<p>1Gbit Ethernet NICs are used to access OpenStack APIs on the controller nodes. Compute nodes and Ceph storage nodes are interconnected using 10Gbit Ethernet. All network interfaces are bonded and connected to two different switches to avoid a single-point-of-failure. There is a dedicated 1Gbit link attached to each of the OpenStack nodes used for node management via SSH.</p>
+
+<p>From our experience, each of the compute nodes can run up to 40-50 virtual machines using the default OpenStack RDO settings: cpu_allocation_ratio=16.0, ram_allocation_ratio=1.0 and disk_allocation_ratio=1.0. Our current limit preventing us to achieve even higher density is the amount of provisioned RAM on the nodes. In the future, we are considering adding more RAM to the compute nodes or increasing the ram_allocation_ratio.</p>
+
+<h2>Deployment overview</h2>
+
+<p>Finally, we are going to take a look at the high-level overview of our OpenStack deployment. In the diagram below you can see the OpenStack projects that we chose for the deployment:</p>
+
+<p><img src="/images/posts/18_months_with_openstack_components.png" width="800" height="1000" title="OpenStack Components" ></p>
+
+<p>Let me comment on some of the projects we deployed:</p>
+
+<ul>
+<li><strong><a href="https://docs.openstack.org/ironic">Ironic</a>.</strong> We deployed Ironic in order to manage baremetal machines that we use for performance testing. Performance tests are more accurate when carried out in an isolated baremetal environment than on the virtual machines that share the resources of the hypervisor. To this date we didn&rsquo;t realize this our plan but we will get back to it in the future.</li>
+<li><strong><a href="https://docs.openstack.org/magnum">Magnum</a>.</strong> Magnum project simplifies the deployment of container orchestrators like Kubernetes, Swarm and Mesos on top of OpenStack. To accomplish this, Magnum leverages Heat templates behind the scenes and the actual provisioning is done by Heat. To be honest, we never really started using Magnum. When deploying Kubernetes, we preferred to use Heat templates provided by the Kubernetes project. This approach turned to be more straight forward than involving yet another service like Magnum. You can read about it <a href="/blog/2016/06/26/deploying-kubernetes-on-openstack-using-heat">here</a>.</li>
+<li><strong><a href="https://docs.openstack.org/sahara">Sahara</a>.</strong> Sahara project allows you to deploy big data frameworks like Apache Hadoop and Apache Spark on top of OpenStack. We made similar experience with Sahara as we made with Magnum. We just didn&rsquo;t start using it at all. It turned out that there were already pre-existing deployment scripts provided by Hortonworks and others that it made no sense for us to use Sahara. While Hortonworks <a href="https://github.com/hortonworks/ansible-hortonworks">scripts</a> can deploy Hadoop on any of the major clouds, Sahara would be an OpenStack-only solution.</li>
+<li><strong><a href="https://docs.openstack.org/manila">Manila</a>.</strong> While not depicted in the diagram, we also deployed OpenStack Manila. Manila is a shared file system service and we use it to provision NFS shares. Manila project started as a code copy of the Cinder project and perhaps that&rsquo;s why it was pretty stable and usable soon after its inception. I wrote an <a href="http://alesnosek.com/blog/2016/05/22/test-driving-openstack-manila/">article</a> about Manila at the time we were evaluating it.</li>
+<li><strong><a href="https://docs.openstack.org/designate">Designate</a>.</strong>  Designate is a DNS as a service for OpenStack. After evaluating this project, we realized that for our simple purpose Designate was too involved. We ended up writing a Python script that dynamically registers OpenStack virtual machines with our internal DNS server. This script works reliably ever since and you can read about it in this <a href="/blog/2015/05/31/openstack-dynamic-dns-updates">blog post</a>.</li>
+</ul>
+
+
+<h2>Conclusion</h2>
+
+<p>In this post, we described some of our experience with planning the OpenStack cloud and deploying it. In the second blog post, we are going to share the lessons learned when operating OpenStack.</p>
+
+<p>If you have battle scars from working with OpenStack, I would love to hear from you. Please, feel free to share your comments and stories in the comment section below.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[Edge Security for Your Cloud Application, Part II]]></title>
@@ -912,34 +1012,6 @@
 <p>Passing the Ansible exam brought me to the rank of Red Hat Certified Architect Level II. The current list of my Red Hat certifications can be found on the <a href="https://www.redhat.com/rhtapps/certification/verify/?certId=160-216-727">Verify a Red Hat Certified Professional</a> website.</p>
 
 <p>Are you working on your Red Hat certification and would like to share your experience? I would always like to hear from you! Feel free to leave your comments below.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[Passed Red Hat Container Certifications EX270 and EX276]]></title>
-    <link href="http://alesnosek.com/blog/2017/07/29/passed-red-hat-container-certifications-ex270-and-ex276/"/>
-    <updated>2017-07-29T22:44:56-07:00</updated>
-    <id>http://alesnosek.com/blog/2017/07/29/passed-red-hat-container-certifications-ex270-and-ex276</id>
-    <content type="html"><![CDATA[<p>Recently I passed two Red Hat certification exams: <a href="https://www.redhat.com/en/services/training/ex270-red-hat-certificate-expertise-atomic-host-container-administration">EX270 Red Hat Certificate of Expertise in Atomic Host Container Administration</a> and the <a href="https://www.redhat.com/en/services/training/ex276-red-hat-certificate-expertise-containerized-application-development">EX276 Red Hat Certificate of Expertise in Containerized Application Development</a>. I&rsquo;d like to share some of my experience with you in this blog post.</p>
-
-<!-- more -->
-
-
-<p><img class="right" src="/images/posts/redhat_logo.png" width="110" height="110"></p>
-
-<p>As you might already know, all the Red hat certification exams are purely practical. You&rsquo;ll have to configure the provided virtual machines based on the list of instructions given to you in the exam.</p>
-
-<p><img class="right" src="/images/posts/docker_logo.png" width="100" height="100"></p>
-
-<p>From my experience, I can say that the scope of exams EX270 and EX276 is highly overlapping. Both exams are focused on working with Docker, concretely: creating Docker images using Dockerfiles, pulling and pushing images into Docker registries, running Docker containers, linking Docker containers, creating and sharing volumes between containers, exposing network ports. This pretty much covers the content of the EX276 exam and the major part of the EX270 exam. In addition, the exam EX270 includes several tasks related to Red Hat Atomic Host.</p>
-
-<p>To prepare for the exams, I used the online courses Managing Containers with Red Hat Enterprise Linux Atomic Host (RH270R) and Containerizing Software Applications (DO276R) that are included in my <a href="https://www.redhat.com/en/services/training/learning-subscription">Red Hat Learning Subscription</a>. In comparison to prep materials for other exams, these materials are not that large but they covered the exam requirements well.</p>
-
-<p>And how did I score? I achieved 260 points on the EX270 exam and 291 points on the EX276 exam. For both exams, the minimum passing score was 210 points and the maximum score was 300. Subjectively, I found the difficulty of the EX270 to be on par with the other Red Hat exams I did in the past. On the other hand, the EX276 appeared to me as a rather easy exam. I was able to complete all my tasks, including double-checking, 45 minutes before the exam end.</p>
-
-<p>Passing these two exams concluded my <a href="https://www.redhat.com/en/services/certification/rhca">RHCA</a> journey and earned me the Red Hat Certified Architect certificate. Here is the obligatory link to my current list of certifications on the <a href="https://www.redhat.com/rhtapps/certification/verify/?certId=160-216-727">Verify a Red Hat Certified Professional</a> website.</p>
-
-<p>I believe that many folks are on their way to become RHCA. How are you doing on your journey? Would you like to share your experiences with the Red Hat certification program? Please, leave your comments below.</p>
 ]]></content>
   </entry>
 
