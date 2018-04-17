@@ -85,6 +85,6 @@ Let me comment on some of the projects we deployed:
 
 ## Conclusion
 
-In this post, we described some of our experience with planning the OpenStack cloud and deploying it. In the second blog post, we are going to share the lessons learned when operating OpenStack.
+In this post, we described some of our experience with planning the OpenStack cloud and deploying it. In the [second](/blog/2018/03/08/18-months-with-openstack-our-experience-part-ii/) blog post, we are going to share the lessons learned when operating OpenStack.
 
 If you have battle scars from working with OpenStack, I would love to hear from you. Please, feel free to share your comments and stories in the comment section below.
