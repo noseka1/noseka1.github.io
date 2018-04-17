@@ -4,7 +4,7 @@
   <title><![CDATA[Category: devops | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/devops/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2018-03-08T20:47:56-08:00</updated>
+  <updated>2018-04-16T20:23:43-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,105 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[18 Months with OpenStack, Our Experience, Part II]]></title>
+    <link href="http://alesnosek.com/blog/2018/03/08/18-months-with-openstack-our-experience-part-ii/"/>
+    <updated>2018-03-08T20:51:11-08:00</updated>
+    <id>http://alesnosek.com/blog/2018/03/08/18-months-with-openstack-our-experience-part-ii</id>
+    <content type="html"><![CDATA[<p>In the <a href="/blog/2018/02/19/18-months-with-openstack-our-experience-part-i/">previous post</a>, we discussed our experience with the deployment of OpenStack. In this article, we&rsquo;re going to share the lessons learned when operating it. It took effort to tame the OpenStack beast and make it work reliably. If you want to know how we accomplished that, read on.</p>
+
+<!-- more -->
+
+
+<h2>Monitoring OpenStack using Icinga</h2>
+
+<p>As the old sysadmin saying goes:</p>
+
+<blockquote><p>If you don&rsquo;t monitor it, it&rsquo;s not in production.</p></blockquote>
+
+<p>When looking for a tool to monitor OpenStack, we came across the <a href="https://wiki.openstack.org/wiki/Monasca">Monasca</a> project. Monasca is a monitoring-as-a-service solution built exclusively for OpenStack. The idea of deploying a system which was from the ground up designed for OpenStack was very appealing. However, after taking a closer look at Monasca we steered away from it. Firstly, Monasca was built around Big Data technologies like <a href="https://kafka.apache.org">Apache Kafka</a> and <a href="http://storm.apache.org/">Apache Storm</a> which are a great fit for large-scale deployments. For our rather low-scale use case they seemed to be a bit too heavy. Secondly, around Kilo release it was difficult to predict how much adoption Monasca would find in the community. Instead of Monasca, we eventually decided to go with <a href="https://www.icinga.com/">Icinga</a> which is a derivate of Nagios, a de facto industry standard between monitoring solutions. I wrote about the monitoring of OpenStack using Icinga in one of my previous <a href="/blog/2015/11/30/monitoring-openstack-cluster-with-icinga/">posts</a>. Setting up Icinga to monitor OpenStack meant to search for Nagios plugins to check various parts of the OpenStack cluster. In addition to the standard set of plugins that comes with the Nagios distribution, we ended up using many plugins that we found on the Internet:</p>
+
+<ul>
+<li><a href="https://github.com/justintime/nagios-plugins">check_mem</a> Monitor Linux system memory usage.</li>
+<li><a href="https://github.com/mclarkson/check_diskstat">check_diskstat</a> Linux disk I/O checks, tps, read, write, avg. request size, avg. queue size and avg. wait time.</li>
+<li><a href="https://github.com/nguttman/Nagios-Checks/tree/master/Unix/Check_Process">check_process</a> UNIX process monitoring.</li>
+<li><a href="https://github.com/jonschipp/nagios-plugins/blob/master/check_service.sh">check_service</a> Monitors services managed by systemd.</li>
+<li><a href="https://github.com/Crapworks/check_ceph_dash">check-ceph-dash</a> Monitors overall Ceph cluster status. Requires <a href="https://github.com/Crapworks/ceph-dash">ceph-dash</a> to be installed.</li>
+<li><a href="https://github.com/noseka1/check_haproxy">check_haproxy</a> Monitors the health of HAProxy backends.</li>
+<li><a href="https://github.com/polymorf/check_haproxy">haproxy_http_stats</a> Turns the HAProxy statistics into Nagios performance data.</li>
+<li><a href="https://github.com/noseka1/nagios-plugin-check_galera_cluster">nagios-plugin-check_galera_cluster</a> Checks the status of a Galera cluster.</li>
+<li><a href="https://github.com/alaskacommunications/nagios_check_keepalived">check_keepalived_vrrp</a> Monitors Keepalived VRRP subsystem.</li>
+<li><a href="https://github.com/willixix/WL-NagiosPlugins/blob/master/check_memcached.pl">check_memcached</a> Checks Memcached statistics.</li>
+<li><a href="https://github.com/willixix/WL-NagiosPlugins/blob/master/check_redis.pl">check_redis</a> Checks Redis status variables.</li>
+<li><a href="https://github.com/willixix/WL-NagiosPlugins/blob/master/check_uptime.pl">check_uptime</a> Tracks system uptime. Great to detect power outages.</li>
+<li><a href="https://github.com/mzupan/nagios-plugin-mongodb">check_mongodb</a> Monitor MongoDB servers.</li>
+<li><a href="https://github.com/noseka1/monitoring-for-openstack">monitoring-for-openstack</a> Monitor various OpenStack services (Nova, Cinder, Glance, Neutron &hellip;)</li>
+<li><a href="https://github.com/noseka1/openstack-nagios-plugins">openstack-nagios-plugins</a> Yet another set of Nagios plugins to monitor OpenStack services.</li>
+<li><a href="https://labs.consol.de/nagios/check_mysql_health/index.html">check_mysql_health</a> Monitor health and performance of a MySQL database.</li>
+<li><a href="https://github.com/nagios-plugins-rabbitmq/nagios-plugins-rabbitmq">nagios-plugins-rabbitmq</a> Set of nagios checks useful for monitoring a RabbitMQ cluster.</li>
+</ul>
+
+
+<p>Besides monitoring the availability of OpenStack services, monitoring the performance of hypervisor hosts was another important point to ensure smooth operations and user happiness. You&rsquo;ve heard about the &ldquo;noisy neighbor&rdquo; problem before, haven&rsquo;t you? Time to time it happened to us that users unknowingly started a workload that would hog the CPU, disk or network I/O of the hypervisor to the extent that other virtual machines running on the same hypervisor were slowed down. In such a situation it was important that Icinga would alert the OpenStack operator that would resolve the problem before the affected users would notice.</p>
+
+<h2>Ceilometer metrics and events</h2>
+
+<p><a href="https://docs.openstack.org/ceilometer">Ceilometer</a> is an OpenStack data collection service that collects telemetry data across all OpenStack components. This telemetry data provides useful insights into the OpenStack operation and I would strongly recommend to you to deploy Ceilometer and configure it to store the telemetry data in the backend of your choice. The data provided by the Ceilometer service can be divided into two categories: measurements and events.</p>
+
+<h3>Ceilometer measurements</h3>
+
+<p><a href="https://docs.openstack.org/ceilometer/pike/admin/telemetry-measurements.html">Ceilometer measurements</a> are performance data. Ceilometer collects performance samples by polling the OpenStack infrastructure elements in regular intervals. For instance, Ceilometer measures CPU, memory, disk and network usage of individual virtual machines hosted on OpenStack, it can measure the performance of hypervisor hosts and much more. It&rsquo;s up to you to choose which data interests you. We ended up collecting merely the performance data of individual virtual machines. Monitoring of hypervisor hosts was better left to Icinga.</p>
+
+<p>There are many options of how to process the performance data generated by Ceilometer. We configured Ceilometer to send the performance samples in the <a href="https://msgpack.org">MessagePack</a> format over UDP protocol to <a href="https://www.elastic.co/products/logstash">Logstash</a>. Logstash in turn forwards the data to the <a href="https://www.influxdata.com/">InfluxDB</a> storage. <a href="https://grafana.com/">Grafana</a> is used to view and graph the performance data stored in InfluxDB. We spent quite a bit of time configuring Logstash to enrich the data coming from Ceilometer to be able to create a beautiful Grafana dashboard that would display the performance graphs of individual virtual machines hosted on OpenStack. Our OpenStack users would be able to look up their virtual machine in the Grafana dashboard based on the OpenStack project and the display name of the instance. After investing all the effort to create the dashboard the practice showed that nobody really cared about the performance monitoring of most of the virtual machines. And if we deployed a virtual machine we wanted to monitor, we preferred to just install the Icinga monitoring agent on it.</p>
+
+<h3>Ceilometer events</h3>
+
+<p><a href="https://docs.openstack.org/ceilometer/pike/admin/telemetry-events.html">Ceilometer events</a> represent any action made in the OpenStack system, for example: successful user authentication, creating a virtual machine, terminating a virtual machine, creating a volume, attaching a volume to a virtual machine and many others. Ceilometer generates events based on the notifications that are published by the OpenStack services on the message bus. For instance, the list of notifications published by the Nova components can be found <a href="https://docs.openstack.org/nova/latest/reference/notifications.html">here</a>. In the past, I wrote an <a href="/blog/2015/05/25/openstack-nova-notifications-subscriber/">article</a> describing how to subscribe to the Nova notifications on the RabbitMQ message bus.</p>
+
+<p>In our OpenStack deployment, we configured Ceilometer to send events to <a href="https://www.elastic.co/">Elasticsearch</a>. <a href="https://www.elastic.co/products/kibana">Kibana</a> is used to view and search for the collected events. Having all the OpenStack events collected and archived at one place turned out to be really helpful. One day, a co-worker of mine brought up a complaint that somebody deleted his virtual machine. Deleting virtual machines of other people, who would dare that? Instead of asking around and disturbing people on the team, we were able to look up all the events pertaining to the lost virtual machine. We found out that the termination event ran on behalf of the Jenkins user. It didn&rsquo;t take much longer to identify the Jenkins job which deleted the virtual machine. Finally, it turned out that the co-worker that complained about the loss of &ldquo;his&rdquo; virtual machine was actually handed over the virtual machine only temporarily and that the machine was deleted and recreated every night by Jenkins. And I told to myself, what an <em>automated</em> world!</p>
+
+<h2>Log collection using ELK</h2>
+
+<p>In addition to storing Ceilometer events in Elasticsearch, we also configured <a href="https://www.elastic.co/products/beats/filebeat">Filebeat</a> to collect OpenStack logs and Linux system logs from all the OpenStack nodes and store them in Elasticsearch. They will come handy in the future when explaining other &ldquo;mysteries&rdquo; happening in our OpenStack cluster.</p>
+
+<h2>Tempest and Rally</h2>
+
+<p>When you deploy an OpenStack cluster, how do you verify that your cluster functions correctly? Icinga checks cover a very small subset of the OpenStack functionality. To accomplish a thorough verification of the OpenStack cluster, we started using the <a href="https://docs.openstack.org/tempest/latest/">Tempest</a> project. Tempest is a battery of integration tests that are used to verify OpenStack&rsquo;s functionality and it is a part of the continuous integration pipeline of the OpenStack project. Tempest tests send requests to the OpenStack APIs and verify the responses. As the goal of the Tempest project is to verify the integration of OpenStack components during development,  the included integration tests were a bit too low-level for our use case of merely verifying that the OpenStack cluster functioned properly. However, there were no better tools available at the time and it did the trick for us.</p>
+
+<p>After a while of using Tempest, we discovered yet another project called <a href="https://docs.openstack.org/developer/rally/">Rally</a>. Rally is a benchmarking tool that is used to measure OpenStack&rsquo;s performance and to identify performance bottlenecks. Rally builds on top of Tempest and it comes with a set of predefined scenarios that are executed against the OpenStack cluster. Example scenarios are: boot and delete server, boot server from volume, create a subnet, create and attach volume, create and delete a Heat stack, and many more. The available scenarios were just right to verify our cloud! On top of that, Rally generates beautiful reports with the overview of executed tasks and their duration. We ended up creating a cron job that schedules the Rally tests to run every two hours. The test results are monitored using Icinga which in the case of test failure sends an alert to the operator.</p>
+
+<p>Because our OpenStack cluster was constantly exercised by the Rally tests, we were able to quickly spot resources that OpenStack didn&rsquo;t clean up properly and that were piling up. We have seen diverse OpenStack database tables growing infinitely.  We have experienced Neutron leaving processes running on the controller nodes, leaving empty network namespaces behind or filling up the <code>/var/log/neutron</code> directory with files. Remember that we experienced these issues while using the Mitaka release of OpenStack. I&rsquo;m sure that things improved since then. To address the resource leaks, we wrote custom clean-up scripts. I&rsquo;m publishing them for you to use at your own risk. You can find them on <a href="https://github.com/noseka1/openstack-periodic-cleanup">GitHub</a>.</p>
+
+<h2>Tracking cloud resource usage</h2>
+
+<p>In OpenStack, we were missing some kind of reporting on resource usage. In our organization, each development team has its dedicated project in OpenStack. It is important to us to understand, how much of the cloud resources each team is consuming, i.e. how many CPU cores, memory, and volumes. In addition to per project usage, we also monitor the total resource usage across the entire cluster. In the case, that the total usage is reaching the total capacity available we can organize additional hardware ahead of time.</p>
+
+<p>Around OpenStack Mitaka release, we didn&rsquo;t find any tool that would generate the usage reports. However, OpenStack&rsquo;s MariaDB database contains all the input data required to create such reports. It was rather straightforward to create a set of SQL scripts to generate the reports directly out of the OpenStack&rsquo;s database. We run these scripts periodically using Icinga, so that we can see the report output on our monitoring dashboard. If you are interested, you can find our OpenStack usage report scripts on <a href="https://github.com/noseka1/openstack-cloud-report">GitHub</a>.</p>
+
+<h2>Further notes</h2>
+
+<p>I&rsquo;d like to describe several further observations that we made while operating OpenStack. Once again, our experience pertains to the Mitaka release of OpenStack only. Many of the issues we stumbled upon might have been resolved in the newer releases of OpenStack.</p>
+
+<ul>
+<li>In order to get OpenStack working smoothly, you should expect to use some amount of duct tape and bubble gum. As OpenStack was implemented in Python, patching OpenStack is relatively easy. Many times I was able to find fixes for our issues on the project development branches and needed just to port them to our OpenStack version.</li>
+<li>OpenStack is deployed on many nodes. It was useful for us to write Ansible scripts to automate the restart of the RabbitMQ cluster and to automate the restart of all OpenStack services on all nodes (aka restart the world). Due to the issues with the OpenStack TripleO installer in the Mitaka release, we are still forced to restart the world after adding a compute node.</li>
+<li>Switching to Keystone Fernet tokens considerably reduced the load on the MariaDB database. We enabled Fernet tokens even in the Mitaka release of OpenStack.</li>
+<li>RabbitMQ, Cinder Backup and several other services require higher amount of open file descriptors. For instance, RabbitMQ <a href="https://www.rabbitmq.com/production-checklist.html">recommends</a> to allow at least 50K of open file descriptors. Insufficient amount of file descriptors caused our RabbitMQ to crash. As RabbitMQ is the communication backbone of OpenStack, you can imagine how much fun it caused.</li>
+<li>Our OpenStack networking is set up to use Neutron&rsquo;s OpenVSwitch driver and VLANs. In the default configuration, it happened to us that the multicast traffic sent by a single virtual machine flooded the entire network and caused OpenVSwitch to begin dropping packets. We didn&rsquo;t do any further research on the multicast on OpenStack topic so far, just avoided sending multicast altogether.</li>
+<li>Kudos goes to the <a href="https://ceph.com/">Ceph</a> storage. We are running the old Ceph v0.94 Hammer which was able to survive emergency situations like lost storage node and running out of space condition without any problems.</li>
+</ul>
+
+
+<h2>Conclusion</h2>
+
+<p>In this blog post, we shared some of our experiences with operating OpenStack. We described the monitoring using Icinga, collecting Ceilometer metrics and events, collecting system logs using the ELK stack, verifying the OpenStack functionality with Rally and generating cloud resource usage reports.</p>
+
+<p>OpenStack is not the easiest software to run, however, if you do your homework you will succeed. At the present time, OpenStack just works for us and brings a lot of value to the teams in our company.</p>
+
+<p>If you&rsquo;d like to share your experience with operating OpenStack, I would love to hear from you. Please, feel free to use the comment section below.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[18 Months with OpenStack, Our Experience, Part I]]></title>
@@ -107,7 +206,7 @@
 
 <h2>Conclusion</h2>
 
-<p>In this post, we described some of our experience with planning the OpenStack cloud and deploying it. In the second blog post, we are going to share the lessons learned when operating OpenStack.</p>
+<p>In this post, we described some of our experience with planning the OpenStack cloud and deploying it. In the <a href="/blog/2018/03/08/18-months-with-openstack-our-experience-part-ii/">second</a> blog post, we are going to share the lessons learned when operating OpenStack.</p>
 
 <p>If you have battle scars from working with OpenStack, I would love to hear from you. Please, feel free to share your comments and stories in the comment section below.</p>
 ]]></content>
@@ -973,45 +1072,6 @@
 <p>Prometheus is a modern monitoring system. It was the first system we evaluated as we were trying to find a good solution for application metrics. In addition to application-level metrics, we could use Prometheus to collect system-level metrics as well. This would make Prometheus a single monitoring solution for our application. The only bigger issue for us is the absence of the AWS Lambda monitoring story.</p>
 
 <p>If you have an application that you deliver on-premise as well as in the cloud, how did you solve the application metrics collection and monitoring? Is Prometheus a good way to go? Please, leave your comments below.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[Ansible Certification EX407]]></title>
-    <link href="http://alesnosek.com/blog/2017/09/03/ansible-certification-ex407/"/>
-    <updated>2017-09-03T22:47:06-07:00</updated>
-    <id>http://alesnosek.com/blog/2017/09/03/ansible-certification-ex407</id>
-    <content type="html"><![CDATA[<p>Last week I passed the Red Hat certification exam <a href="https://www.redhat.com/en/services/training/ex407-red-hat-certificate-expertise-ansible-automation">EX407 Red Hat Certificate of Expertise in Ansible Automation</a>. In this blog post, I&rsquo;d like to share some of my experience with you.</p>
-
-<!-- more -->
-
-
-<p><img class="right" src="/images/posts/ansible_logo.png" width="80" height="80"></p>
-
-<p><img class="right" src="/images/posts/redhat_logo.png" width="130" height="130"></p>
-
-<p>In addition to the Ansible certification, Red Hat offers a certification for Puppet as well, <a href="https://www.redhat.com/en/services/training/ex405-red-hat-certificate-expertise-configuration-management-puppet">EX405 Red Hat Certificate of Expertise in Configuration Management with Puppet</a>. I was using Puppet in the years 2008/2009. Back then, Puppet was a state of the art configuration management tool that did a great job for us. However, later on Ansible showed up and I quickly realized that the problems that we were solving with Puppet could have been more easily solved with Ansible. In our company, we switched from Puppet to Ansible in 2014 and have never looked back. As I gained much more experience using Ansible, I decided to go for the Ansible certification. For you, perhaps the Puppet certification would be more interesting.</p>
-
-<p>It is the way of testing, that makes the Red Hat certification exams so enjoyable for me. Red Hat certification exams are purely practical. In the exam, you&rsquo;ll be given a list of requirements and an access to one or more virtual machines. Your goal is to configure the virtual machines based on the requirements.</p>
-
-<p>The Ansible exam focused on writing Ansible playbooks, working with Ansible inventories including dynamic inventories, running ad-hoc Ansible commands, leveraging Ansible facts, creating Jinja2 templates, error handling, playbook tags, downloading a role from Ansible Galaxy and using Ansible vault to secure passwords.</p>
-
-<p>To prepare for the exam, I used the online course Automation with Ansible I (DO407R) that is included in my <a href="https://www.redhat.com/en/services/training/learning-subscription">Red Hat Learning Subscription</a>.</p>
-
-<p>Overall, I didn&rsquo;t find the exam too difficult. There were 4 hours of time provided for the exam. I was able to complete all my tasks 1 hour and 20 minutes before the exam end while reaching the maximum score of 300 points.</p>
-
-<p>If you&rsquo;ve kept reading my blog post until this point, here are three basic exam tips for you:</p>
-
-<ol>
-<li>Use the <code>ansible-playbook --limit</code> parameter, to try out your playbook against a single host first before applying it to all your hosts.</li>
-<li>Make sure you can run Ansible modules as ad-hoc commands. They can come handy when you want to undo the effects of running an erroneous playbook.</li>
-<li>Use <code>ansible-doc --list</code> to look up a module that can achieve your goal and <code>ansible-doc &lt;module&gt;</code> to learn about the module parameters and example usage.</li>
-</ol>
-
-
-<p>Passing the Ansible exam brought me to the rank of Red Hat Certified Architect Level II. The current list of my Red Hat certifications can be found on the <a href="https://www.redhat.com/rhtapps/certification/verify/?certId=160-216-727">Verify a Red Hat Certified Professional</a> website.</p>
-
-<p>Are you working on your Red Hat certification and would like to share your experience? I would always like to hear from you! Feel free to leave your comments below.</p>
 ]]></content>
   </entry>
 
