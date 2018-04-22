@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2018-04-16T20:23:43-07:00</updated>
+  <updated>2018-04-21T22:49:04-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,155 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[Booting Amazon Linux 2 on OpenStack]]></title>
+    <link href="http://alesnosek.com/blog/2018/04/21/booting-amazon-linux-2-on-openstack/"/>
+    <updated>2018-04-21T22:21:04-07:00</updated>
+    <id>http://alesnosek.com/blog/2018/04/21/booting-amazon-linux-2-on-openstack</id>
+    <content type="html"><![CDATA[<p>Amazon Linux 2 runs on OpenStack perfectly fine. There is only one glitch that you should be aware of. Amazon Linux 2 won&rsquo;t accept metadata and user data provided by OpenStack on boot. That means that you won&rsquo;t be able to SSH into the instance after it comes up. In this brief tutorial, we are going to modify the Amazon Linux 2 image to fix this problem.</p>
+
+<!-- more -->
+
+
+<p>You can download Amazon Linux 2 images from <a href="https://cdn.amazonlinux.com/os-images/latest/.">https://cdn.amazonlinux.com/os-images/latest/.</a> An image suitable for OpenStack is located in the <code>kvm</code> subdirectory. I downloaded the <code>amzn2-kvm-2017.12.0.20180330-x86_64.xfs.gpt.qcow2</code> version of the image. By the time you are reading this tutorial, a newer version of the image may be available.</p>
+
+<p>In the rest of this article, I&rsquo;m going to use my machine that is running RHEL7 to modify the Amazon Linux 2 image. First, let&#8217; download the image:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>wget https://cdn.amazonlinux.com/os-images/2017.12.0.20180330/kvm/amzn2-kvm-2017.12.0.20180330-x86_64.xfs.gpt.qcow2
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Next, let&rsquo;s install the <code>qemu-img</code> utility useful for manipulating qcow2 images:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>sudo yum install qemu-img
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now we can convert the Amazon Linux 2 image from the qcow2 format to the raw format:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>qemu-img convert -f qcow2 -O raw amzn2-kvm-2017.12.0.20180330-x86_64.xfs.gpt.qcow2 amzn2-kvm.raw
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The previous command creates a file <code>amzn2-kvm.raw</code> in the current working directory. This file is a binary image of the virtual machine disk. We can explore it using the <code>fdisk</code> command:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>fdisk -l amzn2-kvm.raw
+</span><span class='line'>Disk amzn2-kvm.raw: 26.8 GB, <span class="m">26843545600</span> bytes, <span class="m">52428800</span> sectors
+</span><span class='line'><span class="nv">Units</span> <span class="o">=</span> sectors of <span class="m">1</span> * <span class="nv">512</span> <span class="o">=</span> <span class="m">512</span> bytes
+</span><span class='line'>Sector size <span class="o">(</span>logical/physical<span class="o">)</span>: <span class="m">512</span> bytes / <span class="m">512</span> bytes
+</span><span class='line'>I/O size <span class="o">(</span>minimum/optimal<span class="o">)</span>: <span class="m">512</span> bytes / <span class="m">512</span> bytes
+</span><span class='line'>Disk label <span class="nb">type</span>: gpt
+</span><span class='line'>Disk identifier: 88B4CB3B-A2F1-4C9C-82DC-F18B0F440F56
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="c">#         Start          End    Size  Type            Name</span>
+</span><span class='line'> <span class="m">1</span>         <span class="m">4096</span>     <span class="m">52428766</span>     25G  Linux filesyste Linux
+</span><span class='line'><span class="m">128</span>         <span class="m">2048</span>         <span class="m">4095</span>      1M  BIOS boot       BIOS Boot Partition
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The output of the <code>fdisk</code> command shows that the disk contains two partitions. The size of the first partition is 25 GB and it holds a Linux filesystem. On the disk, the Linux filesystem starts at the sector number 4096. Given that the size of the sector is 512 bytes, we can tell that the Linux filesystem starts at offset 2097152 (4096 * 512) bytes from the start of the disk image. Knowing the offset of the Linux filesystem, let&rsquo;s loop mount the Linux filesystem under <code>/mnt</code>:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>sudo mount -o loop,offset<span class="o">=</span><span class="m">2097152</span> amzn2-kvm.raw /mnt
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>If everything went well, we can now take a look at the cloud-init configuration of the Amazon Linux 2 image:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>sudo vi /mnt/etc/cloud/cloud.cfg
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>In the cloud-init configuration file, you can find the data source list set as follows:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>datasource_list: <span class="o">[</span> NoCloud, AltCloud, ConfigDrive, OVF, None <span class="o">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Sadly, none of the listed data sources is available on OpenStack. OpenStack supports its own data source called <code>OpenStack</code>. Alternatively, OpenStack is compatible with the AWS data source called <code>Ec2</code>. This compatibility ensures that virtual machine images designed for EC2 will work properly on OpenStack. I would expect that the <code>Ec2</code> data source would be included in the data source list of the Amazon Linux 2 image but it is not. Let&rsquo;s add the <code>OpenStack</code> data source to the list:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>datasource_list: <span class="o">[</span> OpenStack, NoCloud, AltCloud, ConfigDrive, OVF, None <span class="o">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I put the <code>OpenStack</code> data source at the beginning of the list. You can choose to add it anywhere else. Just make sure that the <code>None</code> data source remains as the last one on the list. <code>None</code> is a fallback datasource used when no other datasources can be selected and it provides empty metadata and empty user data.</p>
+
+<p>After you saved your changes, you can unmount the Linux filesystem:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>sudo umount /mnt
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And convert the modified image back to the qcow2 format:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>qemu-img convert -f raw -O qcow2 amzn2-kvm.raw amzn2-kvm.qcow2
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now you can upload the modified image into the OpenStack image repository:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openstack image create --min-disk <span class="m">25</span> --min-ram <span class="m">512</span> --container-format bare --disk-format qcow2 --file amzn2-kvm.qcow2 amzn2-kvm
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>After the image upload into OpenStack has completed, you can create a test virtual machine off of this image:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openstack server create --image amzn2-kvm --flavor m1.medium --key-name &lt;key-name&gt; --nic net-id<span class="o">=</span>&lt;net-id&gt; amzn-test
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Note that in the above command, you&rsquo;ll have to replace the <code>&lt;key-name&gt;</code> and <code>&lt;net-id&gt;</code> placeholders with the name of your key pair and the name of the network you want your instance to be attached to. After the virtual machine has booted up, you should be able to connect to it using SSH. Note that the default user enabled on the Amazon Linux 2 image is <code>ec2-user</code>:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>ssh ec2-user@amzn-test
+</span><span class='line'>Last login: Sun Apr <span class="m">22</span> 05:08:45 <span class="m">2018</span> from ales.dev.ussd.verimatrix.com
+</span><span class='line'>
+</span><span class='line'>       __<span class="p">|</span>  __<span class="p">|</span>_  <span class="o">)</span>
+</span><span class='line'>       _<span class="p">|</span>  <span class="o">(</span>     /   Amazon Linux <span class="m">2</span> AMI
+</span><span class='line'>      ___<span class="p">|</span><span class="se">\_</span>__<span class="p">|</span>___<span class="p">|</span>
+</span><span class='line'>
+</span><span class='line'>https://aws.amazon.com/amazon-linux-2/
+</span><span class='line'>No packages needed <span class="k">for</span> security<span class="p">;</span> <span class="m">8</span> packages available
+</span><span class='line'>Run <span class="s2">&quot;sudo yum update&quot;</span> to apply all updates.
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This is the end of the tutorial. You have a working Amazon Linux 2 image on OpenStack, congratulations! If you have any comments or questions, let me know in the comment section below.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[18 Months with OpenStack, Our Experience, Part II]]></title>
@@ -2718,382 +2867,6 @@
 <h2>Conclusion</h2>
 
 <p>In the this blog post we reviewed different approaches how to leverage an OpenShift cluster for software builds. On one hand, builds can be defined within OpenShift by creating the BuildConfig resources. This approach might be less flexible than using a full-fledged build server like Jenkins, however, one can be sure that the builds will work on any OpenShift cluster including the public cloud. On the other hand, we have seen that in an environment where Jenkins is already the king, we can leverage the Swarm or Kubernetes plugin to allow Jenkins to schedule build jobs on OpenShift.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[Accessing Kubernetes Pods from Outside of the Cluster]]></title>
-    <link href="http://alesnosek.com/blog/2017/02/14/accessing-kubernetes-pods-from-outside-of-the-cluster/"/>
-    <updated>2017-02-14T23:36:37-08:00</updated>
-    <id>http://alesnosek.com/blog/2017/02/14/accessing-kubernetes-pods-from-outside-of-the-cluster</id>
-    <content type="html"><![CDATA[<p>There are several ways how to expose your application running on the Kubernetes cluster to the outside world. When reading the <a href="https://kubernetes.io/docs/">Kubernetes documentation</a> I had a hard time ordering the different approaches in my head. I created this blog post for my future reference but will be happy if it can be of any use to you. Without further ado let&rsquo;s discuss the <em>hostNetwork</em>, <em>hostPort</em>, <em>NodePort</em>, <em>LoadBalancer</em> and <em>Ingress</em> features of Kubernetes.</p>
-
-<!-- more -->
-
-
-<h2>hostNetwork: true</h2>
-
-<p>The <code>hostNetwork</code> setting applies to the Kubernetes pods. When a pod is configured with <code>hostNetwork: true</code>, the applications running in such a pod can directly see the network interfaces of the host machine where the pod was started. An application that is configured to listen on all network interfaces will in turn be accessible on all network interfaces of the host machine. Here is an example definition of a pod that uses host networking:</p>
-
-<figure class='code'><figcaption><span>influxdb-hostnetwork.yml </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">apiVersion</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">v1</span>
-</span><span class='line'><span class="l-Scalar-Plain">kind</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Pod</span>
-</span><span class='line'><span class="l-Scalar-Plain">metadata</span><span class="p-Indicator">:</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">influxdb</span>
-</span><span class='line'><span class="l-Scalar-Plain">spec</span><span class="p-Indicator">:</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">hostNetwork</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">true</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">containers</span><span class="p-Indicator">:</span>
-</span><span class='line'>    <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">influxdb</span>
-</span><span class='line'>      <span class="l-Scalar-Plain">image</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">influxdb</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>You can start the pod with the following command:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>kubectl create -f influxdb-hostnetwork.yml
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>You can check that the InfluxDB application is running with:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>curl -v http://kubenode01.example.com:8086/ping
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Remember to replace the host name in the above URL with the host name or IP address of the Kubernetes node where your pod has been scheduled to run. InfluxDB will respond with HTTP 204 No Content when working properly.</p>
-
-<p>Note that every time the pod is restarted Kubernetes can reschedule the pod onto a different node and so the application will change its IP address. Besides that two applications requiring the same port cannot run on the same node. This can lead to port conflicts when the number of applications running on the cluster grows. On top of that, creating a pod with <code>hostNetwork: true</code> on OpenShift is a privileged operation. For these reasons, the host networking is not a good way to make your applications accessible from outside of the cluster.</p>
-
-<p>What is the host networking good for? For cases where a direct access to the host networking is required. For example, the Kubernetes networking plugin Flannel can be deployed as a daemon set on all nodes of the Kubernetes cluster. Due to <code>hostNetwork: true</code> the Flannel has full control of the networking on every node in the cluster allowing it to manage the overlay network to which the pods with <code>hostNetwork: false</code> are connected to.</p>
-
-<h2>hostPort</h2>
-
-<p>The <code>hostPort</code> setting applies to the Kubernetes containers. The container port will be exposed to the external network at <em>&lt;hostIP>:&lt;hostPort></em>, where the <em>hostIP</em> is the IP address of the Kubernetes node where the container is running and the <em>hostPort</em> is the port requested by the user. Here comes a sample pod definition:</p>
-
-<figure class='code'><figcaption><span>influxdb-hostport.yml </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">apiVersion</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">v1</span>
-</span><span class='line'><span class="l-Scalar-Plain">kind</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Pod</span>
-</span><span class='line'><span class="l-Scalar-Plain">metadata</span><span class="p-Indicator">:</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">influxdb</span>
-</span><span class='line'><span class="l-Scalar-Plain">spec</span><span class="p-Indicator">:</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">containers</span><span class="p-Indicator">:</span>
-</span><span class='line'>    <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">influxdb</span>
-</span><span class='line'>      <span class="l-Scalar-Plain">image</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">influxdb</span>
-</span><span class='line'>      <span class="l-Scalar-Plain">ports</span><span class="p-Indicator">:</span>
-</span><span class='line'>        <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">containerPort</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">8086</span>
-</span><span class='line'>          <span class="l-Scalar-Plain">hostPort</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">8086</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>The hostPort feature allows to expose a single container port on the host IP. Using the hostPort to expose an application to the outside of the Kubernetes cluster has the same drawbacks as the hostNetwork approach discussed in the previous section. The host IP can change when the container is restarted, two containers using the same hostPort cannot be scheduled on the same node and the usage of the hostPort is considered a privileged operation on OpenShift.</p>
-
-<p>What is the hostPort used for? For example, the nginx based <a href="https://github.com/kubernetes/ingress/tree/master/controllers/nginx">Ingress controller</a> is deployed as a set of containers running on top of Kubernetes. These containers are configured to use hostPorts 80 and 443 to allow the inbound traffic on these ports from the outside of the Kubernetes cluster.</p>
-
-<h2>NodePort</h2>
-
-<p>The <code>NodePort</code> setting applies to the Kubernetes services. By default Kubernetes services are accessible at the ClusterIP which is an internal IP address reachable from inside of the Kubernetes cluster only. The ClusterIP enables the applications running within the pods to access the service. To make the service accessible from outside of the cluster a user can create a service of type NodePort. At first, let&rsquo;s review the definition of the pod that we&rsquo;ll expose using a NodePort service:</p>
-
-<figure class='code'><figcaption><span>influxdb-pod.yml </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">apiVersion</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">v1</span>
-</span><span class='line'><span class="l-Scalar-Plain">kind</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Pod</span>
-</span><span class='line'><span class="l-Scalar-Plain">metadata</span><span class="p-Indicator">:</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">influxdb</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">labels</span><span class="p-Indicator">:</span>
-</span><span class='line'>    <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">influxdb</span>
-</span><span class='line'><span class="l-Scalar-Plain">spec</span><span class="p-Indicator">:</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">containers</span><span class="p-Indicator">:</span>
-</span><span class='line'>    <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">influxdb</span>
-</span><span class='line'>      <span class="l-Scalar-Plain">image</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">influxdb</span>
-</span><span class='line'>      <span class="l-Scalar-Plain">ports</span><span class="p-Indicator">:</span>
-</span><span class='line'>        <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">containerPort</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">8086</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>When creating a NodePort service, the user can specify a port from the range 30000-32767, and each Kubernetes node will proxy that port to the pods selected by the service. A sample definition of a NodePort service looks as follows:</p>
-
-<figure class='code'><figcaption><span>influxdb-nodeport.yml </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">kind</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Service</span>
-</span><span class='line'><span class="l-Scalar-Plain">apiVersion</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">v1</span>
-</span><span class='line'><span class="l-Scalar-Plain">metadata</span><span class="p-Indicator">:</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">influxdb</span>
-</span><span class='line'><span class="l-Scalar-Plain">spec</span><span class="p-Indicator">:</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">type</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">NodePort</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">ports</span><span class="p-Indicator">:</span>
-</span><span class='line'>    <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">port</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">8086</span>
-</span><span class='line'>      <span class="l-Scalar-Plain">nodePort</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">30000</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">selector</span><span class="p-Indicator">:</span>
-</span><span class='line'>    <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">influxdb</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Note that on OpenShift more privileges are required to create a NodePort service. After the service has been created, the kube-proxy component that runs on each node of the Kubernetes cluster and listens on all network interfaces is instructed to accept connections on port 30000. The incoming traffic is forwarded by the kube-proxy to the selected pods in a round-robin fashion. You should be able to access the InfluxDB application from outside of the cluster using the command:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>curl -v http://kubenode01.example.com:30000/ping
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>The NodePort service represents a static endpoint through which the selected pods can be reached. If you prefer serving your application on a different port than the 30000-32767 range, you can deploy an external load balancer in front of the Kubernetes nodes and forward the traffic to the NodePort on each of the Kubernetes nodes. This gives you an extra resiliency for the case that some of the Kubernetes nodes becomes unavailable, too. If you&rsquo;re hosting your Kubernetes cluster on one of the supported cloud providers like AWS, Azure or GCE, Kubernetes can provision an external load balancer for you. We&rsquo;ll take a look at how to do it in the next section.</p>
-
-<h2>LoadBalancer</h2>
-
-<p>The <code>LoadBalancer</code> setting applies to the Kubernetes service. In order to be able to create a service of type LoadBalancer, a cloud provider has to be enabled in the configuration of the Kubernetes cluster. As of version 1.6, Kubernetes can provision load balancers on AWS, Azure, CloudStack, GCE and OpenStack. Here is an example definition of the LoadBalancer service:</p>
-
-<figure class='code'><figcaption><span>influxdb-loadbalancer.yml </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">kind</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Service</span>
-</span><span class='line'><span class="l-Scalar-Plain">apiVersion</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">v1</span>
-</span><span class='line'><span class="l-Scalar-Plain">metadata</span><span class="p-Indicator">:</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">influxdb</span>
-</span><span class='line'><span class="l-Scalar-Plain">spec</span><span class="p-Indicator">:</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">type</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">LoadBalancer</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">ports</span><span class="p-Indicator">:</span>
-</span><span class='line'>    <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">port</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">8086</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">selector</span><span class="p-Indicator">:</span>
-</span><span class='line'>    <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">influxdb</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Let&rsquo;s take a look at what Kubernetes created for us:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>kubectl get svc influxdb
-</span><span class='line'>NAME       CLUSTER-IP     EXTERNAL-IP     PORT<span class="o">(</span>S<span class="o">)</span>          AGE
-</span><span class='line'>influxdb   10.97.121.42   10.13.242.236   8086:30051/TCP   39s
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>In the command output we can read that the influxdb service is internally reachable at the ClusterIP 10.97.121.42. Next, Kubernetes allocated a NodePort 30051. Because we didn&rsquo;t specify a desired NodePort number, Kubernetes picked one for us. We can check the reachability of the InfluxDB application through the NodePort with the command:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>curl -v http://kubenode01.example.com:30051/ping
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Finally, Kubernetes reached out to the cloud provider to provision a load balancer. The VIP of the load balancer is 10.13.242.236 as it is shown in the command output. Now we can access the InfluxDB application through the load balancer like this:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>curl -v http://10.13.242.236:8086/ping
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>My cloud provider is OpenStack. Let&rsquo;s examine how the provisioned load balancer on OpenStack looks like:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-<span class='line-number'>44</span>
-<span class='line-number'>45</span>
-<span class='line-number'>46</span>
-<span class='line-number'>47</span>
-<span class='line-number'>48</span>
-<span class='line-number'>49</span>
-<span class='line-number'>50</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>neutron lb-vip-show 9bf2a580-2ba4-4494-93fd-9b6969c55ac3
-</span><span class='line'>+---------------------+--------------------------------------------------------------+
-</span><span class='line'><span class="p">|</span> Field               <span class="p">|</span> Value                                                        <span class="p">|</span>
-</span><span class='line'>+---------------------+--------------------------------------------------------------+
-</span><span class='line'><span class="p">|</span> address             <span class="p">|</span> 10.13.242.236                                                <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> admin_state_up      <span class="p">|</span> True                                                         <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> connection_limit    <span class="p">|</span> -1                                                           <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> description         <span class="p">|</span> Kubernetes external service a6ffa4dadf99711e68ea2fa163e0b082 <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> id                  <span class="p">|</span> 9bf2a580-2ba4-4494-93fd-9b6969c55ac3                         <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> name                <span class="p">|</span> a6ffa4dadf99711e68ea2fa163e0b082                             <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> pool_id             <span class="p">|</span> 392917a6-ed61-4924-acb2-026cd4181755                         <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> port_id             <span class="p">|</span> e450b80b-6da1-4b31-a008-280abdc6400b                         <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> protocol            <span class="p">|</span> TCP                                                          <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> protocol_port       <span class="p">|</span> <span class="m">8086</span>                                                         <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> session_persistence <span class="p">|</span>                                                              <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> status              <span class="p">|</span> ACTIVE                                                       <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> status_description  <span class="p">|</span>                                                              <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> subnet_id           <span class="p">|</span> 73f8eb91-90cf-42f4-85d0-dcff44077313                         <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> tenant_id           <span class="p">|</span> 4d68886fea6e45b0bc2e05cd302cccb9                             <span class="p">|</span>
-</span><span class='line'>+---------------------+--------------------------------------------------------------+
-</span><span class='line'>
-</span><span class='line'><span class="nv">$ </span>neutron lb-pool-show 392917a6-ed61-4924-acb2-026cd4181755
-</span><span class='line'>+------------------------+--------------------------------------+
-</span><span class='line'><span class="p">|</span> Field                  <span class="p">|</span> Value                                <span class="p">|</span>
-</span><span class='line'>+------------------------+--------------------------------------+
-</span><span class='line'><span class="p">|</span> admin_state_up         <span class="p">|</span> True                                 <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> description            <span class="p">|</span>                                      <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> health_monitors        <span class="p">|</span>                                      <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> health_monitors_status <span class="p">|</span>                                      <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> id                     <span class="p">|</span> 392917a6-ed61-4924-acb2-026cd4181755 <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> lb_method              <span class="p">|</span> ROUND_ROBIN                          <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> members                <span class="p">|</span> d0825cc2-46a3-43bd-af82-e9d8f1f85299 <span class="p">|</span>
-</span><span class='line'><span class="p">|</span>                        <span class="p">|</span> 3f73d3bb-bc40-478d-8d0e-df05cdfb9734 <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> name                   <span class="p">|</span> a6ffa4dadf99711e68ea2fa163e0b082     <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> protocol               <span class="p">|</span> TCP                                  <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> provider               <span class="p">|</span> haproxy                              <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> status                 <span class="p">|</span> ACTIVE                               <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> status_description     <span class="p">|</span>                                      <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> subnet_id              <span class="p">|</span> 73f8eb91-90cf-42f4-85d0-dcff44077313 <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> tenant_id              <span class="p">|</span> 4d68886fea6e45b0bc2e05cd302cccb9     <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> vip_id                 <span class="p">|</span> 9bf2a580-2ba4-4494-93fd-9b6969c55ac3 <span class="p">|</span>
-</span><span class='line'>+------------------------+--------------------------------------+
-</span><span class='line'>
-</span><span class='line'><span class="nv">$ </span>neutron lb-member-list
-</span><span class='line'>+--------------------------------------+--------------+---------------+--------+----------------+--------+
-</span><span class='line'><span class="p">|</span> id                                   <span class="p">|</span> address      <span class="p">|</span> protocol_port <span class="p">|</span> weight <span class="p">|</span> admin_state_up <span class="p">|</span> status <span class="p">|</span>
-</span><span class='line'>+--------------------------------------+--------------+---------------+--------+----------------+--------+
-</span><span class='line'><span class="p">|</span> 3f73d3bb-bc40-478d-8d0e-df05cdfb9734 <span class="p">|</span> 10.13.241.89 <span class="p">|</span>         <span class="m">30051</span> <span class="p">|</span>      <span class="m">1</span> <span class="p">|</span> True           <span class="p">|</span> ACTIVE <span class="p">|</span>
-</span><span class='line'><span class="p">|</span> d0825cc2-46a3-43bd-af82-e9d8f1f85299 <span class="p">|</span> 10.13.241.10 <span class="p">|</span>         <span class="m">30051</span> <span class="p">|</span>      <span class="m">1</span> <span class="p">|</span> True           <span class="p">|</span> ACTIVE <span class="p">|</span>
-</span><span class='line'>+--------------------------------------+--------------+---------------+--------+----------------+--------+
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Kubernetes created a TCP load balancer with the VIP 10.13.242.236 and port 8086. There are two pool members associated with the load balancer: 10.13.241.89 and 10.13.241.10. These are the IP addresses of the nodes in my two-node Kubernetes cluster. The traffic is forwarded to the NodePort 30051 of these two nodes.</p>
-
-<p>The load balancer created by Kubernetes is a plain TCP round-robin load balancer. It doesn&rsquo;t offer SSL termination or HTTP routing. Besides that, Kubernetes will create a separate load balancer for each service. This can become quite costly when the number of your services increases. Instead of letting Kubernetes manage the load balancer, you can go back to deploying NodePort services and provision and configure an external load balancer yourself. Another option is leveraging the Kubernetes Ingress resource that we will discuss in the next section.</p>
-
-<h2>Ingress</h2>
-
-<p>The <code>Ingress</code> resource type was introduced in Kubernetes version 1.1. The Kubernetes cluster must have an <a href="https://github.com/kubernetes/ingress/tree/master/controllers/nginx">Ingress controller</a> deployed in order for you to be able to create Ingress resources. What is the Ingress controller? The Ingress controller is deployed as a Docker container on top of Kubernetes. Its Docker image contains a load balancer like nginx or HAProxy and a controller daemon. The controller daemon receives the desired Ingress configuration from Kubernetes. It generates an nginx or HAProxy configuration file and restarts the load balancer process for changes to take effect. In other words, Ingress controller is a load balancer managed by Kubernetes.</p>
-
-<p>The Kubernetes Ingress provides features typical for a load balancer: HTTP routing, sticky sessions, SSL termination, SSL passthrough, TCP and UDP load balancing &hellip; At the moment not every Ingress controller implements all the available features. You have to consult the documentation of your Ingress controller to learn about its capabilities.</p>
-
-<p>Let&rsquo;s expose our InfluxDB application to the outside world via Ingress. An example Ingress definition looks like this:</p>
-
-<figure class='code'><figcaption><span>influxdb-ingress.yml </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">apiVersion</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">extensions/v1beta1</span>
-</span><span class='line'><span class="l-Scalar-Plain">kind</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Ingress</span>
-</span><span class='line'><span class="l-Scalar-Plain">metadata</span><span class="p-Indicator">:</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">influxdb</span>
-</span><span class='line'><span class="l-Scalar-Plain">spec</span><span class="p-Indicator">:</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">rules</span><span class="p-Indicator">:</span>
-</span><span class='line'>    <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">host</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">influxdb.kube.example.com</span>
-</span><span class='line'>      <span class="l-Scalar-Plain">http</span><span class="p-Indicator">:</span>
-</span><span class='line'>        <span class="l-Scalar-Plain">paths</span><span class="p-Indicator">:</span>
-</span><span class='line'>          <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">backend</span><span class="p-Indicator">:</span>
-</span><span class='line'>              <span class="l-Scalar-Plain">serviceName</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">influxdb</span>
-</span><span class='line'>              <span class="l-Scalar-Plain">servicePort</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">8086</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Our DNS is setup to resolve *.kube.example.com to the IP address 10.13.241.10. This is the IP address of the Kubernetes node where the Ingress controller is running. As we already mentioned when discussing the hostPort, the Ingress listens for the incoming connections on two hostPorts 80 and 443 for the HTTP and HTTPS requests, respectively. Let&rsquo;s check that we can reach the InfluxDB application via Ingress:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>curl -v http://influxdb.kube.example.com/ping
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>When everything is setup correctly, the InfluxDB will respond with HTTP 204 No Content.</p>
-
-<p>There&rsquo;s a difference between the LoadBalancer service and the Ingress in how the traffic routing is realized. In the case of the LoadBalancer service, the traffic that enters through the external load balancer is forwarded to the kube-proxy that in turn forwards the traffic to the selected pods. In contrast, the Ingress load balancer forwards the traffic straight to the selected pods which is more efficient.</p>
-
-<h2>Conclusion</h2>
-
-<p>Overall, when exposing pods to the outside of the Kubernetes cluster, the Ingress seems to be a very flexible and convenient solution. Unfortunately, it&rsquo;s also the less mature among the discussed approaches. When choosing the NodePort service, you might want to deploy a load balancer in front of your cluster as well. If you are hosting Kubernetes on one of the supported clouds, the LoadBalancer service is another option for you.</p>
-
-<p>How do you route the external traffic to the Kubernetes pods? Glad to hear about your experience in the Comments section below!</p>
 ]]></content>
   </entry>
 

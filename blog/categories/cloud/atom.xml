@@ -4,7 +4,7 @@
   <title><![CDATA[Category: cloud | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/cloud/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2018-04-16T20:23:43-07:00</updated>
+  <updated>2018-04-21T22:49:04-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,144 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[Booting Amazon Linux 2 on OpenStack]]></title>
+    <link href="http://alesnosek.com/blog/2018/04/21/booting-amazon-linux-2-on-openstack/"/>
+    <updated>2018-04-21T22:21:04-07:00</updated>
+    <id>http://alesnosek.com/blog/2018/04/21/booting-amazon-linux-2-on-openstack</id>
+    <content type="html"><![CDATA[<p>Amazon Linux 2 runs on OpenStack perfectly fine. There is only one glitch that you should be aware of. Amazon Linux 2 won&rsquo;t accept metadata and user data provided by OpenStack on boot. That means that you won&rsquo;t be able to SSH into the instance after it comes up. In this brief tutorial, we are going to modify the Amazon Linux 2 image to fix this problem.</p>
+
+<!-- more -->
+
+
+<p>You can download Amazon Linux 2 images from <a href="https://cdn.amazonlinux.com/os-images/latest/.">https://cdn.amazonlinux.com/os-images/latest/.</a> An image suitable for OpenStack is located in the <code>kvm</code> subdirectory. I downloaded the <code>amzn2-kvm-2017.12.0.20180330-x86_64.xfs.gpt.qcow2</code> version of the image. By the time you are reading this tutorial, a newer version of the image may be available.</p>
+
+<p>In the rest of this article, I&rsquo;m going to use my machine that is running RHEL7 to modify the Amazon Linux 2 image. First, let&#8217; download the image:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>wget &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;https://cdn.amazonlinux.com/os-images/2017.12.0.20180330/kvm/amzn2-kvm-2017.12.0.20180330-x86_64.xfs.gpt.qcow2&quot;</span>&gt;https://cdn.amazonlinux.com/os-images/2017.12.0.20180330/kvm/amzn2-kvm-2017.12.0.20180330-x86_64.xfs.gpt.qcow2&lt;/a&gt;
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Next, let&rsquo;s install the <code>qemu-img</code> utility useful for manipulating qcow2 images:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>sudo yum install qemu-img
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Now we can convert the Amazon Linux 2 image from the qcow2 format to the raw format:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>qemu-img convert -f qcow2 -O raw amzn2-kvm-2017.12.0.20180330-x86_64.xfs.gpt.qcow2 amzn2-kvm.raw
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>The previous command creates a file <code>amzn2-kvm.raw</code> in the current working directory. This file is a binary image of the virtual machine disk. We can explore it using the <code>fdisk</code> command:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>fdisk -l amzn2-kvm.raw
+</span><span class='line'>Disk amzn2-kvm.raw: 26.8 GB, <span class="m">26843545600</span> bytes, <span class="m">52428800</span> sectors
+</span><span class='line'><span class="nv">Units</span> <span class="o">=</span> sectors of <span class="m">1</span> * <span class="nv">512</span> <span class="o">=</span> <span class="m">512</span> bytes
+</span><span class='line'>Sector size <span class="o">(</span>logical/physical<span class="o">)</span>: <span class="m">512</span> bytes / <span class="m">512</span> bytes
+</span><span class='line'>I/O size <span class="o">(</span>minimum/optimal<span class="o">)</span>: <span class="m">512</span> bytes / <span class="m">512</span> bytes
+</span><span class='line'>Disk label <span class="nb">type</span>: gpt
+</span><span class='line'>Disk identifier: 88B4CB3B-A2F1-4C9C-82DC-F18B0F440F56&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;h1&gt;Start          End    Size  Type            Name&lt;/h1&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt; <span class="m">1</span>         <span class="m">4096</span>     <span class="m">52428766</span>     25G  Linux filesyste Linux
+</span><span class='line'><span class="m">128</span>         <span class="m">2048</span>         <span class="m">4095</span>      1M  BIOS boot       BIOS Boot Partition
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>The output of the <code>fdisk</code> command shows that the disk contains two partitions. The size of the first partition is 25 GB and it holds a Linux filesystem. On the disk, the Linux filesystem starts at the sector number 4096. Given that the size of the sector is 512 bytes, we can tell that the Linux filesystem starts at offset 2097152 (4096 * 512) bytes from the start of the disk image. Knowing the offset of the Linux filesystem, let&rsquo;s loop mount the Linux filesystem under <code>/mnt</code>:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>sudo mount -o loop,offset<span class="o">=</span><span class="m">2097152</span> amzn2-kvm.raw /mnt
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>If everything went well, we can now take a look at the cloud-init configuration of the Amazon Linux 2 image:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>sudo vi /mnt/etc/cloud/cloud.cfg
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>In the cloud-init configuration file, you can find the data source list set as follows:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>datasource_list: <span class="o">[</span> NoCloud, AltCloud, ConfigDrive, OVF, None <span class="o">]</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Sadly, none of the listed data sources is available on OpenStack. OpenStack supports its own data source called <code>OpenStack</code>. Alternatively, OpenStack is compatible with the AWS data source called <code>Ec2</code>. This compatibility ensures that virtual machine images designed for EC2 will work properly on OpenStack. I would expect that the <code>Ec2</code> data source would be included in the data source list of the Amazon Linux 2 image but it is not. Let&rsquo;s add the <code>OpenStack</code> data source to the list:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>datasource_list: <span class="o">[</span> OpenStack, NoCloud, AltCloud, ConfigDrive, OVF, None <span class="o">]</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>I put the <code>OpenStack</code> data source at the beginning of the list. You can choose to add it anywhere else. Just make sure that the <code>None</code> data source remains as the last one on the list. <code>None</code> is a fallback datasource used when no other datasources can be selected and it provides empty metadata and empty user data.</p>
+
+<p>After you saved your changes, you can unmount the Linux filesystem:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>sudo umount /mnt
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>And convert the modified image back to the qcow2 format:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>qemu-img convert -f raw -O qcow2 amzn2-kvm.raw amzn2-kvm.qcow2
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Now you can upload the modified image into the OpenStack image repository:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openstack image create <span class="p">&amp;</span>ndash<span class="p">;</span>min-disk <span class="m">25</span> <span class="p">&amp;</span>ndash<span class="p">;</span>min-ram <span class="m">512</span> <span class="p">&amp;</span>ndash<span class="p">;</span>container-format bare <span class="p">&amp;</span>ndash<span class="p">;</span>disk-format qcow2 <span class="p">&amp;</span>ndash<span class="p">;</span>file amzn2-kvm.qcow2 amzn2-kvm
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>After the image upload into OpenStack has completed, you can create a test virtual machine off of this image:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openstack server create <span class="p">&amp;</span>ndash<span class="p">;</span>image amzn2-kvm <span class="p">&amp;</span>ndash<span class="p">;</span>flavor m1.medium <span class="p">&amp;</span>ndash<span class="p">;</span>key-name &lt;key-name&gt; <span class="p">&amp;</span>ndash<span class="p">;</span>nic net-id<span class="o">=</span>&lt;net-id&gt; amzn-test
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Note that in the above command, you&rsquo;ll have to replace the <code>&lt;key-name&gt;</code> and <code>&lt;net-id&gt;</code> placeholders with the name of your key pair and the name of the network you want your instance to be attached to. After the virtual machine has booted up, you should be able to connect to it using SSH. Note that the default user enabled on the Amazon Linux 2 image is <code>ec2-user</code>:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>ssh ec2-user@amzn-test
+</span><span class='line'>Last login: Sun Apr <span class="m">22</span> 05:08:45 <span class="m">2018</span> from ales.dev.ussd.verimatrix.com&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;pre&gt;&lt;code&gt;   __<span class="p">|</span>  __<span class="p">|</span>_  <span class="o">)</span>
+</span><span class='line'>   _<span class="p">|</span>  <span class="o">(</span>     /   Amazon Linux <span class="m">2</span> AMI
+</span><span class='line'>  ___<span class="p">|</span><span class="se">\_</span>__<span class="p">|</span>___<span class="p">|</span>
+</span><span class='line'>&lt;/code&gt;&lt;/pre&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;&lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;https://aws.amazon.com/amazon-linux-2/&quot;</span>&gt;https://aws.amazon.com/amazon-linux-2/&lt;/a&gt;
+</span><span class='line'>No packages needed <span class="k">for</span> security<span class="p">;</span> <span class="m">8</span> packages available
+</span><span class='line'>Run <span class="p">&amp;</span>ldquo<span class="p">;</span>sudo yum update<span class="p">&amp;</span>rdquo<span class="p">;</span> to apply all updates.
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>This is the end of the tutorial. You have a working Amazon Linux 2 image on OpenStack, congratulations! If you have any comments or questions, let me know in the comment section below.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[18 Months with OpenStack, Our Experience, Part II]]></title>
@@ -1008,32 +1146,6 @@
 <h2>Conclusion</h2>
 
 <p>In this post, we walked through the secure edge design explaining the reasoning behind the individual design decisions. In the <a href="/blog/2018/01/12/edge-security-for-your-cloud-application-part-ii">second blog post</a> of this miniseries, we&rsquo;re going to demonstrate a practical implementation of our approach using HAProxy.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[AWS Lambda Adapter for Vert.x Web Applications]]></title>
-    <link href="http://alesnosek.com/blog/2017/10/18/aws-lambda-adapter-for-vert-dot-x-web-applications/"/>
-    <updated>2017-10-18T23:09:33-07:00</updated>
-    <id>http://alesnosek.com/blog/2017/10/18/aws-lambda-adapter-for-vert-dot-x-web-applications</id>
-    <content type="html"><![CDATA[<p><a href="http://vertx.io/">Vert.x</a> is an awesome tool-kit for developing reactive microservices. In this article, I&rsquo;m going to present an adapter that allows you to run your Vert.x web service as a Lambda function on AWS.</p>
-
-<!-- more -->
-
-
-<p><img class="right" src="/images/posts/vertx_logo.png" width="130" height="130"></p>
-
-<p>If you are creating web services using Vert.x, you are leveraging the HTTP server built into the core of the Vert.x tool-kit. This HTTP server is based on the <a href="https://netty.io/">Netty</a> framework. When your web service comes up, the HTTP server opens a network port and starts listening for the incoming client connections. After a client connects, the HTTP server reads the HTTP request and processes this request by invoking callbacks that you registered. HTTP response generated by your implementation is returned back to the client. The web service remains running and processing requests until you shut it down.</p>
-
-<p><img class="right" src="/images/posts/aws_lambda_logo.png" width="100" height="100"></p>
-
-<p>In contrast to the constantly running web service, an AWS Lambda function is instantiated to serve a single HTTP request. After the HTTP request has been processed, the Lambda function is torn down.</p>
-
-<p>In our company, we&rsquo;re looking at deploying our web services on-premise and in the cloud. We realized that when deploying into AWS it would be more cost effective if we could run some of our web services as Lambda functions. The question was, how to allow a Vert.x web service to alternatively run as a Lambda function? And how to accomplish this with a minimum development and maintenance effort?</p>
-
-<p>After browsing through the Vert.x source code, it occurred to me that it would be possible to write a simple adapter that would convert HTTP requests and responses between the Lambda API and the Vert.x API. I then get on with the job and implemented such an adapter. And because software practitioners love open source, you can find this adapter along with the sample application on GitHub: <a href="https://github.com/noseka1/vertx-aws-lambda">vertx-aws-lambda</a>.</p>
-
-<p>As always, I&rsquo;d love to hear your feedback. What do you think about this project? Feel free to leave your comments below.</p>
 ]]></content>
   </entry>
 
