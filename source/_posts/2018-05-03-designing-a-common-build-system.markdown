@@ -10,15 +10,15 @@ Code reuse belongs to the basic tenets of software development. Moreover, one sh
 
 <!-- more -->
 
-A good software practitioner avoids having huge chunks of Makefiles, pom.xml files, build.xml files or shell scripts copy-pasted all over the code base. From experience I can tell that copy-pasted build scripts lead to inconsistencies, build issues and are overall driving the maintenance cost high.
+A good software practitioner avoids having huge chunks of Makefiles, pom.xml files, build.xml files or shell scripts copy-pasted all over the code base. Based on experience, copy-pasted build scripts lead to inconsistencies, build issues and are overall driving the maintenance cost high.
 
-In the year 2010, we invested heavily in the improvements of our build infrastructure. We introduced a continuous integration server Hudson (remember the project that was later renamed to Jenkins?), added source code analysis tool Sonar (nowadays called SonarQube), embraced RPM packaging and created a set of highly reusable build scripts which we called a common build system. In the next section, I'm going to discuss a high-level design and ideas behind the common build system.
+In 2010, we invested heavily in the improvements of our build infrastructure. We introduced a continuous integration server Hudson (remember the project that was later renamed to Jenkins?), added source code analysis tool Sonar (nowadays called SonarQube), embraced RPM packaging and created a set of highly reusable build scripts which we called a common build system. In the next section, I'm going to discuss a high-level design and ideas behind the common build system.
 
 ## High-level overview
 
 Our build system supports Java, C++ and C development. The core of the build system comprises of:
 
-* [Apache Ant](https://ant.apache.org/) An old-timer between build tools. In current times, writing build scripts in XML is not sexy anymore, however, we like Ant for its simplicity and power. If you cannot express the required functionality using Ant tasks, you can always defer to using an embedded JavaScript. In our Ant scripts, you could find the `<script language="javascript"> ... </script>` element that embeds JavaScript on several places.
+* [Apache Ant](https://ant.apache.org/) An old-timer between build tools. In current times, writing build scripts in XML is not sexy anymore, however, we like Ant for its simplicity and power. If you cannot express the required functionality using Ant tasks, you can always defer to using an embedded JavaScript. In our Ant scripts, you could find the `<script language="javascript"> ... </script>` element that embeds JavaScript in several places.
 * [Apache Ivy](http://ant.apache.org/ivy/) Is a very flexible dependency manager that integrates with Apache Ant. While Ivy is predominantly used to manage Java jar files, we use it to manage C/C++ dependencies, too. For that, we zip up the C++ header files and push it along with the C++ shared libraries into the artifact repository.
 * [Ant Script Library](https://github.com/tumbarumba/AntScriptLibrary) Writing Ant build scripts from scratch is time consuming. To avoid spending this effort, we embraced Ant Script Library (ASL) which is a collection of re-usable Ant scripts providing a number of pre-defined targets.
 * [Boilermake](https://github.com/dmoulding/boilermake) Boilermake is a reusable GNU Make compatible Makefile. It uses a non-recursive strategy which avoids the many well-known pitfalls of recursive make, see also [Recursive Make Considered Harmful](http://aegis.sourceforge.net/auug97.pdf). We leverage Boilermake to compile C/C++ source code. An Ant `build.xml` wrapper script calls Boilermake when building a C/C++ module.
@@ -71,7 +71,7 @@ We maintain a set of common Ant build targets which every module must implement:
 | ci-default                | Called by CI server during the build job execution                         |
 | report-sonar              | Do statical analysis and send reports to Sonar server                      |
 
-These build targets constitute a well-known interface which allows developers to clean and build any module using the same Ant command. Furthermore, each module defines the `ci-default` target which is called by the Jenkins CI server when building the module. This allows us to have Jenkins built any of our modules by issuing these two commands:
+These build targets constitute a well-known interface which allows developers to clean and build any module using the same Ant command. Furthermore, each module defines the `ci-default` target which is called by the Jenkins CI server when building the module. This allows us to have Jenkins build any of our modules by issuing these two commands:
 
 {% codeblock lang:sh %}
 ant clean-all
@@ -95,4 +95,4 @@ It has been several years since we created the common build system and we have b
 
 In our company, the relentless improvement process never stops. The Ant + Ivy tools we leverage at the core of our build system are past their prime. So, what's next? I'm very excited about our current progress in gradually replacing Ant + Ivy with the more modern Gradle build tool.
 
-I hope you enjoyed the tour through the design of the common build system. I would be interested to know, how you promote code reuse of the build scripts in your company? It would be great to hear about your approach. Please, feel free to leave your comments in the comment section below.
+I hope you enjoyed the tour through the design of the common build system. I would be interested to know how you promote code reuse of the build scripts in your company. It would be great to hear about your approach. Please, feel free to leave your comments in the comment section below.
