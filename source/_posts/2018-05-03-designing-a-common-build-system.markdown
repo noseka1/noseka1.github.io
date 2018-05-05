@@ -6,7 +6,7 @@ comments: true
 categories: development
 ---
 
-Code reuse belongs to the basic tenets of software development. Moreover, one should have the same principle in mind when maintaining build scripts. If you are copy-pasting Makefiles and pom.xml files from project to project, stop now read this article! We are going to discuss how to design a common build system.
+Code reuse belongs to the basic tenets of software development. Moreover, one should have the same principle in mind when maintaining build scripts. If you are copy-pasting Makefiles and pom.xml files from project to project, stop now and read this article! We are going to discuss how to design a common build system.
 
 <!-- more -->
 
@@ -33,7 +33,7 @@ Our code base is divided up into modules. A module contains either Java or C/C++
 <import file="../../Build/build-common/module.xml" />
 {% endcodeblock %}
 
-Modules are organized into Git repositories according to the functionality they implement. For instance, modules of a specific product reside in its own Git repository. Furthermore, the `Platform` repository groups together modules that implement common libraries shared across several of our products.
+Modules are organized into Git repositories according to the functionality they implement. For instance, modules of a specific product reside in its own Git repository. Furthermore, the `Platform` repository groups together modules that implement common libraries shared across several products.
 
 All artifacts exported by the individual modules (jars, shared libraries, header files) are shared between the modules via the artifact repository. If additional information needs to be shared between modules, modules can publish Java properties files into the artifact repository which other modules can fetch and import. It was important to us to avoid any direct references between modules on the file system with the exception of the reference to the `build-common` module. These direct references between modules would be less obvious than passing artifacts and extra information via the artifact repository. We like to keep a good track of the dependencies between our software modules.
 
