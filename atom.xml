@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2018-04-21T22:50:00-07:00</updated>
+  <updated>2018-05-05T16:24:18-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,192 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[Designing a Common Build System]]></title>
+    <link href="http://alesnosek.com/blog/2018/05/03/designing-a-common-build-system/"/>
+    <updated>2018-05-03T21:57:40-07:00</updated>
+    <id>http://alesnosek.com/blog/2018/05/03/designing-a-common-build-system</id>
+    <content type="html"><![CDATA[<p>Code reuse belongs to the basic tenets of software development. Moreover, one should have the same principle in mind when maintaining build scripts. If you are copy-pasting Makefiles and pom.xml files from project to project, stop now and read this article! We are going to discuss how to design a common build system.</p>
+
+<!-- more -->
+
+
+<p>A good software practitioner avoids having huge chunks of Makefiles, pom.xml files, build.xml files or shell scripts copy-pasted all over the code base. Based on experience, copy-pasted build scripts lead to inconsistencies, build issues and are overall driving the maintenance cost high.</p>
+
+<p>In 2010, we invested heavily in the improvements of our build infrastructure. We introduced a continuous integration server Hudson (remember the project that was later renamed to Jenkins?), added source code analysis tool Sonar (nowadays called SonarQube), embraced RPM packaging and created a set of highly reusable build scripts which we called a common build system. In the next section, I&rsquo;m going to discuss a high-level design and ideas behind the common build system.</p>
+
+<h2>High-level overview</h2>
+
+<p>Our build system supports Java, C++ and C development. The core of the build system comprises of:</p>
+
+<ul>
+<li><a href="https://ant.apache.org/">Apache Ant</a> An old-timer between build tools. In current times, writing build scripts in XML is not sexy anymore, however, we like Ant for its simplicity and power. If you cannot express the required functionality using Ant tasks, you can always defer to using an embedded JavaScript. In our Ant scripts, you could find the <code>&lt;script language="javascript"&gt; ... &lt;/script&gt;</code> element that embeds JavaScript in several places.</li>
+<li><a href="http://ant.apache.org/ivy/">Apache Ivy</a> Is a very flexible dependency manager that integrates with Apache Ant. While Ivy is predominantly used to manage Java jar files, we use it to manage C/C++ dependencies, too. For that, we zip up the C++ header files and push it along with the C++ shared libraries into the artifact repository.</li>
+<li><a href="https://github.com/tumbarumba/AntScriptLibrary">Ant Script Library</a> Writing Ant build scripts from scratch is time consuming. To avoid spending this effort, we embraced Ant Script Library (ASL) which is a collection of re-usable Ant scripts providing a number of pre-defined targets.</li>
+<li><a href="https://github.com/dmoulding/boilermake">Boilermake</a> Boilermake is a reusable GNU Make compatible Makefile. It uses a non-recursive strategy which avoids the many well-known pitfalls of recursive make, see also <a href="http://aegis.sourceforge.net/auug97.pdf">Recursive Make Considered Harmful</a>. We leverage Boilermake to compile C/C++ source code. An Ant <code>build.xml</code> wrapper script calls Boilermake when building a C/C++ module.</li>
+</ul>
+
+
+<p>The following diagram illustrates the organization of our code base:</p>
+
+<p><img src="http://alesnosek.com/images/posts/common_build_system.svg" width="600" height="600"></p>
+
+<p>Our code base is divided up into modules. A module contains either Java or C/C++ source code required to build a library or executable. The <code>build-common</code> module is special in that it doesn&rsquo;t contain any source code to compile. Instead, it acts as a container in which we store all our reusable build scripts. The build scripts of other modules import the definitions from the <code>build-common</code> module. Due to high code reuse, the build scripts of individual modules are rather concise. The Ant statement to import the common definitions from the <code>build-common</code> module looks as follows:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>&lt;import <span class="nv">file</span><span class="o">=</span><span class="s2">&quot;../../Build/build-common/module.xml&quot;</span> /&gt;
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Modules are organized into Git repositories according to the functionality they implement. For instance, modules of a specific product reside in its own Git repository. Furthermore, the <code>Platform</code> repository groups together modules that implement common libraries shared across several products.</p>
+
+<p>All artifacts exported by the individual modules (jars, shared libraries, header files) are shared between the modules via the artifact repository. If additional information needs to be shared between modules, modules can publish Java properties files into the artifact repository which other modules can fetch and import. It was important to us to avoid any direct references between modules on the file system with the exception of the reference to the <code>build-common</code> module. These direct references between modules would be less obvious than passing artifacts and extra information via the artifact repository. We like to keep a good track of the dependencies between our software modules.</p>
+
+<h2>Module directory structure</h2>
+
+<p>Apache Ant does not propose any particular directory structure. However, it is easier to work with modules which have a common structure. Ant Script Library embraces the <a href="https://maven.apache.org/guides/introduction/introduction-to-the-standard-directory-layout.html">Standard Directory Layout</a> from Maven project and so we derive our directory structure from this standard. Here is our module directory structure in greater detail:</p>
+
+<table>
+<thead>
+<tr>
+<th style="text-align:left;"> Directory          </th>
+<th style="text-align:left;"> Purpose                          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;"> src/main/java      </td>
+<td style="text-align:left;"> Java application/library sources </td>
+</tr>
+<tr>
+<td style="text-align:left;"> src/main/c++       </td>
+<td style="text-align:left;"> C++ application/library sources  </td>
+</tr>
+<tr>
+<td style="text-align:left;"> src/main/c         </td>
+<td style="text-align:left;"> C application/library sources    </td>
+</tr>
+<tr>
+<td style="text-align:left;"> src/main/resources </td>
+<td style="text-align:left;"> Application/library resources    </td>
+</tr>
+<tr>
+<td style="text-align:left;"> src/main/scripts   </td>
+<td style="text-align:left;"> Application/library scripts      </td>
+</tr>
+<tr>
+<td style="text-align:left;"> src/test/java      </td>
+<td style="text-align:left;"> Java test sources                </td>
+</tr>
+<tr>
+<td style="text-align:left;"> src/test/c++       </td>
+<td style="text-align:left;"> C++ test sources                 </td>
+</tr>
+<tr>
+<td style="text-align:left;"> src/test/c         </td>
+<td style="text-align:left;"> C test sources                   </td>
+</tr>
+<tr>
+<td style="text-align:left;"> build.xml          </td>
+<td style="text-align:left;"> Ant build file                   </td>
+</tr>
+<tr>
+<td style="text-align:left;"> ivy.xml            </td>
+<td style="text-align:left;"> Ivy module descriptor            </td>
+</tr>
+<tr>
+<td style="text-align:left;"> README.md          </td>
+<td style="text-align:left;"> Module&rsquo;s README file             </td>
+</tr>
+<tr>
+<td style="text-align:left;"> target             </td>
+<td style="text-align:left;"> Build output directory           </td>
+</tr>
+</tbody>
+</table>
+
+
+<h2>Common build targets</h2>
+
+<p>We maintain a set of common Ant build targets which every module must implement:</p>
+
+<table>
+<thead>
+<tr>
+<th style="text-align:left;"> Target name               </th>
+<th style="text-align:left;"> Description                                                                </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;"> default                   </td>
+<td style="text-align:left;"> Build artifacts, publish artifacts                                         </td>
+</tr>
+<tr>
+<td style="text-align:left;"> distribute                </td>
+<td style="text-align:left;"> Build artifacts, publish artifacts and create a distribution package       </td>
+</tr>
+<tr>
+<td style="text-align:left;"> all                       </td>
+<td style="text-align:left;"> Build and test artifacts, publish artifacts, create a distribution package </td>
+</tr>
+<tr>
+<td style="text-align:left;"> clean                     </td>
+<td style="text-align:left;"> Delete files generated during the build                                    </td>
+</tr>
+<tr>
+<td style="text-align:left;"> clean-dist                </td>
+<td style="text-align:left;"> Delete files generated during the RPM package build                        </td>
+</tr>
+<tr>
+<td style="text-align:left;"> clean-all                 </td>
+<td style="text-align:left;"> Delete all generated files                                                 </td>
+</tr>
+<tr>
+<td style="text-align:left;"> ci-default                </td>
+<td style="text-align:left;"> Called by CI server during the build job execution                         </td>
+</tr>
+<tr>
+<td style="text-align:left;"> report-sonar              </td>
+<td style="text-align:left;"> Do statical analysis and send reports to Sonar server                      </td>
+</tr>
+</tbody>
+</table>
+
+
+<p>These build targets constitute a well-known interface which allows developers to clean and build any module using the same Ant command. Furthermore, each module defines the <code>ci-default</code> target which is called by the Jenkins CI server when building the module. This allows us to have Jenkins build any of our modules by issuing these two commands:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>ant clean-all
+</span><span class='line'>ant ci-default
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This two-command interface establishes a contract between modules and Jenkins and allows us to keep the Jenkins job definition fairly static. On the other hand, developers have full power to define what should happen during the build by implementing the module&rsquo;s  <code>ci-default</code> target.</p>
+
+<p>Target <code>report-sonar</code> runs the SonarQube source code analysis tool, and sends the collected data to the SonarQube server. As the source code analysis takes some time to complete, we don&rsquo;t run it on every push to the Git repository. Instead, we scheduled a nightly Jenkins job that analyzes all the modules and uploads the collected data at once.</p>
+
+<h2>Final remarks</h2>
+
+<p>It has been several years since we created the common build system and we have been improving it ever since. We added many features to support our development process. We have already discussed some of them. Here is a summary of the most important capabilities we implemented so far:</p>
+
+<ul>
+<li>Support for building Java and C/C++ code</li>
+<li>Support for multiple target platforms (RHEL5, RHEL6, RHEL7, Solaris 10)</li>
+<li>Packaging software as RPM, Solaris pkg, IzPack and Docker image</li>
+<li>Import of test data into Oracle database before running the unit tests</li>
+<li>Management of build jobs in Jenkins</li>
+<li>Source code analysis using SonarQube</li>
+</ul>
+
+
+<p>In our company, the relentless improvement process never stops. The Ant + Ivy tools we leverage at the core of our build system are past their prime. So, what&rsquo;s next? I&rsquo;m very excited about our current progress in gradually replacing Ant + Ivy with the more modern Gradle build tool.</p>
+
+<p>I hope you enjoyed the tour through the design of the common build system. I would be interested to know how you promote code reuse of the build scripts in your company. It would be great to hear about your approach. Please, feel free to leave your comments in the comment section below.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[Booting Amazon Linux 2 on OpenStack]]></title>
@@ -2813,60 +2999,6 @@
 <p>The exam took three hours and I have to say that I was very busy typing the whole time. Despite of my best effort I ran out of time with three tasks left untouched. How happy I was when I received my exam results. Passing score for the exam was 210 points. I made it through with 225 points.</p>
 
 <p>I truly enjoy the Red Hat certification program and want to keep growing my collection of certificates. The list of my current certifications can be found on the <a href="https://www.redhat.com/rhtapps/certification/verify/?certId=160-216-727">Verify a Red Hat Certified Professional</a> website.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[An Introduction to Building on OpenShift]]></title>
-    <link href="http://alesnosek.com/blog/2017/03/19/an-introduction-to-building-on-openshift/"/>
-    <updated>2017-03-19T10:48:32-07:00</updated>
-    <id>http://alesnosek.com/blog/2017/03/19/an-introduction-to-building-on-openshift</id>
-    <content type="html"><![CDATA[<p>For years a Jenkins server has been driving the software builds in our company. Some time ago, we deployed an OpenShift cluster. The primary purpose of our OpenShift cluster was to support the efforts of dockerizing our software products. However, as OpeShift is a complete PaaS solution we started thinking about leveraging OpenShift for software builds, too. In this blog post I&rsquo;d like to share what we learned about building on OpenShift so far.</p>
-
-<!-- more -->
-
-
-<p>Before we begin talking about OpenShift, let&rsquo;s briefly discuss our current build environment. In the center of our build environment there is a Jenkins server. In Jenkins, we maintain numerous jobs to build our software, run automated tests, drive various devops tasks and much more. Jenkins is our central place from where the automated processes are started and monitored. As Jenkins is greatly extensible via plugins, we were able to easily integrate Jenkins with other tools, too.</p>
-
-<h2>Building the OpenShift way</h2>
-
-<p><img class="right" src="http://alesnosek.com/images/posts/openshift_logo.gif" width="200" height="200"></p>
-
-<p>In OpenShift, one has to create a <em>BuildConfig</em> resource to describe the <a href="https://docs.openshift.org/latest/dev_guide/builds/index.html">build process</a>. The BuildConfig resource in OpenShift is roughly equivalent to a job definition in Jenkins. When creating a BuildConfig resource, a build strategy has to be chosen. The build strategy resembles a job type in Jenkins. Currently, there are four build strategies available in OpenShift:</p>
-
-<p><strong>Source-to-Image strategy</strong>. Allows you to create a container image starting from the application source code. During the build process, the source code is downloaded into a container and compiled there. The finished binary artifacts are installed into the container. The complete container image is then pushed into the Docker registry from where it can be deployed as an application on OpenShift.</p>
-
-<p><strong>Docker strategy</strong>. The input of the build process is a Dockerfile. OpenShift will execute a Docker build using the provided Dockerfile and upload the resulting image into the Docker registry from where it can be deployed.</p>
-
-<p><strong>Custom strategy</strong>. Custom strategy could be compared to a free style job in Jenkins. The outcome of the build doesn&rsquo;t have to be a Docker image. Instead, the custom strategy allows you to create JARs, tarballs, RPMs or other artifacts which you have to upload to the repository of your choice by the end of the build.</p>
-
-<p><strong>Pipeline strategy</strong>. In OpenShift 3.3, a new build strategy was introduced called <em>Pipeline</em>. This strategy doesn&rsquo;t really build anything but enables you to implement workflows on OpenShift. The great article <a href="https://blog.openshift.com/openshift-3-3-pipelines-deep-dive/">OpenShift 3.3 Pipelines - Deep Dive</a> describes how the Pipeline strategy works. In summary, you can create a BuildConfig in OpenShift that contains a definition of a Jenkins pipeline (using the Groovy DSL language). Based on this definition, OpenShift will create a pipeline job in Jenkins and execute it. Among other things, the Jenkins job can trigger a build on OpenShift, verify that the build succeeded and trigger a deployment. This approach allows OpenShift to leverage Jenkins pipelines to orchestrate a more involved CI/CD workflow possibly encompassing a conditional execution of multiple OpenShift builds and deployments.</p>
-
-<p>An alternative to using the Pipeline strategy in OpenShift would be defining the pipeline job directly in Jenkins. With the <a href="https://plugins.jenkins.io/openshift-pipeline">OpenShift pipeline plugin</a> installed, one can trigger OpenShift operations from within the pipeline job.</p>
-
-<p>As I didn&rsquo;t really work with the OpenShift strategies much I&rsquo;m not going to elaborate any further. Instead, in the next section, I&rsquo;m going to mention two Jenkins plugins that we are successfully using to run builds on OpenShift.</p>
-
-<h2>Builds on Openshift driven by Jenkins</h2>
-
-<p><img class="right" src="http://alesnosek.com/images/posts/jenkins_logo.png" width="200" height="200"></p>
-
-<p>There are two Jenkins plugins that can leverage OpenShift containers as build slaves:</p>
-
-<p><strong><a href="https://wiki.jenkins-ci.org/display/JENKINS/Swarm+Plugin">Swarm plugin</a></strong>. The Swarm plugin consists of two parts: a Jenkins plugin and a CLI client. Jenkins plugin exposes an endpoint where the CLI clients can register themselves. A CLI client acts as a Jenkins slave. It runs indefinitely within a Docker container and provides Jenkins with a configurable number of build executors. While the plugin is called a Swarm plugin it doesn&rsquo;t really need any Swarm orchestration. It can happily run in a Docker container on OpenShift.</p>
-
-<p><strong><a href="https://wiki.jenkins-ci.org/display/JENKINS/Kubernetes+Plugin">Kubernetes plugin</a></strong>. Works perfectly with OpenShift. In contrast to the Swarm plugin, Kubernetes plugin spins up a new Docker slave for each job on the fly and destroys it as soon as the job has finished running.</p>
-
-<p>Because the Jenkins workspace is created inside of the container, it will be deleted as soon as the Docker container is terminated. If you&rsquo;d like to reuse the same workspace for subsequent builds, I&rsquo;d like to offer you two options how to create persistent workspaces:</p>
-
-<ol>
-<li><p>You can attach a volume of type <em>hostPath</em> to your slave pods and place your workspace on that volume. At the same time you have to speficy a <em>nodeSelector</em> on your slave pods that would instruct OpenShift to schedule all your slave pods onto the same OpenShift node. With this approach the Jenkins slave can access its workspace on the local storage. Unfortunately, all the slaves that need to share a workspace have to run on the same OpenShift node which can get overloaded.</p></li>
-<li><p>You can attach a volume with the <em>ReadWriteMany</em> capability to your slave pods and place your workspace on this volume. Eligible volume types are NFS, GlusterFS or CephFS. Using this method a Jenkins slave running on any node in the cluster can access the shared workspace. The downside is that the access is over the network and hence slower than an access to the local storage.</p></li>
-</ol>
-
-
-<h2>Conclusion</h2>
-
-<p>In the this blog post we reviewed different approaches how to leverage an OpenShift cluster for software builds. On one hand, builds can be defined within OpenShift by creating the BuildConfig resources. This approach might be less flexible than using a full-fledged build server like Jenkins, however, one can be sure that the builds will work on any OpenShift cluster including the public cloud. On the other hand, we have seen that in an environment where Jenkins is already the king, we can leverage the Swarm or Kubernetes plugin to allow Jenkins to schedule build jobs on OpenShift.</p>
 ]]></content>
   </entry>
 
