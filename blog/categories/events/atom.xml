@@ -4,7 +4,7 @@
   <title><![CDATA[Category: events | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/events/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2018-05-05T16:24:18-07:00</updated>
+  <updated>2018-05-14T21:51:22-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,97 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[Red Hat Summit 2018]]></title>
+    <link href="http://alesnosek.com/blog/2018/05/14/red-hat-summit-2018/"/>
+    <updated>2018-05-14T20:07:17-07:00</updated>
+    <id>http://alesnosek.com/blog/2018/05/14/red-hat-summit-2018</id>
+    <content type="html"><![CDATA[<p>Last week, I had the pleasure of attending Red Hat Summit 2018. It was hosted at the Moscone Center in San Francisco, May 8-10, 2018. I greatly enjoyed this conference and would like to share with you some of the interesting things I learned there.</p>
+
+<!-- more -->
+
+
+<p>You can view video recordings of the general sessions as well as a selection of the breakout sessions on <a href="https://www.youtube.com/user/redhatsummit">YouTube</a>.</p>
+
+<h2>Major announcements</h2>
+
+<p><a href="https://www.redhat.com/en/about/press-releases/red-hat-and-microsoft-co-develop-first-red-hat-openshift-jointly-managed-service-public-cloud">Red Hat OpenShift on Azure</a>. Red Hat and Microsoft are introducing OpenShift as a fully managed service on Azure. This brings customers the possibility to freely move workloads between their on-premise OpenShift clusters and Azure. Many of the Azure services will be accessible from within OpenShift via the Service Catalog. In the future, Windows containers will be supported alongside Linux containers. Support for Red Hat OpenShift on Azure will be provided by both Red Hat and Microsoft.</p>
+
+<p><a href="https://www.redhat.com/en/about/press-releases/ibm-and-red-hat-join-forces-accelerate-hybrid-cloud-adoption">Red Hat and IBM working toward a hybrid cloud</a>. Red Hat and IBM are expanding their collaboration to bring together enterprise application platforms, Red Hat OpenShift and IBM Cloud Private. IBM&rsquo;s recent move to re-engineer its entire software portfolio with containers, including WebSphere, MQ Series and Db2 will allow it to make this sofware available on the hybrid cloud with IBM Cloud Private and Red Hat OpenShift serving as the common foundation.</p>
+
+<p>Both major announcements go along with the Red Hat&rsquo;s vision of the future being the hybrid cloud. There&rsquo;s no doubt that Red Hat stands behind the hybrid cloud. In one of the general sessions, I heard Red Hat&rsquo;s Paul Cormier saying:</p>
+
+<blockquote><p>Hybrid cloud is the only practical way forward.</p></blockquote>
+
+<h2>Sessions attended</h2>
+
+<ul>
+<li><strong>CoreOS and Red Hat</strong>
+
+<ul>
+<li>After Red Hat <a href="https://www.redhat.com/en/about/press-releases/red-hat-acquire-coreos-expanding-its-kubernetes-and-containers-leadership">acquired</a> CoreOS in January this year, developers from both companies are busy with merging features of CoreOS Tectonic into Red Hat OpenShift. While CoreOS Tectonic was focused on operators, Red Hat OpenShift was more oriented toward developers. After the merge is completed, Red Hat OpenShift should become a product with a strong appeal to both operators and developers.</li>
+<li>OpenShift console will be extended by an Admin console which is based on the Tectonic Console.</li>
+<li>OpenShift is embracing the <a href="https://github.com/operator-framework">Operator Framework</a> originally developed by CoreOS. Initially, more than 60 ISVs are planning to provide certified OpenShift operators to end users.</li>
+<li>Quay Enterprise is going to be rebranded to Red Hat Quay. It remains a standalone product. Customers with higher demands may prefer leveraging Red Hat Quay in place of the integrated OpenShift image registry.</li>
+<li>CoreOS Container Linux and RHEL Atomic Host are going to be merged into a new container operating system called Red Hat CoreOS. Initially, Red Hat CoreOS is going to be based on RHEL 7.5, however, later on Red Hat CoreOS will be updated faster than RHEL.</li>
+</ul>
+</li>
+<li><strong>Next-generation tools for container technology</strong>
+
+<ul>
+<li>Dan Walsh discussed several Linux container related tools developed by his team: <a href="https://github.com/kubernetes-incubator/cri-o">CRI-O</a> container runtime, <a href="https://github.com/projectatomic/buildah">Buildah</a>, <a href="https://github.com/projectatomic/skopeo/">Skopeo</a>, and <a href="https://github.com/projectatomic/libpod">Podman</a>. With a certain dose of sarcasm, Dan explained the flaws in the design of the Docker tool -  mainly the unfortunate decision to create a &ldquo;big fat&rdquo; Docker daemon. Podman is a command-line tool that reimplements the Docker functionality without the need for a Docker daemon. In the future, Podman could replace the Docker tool.</li>
+</ul>
+</li>
+<li><strong>Kubernetes and the platform of the future</strong>
+
+<ul>
+<li>This was a chat with Clayton Coleman (Chief Engineer for OpenShift) and Brandon Philips (previously CTO of CoreOS, acquired by Red Hat) about the future of Kubernetes and OpenShift projects.</li>
+<li>Kubernetes is considered to be a new distributed operating system. &ldquo;We have a deployment target for the open-source community for multiple machines, as we had Linux as a target for a single machine&rdquo;.</li>
+</ul>
+</li>
+<li><strong>Low-risk mono to microservices: Istio, Teiid, and Spring Boot</strong>
+
+<ul>
+<li>In this session, I learned about several open-source projects that may come in handy when moving toward a microservice architecture: <a href="http://arquillian.org/">Arquillian</a> is an integration testing framework, <a href="https://istio.io/">Istio</a> is a service mesh, <a href="https://github.com/kiali/kiali">Kiali</a> is an Istio observability project, <a href="https://www.apicur.io/">apicurio</a> is a tool for designing RESTful APIs according to the <a href="https://github.com/OAI/OpenAPI-Specification">OpenAPI</a> specification, <a href="http://teiid.jboss.org/">Teiid</a> is a data virtualization system.</li>
+<li>If you want to release your software frequently, monolithic architecture may become a bottleneck. You can begin to break up your monolithic project into microservices to speed up the release process. If you&rsquo;ve gotten to the point where you can go faster, stop breaking things up! You don&rsquo;t want to cross the point of diminishing returns. If there is some monolith left in your project, that&rsquo;s okay.</li>
+</ul>
+</li>
+<li><strong>OpenShift roadmap: You won&rsquo;t believe what&rsquo;s next</strong>
+
+<ul>
+<li>Prometheus monitoring system is going to be intgrated into OpenShift more deeply. In addition to monitoring, metrics collected by Prometheus are going to be used for container auto healing.</li>
+<li>Work is underway for Open Virtual Network (OVN) to become the default OpenShift SDN in the future.</li>
+<li>Red Hat is investing in the <a href="https://github.com/kubevirt">KubeVirt</a> project whose goal is to run virtual machines on Kubernetes/OpenShift.</li>
+<li>Red Hat is also investing in <a href="https://openwhisk.apache.org/">Apache OpenWhisk</a>. OpenWhisk is a serverless platform allowing to run functions on Kubernetes.</li>
+</ul>
+</li>
+<li><strong>Intelligent applications on OpenShift from prototype to production</strong>
+
+<ul>
+<li>OpenShift is entering the big data arena. This was an introductory talk about running Spark on OpenShift for machine learning. If you are interested to run data analysis on OpenShift, check out the <a href="https://radanalytics.io/">rad analytics</a> project.</li>
+</ul>
+</li>
+</ul>
+
+
+<h2>Some photos from the event</h2>
+
+<p><img class="center" src="/images/posts/redhatsummit2018/keynote.jpeg"></p>
+
+<p>Opening keynote session.</p>
+
+<p><img class="center" src="/images/posts/redhatsummit2018/cruise.jpeg"></p>
+
+<p>Harbor cruise for Red Hat Certified Professionals, including myself ;-)</p>
+
+<p><img class="center" src="/images/posts/redhatsummit2018/sf1.jpeg"></p>
+
+<p><img class="center" src="/images/posts/redhatsummit2018/sf2.jpeg"></p>
+
+<p>San Francisco skyline as viewed from the cruise.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[What I Learned at KubeCon + CloudNativeCon 2017]]></title>

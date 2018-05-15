@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>http://alesnosek.com/blog/2018/05/14/red-hat-summit-2018/</loc>
+    <lastmod>2018-05-14T20:07:17-07:00</lastmod>
+  </url>
+  <url>
     <loc>http://alesnosek.com/blog/2018/05/03/designing-a-common-build-system/</loc>
     <lastmod>2018-05-03T21:57:40-07:00</lastmod>
   </url>
