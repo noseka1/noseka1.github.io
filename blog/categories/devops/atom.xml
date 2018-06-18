@@ -4,7 +4,7 @@
   <title><![CDATA[Category: devops | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/devops/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2018-05-14T21:51:22-07:00</updated>
+  <updated>2018-06-17T22:05:03-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,155 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[Four Ansible Practices I Would Recommend]]></title>
+    <link href="http://alesnosek.com/blog/2018/06/17/four-ansible-practices-i-would-recommend/"/>
+    <updated>2018-06-17T11:25:59-07:00</updated>
+    <id>http://alesnosek.com/blog/2018/06/17/four-ansible-practices-i-would-recommend</id>
+    <content type="html"><![CDATA[<p><a href="https://www.ansible.com/">Ansible</a> is a popular IT automation tool. In this article, I would like to share with you some of the useful practices we have discovered while using Ansible over the past four years.</p>
+
+<!-- more -->
+
+
+<h2>Create a separate account for Ansible</h2>
+
+<p><img class="right" src="/images/posts/ansible_logo.png" width="150" height="150"></p>
+
+<p>In order to apply configuration changes, Ansible connects to the target machine via SSH. We prefer to create a dedicated <code>ansible</code> account on each machine managed by Ansible. This account is set up with the required <code>sudo</code> privileges. Password authentication to the <code>ansible</code> account is disabled. Instead, access is managed by adding or removing person&rsquo;s SSH public key to the <code>ansible</code> user&rsquo;s <code>authorized_keys</code> file.</p>
+
+<p>SSH daemon logs the SSH key fingerprint that was used for authentication. That allows us to keep track of who made use of the <code>ansible</code> account. On Red Hat based distros, you can find the access logs in <code>/var/log/secure</code>. Here is a sample log message after I triggered the execution of an Ansible playbook:</p>
+
+<pre><code>2018-06-16T19:33:02.298905-07:00 machine1 sshd[29892]: Accepted publickey for ansible from 10.0.0.253 port 54600 ssh2: RSA f4:83:34:8f:f8:7d:29:0e:40:65:b9:bc:a0:bb:eb:d0
+</code></pre>
+
+<p>Furthermore, any time Ansible uses <code>sudo</code> to execute a task, an additional log message is appended to the <code>/var/log/secure</code> log file on the target machine. We found that for the auditing purposes the generated logs are sufficient.</p>
+
+<p>In the cloud, we either use custom images that already contain the <code>ansible</code> account or we create the <code>ansible</code> account on the first boot using a cloud-init script. Using a dedicated <code>ansible</code> account instead of the <code>ec2-user</code>, <code>cloud-user</code>, <code>centos</code> and other image accounts streamlines our management efforts.</p>
+
+<h2>Report changes made on the target machine accurately</h2>
+
+<p>When Ansible executes a playbook, it highlights all configuration changes made to the target machine while bringing it to the desired state described in the playbook. Administrator can review the reported changes to verify that they meet his expectations.  If no changes had to be made to the target machine, Ansible should report <code>changed=0</code> after the playbook execution completes.</p>
+
+<p>When executing Ansible <code>command</code> module or <code>shell</code> module, there&rsquo;s no good way for Ansible to know whether the executed command or shell script made any changes to the target machine. Here we can help ourselves with a neat trick that I will explain on the following example.  Imagine that we want to create a new InfluxDB database:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- name: Create a database in InfluxDB
+</span><span class='line'>  shell: |
+</span><span class='line'>    set -e
+</span><span class='line'>    if ! influx -execute &lsquo;show databases&rsquo; | grep {{ database_name }}; then
+</span><span class='line'>      influx -execute &lsquo;create database {{ database_name }}&rsquo;
+</span><span class='line'>    fi</span></code></pre></td></tr></table></div></figure></p>
+
+<p>The above task creates a new InfluxDB database in the case that it doesn&rsquo;t already exist. The problem with the above code is that Ansible will always mark this task as changed. In order to report the change status accurately, let&rsquo;s leverage Ansible&rsquo;s <code>changed_when</code> directive:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- name: Create a database in InfluxDB
+</span><span class='line'>  shell: |
+</span><span class='line'>    set -e
+</span><span class='line'>    if ! influx -execute &lsquo;show databases&rsquo; | grep {{ database_name }}; then
+</span><span class='line'>      influx -execute &lsquo;create database {{ database_name }}&rsquo;
+</span><span class='line'>      echo CHANGED
+</span><span class='line'>    fi
+</span><span class='line'>  register: create_database
+</span><span class='line'>  changed_when: create_database.stdout | search(&ldquo;CHANGED&rdquo;)</span></code></pre></td></tr></table></div></figure></p>
+
+<p>We modified the shell script to print <code>CHANGED</code> to the standard output if and only if a new InfluxDB database has been created. Next, we captured the entire standard output of the shell script in the <code>create_database</code> variable using the Ansible&rsquo;s <code>register</code> directive. Lastly, we search the content of the <code>create_database</code> variable for the <code>CHANGED</code> keyword. If the <code>CHANGED</code> keyword is found, Ansible will mark the task as changed.</p>
+
+<p>It would be great if Ansible would come up with a mechanism to determine whether a shell script made changes to the target machine or not. In the meanwhile, the above pattern works very well for us.</p>
+
+<h2>Skip completed tasks</h2>
+
+<p>Ansible playbook may be executed multiple times against the same target machine. During each run Ansible must be able to determine which tasks should be executed and which tasks should be skipped because they were already completed in the previous run. Think about the scenario where we are configuring a Docker storage. In the following code, we are invoking the <code>docker-storage-setup</code> command on the target machine:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- name: Run the Docker storage configurator
+</span><span class='line'>  command: docker-storage-setup
+</span><span class='line'>  become: yes</span></code></pre></td></tr></table></div></figure></p>
+
+<p>If you would run the above command the second time, it would fail because the Docker storage has already been configured. How to ensure that the above task will run only once? Ansible&rsquo;s <code>command</code> module provides <code>creates</code> and <code>removes</code> parameters that instruct Ansible to only run the <code>command</code> task if a specific file does or doesn&rsquo;t exist on the file system. The idea is that the executed command creates or deletes these files. Could these parameters help us here? While these parameters can save you in many cases, we would like to avoid using them in this situation. Firstly, we would have to go and figure out whether the <code>docker-storage-setup</code> script creates or removes any file. Secondly, the location of the created or removed file may depend on the chosen storage driver which would demand extending our script with additional logic. And lastly, there is no guarantee that the future versions of the <code>docker-storage-setup</code> script would manipulate the same file which could cause our Ansible script to break. As an alternative, here is a pattern that a software practitioner can use in such a situation:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- name: Check the docker_storage_initialized stamp
+</span><span class='line'>  stat: path=docker_storage_initialized
+</span><span class='line'>  register: storage_initialized&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;ul>
+</span><span class='line'>&lt;li>block:
+</span><span class='line'>
+</span><span class='line'>&lt;ul>
+</span><span class='line'>&lt;li>&lt;p>name: Run the Docker storage configurator
+</span><span class='line'>command: docker-storage-setup
+</span><span class='line'>become: yes&lt;/p>&lt;/li>
+</span><span class='line'>&lt;li>&lt;p>name: Create the docker_storage_initialized timestamp
+</span><span class='line'>file: path=docker_storage_initialized state=touch&lt;/p>&lt;/li>
+</span><span class='line'>&lt;/ul>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>&lt;p>when: not storage_initialized.stat.exists</span></code></pre></td></tr></table></div></figure></p></li>
+</ul>
+
+
+<p>The gist of the above code is simple. After we have successfully configured the Docker storage we create a stamp file. Because the stamp file exists, Ansible will skip the Docker storage configuration in all the following playbook runs. The stamp file is created in a well defined location. Should we want to re-run the Docker storage configuration in the future, we can just remove the stamp file before executing the playbook.</p>
+
+<h2>Backporting Ansible modules</h2>
+
+<p>For the task at hand, it is always preferable to leverage a dedicated Ansible module before falling back on generic <code>command</code> or <code>shell</code> modules. In our Ansible practice, we came into situations where the Ansible module we would like to use was available only in the newer versions of Ansible or that the module in our version of Ansible was buggy. As the interface between Ansible core and the Ansible modules is pretty stable, here is my advice: just copy the desired module from the newer version of Ansible and drop it into the <code>library</code> directory next to your playbook. This <code>library</code> directory is a location where you can put your custom modules. Moreover, any custom module having the same name will override a module distributed with Ansible. This is how our <code>library</code> directory currently looks like:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>ls -1 library
+</span><span class='line'>nsupdate.py
+</span><span class='line'>win_get_url.ps1
+</span><span class='line'>win_get_url.py
+</span><span class='line'>win_reg_stat.ps1
+</span><span class='line'>win_reg_stat.py
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>We are using Ansible version 2.2.1.0 which doesn&rsquo;t contain <code>nsupdate</code> and <code>win_reg_stat</code> modules. Also, we found the <code>win_get_url</code> module in version 2.2.1.0 to be buggy. Adding a handful of modules to the <code>library</code> directory avoids the need to upgrade to the next version of Ansible. From past experience we know that porting our Ansible code base to the next version of Ansible requires a considerable effort.</p>
+
+<h2>Conclusion</h2>
+
+<p>In this article, we shared some of the Ansible practices we found useful. We recommended to create a dedicated <code>ansible</code> account on each machine that is managed by Ansible. We described how to inform Ansible whether a script did or did not make any changes to the target machine. We showed you how to prevent a repeated execution of Ansible tasks by creating a custom stamp file. Lastly, we demonstrated that backporting Ansible modules is not that complicated as it may sound.</p>
+
+<p>Hope you enjoyed this article. Let me know if you have any comments or suggestions to the presented practices. Feel free to add your comments in the comment section below.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[18 Months with OpenStack, Our Experience, Part II]]></title>
@@ -1008,70 +1157,6 @@
 <h2>Conclusion</h2>
 
 <p>In this post, we walked through the secure edge design explaining the reasoning behind the individual design decisions. In the <a href="/blog/2018/01/12/edge-security-for-your-cloud-application-part-ii">second blog post</a> of this miniseries, we&rsquo;re going to demonstrate a practical implementation of our approach using HAProxy.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[Evaluating Application Metrics Solutions - Prometheus?]]></title>
-    <link href="http://alesnosek.com/blog/2017/09/10/evaluating-application-metrics-solutions-prometheus/"/>
-    <updated>2017-09-10T16:17:49-07:00</updated>
-    <id>http://alesnosek.com/blog/2017/09/10/evaluating-application-metrics-solutions-prometheus</id>
-    <content type="html"><![CDATA[<p>In our <a href="https://en.wikipedia.org/wiki/Service-oriented_architecture">SOA-based</a> application, the problem of application metrics hasn&rsquo;t been solved yet. We would like to have our application services expose metrics that could be used for monitoring, auto-scaling and analytics. In this blog post, I would like to present to you one of the proposals to solve the application metrics which suggests leveraging <a href="https://prometheus.io/">Prometheus</a>.</p>
-
-<!-- more -->
-
-
-<p>Our application consists of multiple services that are deployed on multiple machines. Currently, our applicaton is deployed on-premise or as a managed offering on the virtual machines in AWS. We&rsquo;re also working on containerizing the application services to achieve higher density and better manageability when deploying into the AWS cloud. Some of our services are so light-weight that we&rsquo;re going to turn them into Lambda functions in the future to further reduce the operational costs. Thus, a solution for application metrics should be able to work in the serverless environment, too.</p>
-
-<p>As of now, we deploy <a href="https://www.icinga.com/">Icinga</a> along with our application to provide system-level monitoring. Icinga collects the information about the nodes and checks that our services are still running. However, we don&rsquo;t collect any application-level metrics that would allow us to better assess the performance of our system. For example, we would like to know how many requests are processed per second, average request latency, request error rate, what are the depths of the internal queues and so forth. Application metrics would be a welcome input to the auto-scaling decisions and we would like to feed them into our analytics engine as well.</p>
-
-<h2>Getting to know Prometheus</h2>
-
-<p><img class="right" src="/images/posts/prometheus_logo.png" width="130" height="130"></p>
-
-<p>Before jumping in and implementing our own solution for metrics collection and perhaps reinventing the wheel we started shopping around. It seemed to us, that Prometheus monitoring solution was gaining a lot of momentum in recent times. So, we took a closer look at Prometheus and this is what we found:</p>
-
-<ol>
-<li>Prometheus is an open-source monitoring solution hosted by <a href="https://www.cncf.io/">CNCF</a> - a foundation that hosts Kubernetes as well. Many companies use and contribute to Prometheus.</li>
-<li>The <a href="https://prometheus.io/docs/introduction/overview/">architecture</a> of Prometheus is easy to understand and is modular. While Prometheus provides modules for metrics collection, alerts and Web UI, we would not have to use all of them.</li>
-<li>Prometheus is a pull-based monitoring system. Each monitored target has to expose Prometheus formatted metrics. By default, targets make the metrics endpoint available at <a href="http://target/metrics.">http://target/metrics.</a> Prometheus periodically scrapes the metrics exposed by the targets.</li>
-<li>Our services would need to expose the application metrics in the <a href="https://prometheus.io/docs/instrumenting/exposition_formats/">Prometheus format</a>. There are actually two formats available: a simple text format and protobufs. There are instrumentation <a href="https://prometheus.io/docs/instrumenting/clientlibs/">libraries</a> for Java, C++ and other languages, to gather the metrics and expose them in the Prometheus format.</li>
-<li>The text-based Prometheus metrics format is so simple that it could be collected by other monitoring systems like Nagios or Icinga. Exposing metrics in the Prometheus format doesn&rsquo;t really mandate using Prometheus server for monitoring.</li>
-<li>There&rsquo;s a Prometheus <a href="https://github.com/prometheus/jmx_exporter">jmx_exporter</a> library to convert the JMX MBeans data into Prometheus format. This would come in handy for gathering Tomcat metrics, for example.</li>
-<li><a href="http://metrics.dropwizard.io/">Dropwizard metrics</a> is a popular Java instrumentation library. For instance, Vert.x toolkit can report its <a href="http://vertx.io/docs/vertx-dropwizard-metrics/java/">internal metrics</a> using the Dropwizard metrics library and there are other frameworks that supports it. Prometheus comes with a <a href="https://github.com/prometheus/client_java/tree/master/simpleclient_dropwizard">simpleclient_dropwizard</a> library that can make Dropwizard metrics available to Prometheus monitoring.</li>
-<li>To prevent unauthorized access, the metric targets would need to be protected using TLS in combination with client certs, bearer token or HTTP basic authentication.</li>
-<li>Prometheus pulls the metrics from the monitored targets. In addition, Prometheus comes with a <a href="https://prometheus.io/docs/practices/pushing/">Pushgateway</a> where clients can push their metrics to. However, as noted in the Prometheus documentation: <em>Usually, the only valid use case for the Pushgateway is for capturing the outcome of a service-level batch job</em>. Hence, Pushgateway would not work for aggregating metrics pushed by the Lambda functions.</li>
-<li>In addition to application-level metrics, system-level metrics can be collected by Prometheus as well thanks to the <a href="https://github.com/prometheus/node_exporter">node_exporter</a>.</li>
-<li>Prometheus is a great fit for dynamic environments like clouds and container clusters due to its discovery capabilities. In AWS, operator attaches tags to VMs and based on that Prometheus can discover them and start monitoring them automatically. The same principle works for container clusters like Kubernetes, too. One has to add annotations to pods and Prometheus will discover them automatically.</li>
-<li>Prometheus makes the collected metrics available for querying via an <a href="https://prometheus.io/docs/querying/api/">HTTP API</a>. We could retrieve the metrics using this API in order to feed them into our analytics engine.</li>
-<li>There is a great <a href="https://prometheus.io/docs/practices/naming/">guide</a> that would help us when designing our custom metrics.</li>
-<li>Prometheus is written in Go and comes in a form of statically-linked binaries. This makes the installation of Prometheus a breeze.</li>
-</ol>
-
-
-<h2>Instrumenting Java applications</h2>
-
-<p>In order to gather application metrics and to make them available to the Prometheus monitoring system, we would need to instrument our application services using Prometheus libraries. To get a clear idea, we created a proof-of-concept Java application instrumented using Prometheus. You can find it on <a href="https://github.com/noseka1/prometheus-poc">GitHub</a>.</p>
-
-<p>Alternatively, we are thinking about leveraging Dropwizard metrics library for instrumentation. The Dropwizard metrics library is rather popular and is not connected with any particular monitoring solution. We would still be able to expose the Dropwizard metrics to Prometheus using a wrapper <a href="https://github.com/prometheus/client_java/tree/master/simpleclient_dropwizard">simpleclient_dropwizard</a>.</p>
-
-<h2>Monitoring AWS Lambda functions</h2>
-
-<p>AWS Lambda functions are extremely short-lived processes. Prometheus won&rsquo;t be able to pull the application metrics from them. Instead, Lambdas will have to push their metrics to Prometheus. At the first glance, we thought that the Prometheus Pushgateway could help here, however, reading the Pushgateway&rsquo;s documentation more carefully we found that <em>the Pushgateway is explicitly not an aggregator or distributed counter but rather a metrics cache</em>. And that&rsquo;s a problem, as we would like to count how many Lambda instances are being invoked per second and so on.</p>
-
-<p>At the moment, we can see two approaches how to make the monitoring of Lambda functions work with Prometheus. Either, push the application metrics from the Lambda functions using a StatsD client. Prometheus&#8217; <a href="https://github.com/prometheus/statsd_exporter">statsd_exporter</a> would play a role of a StastD server and make the metrics available to Prometheus. Or, the second approach would be to create our own metrics aggregator that would receive the metrics from Lambda functions in the Prometheus format, aggregate them and expose them to the Prometheus server.</p>
-
-<h2>Alternatives</h2>
-
-<p>Besides using Prometheus, we were also thinking about other solutions for application metrics. As we already deploy Icinga for the system-level monitoring, it would make sense to use it for application metrics, too. We really like Icinga, it&rsquo;s a great monitoring software. Unfortunately, Icinga is based on the node and services model where a statically configured set of nodes are running services on them. This doesn&rsquo;t really fit with the modern containerized deployments where containers are dynamically scheduled on the cluster nodes and are also scaled up and down. Also, Prometheus server supports all sorts of metric queries and aggregations. Icinga is lacking this feature altogether. That&rsquo;s why we&rsquo;re leaning towards replacing Icinga with Prometheus for system-level as well as application-level monitoring.</p>
-
-<p><a href="http://www.hawkular.org/">Hawkular</a> seems to be another modern monitoring project we would like to take a closer look at. In contrast to Prometheus project which is developed by many parties, it seems that Hawkular project is mostly driven by Red Hat.</p>
-
-<h2>Conclusion</h2>
-
-<p>Prometheus is a modern monitoring system. It was the first system we evaluated as we were trying to find a good solution for application metrics. In addition to application-level metrics, we could use Prometheus to collect system-level metrics as well. This would make Prometheus a single monitoring solution for our application. The only bigger issue for us is the absence of the AWS Lambda monitoring story.</p>
-
-<p>If you have an application that you deliver on-premise as well as in the cloud, how did you solve the application metrics collection and monitoring? Is Prometheus a good way to go? Please, leave your comments below.</p>
 ]]></content>
   </entry>
 

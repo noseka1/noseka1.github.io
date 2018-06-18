@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2018-05-14T21:51:22-07:00</updated>
+  <updated>2018-06-17T22:05:03-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,151 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[Four Ansible Practices I Would Recommend]]></title>
+    <link href="http://alesnosek.com/blog/2018/06/17/four-ansible-practices-i-would-recommend/"/>
+    <updated>2018-06-17T11:25:59-07:00</updated>
+    <id>http://alesnosek.com/blog/2018/06/17/four-ansible-practices-i-would-recommend</id>
+    <content type="html"><![CDATA[<p><a href="https://www.ansible.com/">Ansible</a> is a popular IT automation tool. In this article, I would like to share with you some of the useful practices we have discovered while using Ansible over the past four years.</p>
+
+<!-- more -->
+
+
+<h2>Create a separate account for Ansible</h2>
+
+<p><img class="right" src="http://alesnosek.com/images/posts/ansible_logo.png" width="150" height="150"></p>
+
+<p>In order to apply configuration changes, Ansible connects to the target machine via SSH. We prefer to create a dedicated <code>ansible</code> account on each machine managed by Ansible. This account is set up with the required <code>sudo</code> privileges. Password authentication to the <code>ansible</code> account is disabled. Instead, access is managed by adding or removing person&rsquo;s SSH public key to the <code>ansible</code> user&rsquo;s <code>authorized_keys</code> file.</p>
+
+<p>SSH daemon logs the SSH key fingerprint that was used for authentication. That allows us to keep track of who made use of the <code>ansible</code> account. On Red Hat based distros, you can find the access logs in <code>/var/log/secure</code>. Here is a sample log message after I triggered the execution of an Ansible playbook:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>2018-06-16T19:33:02.298905-07:00 machine1 sshd[29892]: Accepted publickey for ansible from 10.0.0.253 port 54600 ssh2: RSA f4:83:34:8f:f8:7d:29:0e:40:65:b9:bc:a0:bb:eb:d0</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Furthermore, any time Ansible uses <code>sudo</code> to execute a task, an additional log message is appended to the <code>/var/log/secure</code> log file on the target machine. We found that for the auditing purposes the generated logs are sufficient.</p>
+
+<p>In the cloud, we either use custom images that already contain the <code>ansible</code> account or we create the <code>ansible</code> account on the first boot using a cloud-init script. Using a dedicated <code>ansible</code> account instead of the <code>ec2-user</code>, <code>cloud-user</code>, <code>centos</code> and other image accounts streamlines our management efforts.</p>
+
+<h2>Report changes made on the target machine accurately</h2>
+
+<p>When Ansible executes a playbook, it highlights all configuration changes made to the target machine while bringing it to the desired state described in the playbook. Administrator can review the reported changes to verify that they meet his expectations.  If no changes had to be made to the target machine, Ansible should report <code>changed=0</code> after the playbook execution completes.</p>
+
+<p>When executing Ansible <code>command</code> module or <code>shell</code> module, there&rsquo;s no good way for Ansible to know whether the executed command or shell script made any changes to the target machine. Here we can help ourselves with a neat trick that I will explain on the following example.  Imagine that we want to create a new InfluxDB database:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- name: Create a database in InfluxDB
+</span><span class='line'>  shell: |
+</span><span class='line'>    set -e
+</span><span class='line'>    if ! influx -execute 'show databases' | grep {{ database_name }}; then
+</span><span class='line'>      influx -execute 'create database {{ database_name }}'
+</span><span class='line'>    fi</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The above task creates a new InfluxDB database in the case that it doesn&rsquo;t already exist. The problem with the above code is that Ansible will always mark this task as changed. In order to report the change status accurately, let&rsquo;s leverage Ansible&rsquo;s <code>changed_when</code> directive:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- name: Create a database in InfluxDB
+</span><span class='line'>  shell: |
+</span><span class='line'>    set -e
+</span><span class='line'>    if ! influx -execute 'show databases' | grep {{ database_name }}; then
+</span><span class='line'>      influx -execute 'create database {{ database_name }}'
+</span><span class='line'>      echo CHANGED
+</span><span class='line'>    fi
+</span><span class='line'>  register: create_database
+</span><span class='line'>  changed_when: create_database.stdout | search("CHANGED")</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We modified the shell script to print <code>CHANGED</code> to the standard output if and only if a new InfluxDB database has been created. Next, we captured the entire standard output of the shell script in the <code>create_database</code> variable using the Ansible&rsquo;s <code>register</code> directive. Lastly, we search the content of the <code>create_database</code> variable for the <code>CHANGED</code> keyword. If the <code>CHANGED</code> keyword is found, Ansible will mark the task as changed.</p>
+
+<p>It would be great if Ansible would come up with a mechanism to determine whether a shell script made changes to the target machine or not. In the meanwhile, the above pattern works very well for us.</p>
+
+<h2>Skip completed tasks</h2>
+
+<p>Ansible playbook may be executed multiple times against the same target machine. During each run Ansible must be able to determine which tasks should be executed and which tasks should be skipped because they were already completed in the previous run. Think about the scenario where we are configuring a Docker storage. In the following code, we are invoking the <code>docker-storage-setup</code> command on the target machine:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- name: Run the Docker storage configurator
+</span><span class='line'>  command: docker-storage-setup
+</span><span class='line'>  become: yes</span></code></pre></td></tr></table></div></figure>
+
+
+<p>If you would run the above command the second time, it would fail because the Docker storage has already been configured. How to ensure that the above task will run only once? Ansible&rsquo;s <code>command</code> module provides <code>creates</code> and <code>removes</code> parameters that instruct Ansible to only run the <code>command</code> task if a specific file does or doesn&rsquo;t exist on the file system. The idea is that the executed command creates or deletes these files. Could these parameters help us here? While these parameters can save you in many cases, we would like to avoid using them in this situation. Firstly, we would have to go and figure out whether the <code>docker-storage-setup</code> script creates or removes any file. Secondly, the location of the created or removed file may depend on the chosen storage driver which would demand extending our script with additional logic. And lastly, there is no guarantee that the future versions of the <code>docker-storage-setup</code> script would manipulate the same file which could cause our Ansible script to break. As an alternative, here is a pattern that a software practitioner can use in such a situation:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- name: Check the docker_storage_initialized stamp
+</span><span class='line'>  stat: path=docker_storage_initialized
+</span><span class='line'>  register: storage_initialized
+</span><span class='line'>
+</span><span class='line'>- block:
+</span><span class='line'>    - name: Run the Docker storage configurator
+</span><span class='line'>      command: docker-storage-setup
+</span><span class='line'>      become: yes
+</span><span class='line'>
+</span><span class='line'>    - name: Create the docker_storage_initialized timestamp
+</span><span class='line'>      file: path=docker_storage_initialized state=touch
+</span><span class='line'>
+</span><span class='line'>  when: not storage_initialized.stat.exists</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The gist of the above code is simple. After we have successfully configured the Docker storage we create a stamp file. Because the stamp file exists, Ansible will skip the Docker storage configuration in all the following playbook runs. The stamp file is created in a well defined location. Should we want to re-run the Docker storage configuration in the future, we can just remove the stamp file before executing the playbook.</p>
+
+<h2>Backporting Ansible modules</h2>
+
+<p>For the task at hand, it is always preferable to leverage a dedicated Ansible module before falling back on generic <code>command</code> or <code>shell</code> modules. In our Ansible practice, we came into situations where the Ansible module we would like to use was available only in the newer versions of Ansible or that the module in our version of Ansible was buggy. As the interface between Ansible core and the Ansible modules is pretty stable, here is my advice: just copy the desired module from the newer version of Ansible and drop it into the <code>library</code> directory next to your playbook. This <code>library</code> directory is a location where you can put your custom modules. Moreover, any custom module having the same name will override a module distributed with Ansible. This is how our <code>library</code> directory currently looks like:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>ls -1 library
+</span><span class='line'>nsupdate.py
+</span><span class='line'>win_get_url.ps1
+</span><span class='line'>win_get_url.py
+</span><span class='line'>win_reg_stat.ps1
+</span><span class='line'>win_reg_stat.py
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We are using Ansible version 2.2.1.0 which doesn&rsquo;t contain <code>nsupdate</code> and <code>win_reg_stat</code> modules. Also, we found the <code>win_get_url</code> module in version 2.2.1.0 to be buggy. Adding a handful of modules to the <code>library</code> directory avoids the need to upgrade to the next version of Ansible. From past experience we know that porting our Ansible code base to the next version of Ansible requires a considerable effort.</p>
+
+<h2>Conclusion</h2>
+
+<p>In this article, we shared some of the Ansible practices we found useful. We recommended to create a dedicated <code>ansible</code> account on each machine that is managed by Ansible. We described how to inform Ansible whether a script did or did not make any changes to the target machine. We showed you how to prevent a repeated execution of Ansible tasks by creating a custom stamp file. Lastly, we demonstrated that backporting Ansible modules is not that complicated as it may sound.</p>
+
+<p>Hope you enjoyed this article. Let me know if you have any comments or suggestions to the presented practices. Feel free to add your comments in the comment section below.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[Red Hat Summit 2018]]></title>
@@ -3027,47 +3172,6 @@
 </li>
 </ul>
 
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[Two Years of Technical Blogging]]></title>
-    <link href="http://alesnosek.com/blog/2017/04/22/two-years-of-technical-blogging/"/>
-    <updated>2017-04-22T15:06:57-07:00</updated>
-    <id>http://alesnosek.com/blog/2017/04/22/two-years-of-technical-blogging</id>
-    <content type="html"><![CDATA[<p>Wow, the time goes by so fast. It&rsquo;s been two years since I began writing this blog. Why did I start and am I having fun? Let&rsquo;s take a closer look.</p>
-
-<!-- more -->
-
-
-<p>I think that there are two kinds of authors. The first kind are the extroverted authors, that can fill pages and pages of paper without difficulty. They love to communicate and writing is yet another way of communication for them. The second kind of authors would be the introverted authors. Communication is not necessarily second nature for them. Before creating an article, they are concerned whether they really have something interesting to share.</p>
-
-<p>It seems to me that in the developer community the introverted authors prevail and I personally count myself in this category, too. Only after a decade of software development, and now heading towards software architecture, I finally decided to start my own technical blog.</p>
-
-<p><img class="right" src="http://alesnosek.com/images/posts/octopress_github.png" width="200" height="200"></p>
-
-<h2>Getting my blog started</h2>
-
-<p>Coming late to the game, there were plenty of technical blogs out there to draw inspiration from. I quickly settled on <a href="http://octopress.org/">Octopress</a> as the engine for my blog. Octopress is a blog generator. I can write articles using the Markdown format and Octopress generates the entire website for me. As the generated website is completely static I&rsquo;m hosting it on GitHub. No PHP or MySQL databases are needed to run my blog. Currently, the development of the Octopress engine is stalled for more than a year, however, I still like to ride this horse even when it might be dead.</p>
-
-<p>Before I get going I typically need to read at least one book on the subject. Regarding technical blogging, I would recommend the <a href="http://technicalblogging.com/book/">Technical Blogging</a> book from The Pragmatic Programmers. I read the first several chapters before creating this blog and it was a great eye opener for me.</p>
-
-<h2>Why is technical blogging fun?</h2>
-
-<p>Technical blogging takes some effort, however, I&rsquo;m really enjoying it. Here are my top five reasons why I like technical blogging:</p>
-
-<ol>
-<li><em>Blog gives others insight into what you&rsquo;re working on</em>. People with similar interests will find you if you show what you&rsquo;re passionate about.</li>
-<li><em>Blog as a contribution to open source.</em> Creating articles and tutorials about open source software is a form of contribution to the software we all love.</li>
-<li><em>Blogging helps you to more deeply understand the subject you are writing about.</em> The best way to learn something is to teach it. In addition to teaching, writing about something is also a good way to expand your learning.</li>
-<li><em>Blog is a documentation you can refer to in the future.</em> It happened to me several times that I had to come back to my own article to refresh my memory on the subject.</li>
-<li><em>Blogging advances your writing skills.</em> Concise and easy to understand written communication is certainly appreciated by other developers on your team.</li>
-</ol>
-
-
-<h2>Let me know how I&rsquo;m doing</h2>
-
-<p>Feedback is always greatly appreciated. If you find some time, I would be happy to hear how I&rsquo;m doing as a blogger. You can leave your comments in the comment section below.</p>
 ]]></content>
   </entry>
 
