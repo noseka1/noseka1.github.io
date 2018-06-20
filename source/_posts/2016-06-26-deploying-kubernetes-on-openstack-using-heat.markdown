@@ -6,6 +6,8 @@ comments: true
 categories: cloud devops
 ---
 
+**Update 6/19/2018:** The openstack-heat kube-up provider used in this tutorial was [removed](https://github.com/kubernetes/kubernetes/pull/58021) in Kubernetes version 1.10. If you want to install Kubernetes 1.10 or later on OpenStack, this tutorial won't help you.
+
 Want to install Kubernetes on top of OpenStack? There are [many ways](http://kubernetes.io/docs/getting-started-guides/) how to install a Kubernetes cluster. The upcoming Kubernetes 1.3 release comes with yet another method called [OpenStack Heat](http://kubernetes.io/docs/getting-started-guides/openstack-heat/). In this article, we're going to explore this deployment method when creating a minimum Kubernetes cluster on top of OpenStack.
 
 <!-- more -->
