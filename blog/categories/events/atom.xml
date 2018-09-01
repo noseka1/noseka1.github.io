@@ -4,7 +4,7 @@
   <title><![CDATA[Category: events | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/events/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2018-06-19T21:54:17-07:00</updated>
+  <updated>2018-08-31T19:11:29-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -71,7 +71,7 @@
 <li><strong>OpenShift roadmap: You won&rsquo;t believe what&rsquo;s next</strong>
 
 <ul>
-<li>Prometheus monitoring system is going to be intgrated into OpenShift more deeply. In addition to monitoring, metrics collected by Prometheus are going to be used for container auto healing.</li>
+<li>Prometheus monitoring system is going to be integrated into OpenShift more deeply. In addition to monitoring, metrics collected by Prometheus are going to be used for container auto healing.</li>
 <li>Work is underway for Open Virtual Network (OVN) to become the default OpenShift SDN in the future.</li>
 <li>Red Hat is investing in the <a href="https://github.com/kubevirt">KubeVirt</a> project whose goal is to run virtual machines on Kubernetes/OpenShift.</li>
 <li>Red Hat is also investing in <a href="https://openwhisk.apache.org/">Apache OpenWhisk</a>. OpenWhisk is a serverless platform allowing to run functions on Kubernetes.</li>

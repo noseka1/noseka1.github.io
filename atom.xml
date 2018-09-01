@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2018-06-19T21:54:17-07:00</updated>
+  <updated>2018-08-31T19:11:29-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,64 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[How I Achieved the AWS Associate Certifications]]></title>
+    <link href="http://alesnosek.com/blog/2018/08/30/how-i-achieved-the-aws-associate-certifications/"/>
+    <updated>2018-08-30T23:20:27-07:00</updated>
+    <id>http://alesnosek.com/blog/2018/08/30/how-i-achieved-the-aws-associate-certifications</id>
+    <content type="html"><![CDATA[<p>Over the course of the last year I was working towards transitioning our company’s products to the AWS cloud. I gained a solid experience with many of the AWS services, wrote lots of lines of CloudFormation code, and embraced AWS reference architectures and best practices. To round up my AWS experience I thought that accomplishing some certifications would be a good idea. In this post, I am going to share with you how I achieved the AWS associate certifications.</p>
+
+<!-- more -->
+
+
+<p><a href="https://aws.amazon.com/certification/">AWS certifications</a> are divided into three levels of difficulty: foundational, associate, and professional. The foundational level is optional. If you worked with AWS cloud hands-on for several months, I would recommend skipping the foundational level and start your certification path at the associate level. The associate level comes with three certification options: Solutions Architect, Developer, and SysOps Administrator. In order to achieve a specific certification, you have to pass the respective multiple-choice test. As the requirements for the three tests highly overlap, I decided to study for all three certifications at the same time.</p>
+
+<p>AWS certification is rather popular these days. It&rsquo;s no wonder that there is an abundance of preparation materials available. So, which one should you choose? I started off by reading the three official study guides:</p>
+
+<ul>
+<li><a href="https://www.amazon.com/Certified-Solutions-Architect-Official-Study/dp/1119138558">AWS Certified Solutions Architect Official Study Guide: Associate Exam</a></li>
+<li><a href="https://www.amazon.com/Certified-SysOps-Administrator-Official-Study/dp/1119377420">AWS Certified SysOps Administrator Official Study Guide: Associate Exam</a></li>
+<li><a href="https://www.amazon.com/Certified-Advanced-Networking-Official-Study-ebook/dp/B079VKD1CN">AWS Certified Advanced Networking Official Study Guide: Specialty Exam</a></li>
+</ul>
+
+
+<p>The three study guides are well organized and go beyond the associate exam requirements. I would recommend reading them even when you don&rsquo;t plan to get certified as they provide a good source of information about AWS in general.</p>
+
+<p>In addition to reading the books, I made use of the AWS training courses offered by <a href="https://acloud.guru/courses?vendors=aws">A Cloud Guru</a>. I watched most of the videos from the Solutions Architect course and some of the videos from the SysOps Administrator course. I enjoyed the presentation style of Ryan Kroonenburg a lot and appreciated the practical demonstrations on AWS and the included exam tips. As I didn&rsquo;t really want to spend the time watching all the videos, I used ffmpeg to extract the audio tracks and listened to the courses while driving or being in the gym. Besides the training courses by A Cloud Guru, people also recommend the AWS courses offered by <a href="https://linuxacademy.com/amazon-web-services/courses">Linux Academy</a>.</p>
+
+<p>Another useful prep material for the exam is the Jayendra&rsquo;s <a href="http://jayendrapatil.com/aws-certification-exam-cheat-sheet/">AWS Certification Exam Cheat Sheet</a>. It includes study notes as well as sample questions.</p>
+
+<p>Before taking the real exam, I practiced using mock exams. You can find many of them freely available on the Internet. I also used several mock exam applications for Android:</p>
+
+<ul>
+<li><a href="https://play.google.com/store/apps/details?id=com.embleton.awstrainer">AWS Certification Stress-Free: RocketPrep</a></li>
+<li><a href="https://play.google.com/store/apps/details?id=com.magycbytes.aws">AWS Certified Solutions Architect Associate</a></li>
+<li><a href="https://play.google.com/store/apps/details?id=com.gent.dev.awsninja">AWS Ninja</a></li>
+<li><a href="https://play.google.com/store/apps/details?id=com.vikashiiit.aws">FREE AWS Practice Quiz - Associates</a></li>
+<li><a href="https://play.google.com/store/apps/details?id=com.ywdrtt.awssa">PREP AWS Solutions Architect</a></li>
+<li><a href="https://play.google.com/store/apps/details?id=com.magycbytes.awssys">Test prep. AWS SysOps Administrator - Associate</a></li>
+</ul>
+
+
+<p>Note that the quality of the available prep materials varies and some of the materials may contain errors.</p>
+
+<p>Finally, after I completed my studying, I took the three associate exams. Here are my results:</p>
+
+<ul>
+<li>AWS Certified Solutions Architect - Associate exam passed with 89%</li>
+<li>AWS Certified Developer - Associate exam passed with 94%</li>
+<li>AWS Certified SysOps Administrator - Associate exam passed with 95%</li>
+</ul>
+
+
+<p>If you are preparing to get your AWS certifications, I hope that sharing my experience might have been helpful for you.</p>
+
+<p><a href="https://www.certmetrics.com/amazon/public/badge.aspx?i=1&amp;t=c&amp;d=2018-08-08&amp;ci=AWS00414888"><img src="https://www.certmetrics.com/amazon/Telerik.Web.UI.WebResource.axd?imgid=e5688758f51a49d5ada27b7de37d360f&type=rbi"></a>
+<a href="https://www.certmetrics.com/amazon/public/badge.aspx?i=2&amp;t=c&amp;d=2018-08-13&amp;ci=AWS00414888"><img src="https://www.certmetrics.com/amazon/Telerik.Web.UI.WebResource.axd?imgid=0feeb23359324d8fb258307d6bd6a1c4&type=rbi"></a>
+<a href="https://www.certmetrics.com/amazon/public/badge.aspx?i=3&amp;t=c&amp;d=2018-08-28&amp;ci=AWS00414888"><img src="https://www.certmetrics.com/amazon/Telerik.Web.UI.WebResource.axd?imgid=04560b9562244c9bbaeb651a36f64cb4&type=rbi"></a></p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[Four Ansible Practices I Would Recommend]]></title>
@@ -216,7 +274,7 @@
 <li><strong>OpenShift roadmap: You won&rsquo;t believe what&rsquo;s next</strong>
 
 <ul>
-<li>Prometheus monitoring system is going to be intgrated into OpenShift more deeply. In addition to monitoring, metrics collected by Prometheus are going to be used for container auto healing.</li>
+<li>Prometheus monitoring system is going to be integrated into OpenShift more deeply. In addition to monitoring, metrics collected by Prometheus are going to be used for container auto healing.</li>
 <li>Work is underway for Open Virtual Network (OVN) to become the default OpenShift SDN in the future.</li>
 <li>Red Hat is investing in the <a href="https://github.com/kubevirt">KubeVirt</a> project whose goal is to run virtual machines on Kubernetes/OpenShift.</li>
 <li>Red Hat is also investing in <a href="https://openwhisk.apache.org/">Apache OpenWhisk</a>. OpenWhisk is a serverless platform allowing to run functions on Kubernetes.</li>
@@ -3063,115 +3121,6 @@
 <p>As the two OpenStack exams partially overlap, it was a good idea to be preparing for both of them at the same time. I even chose to take the exams on the two consecutive days Thursday and Friday. And how did I score? Well, I made 300 out of 300 points in each of the exams. It could not be any better and I was glad that the sometimes painfully gained experience with OpenStack made itself apparent.</p>
 
 <p>The updated list of my certifications can be found on the <a href="https://www.redhat.com/rhtapps/certification/verify/?certId=160-216-727">Verify a Red Hat Certified Professional</a> website.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[What I Learned at Red Hat Summit 2017]]></title>
-    <link href="http://alesnosek.com/blog/2017/05/05/what-i-learned-at-red-hat-summit-2017/"/>
-    <updated>2017-05-05T18:46:14-07:00</updated>
-    <id>http://alesnosek.com/blog/2017/05/05/what-i-learned-at-red-hat-summit-2017</id>
-    <content type="html"><![CDATA[<p>I had the great opportunity to visit the Red Hat Summit 2017. It was hosted in the Boston Convention and Exhibition Center in Boston in May 2-4, 2017. This blog post summarizes the interesting things I learned at the summit.</p>
-
-<!-- more -->
-
-
-<h2>Major announcements</h2>
-
-<p><img class="right" src="http://alesnosek.com/images/posts/rh_summit.png" width="200" height="200"></p>
-
-<p><strong><a href="https://www.redhat.com/en/about/press-releases/red-hat-and-aws-extend-strategic-alliance-package-access-aws-services-within-red-hat-openshift">Red Hat OpenShift &amp; Amazon Web Services</a>.</strong> Red Hat will make AWS services accessible directly from the OpenShift web console. From within the OpenShift web console developers will be able to provision and configure AWS services such as CloudFront, ElastiCache, ELB, RDS, EMR, RedShift, S3 and Lambda.</p>
-
-<p><strong><a href="https://www.redhat.com/en/about/press-releases/red-hat-unveils-end-end-cloud-native-development-environment-red-hat-openshiftio">Red Hat OpenShift.io</a>.</strong> <a href="https://openshift.io/">OpenShift.io</a> is an online development environment for building container-based applications. OpenShift.io can create a project in GitHub for you to store your source code. The source code editing can be done in the integrated Eclipse Che. OpenShift.io can create a project in OpenShift Online in order to build your application and deploy it. Jenkins pipelines are used to orchestrate the CI/CD process. Currently, OpenShift.io is available in a limited developer preview. You can sign up at <a href="https://openshift.io">https://openshift.io</a></p>
-
-<h2>Sessions attended</h2>
-
-<ul>
-<li><strong>The future Red Hat Middleware portfolio: Stacks and services and solutions</strong>
-
-<ul>
-<li>Netflix OSS is interesting and Red Hat will support it because customers like it. However, some of the Netflix OSS features might be more efficiently implemented directly in Kubernetes instead of on top of Kubernetes. Netflix had to make architectural choices based on how AWS looked several years ago. AWS evolved since that time.</li>
-<li>Architectural evolution: monolith -> n-tier architecture -> microservices.</li>
-</ul>
-</li>
-<li><strong>Red Hat container technology strategy</strong>
-
-<ul>
-<li>Kubernetes has won. You may have just not realized it yet.</li>
-<li>There are two reasons why the Kubernetes open source project is winning. First, it brings value to people. Second, people are excited to work on it.</li>
-<li>Kubernetes = kernel of the cloud operating systems</li>
-</ul>
-</li>
-<li><strong>Reproducible development to live applications with Java and Red Hat CDK</strong>
-
-<ul>
-<li>When developing containerized applications, developers can run them locally (outside of a container), locally on <a href="https://github.com/minishift/minishift">MiniShift</a>, or hosted on <a href="https://www.openshift.com/">OpenShift Online</a>.</li>
-<li><a href="https://developers.redhat.com/products/cdk">Red Hat Container Development Kit</a> can help you develop container-based applications quickly. It uses MiniShift under the hood.</li>
-</ul>
-</li>
-<li><strong>Modern Java and DevOps lightning talks</strong>
-
-<ul>
-<li>You can issue <code>oc cluster up</code> to create a local OpenShift all-in-one cluster (requires Origin >= 1.3).</li>
-<li><a href="https://projects.eclipse.org/proposals/eclipse-microprofile">Eclipse MicroProfile</a> project is aimed at optimizing Enterprise Java for the microservices architecture. It focuses, among others, on application configuration, health-checking, fault tolerance and security.</li>
-<li>You can use API Gateway (e.g <a href="https://apigee.com/about/cp/api-gateway">Apigee</a>, <a href="https://www.3scale.net/">3scale</a>) to dynamically route traffic into different OpenShift namespaces (test, staging, production).</li>
-</ul>
-</li>
-<li><strong>Atomic BOF</strong>
-
-<ul>
-<li>In the future, the classic RHEL will be derived from the RHEL Atomic Host. It means that the new features will appear in the RHEL Atomic Host before being included into RHEL.</li>
-</ul>
-</li>
-<li><strong>Stepping off a cliff: Common sense approaches to cloud security</strong>
-
-<ul>
-<li>VMs in the cloud are created and destroyed dynamically. This is one of the challenges for the security team.</li>
-</ul>
-</li>
-<li><strong>Wicked fast PaaS: Performance tuning of OpenShift and Docker</strong>
-
-<ul>
-<li>RHEL 7.4 should support OverlayFS. For Docker storage, the OverlayFS is more memory efficient than the LVM thin pool provisioning, as with OverlayFS, the pages in the page cache can be shared between multiple containers.</li>
-<li>Beginning with OpenShift 3.5, the container image metadata will be stored only in the Docker registry. In previous versions of OpenShift, a duplicate of the image metadata was stored in etcd, too.</li>
-</ul>
-</li>
-<li><strong>The Truth about Microservices</strong>
-
-<ul>
-<li>&ldquo;Building a single microservice is easy. Building a microservices architecture is hard.&rdquo;</li>
-</ul>
-</li>
-<li><strong>The hardest part of microservices is your data</strong>
-
-<ul>
-<li><a href="http://debezium.io/">Debezium</a> monitors the changes committed to the database (MySQL, MongoDB, PostgreSQL). For each database change, Debezium publishes an event to the Kafka broker. To consume the change events, an application can create a Kafka consumer that will consume all events for the topics associated with the database. In summary, Debezium turns a database transaction log into a Kafka stream that other applications can consume.</li>
-</ul>
-</li>
-<li><strong>Reactive systems with Eclipse Vert.x and Red Hat OpenShift</strong>
-
-<ul>
-<li><a href="http://vertx.io/">Vert.x</a> is a toolkit for building reactive applications on the JVM. It can discover services on OpenShift and Kubernetes.</li>
-</ul>
-</li>
-<li><strong>Container infrastructure trends: Optimizing for production workloads</strong>
-
-<ul>
-<li><a href="https://github.com/projectatomic/skopeo">skopeo</a> is a command line utility that allows you to inspect Docker images and image registries. It retrieves the required information from the repository metadata without the need to download the actual image. For example, with skopeo you can find out which tags are available for the given repository.</li>
-<li><a href="https://github.com/projectatomic/buildah">buildah</a> a tool for building Docker images. It can build container images without using the Docker daemon. Ansible-container and OpenShift&rsquo;s S2I will be modified to use buildah under the hood.</li>
-</ul>
-</li>
-<li><strong>Function as a Service (Faas) - why you should care and what you need to know</strong>
-
-<ul>
-<li>Architectural evolution: service -> microservice -> function.</li>
-<li>Good serverless use-cases: processing web-hooks, scheduled tasks (a la cron), data transformation (converting small images).</li>
-<li>Serverless architecture challenges: cannot use a larger programming framework to implement the function, as this would be too slow to initialize, increased latency in comparison to a long-running server process, large variance in latency, very complex at scale, debugging of functions is hard.</li>
-<li>Red Hat participates on development of <a href="https://funktion.fabric8.io/">Funktion</a> that is part of the project <a href="https://fabric8.io/">fabric8</a>.</li>
-</ul>
-</li>
-</ul>
-
 ]]></content>
   </entry>
 
