@@ -4,7 +4,7 @@
   <title><![CDATA[Category: development | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/development/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2018-08-31T19:11:29-07:00</updated>
+  <updated>2018-08-31T19:12:56-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -379,21 +379,21 @@
 <span class='line-number'>23</span>
 </pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>git log
 </span><span class='line'>commit 0f7a87b545d23870aa3dfe2665e242fd1a807445
-</span><span class='line'>Author: Joe Smith &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#x6d;&amp;#97;&amp;#105;&amp;#x6c;&amp;#x74;&amp;#x6f;&amp;#58;&amp;#106;&amp;#115;&amp;#109;&amp;#105;&amp;#116;&amp;#x68;&amp;#x40;&amp;#x73;&amp;#97;&amp;#110;&amp;#x64;&amp;#x69;&amp;#x65;&amp;#103;&amp;#x6f;&amp;#x2e;&amp;#117;&amp;#115;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#x6a;&amp;#115;&amp;#x6d;&amp;#105;&amp;#x74;&amp;#x68;&amp;#x40;&amp;#x73;&amp;#x61;&amp;#x6e;&amp;#100;&amp;#x69;&amp;#x65;&amp;#x67;&amp;#x6f;&amp;#46;&amp;#x75;&amp;#x73;&lt;/a&gt;</span>
+</span><span class='line'>Author: Joe Smith &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#x6d;&amp;#97;&amp;#105;&amp;#108;&amp;#116;&amp;#111;&amp;#x3a;&amp;#x6a;&amp;#x73;&amp;#x6d;&amp;#105;&amp;#x74;&amp;#x68;&amp;#64;&amp;#115;&amp;#97;&amp;#110;&amp;#100;&amp;#105;&amp;#x65;&amp;#x67;&amp;#x6f;&amp;#46;&amp;#117;&amp;#x73;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#x6a;&amp;#115;&amp;#109;&amp;#x69;&amp;#116;&amp;#x68;&amp;#64;&amp;#115;&amp;#x61;&amp;#110;&amp;#100;&amp;#x69;&amp;#101;&amp;#x67;&amp;#111;&amp;#x2e;&amp;#x75;&amp;#x73;&lt;/a&gt;</span>
 </span><span class='line'>Date:   Tue Dec <span class="m">6</span> 11:41:44 <span class="m">2016</span> -0800&lt;/p&gt;
 </span><span class='line'>
 </span><span class='line'>&lt;pre&gt;&lt;code&gt;Commit 3
 </span><span class='line'>&lt;/code&gt;&lt;/pre&gt;
 </span><span class='line'>
 </span><span class='line'>&lt;p&gt;commit 62d95dfbc185ad60cd3ce2a4a3d02a12c1fb7dea
-</span><span class='line'>Author: Prasad Gupta &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#x6d;&amp;#97;&amp;#x69;&amp;#x6c;&amp;#x74;&amp;#111;&amp;#58;&amp;#112;&amp;#103;&amp;#x75;&amp;#x70;&amp;#116;&amp;#x61;&amp;#64;&amp;#x62;&amp;#x61;&amp;#110;&amp;#103;&amp;#97;&amp;#108;&amp;#x6f;&amp;#114;&amp;#x65;&amp;#x2e;&amp;#x69;&amp;#110;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#112;&amp;#103;&amp;#117;&amp;#x70;&amp;#116;&amp;#x61;&amp;#64;&amp;#x62;&amp;#97;&amp;#x6e;&amp;#x67;&amp;#97;&amp;#x6c;&amp;#x6f;&amp;#114;&amp;#x65;&amp;#x2e;&amp;#x69;&amp;#x6e;&lt;/a&gt;</span>
+</span><span class='line'>Author: Prasad Gupta &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#x6d;&amp;#97;&amp;#x69;&amp;#x6c;&amp;#116;&amp;#x6f;&amp;#58;&amp;#x70;&amp;#103;&amp;#x75;&amp;#x70;&amp;#116;&amp;#97;&amp;#x40;&amp;#x62;&amp;#97;&amp;#110;&amp;#x67;&amp;#x61;&amp;#x6c;&amp;#111;&amp;#114;&amp;#x65;&amp;#46;&amp;#x69;&amp;#x6e;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#112;&amp;#x67;&amp;#x75;&amp;#x70;&amp;#116;&amp;#97;&amp;#x40;&amp;#x62;&amp;#x61;&amp;#x6e;&amp;#x67;&amp;#x61;&amp;#108;&amp;#x6f;&amp;#114;&amp;#101;&amp;#46;&amp;#x69;&amp;#x6e;&lt;/a&gt;</span>
 </span><span class='line'>Date:   Tue Dec <span class="m">6</span> 21:45:51 <span class="m">2016</span> +0530&lt;/p&gt;
 </span><span class='line'>
 </span><span class='line'>&lt;pre&gt;&lt;code&gt;Commit 2
 </span><span class='line'>&lt;/code&gt;&lt;/pre&gt;
 </span><span class='line'>
 </span><span class='line'>&lt;p&gt;commit 106db71e39e3b25fb3fa3df4c55cc8f063e78ff5
-</span><span class='line'>Author: Prasad Gupta &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#109;&amp;#97;&amp;#105;&amp;#108;&amp;#x74;&amp;#111;&amp;#x3a;&amp;#x70;&amp;#x67;&amp;#x75;&amp;#112;&amp;#x74;&amp;#x61;&amp;#64;&amp;#98;&amp;#x61;&amp;#110;&amp;#x67;&amp;#x61;&amp;#x6c;&amp;#111;&amp;#114;&amp;#101;&amp;#46;&amp;#x69;&amp;#x6e;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#112;&amp;#103;&amp;#x75;&amp;#112;&amp;#116;&amp;#x61;&amp;#64;&amp;#98;&amp;#97;&amp;#x6e;&amp;#103;&amp;#x61;&amp;#108;&amp;#x6f;&amp;#114;&amp;#101;&amp;#46;&amp;#105;&amp;#x6e;&lt;/a&gt;</span>
+</span><span class='line'>Author: Prasad Gupta &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#x6d;&amp;#x61;&amp;#x69;&amp;#108;&amp;#x74;&amp;#111;&amp;#58;&amp;#x70;&amp;#103;&amp;#x75;&amp;#x70;&amp;#x74;&amp;#x61;&amp;#64;&amp;#98;&amp;#97;&amp;#x6e;&amp;#103;&amp;#97;&amp;#108;&amp;#111;&amp;#x72;&amp;#x65;&amp;#x2e;&amp;#105;&amp;#x6e;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#112;&amp;#103;&amp;#x75;&amp;#x70;&amp;#x74;&amp;#97;&amp;#64;&amp;#98;&amp;#97;&amp;#x6e;&amp;#x67;&amp;#x61;&amp;#x6c;&amp;#x6f;&amp;#114;&amp;#101;&amp;#46;&amp;#x69;&amp;#110;&lt;/a&gt;</span>
 </span><span class='line'>Date:   Tue Dec <span class="m">6</span> 21:45:00 <span class="m">2016</span> +0530&lt;/p&gt;
 </span><span class='line'>
 </span><span class='line'>&lt;pre&gt;&lt;code&gt;Commit 1
