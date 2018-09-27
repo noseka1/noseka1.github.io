@@ -43,6 +43,6 @@ Finally, after I completed my studying, I took the three associate exams. Here a
 
 If you are preparing to get your AWS certifications, I hope that sharing my experience might have been helpful for you.
 
-[{% img https://www.certmetrics.com/amazon/Telerik.Web.UI.WebResource.axd?imgid=e5688758f51a49d5ada27b7de37d360f&type=rbi %}](https://www.certmetrics.com/amazon/public/badge.aspx?i=1&t=c&d=2018-08-08&ci=AWS00414888)
-[{% img https://www.certmetrics.com/amazon/Telerik.Web.UI.WebResource.axd?imgid=0feeb23359324d8fb258307d6bd6a1c4&type=rbi %}](https://www.certmetrics.com/amazon/public/badge.aspx?i=2&t=c&d=2018-08-13&ci=AWS00414888)
-[{% img https://www.certmetrics.com/amazon/Telerik.Web.UI.WebResource.axd?imgid=04560b9562244c9bbaeb651a36f64cb4&type=rbi %}](https://www.certmetrics.com/amazon/public/badge.aspx?i=3&t=c&d=2018-08-28&ci=AWS00414888)
+[{% img /images/posts/aws_certified_solutions_architect_associate.png %}](https://www.certmetrics.com/amazon/public/badge.aspx?i=1&t=c&d=2018-08-08&ci=AWS00414888)
+[{% img /images/posts/aws_certified_developer_associate.png %}](https://www.certmetrics.com/amazon/public/badge.aspx?i=2&t=c&d=2018-08-13&ci=AWS00414888)
+[{% img /images/posts/aws_certified_sysops_administrator_associate.png %}](https://www.certmetrics.com/amazon/public/badge.aspx?i=3&t=c&d=2018-08-28&ci=AWS00414888)
