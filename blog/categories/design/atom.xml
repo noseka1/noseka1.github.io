@@ -4,15 +4,15 @@
   <title><![CDATA[Category: design | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/design/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2018-08-31T19:12:56-07:00</updated>
+  <updated>2018-09-27T08:40:05-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
-
+    
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
-
+  
   <entry>
     <title type="html"><![CDATA[Edge Security for Your Cloud Application, Part II]]></title>
     <link href="http://alesnosek.com/blog/2018/01/12/edge-security-for-your-cloud-application-part-ii/"/>
@@ -727,7 +727,7 @@
 <p>This concludes our miniseries about edge security for cloud applications. We are still evaluating the proposed approach. What do you think about it? If you have any feedback, please, feel free to add your comments in the comment section below.</p>
 ]]></content>
   </entry>
-
+  
   <entry>
     <title type="html"><![CDATA[Edge Security for Your Cloud Application, Part I]]></title>
     <link href="http://alesnosek.com/blog/2018/01/10/edge-security-for-your-cloud-application-part-i/"/>
@@ -811,7 +811,7 @@
 <p>In this post, we walked through the secure edge design explaining the reasoning behind the individual design decisions. In the <a href="/blog/2018/01/12/edge-security-for-your-cloud-application-part-ii">second blog post</a> of this miniseries, we&rsquo;re going to demonstrate a practical implementation of our approach using HAProxy.</p>
 ]]></content>
   </entry>
-
+  
   <entry>
     <title type="html"><![CDATA[Centralized Configuration Management, Our Approach]]></title>
     <link href="http://alesnosek.com/blog/2017/08/20/centralized-configuration-management/"/>
@@ -864,5 +864,5 @@
 <p>Do you use confd or consul-template to configure your application? Or did you build your own centralized configuration management? I would like to hear your comments. Feel free to use the comment section below.</p>
 ]]></content>
   </entry>
-
+  
 </feed>

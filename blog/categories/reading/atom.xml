@@ -4,15 +4,15 @@
   <title><![CDATA[Category: reading | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/reading/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2018-08-31T19:12:56-07:00</updated>
+  <updated>2018-09-27T08:40:05-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
-
+    
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
-
+  
   <entry>
     <title type="html"><![CDATA[What I learned from The Open Organization]]></title>
     <link href="http://alesnosek.com/blog/2016/07/04/what-i-learned-from-the-open-organization/"/>
@@ -52,5 +52,5 @@
 
 ]]></content>
   </entry>
-
+  
 </feed>

@@ -4,15 +4,15 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2018-08-31T19:12:56-07:00</updated>
+  <updated>2018-09-27T08:40:05-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
-
+    
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
-
+  
   <entry>
     <title type="html"><![CDATA[How I Achieved the AWS Associate Certifications]]></title>
     <link href="http://alesnosek.com/blog/2018/08/30/how-i-achieved-the-aws-associate-certifications/"/>
@@ -65,12 +65,12 @@
 
 <p>If you are preparing to get your AWS certifications, I hope that sharing my experience might have been helpful for you.</p>
 
-<p><a href="https://www.certmetrics.com/amazon/public/badge.aspx?i=1&amp;t=c&amp;d=2018-08-08&amp;ci=AWS00414888"><img src="https://www.certmetrics.com/amazon/Telerik.Web.UI.WebResource.axd?imgid=e5688758f51a49d5ada27b7de37d360f&type=rbi"></a>
-<a href="https://www.certmetrics.com/amazon/public/badge.aspx?i=2&amp;t=c&amp;d=2018-08-13&amp;ci=AWS00414888"><img src="https://www.certmetrics.com/amazon/Telerik.Web.UI.WebResource.axd?imgid=0feeb23359324d8fb258307d6bd6a1c4&type=rbi"></a>
-<a href="https://www.certmetrics.com/amazon/public/badge.aspx?i=3&amp;t=c&amp;d=2018-08-28&amp;ci=AWS00414888"><img src="https://www.certmetrics.com/amazon/Telerik.Web.UI.WebResource.axd?imgid=04560b9562244c9bbaeb651a36f64cb4&type=rbi"></a></p>
+<p><a href="https://www.certmetrics.com/amazon/public/badge.aspx?i=1&amp;t=c&amp;d=2018-08-08&amp;ci=AWS00414888"><img src="http://alesnosek.com/images/posts/aws_certified_solutions_architect_associate.png"></a>
+<a href="https://www.certmetrics.com/amazon/public/badge.aspx?i=2&amp;t=c&amp;d=2018-08-13&amp;ci=AWS00414888"><img src="http://alesnosek.com/images/posts/aws_certified_developer_associate.png"></a>
+<a href="https://www.certmetrics.com/amazon/public/badge.aspx?i=3&amp;t=c&amp;d=2018-08-28&amp;ci=AWS00414888"><img src="http://alesnosek.com/images/posts/aws_certified_sysops_administrator_associate.png"></a></p>
 ]]></content>
   </entry>
-
+  
   <entry>
     <title type="html"><![CDATA[Four Ansible Practices I Would Recommend]]></title>
     <link href="http://alesnosek.com/blog/2018/06/17/four-ansible-practices-i-would-recommend/"/>
@@ -215,7 +215,7 @@
 <p>Hope you enjoyed this article. Let me know if you have any comments or suggestions to the presented practices. Feel free to add your comments in the comment section below.</p>
 ]]></content>
   </entry>
-
+  
   <entry>
     <title type="html"><![CDATA[Red Hat Summit 2018]]></title>
     <link href="http://alesnosek.com/blog/2018/05/14/red-hat-summit-2018/"/>
@@ -306,7 +306,7 @@
 <p>San Francisco skyline as viewed from the cruise.</p>
 ]]></content>
   </entry>
-
+  
   <entry>
     <title type="html"><![CDATA[Designing a Common Build System]]></title>
     <link href="http://alesnosek.com/blog/2018/05/03/designing-a-common-build-system/"/>
@@ -492,7 +492,7 @@
 <p>I hope you enjoyed the tour through the design of the common build system. I would be interested to know how you promote code reuse of the build scripts in your company. It would be great to hear about your approach. Please, feel free to leave your comments in the comment section below.</p>
 ]]></content>
   </entry>
-
+  
   <entry>
     <title type="html"><![CDATA[Booting Amazon Linux 2 on OpenStack]]></title>
     <link href="http://alesnosek.com/blog/2018/04/21/booting-amazon-linux-2-on-openstack/"/>
@@ -641,7 +641,7 @@
 <p>This is the end of the tutorial. You have a working Amazon Linux 2 image on OpenStack, congratulations! If you have any comments or questions, let me know in the comment section below.</p>
 ]]></content>
   </entry>
-
+  
   <entry>
     <title type="html"><![CDATA[18 Months with OpenStack, Our Experience, Part II]]></title>
     <link href="http://alesnosek.com/blog/2018/03/08/18-months-with-openstack-our-experience-part-ii/"/>
@@ -740,7 +740,7 @@
 <p>If you&rsquo;d like to share your experience with operating OpenStack, I would love to hear from you. Please, feel free to use the comment section below.</p>
 ]]></content>
   </entry>
-
+  
   <entry>
     <title type="html"><![CDATA[18 Months with OpenStack, Our Experience, Part I]]></title>
     <link href="http://alesnosek.com/blog/2018/02/19/18-months-with-openstack-our-experience-part-i/"/>
@@ -840,7 +840,7 @@
 <p>If you have battle scars from working with OpenStack, I would love to hear from you. Please, feel free to share your comments and stories in the comment section below.</p>
 ]]></content>
   </entry>
-
+  
   <entry>
     <title type="html"><![CDATA[Edge Security for Your Cloud Application, Part II]]></title>
     <link href="http://alesnosek.com/blog/2018/01/12/edge-security-for-your-cloud-application-part-ii/"/>
@@ -1577,7 +1577,7 @@
 <p>This concludes our miniseries about edge security for cloud applications. We are still evaluating the proposed approach. What do you think about it? If you have any feedback, please, feel free to add your comments in the comment section below.</p>
 ]]></content>
   </entry>
-
+  
   <entry>
     <title type="html"><![CDATA[Edge Security for Your Cloud Application, Part I]]></title>
     <link href="http://alesnosek.com/blog/2018/01/10/edge-security-for-your-cloud-application-part-i/"/>
@@ -1661,7 +1661,7 @@
 <p>In this post, we walked through the secure edge design explaining the reasoning behind the individual design decisions. In the <a href="http://alesnosek.com/blog/2018/01/12/edge-security-for-your-cloud-application-part-ii">second blog post</a> of this miniseries, we&rsquo;re going to demonstrate a practical implementation of our approach using HAProxy.</p>
 ]]></content>
   </entry>
-
+  
   <entry>
     <title type="html"><![CDATA[What I Learned at KubeCon + CloudNativeCon 2017]]></title>
     <link href="http://alesnosek.com/blog/2017/12/10/what-i-learned-at-kubecon-plus-cloudnativecon-2017/"/>
@@ -1776,7 +1776,7 @@
 
 ]]></content>
   </entry>
-
+  
   <entry>
     <title type="html"><![CDATA[AWS Lambda Adapter for Vert.x Web Applications]]></title>
     <link href="http://alesnosek.com/blog/2017/10/18/aws-lambda-adapter-for-vert-dot-x-web-applications/"/>
@@ -1802,7 +1802,7 @@
 <p>As always, I&rsquo;d love to hear your feedback. What do you think about this project? Feel free to leave your comments below.</p>
 ]]></content>
   </entry>
-
+  
   <entry>
     <title type="html"><![CDATA[Evaluating Application Metrics Solutions - Prometheus?]]></title>
     <link href="http://alesnosek.com/blog/2017/09/10/evaluating-application-metrics-solutions-prometheus/"/>
@@ -1866,7 +1866,7 @@
 <p>If you have an application that you deliver on-premise as well as in the cloud, how did you solve the application metrics collection and monitoring? Is Prometheus a good way to go? Please, leave your comments below.</p>
 ]]></content>
   </entry>
-
+  
   <entry>
     <title type="html"><![CDATA[Ansible Certification EX407]]></title>
     <link href="http://alesnosek.com/blog/2017/09/03/ansible-certification-ex407/"/>
@@ -1905,7 +1905,7 @@
 <p>Are you working on your Red Hat certification and would like to share your experience? I would always like to hear from you! Feel free to leave your comments below.</p>
 ]]></content>
   </entry>
-
+  
   <entry>
     <title type="html"><![CDATA[Test-Driving OpenShift Online]]></title>
     <link href="http://alesnosek.com/blog/2017/08/27/test-driving-openshift-online/"/>
@@ -2251,7 +2251,7 @@
 <p>Are you considering to host your containerized application on OpenShift? Or are you already running your production apps on OpenShift? I would like to hear your experiences, please, leave your comments below.</p>
 ]]></content>
   </entry>
-
+  
   <entry>
     <title type="html"><![CDATA[Centralized Configuration Management, Our Approach]]></title>
     <link href="http://alesnosek.com/blog/2017/08/20/centralized-configuration-management/"/>
@@ -2304,7 +2304,7 @@
 <p>Do you use confd or consul-template to configure your application? Or did you build your own centralized configuration management? I would like to hear your comments. Feel free to use the comment section below.</p>
 ]]></content>
   </entry>
-
+  
   <entry>
     <title type="html"><![CDATA[How I Became a Red Hat Certified Architect in One Year]]></title>
     <link href="http://alesnosek.com/blog/2017/08/01/how-i-became-a-red-hat-certified-architect-in-one-year/"/>
@@ -2352,7 +2352,7 @@
 <p>Are you a fellow RHCA? Would you like to share some details about your certification journey? And do you plan do maintain your RHCA? I would like to hear from you, feel free to leave your comments below.</p>
 ]]></content>
   </entry>
-
+  
   <entry>
     <title type="html"><![CDATA[Passed Red Hat Container Certifications EX270 and EX276]]></title>
     <link href="http://alesnosek.com/blog/2017/07/29/passed-red-hat-container-certifications-ex270-and-ex276/"/>
@@ -2380,7 +2380,7 @@
 <p>I believe that many folks are on their way to become RHCA. How are you doing on your journey? Would you like to share your experiences with the Red Hat certification program? Please, leave your comments below.</p>
 ]]></content>
   </entry>
-
+  
   <entry>
     <title type="html"><![CDATA[Check-and-Set Operation and Transactions in Consul]]></title>
     <link href="http://alesnosek.com/blog/2017/07/25/check-and-set-operation-and-transactions-in-consul/"/>
@@ -2745,7 +2745,7 @@
 <p>And what about you? How is your experience with using Consul for distributed locking or leader election? Did you get a chance to use transactions? I would like to hear your experiences, feel free to use the comment section below.</p>
 ]]></content>
   </entry>
-
+  
   <entry>
     <title type="html"><![CDATA[First Look at the Key-Value Store in Consul]]></title>
     <link href="http://alesnosek.com/blog/2017/07/15/first-look-at-the-key-value-store-in-consul/"/>
@@ -3099,7 +3099,7 @@
 <p>Are you considering or already using Consul at your company? I would like to hear your experiences, please leave your comments below.</p>
 ]]></content>
   </entry>
-
+  
   <entry>
     <title type="html"><![CDATA[Acing the Red Hat OpenStack Certification Exams]]></title>
     <link href="http://alesnosek.com/blog/2017/06/26/acing-the-red-hat-openstack-certification-exams/"/>
@@ -3123,5 +3123,5 @@
 <p>The updated list of my certifications can be found on the <a href="https://www.redhat.com/rhtapps/certification/verify/?certId=160-216-727">Verify a Red Hat Certified Professional</a> website.</p>
 ]]></content>
   </entry>
-
+  
 </feed>
