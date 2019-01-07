@@ -4,15 +4,52 @@
   <title><![CDATA[Category: devops | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/devops/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2018-09-27T09:06:02-07:00</updated>
+  <updated>2019-01-07T12:37:30-08:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
-    
+
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
-  
+
+  <entry>
+    <title type="html"><![CDATA[Tips for Passing the Red Hat Certified Specialist in Gluster Storage Administration Exam]]></title>
+    <link href="http://alesnosek.com/blog/2018/12/28/tips-for-passing-the-red-hat-certified-specialist-in-gluster-storage-administration-exam/"/>
+    <updated>2018-12-28T11:24:40-08:00</updated>
+    <id>http://alesnosek.com/blog/2018/12/28/tips-for-passing-the-red-hat-certified-specialist-in-gluster-storage-administration-exam</id>
+    <content type="html"><![CDATA[<p>Recently I passed the <a href="https://www.redhat.com/en/services/training/ex236-red-hat-certified-specialist-in-gluster-storage-administration-exam">Red Hat Certified Specialist in Gluster Storage Administration</a> exam. In this blog post, I would like to share some of my experience and exam tips with you.</p>
+
+<!-- more -->
+
+
+<p>There are two major open-source storage technologies available today: <a href="https://ceph.com/">Ceph</a> and <a href="https://www.gluster.org/">Gluster</a>. For a couple of years, I used Ceph as a provider of a block and object storage for an OpenStack cluster with great success. I was curious to learn about what Gluster has to offer. To explore Gluster, I leveraged the training materials and labs included in my <a href="https://www.redhat.com/en/services/training/learning-subscription">Red Hat Learning Subscription</a>. Also, to give myself a particular goal to achieve, I signed up for the Red Hat Certified Specialist in Gluster Storage Administration exam. The main topics included on the exam are creating different types of Gluster volumes, volume snapshotting, exporting Gluster volumes via highly-available NFS and Samba, asynchronous replication (geo-replication), tiered volumes and transport security.</p>
+
+<p>As I was working through the learning materials for the first time, I used the provided virtual machines to solve the lab exercises. I liked that after I completed the exercise I could run a grading script that would check my configuration and to see if anything was still missing. However, after I realized that setting up a Gluster cluster from scratch doesn&rsquo;t take much effort, I decided to spin up my own practice environment. I created three virtual machines (2 GB RAM, 4 vCPUs) on my laptop using libvirt/QEMU/KVM and installed CentOS 7 and Gluster 4.1. The software on the real exam is RHEL 7 and Gluster 3, however, it didn&rsquo;t make much difference to me. Switching to my custom practice environment removed the perceived latency while typing and allowed me to easily copy and paste between console windows. In addition to that, I could keep my virtual machines running all the time. Virtual machines in the lab environment provided by Red Hat shutdown automatically after two hours unless you bump up the timer.</p>
+
+<p>If you are preparing for the Gluster certification exam, here are several things that are good to know:</p>
+
+<ul>
+<li>The complete <a href="https://access.redhat.com/documentation/en-us/red_hat_gluster_storage">Red Hat Gluster Storage documentation</a> is available to you during the exam in a searchable PDF format. The Red Hat Gluster Storage Administration Guide turned out to be particularly useful. I recommend reading through the guide as a part of the preparation for the exam. You will learn where the important configuration parts are located in the guide and will be able to quickly refer to them during the exam.</li>
+<li>Preparing underlying LVM volumes for Gluster bricks takes quite a bit of time which you won&rsquo;t have plenty of in the exam. Here is my advice: at the beginning of the exam, walk through the exam tasks and create all the LVM volumes that you will need up front.</li>
+<li>Command <code>gluster volume set help</code> lists all the Gluster volume parameters along with their short descriptions. If you cannot remember the exact parameter name just grep through the output of this command.</li>
+<li>If you cannot remember the Gluster mount options, you can find them by typing <code>man mount.glusterfs</code></li>
+<li>Provisioning of LVM thin volumes is thoroughly documented in <code>man lvmthin</code></li>
+<li>To list all services that you can enable on the firewall, type <code>firewall-cmd --get-services</code></li>
+<li>To find out whether SELinux denied access, issue the command  <code>grep denied /var/log/audit/audit.log</code>. SELinux can provide a hint on how to possibly solve the access issue, use the command <code>sealert -a /var/log/audit/audit.log</code></li>
+<li>To list SELinux types related to Gluster, you can type <code>strings /sys/fs/selinux/policy | grep gluster</code></li>
+<li>And last but not least, you can list volumes exported by the NFS server with <code>showmount -e &lt;HOST&gt;</code>. To show volumes available on a Samba server, issue the command <code>smbclient -L &lt;HOST&gt; -U %</code></li>
+</ul>
+
+
+<p>And how did I do on the exam? Well, I would not say that the exam was difficult, however, I also didn&rsquo;t practice much before the exam. Unfortunately, I ran out of time before I could complete the last exam task. Overall, I achieved 236 points out of 300. As the passing score was 210, I did pass!</p>
+
+<p>Are you preparing for the Red Hat Gluster Storage exam? I would love to hear from you! Please, leave your comments or questions in the comment section below.</p>
+
+<p><img class="right" src="/images/posts/rhcs_gluster_storage_administration_badge.png"></p>
+]]></content>
+  </entry>
+
   <entry>
     <title type="html"><![CDATA[Four Ansible Practices I Would Recommend]]></title>
     <link href="http://alesnosek.com/blog/2018/06/17/four-ansible-practices-i-would-recommend/"/>
@@ -161,7 +198,7 @@
 <p>Hope you enjoyed this article. Let me know if you have any comments or suggestions to the presented practices. Feel free to add your comments in the comment section below.</p>
 ]]></content>
   </entry>
-  
+
   <entry>
     <title type="html"><![CDATA[18 Months with OpenStack, Our Experience, Part II]]></title>
     <link href="http://alesnosek.com/blog/2018/03/08/18-months-with-openstack-our-experience-part-ii/"/>
@@ -260,7 +297,7 @@
 <p>If you&rsquo;d like to share your experience with operating OpenStack, I would love to hear from you. Please, feel free to use the comment section below.</p>
 ]]></content>
   </entry>
-  
+
   <entry>
     <title type="html"><![CDATA[18 Months with OpenStack, Our Experience, Part I]]></title>
     <link href="http://alesnosek.com/blog/2018/02/19/18-months-with-openstack-our-experience-part-i/"/>
@@ -360,7 +397,7 @@
 <p>If you have battle scars from working with OpenStack, I would love to hear from you. Please, feel free to share your comments and stories in the comment section below.</p>
 ]]></content>
   </entry>
-  
+
   <entry>
     <title type="html"><![CDATA[Edge Security for Your Cloud Application, Part II]]></title>
     <link href="http://alesnosek.com/blog/2018/01/12/edge-security-for-your-cloud-application-part-ii/"/>
@@ -1075,89 +1112,5 @@
 <p>This concludes our miniseries about edge security for cloud applications. We are still evaluating the proposed approach. What do you think about it? If you have any feedback, please, feel free to add your comments in the comment section below.</p>
 ]]></content>
   </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Edge Security for Your Cloud Application, Part I]]></title>
-    <link href="http://alesnosek.com/blog/2018/01/10/edge-security-for-your-cloud-application-part-i/"/>
-    <updated>2018-01-10T23:09:17-08:00</updated>
-    <id>http://alesnosek.com/blog/2018/01/10/edge-security-for-your-cloud-application-part-i</id>
-    <content type="html"><![CDATA[<p>When designing a cloud application, one of the challenges you need to tackle is the secure communication of your clients with your servers over the public Internet. In this post, I&rsquo;m going to sketch a system architecture that allows you to authenticate the clients and exchange data between your clients and servers securely. The proposed architecture is also suitable when migrating an existing application, which didn&rsquo;t implement the secure communication, to the cloud.</p>
 
-<!-- more -->
-
-
-<p>In this article, we are going to assume that we&rsquo;re dealing with a multi-tenant cloud application whose architecture follows the <a href="https://en.wikipedia.org/wiki/Service-oriented_architecture">SOA</a> architecture principles. The application consists of several edge services that accept the incoming client requests. After validating the incoming request, the request is passed to the backend services for processing. Here is a diagram depicting such an application:</p>
-
-<p><img src="/images/posts/edge_security_for_your_cloud_application_soa.svg" width="800" height="1000" title="SOA architecture" ></p>
-
-<h2>Requirements</h2>
-
-<p>Before we start walking through the design, let&rsquo;s take a look at the set of requirements that drove the design decisions:</p>
-
-<ol>
-<li><p>One of the first steps of request validation should be the client authentication. Requests originating from the clients that fail to authenticate should be refused immediately.</p></li>
-<li><p>We don&rsquo;t impose any restrictions on what protocol is used by the clients to communicate with our application. Typically, clients will leverage the HTTP protocol but we want to support any TCP based protocol. In other words, our application doesn&rsquo;t have to be a web service.</p></li>
-<li><p>From the past, we inherited some clients that are not able to communicate in a secure way. For instance, they are only able to talk plain HTTP and don&rsquo;t support HTTPS. We would like to make such clients work with our application without the need to modify the clients themselves.</p></li>
-<li><p>And last but not least, we would like to avoid the need to establish a VPN connection between the client machine and the cloud. In practice, setting up a VPN connection requires quite invasive configuration of the client operating system. For our application tenants (our customers) this would impose a barrier that would hurt the adoption of our cloud application. Something we definitely don&rsquo;t want.</p></li>
-</ol>
-
-
-<h2>The edge layer</h2>
-
-<p>SSL/TLS is a family of security protocols that many VPNs rely upon. Currently, the TLS protocol is considered to be one of the strongest and most mature security protocols available. It was a clear choice for us to leverage the TLS protocol for communication between the clients and servers including the mutual authentication using PKI certificates. Finally, here is a diagram showing the edge layer of our cloud application in detail:</p>
-
-<p><img src="/images/posts/edge_security_for_your_cloud_application_server.svg" width="800" height="1000" title="The edge layer" ></p>
-
-<h2>Internet-facing ELB</h2>
-
-<p>Interestingly, AWS Elastic load balancers don&rsquo;t support client certificate authentication. Both, Classic load balancer and Application load balancer, support TLS offloading where they can terminate the TLS connection for you. However, they are not able to authenticate the client certificate and they also don&rsquo;t allow forwarding the certificate details to the backend application which could carry out the authentication by itself. In order to implement the client certificate authentication, you are pretty much left with two options: you can either use the Classic load balancer in the TCP mode, or you can employ the Network load balancer which operates on the TCP level. In both cases, the Elastic load balancer just passes the TLS connection through to your EC2 instances where you have to terminate and authenticate the TLS connection yourself. As the connection between ELB and the EC2 instances remains encrypted, you are gaining a plus from the security standpoint, too.</p>
-
-<p>While ELB doesn&rsquo;t authenticate clients, it plays an important role in our architecture. First, ELB is highly-available and distributes the traffic to several edge instances that are not highly-available. Second, ELB implements a layer 3 (e.g. UDP reflection) and layer 4 (e.g. SYN flood) DDOS attack protection.</p>
-
-<p>Btw., Amazon API Gateway doesn&rsquo;t support client certificate authentication either and so is less helpful for our scenario.</p>
-
-<h2>Reverse proxy on edge instances</h2>
-
-<p>Depending on your architecture, your edge services may or may not have a support for accepting TLS connections built in. I personally see the connection security to be a job for the infrastructure and would vote against implementing the TLS support in your application services. Here are some concrete arguments why to terminate the TLS connection outside of your application services:</p>
-
-<ol>
-<li><p>Your application services may be written in different languages. For each language and its runtime, the TLS configuration is different. You don&rsquo;t want to spend your time figuring out, how to configure TLS on Apache Tomcat, Eclipse Jetty, Apache server, Node.js and others, do you? Different technologies support different TLS features. For example, TLS SNI is supported only in Tomcat >= 8.5. Researching the supported feature set of every runtime is time consuming.</p></li>
-<li><p>The proxy provides a good place to monitor and log what&rsquo;s going on on the wire. Remember that ELB won&rsquo;t have any insight into your traffic as the traffic is TLS encrypted.</p></li>
-<li><p>You may want to automate the TLS certificate rotation and revocation. You&rsquo;ll have to implement this for all your different web servers. That&rsquo;s quite a bit of work.</p></li>
-</ol>
-
-
-<p>Instead of handling TLS in your application services, I would recommend deploying a reverse proxy in front of your services. This proxy will terminate the incoming TLS connection. This will allow you to manage all the TLS related settings in one place. The battle-tested proxies like <a href="http://www.haproxy.org/">HAProxy</a> or <a href="https://www.nginx.com/">NGINX</a> can authenticate the client certificate against a trusted certificate authority. They can also forward the certificate details to your edge service which can implement a more complex authentication logic if you need it.</p>
-
-<p>You should deploy the reverse proxy on the same instance with your edge service. This way, the decrypted communication between the proxy and your service will never leave the instance. In order to capture the decrypted traffic, one would need to have a root access on the instance. The possibility to capture the communication in the clear will come handy when troubleshooting, though.</p>
-
-<h2>The client side</h2>
-
-<p>After discussing the server-side design, let&rsquo;s talk about the client-side part of the picture. As we mentioned in the requirements section above, our architecture has to also support clients that don&rsquo;t have the TLS functionality built in. In turns out that there are actually three different client types:</p>
-
-<ol>
-<li>Clients with native TLS mutual authentication support</li>
-<li>Clients with no TLS support at all</li>
-<li>Clients supporting TLS with one-way authentication only, i.e. the client is able to authenticate the server certificate but it doesn&rsquo;t present its own certificate to the server.</li>
-</ol>
-
-
-<p>There is nothing special to do for the clients with native TLS mutual authentication support. They can directly connect to the application servers. To ensure the secure communication for the remaining two client types, we&rsquo;re going to deploy a proxy on the client machines. This proxy will enforce the TLS mutually authenticated connection over the Internet. A diagram depicting the three client types looks as follows:</p>
-
-<p><img src="/images/posts/edge_security_for_your_cloud_application_client.svg" width="600" height="800" title="The client side" ></p>
-
-<p>In the case number two, the proxy is configured in the SSL/TLS encryption mode. It accepts an unencrypted connection from the client and forwards the communication over a TLS encrypted channel to the server.  For the case number three, the proxy must be configured using the SSL/TLS bridging aka re-encryption mode. The proxy accepts an encrypted connection from the client, creates a separate encrypted connection to the server and passes the data between the two connections. Both HAProxy and Nginx support these configuration modes. You can also refer to the TLS layouts described in the HAProxy <a href="https://www.haproxy.com/documentation/aloha/7-0/deployment-guides/tls-layouts/">documentation</a>.</p>
-
-<p>Alternatively, as a proxy one could also employ <a href="https://www.stunnel.org">stunnel</a>. Before the SSL/TLS support was built into HAProxy, stunnel used to be deployed along with HAProxy to provide the SSL/TLS functionality. To accomplish the case number three using stunnel, one would actually need to combine two stunnels in series.</p>
-
-<p>Recently, a modern <a href="https://www.envoyproxy.io/">Envoy</a> proxy emerged and I would like to encourage you to check it out. It provides a really impressive set of features that goes far beyond the load balancing functionality: automatic retries, circuit breaking, zone local load balancing, very detailed metrics etc. Envoy helps to solve several networking problems common to the cloud-native applications. In our proposed architecture, Envoy would be deployed in the role of an edge proxy on the server side as well as in the role of the service proxy on the client side.</p>
-
-<p>Whichever proxy you choose on the client-side, remember to deploy it in a highly available fashion. You don&rsquo;t want to introduce a single point of failure into your system, do you?</p>
-
-<h2>Conclusion</h2>
-
-<p>In this post, we walked through the secure edge design explaining the reasoning behind the individual design decisions. In the <a href="/blog/2018/01/12/edge-security-for-your-cloud-application-part-ii">second blog post</a> of this miniseries, we&rsquo;re going to demonstrate a practical implementation of our approach using HAProxy.</p>
-]]></content>
-  </entry>
-  
 </feed>

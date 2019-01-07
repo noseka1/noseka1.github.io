@@ -4,15 +4,52 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2018-09-27T09:06:02-07:00</updated>
+  <updated>2019-01-07T12:37:30-08:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
-    
+
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
-  
+
+  <entry>
+    <title type="html"><![CDATA[Tips for Passing the Red Hat Certified Specialist in Gluster Storage Administration Exam]]></title>
+    <link href="http://alesnosek.com/blog/2018/12/28/tips-for-passing-the-red-hat-certified-specialist-in-gluster-storage-administration-exam/"/>
+    <updated>2018-12-28T11:24:40-08:00</updated>
+    <id>http://alesnosek.com/blog/2018/12/28/tips-for-passing-the-red-hat-certified-specialist-in-gluster-storage-administration-exam</id>
+    <content type="html"><![CDATA[<p>Recently I passed the <a href="https://www.redhat.com/en/services/training/ex236-red-hat-certified-specialist-in-gluster-storage-administration-exam">Red Hat Certified Specialist in Gluster Storage Administration</a> exam. In this blog post, I would like to share some of my experience and exam tips with you.</p>
+
+<!-- more -->
+
+
+<p>There are two major open-source storage technologies available today: <a href="https://ceph.com/">Ceph</a> and <a href="https://www.gluster.org/">Gluster</a>. For a couple of years, I used Ceph as a provider of a block and object storage for an OpenStack cluster with great success. I was curious to learn about what Gluster has to offer. To explore Gluster, I leveraged the training materials and labs included in my <a href="https://www.redhat.com/en/services/training/learning-subscription">Red Hat Learning Subscription</a>. Also, to give myself a particular goal to achieve, I signed up for the Red Hat Certified Specialist in Gluster Storage Administration exam. The main topics included on the exam are creating different types of Gluster volumes, volume snapshotting, exporting Gluster volumes via highly-available NFS and Samba, asynchronous replication (geo-replication), tiered volumes and transport security.</p>
+
+<p>As I was working through the learning materials for the first time, I used the provided virtual machines to solve the lab exercises. I liked that after I completed the exercise I could run a grading script that would check my configuration and to see if anything was still missing. However, after I realized that setting up a Gluster cluster from scratch doesn&rsquo;t take much effort, I decided to spin up my own practice environment. I created three virtual machines (2 GB RAM, 4 vCPUs) on my laptop using libvirt/QEMU/KVM and installed CentOS 7 and Gluster 4.1. The software on the real exam is RHEL 7 and Gluster 3, however, it didn&rsquo;t make much difference to me. Switching to my custom practice environment removed the perceived latency while typing and allowed me to easily copy and paste between console windows. In addition to that, I could keep my virtual machines running all the time. Virtual machines in the lab environment provided by Red Hat shutdown automatically after two hours unless you bump up the timer.</p>
+
+<p>If you are preparing for the Gluster certification exam, here are several things that are good to know:</p>
+
+<ul>
+<li>The complete <a href="https://access.redhat.com/documentation/en-us/red_hat_gluster_storage">Red Hat Gluster Storage documentation</a> is available to you during the exam in a searchable PDF format. The Red Hat Gluster Storage Administration Guide turned out to be particularly useful. I recommend reading through the guide as a part of the preparation for the exam. You will learn where the important configuration parts are located in the guide and will be able to quickly refer to them during the exam.</li>
+<li>Preparing underlying LVM volumes for Gluster bricks takes quite a bit of time which you won&rsquo;t have plenty of in the exam. Here is my advice: at the beginning of the exam, walk through the exam tasks and create all the LVM volumes that you will need up front.</li>
+<li>Command <code>gluster volume set help</code> lists all the Gluster volume parameters along with their short descriptions. If you cannot remember the exact parameter name just grep through the output of this command.</li>
+<li>If you cannot remember the Gluster mount options, you can find them by typing <code>man mount.glusterfs</code></li>
+<li>Provisioning of LVM thin volumes is thoroughly documented in <code>man lvmthin</code></li>
+<li>To list all services that you can enable on the firewall, type <code>firewall-cmd --get-services</code></li>
+<li>To find out whether SELinux denied access, issue the command  <code>grep denied /var/log/audit/audit.log</code>. SELinux can provide a hint on how to possibly solve the access issue, use the command <code>sealert -a /var/log/audit/audit.log</code></li>
+<li>To list SELinux types related to Gluster, you can type <code>strings /sys/fs/selinux/policy | grep gluster</code></li>
+<li>And last but not least, you can list volumes exported by the NFS server with <code>showmount -e &lt;HOST&gt;</code>. To show volumes available on a Samba server, issue the command <code>smbclient -L &lt;HOST&gt; -U %</code></li>
+</ul>
+
+
+<p>And how did I do on the exam? Well, I would not say that the exam was difficult, however, I also didn&rsquo;t practice much before the exam. Unfortunately, I ran out of time before I could complete the last exam task. Overall, I achieved 236 points out of 300. As the passing score was 210, I did pass!</p>
+
+<p>Are you preparing for the Red Hat Gluster Storage exam? I would love to hear from you! Please, leave your comments or questions in the comment section below.</p>
+
+<p><img class="right" src="http://alesnosek.com/images/posts/rhcs_gluster_storage_administration_badge.png"></p>
+]]></content>
+  </entry>
+
   <entry>
     <title type="html"><![CDATA[Speaking at the Red Hat Training Partner &amp; Instructor Conference]]></title>
     <link href="http://alesnosek.com/blog/2018/09/24/speaking-at-the-red-hat-training-partner-and-instructor-conference/"/>
@@ -52,7 +89,7 @@
 <p>The Red Hat Certified Architect certification has been divided in to two different certifications, Red Hat Certified Architect in Infrastructure and Red Hat Certified Architect in Enterprise Applications. This change is well documented <a href="https://servicesblog.redhat.com/2018/08/20/red-hat-certified-architect-program-changes/">here</a>. I would like to point out that those of you who achieved the RHCA already, can log into your Red Hat account and download your certificate with the updated title.</p>
 ]]></content>
   </entry>
-  
+
   <entry>
     <title type="html"><![CDATA[How I Achieved the AWS Associate Certifications]]></title>
     <link href="http://alesnosek.com/blog/2018/08/30/how-i-achieved-the-aws-associate-certifications/"/>
@@ -110,7 +147,7 @@
 <a href="https://www.certmetrics.com/amazon/public/badge.aspx?i=3&amp;t=c&amp;d=2018-08-28&amp;ci=AWS00414888"><img src="http://alesnosek.com/images/posts/aws_certified_sysops_administrator_associate.png"></a></p>
 ]]></content>
   </entry>
-  
+
   <entry>
     <title type="html"><![CDATA[Four Ansible Practices I Would Recommend]]></title>
     <link href="http://alesnosek.com/blog/2018/06/17/four-ansible-practices-i-would-recommend/"/>
@@ -255,7 +292,7 @@
 <p>Hope you enjoyed this article. Let me know if you have any comments or suggestions to the presented practices. Feel free to add your comments in the comment section below.</p>
 ]]></content>
   </entry>
-  
+
   <entry>
     <title type="html"><![CDATA[Red Hat Summit 2018]]></title>
     <link href="http://alesnosek.com/blog/2018/05/14/red-hat-summit-2018/"/>
@@ -346,7 +383,7 @@
 <p>San Francisco skyline as viewed from the cruise.</p>
 ]]></content>
   </entry>
-  
+
   <entry>
     <title type="html"><![CDATA[Designing a Common Build System]]></title>
     <link href="http://alesnosek.com/blog/2018/05/03/designing-a-common-build-system/"/>
@@ -532,7 +569,7 @@
 <p>I hope you enjoyed the tour through the design of the common build system. I would be interested to know how you promote code reuse of the build scripts in your company. It would be great to hear about your approach. Please, feel free to leave your comments in the comment section below.</p>
 ]]></content>
   </entry>
-  
+
   <entry>
     <title type="html"><![CDATA[Booting Amazon Linux 2 on OpenStack]]></title>
     <link href="http://alesnosek.com/blog/2018/04/21/booting-amazon-linux-2-on-openstack/"/>
@@ -681,7 +718,7 @@
 <p>This is the end of the tutorial. You have a working Amazon Linux 2 image on OpenStack, congratulations! If you have any comments or questions, let me know in the comment section below.</p>
 ]]></content>
   </entry>
-  
+
   <entry>
     <title type="html"><![CDATA[18 Months with OpenStack, Our Experience, Part II]]></title>
     <link href="http://alesnosek.com/blog/2018/03/08/18-months-with-openstack-our-experience-part-ii/"/>
@@ -780,7 +817,7 @@
 <p>If you&rsquo;d like to share your experience with operating OpenStack, I would love to hear from you. Please, feel free to use the comment section below.</p>
 ]]></content>
   </entry>
-  
+
   <entry>
     <title type="html"><![CDATA[18 Months with OpenStack, Our Experience, Part I]]></title>
     <link href="http://alesnosek.com/blog/2018/02/19/18-months-with-openstack-our-experience-part-i/"/>
@@ -880,7 +917,7 @@
 <p>If you have battle scars from working with OpenStack, I would love to hear from you. Please, feel free to share your comments and stories in the comment section below.</p>
 ]]></content>
   </entry>
-  
+
   <entry>
     <title type="html"><![CDATA[Edge Security for Your Cloud Application, Part II]]></title>
     <link href="http://alesnosek.com/blog/2018/01/12/edge-security-for-your-cloud-application-part-ii/"/>
@@ -1617,7 +1654,7 @@
 <p>This concludes our miniseries about edge security for cloud applications. We are still evaluating the proposed approach. What do you think about it? If you have any feedback, please, feel free to add your comments in the comment section below.</p>
 ]]></content>
   </entry>
-  
+
   <entry>
     <title type="html"><![CDATA[Edge Security for Your Cloud Application, Part I]]></title>
     <link href="http://alesnosek.com/blog/2018/01/10/edge-security-for-your-cloud-application-part-i/"/>
@@ -1701,7 +1738,7 @@
 <p>In this post, we walked through the secure edge design explaining the reasoning behind the individual design decisions. In the <a href="http://alesnosek.com/blog/2018/01/12/edge-security-for-your-cloud-application-part-ii">second blog post</a> of this miniseries, we&rsquo;re going to demonstrate a practical implementation of our approach using HAProxy.</p>
 ]]></content>
   </entry>
-  
+
   <entry>
     <title type="html"><![CDATA[What I Learned at KubeCon + CloudNativeCon 2017]]></title>
     <link href="http://alesnosek.com/blog/2017/12/10/what-i-learned-at-kubecon-plus-cloudnativecon-2017/"/>
@@ -1816,7 +1853,7 @@
 
 ]]></content>
   </entry>
-  
+
   <entry>
     <title type="html"><![CDATA[AWS Lambda Adapter for Vert.x Web Applications]]></title>
     <link href="http://alesnosek.com/blog/2017/10/18/aws-lambda-adapter-for-vert-dot-x-web-applications/"/>
@@ -1842,7 +1879,7 @@
 <p>As always, I&rsquo;d love to hear your feedback. What do you think about this project? Feel free to leave your comments below.</p>
 ]]></content>
   </entry>
-  
+
   <entry>
     <title type="html"><![CDATA[Evaluating Application Metrics Solutions - Prometheus?]]></title>
     <link href="http://alesnosek.com/blog/2017/09/10/evaluating-application-metrics-solutions-prometheus/"/>
@@ -1906,7 +1943,7 @@
 <p>If you have an application that you deliver on-premise as well as in the cloud, how did you solve the application metrics collection and monitoring? Is Prometheus a good way to go? Please, leave your comments below.</p>
 ]]></content>
   </entry>
-  
+
   <entry>
     <title type="html"><![CDATA[Ansible Certification EX407]]></title>
     <link href="http://alesnosek.com/blog/2017/09/03/ansible-certification-ex407/"/>
@@ -1945,7 +1982,7 @@
 <p>Are you working on your Red Hat certification and would like to share your experience? I would always like to hear from you! Feel free to leave your comments below.</p>
 ]]></content>
   </entry>
-  
+
   <entry>
     <title type="html"><![CDATA[Test-Driving OpenShift Online]]></title>
     <link href="http://alesnosek.com/blog/2017/08/27/test-driving-openshift-online/"/>
@@ -2291,7 +2328,7 @@
 <p>Are you considering to host your containerized application on OpenShift? Or are you already running your production apps on OpenShift? I would like to hear your experiences, please, leave your comments below.</p>
 ]]></content>
   </entry>
-  
+
   <entry>
     <title type="html"><![CDATA[Centralized Configuration Management, Our Approach]]></title>
     <link href="http://alesnosek.com/blog/2017/08/20/centralized-configuration-management/"/>
@@ -2344,7 +2381,7 @@
 <p>Do you use confd or consul-template to configure your application? Or did you build your own centralized configuration management? I would like to hear your comments. Feel free to use the comment section below.</p>
 ]]></content>
   </entry>
-  
+
   <entry>
     <title type="html"><![CDATA[How I Became a Red Hat Certified Architect in One Year]]></title>
     <link href="http://alesnosek.com/blog/2017/08/01/how-i-became-a-red-hat-certified-architect-in-one-year/"/>
@@ -2392,7 +2429,7 @@
 <p>Are you a fellow RHCA? Would you like to share some details about your certification journey? And do you plan do maintain your RHCA? I would like to hear from you, feel free to leave your comments below.</p>
 ]]></content>
   </entry>
-  
+
   <entry>
     <title type="html"><![CDATA[Passed Red Hat Container Certifications EX270 and EX276]]></title>
     <link href="http://alesnosek.com/blog/2017/07/29/passed-red-hat-container-certifications-ex270-and-ex276/"/>
@@ -2420,7 +2457,7 @@
 <p>I believe that many folks are on their way to become RHCA. How are you doing on your journey? Would you like to share your experiences with the Red Hat certification program? Please, leave your comments below.</p>
 ]]></content>
   </entry>
-  
+
   <entry>
     <title type="html"><![CDATA[Check-and-Set Operation and Transactions in Consul]]></title>
     <link href="http://alesnosek.com/blog/2017/07/25/check-and-set-operation-and-transactions-in-consul/"/>
@@ -2785,359 +2822,5 @@
 <p>And what about you? How is your experience with using Consul for distributed locking or leader election? Did you get a chance to use transactions? I would like to hear your experiences, feel free to use the comment section below.</p>
 ]]></content>
   </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[First Look at the Key-Value Store in Consul]]></title>
-    <link href="http://alesnosek.com/blog/2017/07/15/first-look-at-the-key-value-store-in-consul/"/>
-    <updated>2017-07-15T20:38:38-07:00</updated>
-    <id>http://alesnosek.com/blog/2017/07/15/first-look-at-the-key-value-store-in-consul</id>
-    <content type="html"><![CDATA[<p>If you are developing a distributed application that consists of multiple services, you might be thinking about how to manage the ever growing application configuration data. Instead of maintaining individual configuration files for each service, you can store all your configuration data in a key-value store. In this blog post we&rsquo;ll check out the key-value store in Consul.</p>
 
-<!-- more -->
-
-
-<p><img class="right" src="http://alesnosek.com/images/posts/consul_logo.png" width="200" height="300"></p>
-
-<p>Consul is an open-source product developed by <a href="https://www.hashicorp.com/">HashiCorp</a> and licensed under the <a href="https://github.com/hashicorp/consul/blob/master/LICENSE">MPL 2.0</a>. While Consul uses an open core business model, it comes with a great deal of functionality in its free edition. The top two features of Consul would be the service discovery combined with health checking and the key-value store functionality that we are going to review in this article. They both come handy when building distributed applications.</p>
-
-<h2>Getting started</h2>
-
-<p>HashiCorp products are known for its thorough documentation and the Consul&rsquo;s <a href="https://www.consul.io/docs/index.html">documenation</a> is not an exception.</p>
-
-<p>What I like about Consul is its installation. Written in the Go language, Consul is distributed as a single statically linked binary. Download <a href="https://www.consul.io/downloads.html">links</a> for various platforms are provided. After unzipping the distribution archive you can directly run the <code>consul</code> executable.</p>
-
-<p>Let&rsquo;s put togher a command-line to start the Consul cluster. Our test cluster consists of a single node (<code>-bootstrap-expect 1</code>). For a production deployment, you should be looking at a cluster of three or five Consul nodes that is able to survive node failures. We will make the Consul Web UI available at <code>http://localhost:8500</code> by appending the <code>-ui</code> parameter. Consul needs a location where it will persist its data. In our example, we instruct Consul to create a directory <code>mydata</code> and store all its data in this directory. After a bit of typing, the complete commmand-line to start the Consul cluster looks as follows:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul agent -ui -server -data-dir mydata -advertise 127.0.0.1 -bootstrap-expect 1
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>In several seconds the one-node Consul cluster is up and running:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">==</span>&gt; WARNING: BootstrapExpect Mode is specified as 1<span class="p">;</span> this is the same as Bootstrap mode.
-</span><span class='line'><span class="o">==</span>&gt; WARNING: Bootstrap mode enabled! Do not <span class="nb">enable </span>unless <span class="nv">necessary</span>
-</span><span class='line'><span class="o">==</span>&gt; Starting Consul agent...
-</span><span class='line'><span class="o">==</span>&gt; Consul agent running!
-</span><span class='line'>           Version: <span class="s1">&#39;v0.8.5&#39;</span>
-</span><span class='line'>           Node ID: <span class="s1">&#39;be79786e-749d-758c-2b65-824c1e956788&#39;</span>
-</span><span class='line'>         Node name: <span class="s1">&#39;zihadlo&#39;</span>
-</span><span class='line'>        Datacenter: <span class="s1">&#39;dc1&#39;</span>
-</span><span class='line'>            Server: <span class="nb">true</span> <span class="o">(</span>bootstrap: <span class="nb">true</span><span class="o">)</span>
-</span><span class='line'>       Client Addr: 127.0.0.1 <span class="o">(</span>HTTP: 8500, HTTPS: -1, DNS: 8600<span class="o">)</span>
-</span><span class='line'>      Cluster Addr: 127.0.0.1 <span class="o">(</span>LAN: 8301, WAN: 8302<span class="o">)</span>
-</span><span class='line'>    Gossip encrypt: <span class="nb">false</span>, RPC-TLS: <span class="nb">false</span>, TLS-Incoming: <span class="nb">false</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">==</span>&gt; Log data will now stream in as it occurs:
-</span><span class='line'>
-</span><span class='line'>    2017/07/15 20:37:57 <span class="o">[</span>INFO<span class="o">]</span> raft: Initial configuration <span class="o">(</span><span class="nv">index</span><span class="o">=</span>1<span class="o">)</span>: <span class="o">[{</span>Suffrage:Voter ID:127.0.0.1:8300 Address:127.0.0.1:8300<span class="o">}]</span>
-</span><span class='line'>    2017/07/15 20:37:57 <span class="o">[</span>INFO<span class="o">]</span> raft: Node at 127.0.0.1:8300 <span class="o">[</span>Follower<span class="o">]</span> entering Follower state <span class="o">(</span>Leader: <span class="s2">&quot;&quot;</span><span class="o">)</span>
-</span><span class='line'>    2017/07/15 20:37:57 <span class="o">[</span>INFO<span class="o">]</span> serf: EventMemberJoin: zihadlo 127.0.0.1
-</span><span class='line'>    2017/07/15 20:37:57 <span class="o">[</span>INFO<span class="o">]</span> consul: Adding LAN server zihadlo <span class="o">(</span>Addr: tcp/127.0.0.1:8300<span class="o">)</span> <span class="o">(</span>DC: dc1<span class="o">)</span>
-</span><span class='line'>    2017/07/15 20:37:57 <span class="o">[</span>INFO<span class="o">]</span> serf: EventMemberJoin: zihadlo.dc1 127.0.0.1
-</span><span class='line'>    2017/07/15 20:37:57 <span class="o">[</span>INFO<span class="o">]</span> consul: Handled member-join event <span class="k">for</span> server <span class="s2">&quot;zihadlo.dc1&quot;</span> in area <span class="s2">&quot;wan&quot;</span>
-</span><span class='line'>    2017/07/15 20:37:57 <span class="o">[</span>INFO<span class="o">]</span> agent: Started DNS server 127.0.0.1:8600 <span class="o">(</span>udp<span class="o">)</span>
-</span><span class='line'>    2017/07/15 20:37:57 <span class="o">[</span>INFO<span class="o">]</span> agent: Started DNS server 127.0.0.1:8600 <span class="o">(</span>tcp<span class="o">)</span>
-</span><span class='line'>    2017/07/15 20:37:57 <span class="o">[</span>INFO<span class="o">]</span> agent: Started HTTP server on 127.0.0.1:8500
-</span><span class='line'>    2017/07/15 20:38:02 <span class="o">[</span>WARN<span class="o">]</span> raft: Heartbeat timeout from <span class="s2">&quot;&quot;</span> reached, starting election
-</span><span class='line'>    2017/07/15 20:38:02 <span class="o">[</span>INFO<span class="o">]</span> raft: Node at 127.0.0.1:8300 <span class="o">[</span>Candidate<span class="o">]</span> entering Candidate state in term 2
-</span><span class='line'>    2017/07/15 20:38:02 <span class="o">[</span>INFO<span class="o">]</span> raft: Election won. Tally: 1
-</span><span class='line'>    2017/07/15 20:38:02 <span class="o">[</span>INFO<span class="o">]</span> raft: Node at 127.0.0.1:8300 <span class="o">[</span>Leader<span class="o">]</span> entering Leader state
-</span><span class='line'>    2017/07/15 20:38:02 <span class="o">[</span>INFO<span class="o">]</span> consul: cluster leadership acquired
-</span><span class='line'>    2017/07/15 20:38:02 <span class="o">[</span>INFO<span class="o">]</span> consul: New leader elected: zihadlo
-</span><span class='line'>    2017/07/15 20:38:02 <span class="o">[</span>INFO<span class="o">]</span> consul: member <span class="s1">&#39;zihadlo&#39;</span> joined, marking health alive
-</span><span class='line'>    2017/07/15 20:38:02 <span class="o">[</span>INFO<span class="o">]</span> agent: Synced service <span class="s1">&#39;consul&#39;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>In the log output, Consul informs us that the Consul API is available at 127.0.0.1:8500. That&rsquo;s where the Consul client will connect to by default. In the following, you want to make sure that you&rsquo;re running the Consul commands on the same box as you started your Consul cluster.</p>
-
-<p>The single <code>consul</code> binary provides the server as well as the client functionality. Let&rsquo;s list our current cluster members to verify that the client can connect to the cluster:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul members
-</span><span class='line'>Node     Address         Status  Type    Build  Protocol  DC
-</span><span class='line'>zihadlo  127.0.0.1:8301  alive   server  0.8.5  <span class="m">2</span>         dc1
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Basic CRUD with Consul</h2>
-
-<p>In this section, we&rsquo;re going to exercise the basic Create, Read, Update and Delete functionality of the Consul key-store. First, let&rsquo;s store the value <code>12345</code> under the key <code>foo</code>:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv put foo 12345
-</span><span class='line'>Success! Data written to: foo
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Great, the value is saved in the store. To retrieve the value under the key <code>foo</code> from Consul we can type:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv get foo
-</span><span class='line'>12345
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>By the way, Consul doesn&rsquo;t impose any restrictions on what kind of data you may store. Only the size of the data is limited to 512KB of data per key. It&rsquo;s up to your application, what data format you choose to use. For example, you can decide to store numbers, strings, JSON-formatted data or arbitrary binary data. For instance, when designing a centralized configuration management solution for your application, you have the flexibility of storing individual configuration options as key-value pairs or decide to save entire configuration files as values in Consul.</p>
-
-<p>To replace the value, simply put a new value in Consul under the existing key:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv put foo bar
-</span><span class='line'>Success! Data written to: foo
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>The value has been successfully updated as we can see:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv get foo
-</span><span class='line'>bar
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>To remove the value from the key-value store you can use the <code>delete</code> command:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv delete foo
-</span><span class='line'>Success! Deleted key: foo
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>To verify that the value is really gone, try to retrieve it:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv get foo
-</span><span class='line'>Error! No key exists at: foo
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Hierarchical keys and prefix matching</h2>
-
-<p>Keys in Consul can be organized in a hierarchy where different levels of the hierarchy are separated by the slash character (<code>/</code>). For example, you can create a database that holds the population numbers in different continents and countries (in millions of inhabitants) like this:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv put europe 743.1
-</span><span class='line'><span class="nv">$ </span>./consul kv put europe/germany 82.67
-</span><span class='line'><span class="nv">$ </span>./consul kv put europe/france 66.9
-</span><span class='line'><span class="nv">$ </span>./consul kv put asia 4436
-</span><span class='line'><span class="nv">$ </span>./consul kv put asia/india 1324
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Now that you organized your keys hierarchically, you can use the Consul&rsquo;s prefix matching to discover the keys on the single level of hierarchy. For example, to retrive the keys with the prefix <code>e</code>:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv get -recurse -keys e
-</span><span class='line'>europe
-</span><span class='line'>europe/
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Prefix matching can be used to retrieve the values, too. For example, to retrieve the population numbers in Europe, you can type:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv get -recurse e
-</span><span class='line'>europe:743.1
-</span><span class='line'>europe/france:66.9
-</span><span class='line'>europe/germany:82.67
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Note that when retrieving the keys recursively, only the keys on the single level of hierarchy were returned whereas when retrieving the values recursively, values on all the nested levels of hierarchy were returned.</p>
-
-<p>To obtain the population numbers for the European countries, you can append a slash to the keys name (<code>europe/</code>):</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv get -recurse europe/
-</span><span class='line'>europe/france:66.9
-</span><span class='line'>europe/germany:82.67
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>And if you are interested only in the European countries that start with letter <code>g</code>, you can use the prefix <code>europe/g</code>:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>./consul kv get -recurse europe/g
-</span><span class='line'>europe/germany:82.67
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Export/import of key-value pairs</h2>
-
-<p>Another useful feaure of the Consul&rsquo;s key-value store is the bulk export and import of key-value pairs. To export the entire key-value store database, you can type:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv <span class="nb">export</span>
-</span><span class='line'><span class="o">[</span>
-</span><span class='line'>        <span class="o">{</span>
-</span><span class='line'>                <span class="s2">&quot;key&quot;</span>: <span class="s2">&quot;asia&quot;</span>,
-</span><span class='line'>                <span class="s2">&quot;flags&quot;</span>: 0,
-</span><span class='line'>                <span class="s2">&quot;value&quot;</span>: <span class="s2">&quot;NDQzNg==&quot;</span>
-</span><span class='line'>        <span class="o">}</span>,
-</span><span class='line'>        <span class="o">{</span>
-</span><span class='line'>                <span class="s2">&quot;key&quot;</span>: <span class="s2">&quot;asia/india&quot;</span>,
-</span><span class='line'>                <span class="s2">&quot;flags&quot;</span>: 0,
-</span><span class='line'>                <span class="s2">&quot;value&quot;</span>: <span class="s2">&quot;MTMyNA==&quot;</span>
-</span><span class='line'>        <span class="o">}</span>,
-</span><span class='line'>        <span class="o">{</span>
-</span><span class='line'>                <span class="s2">&quot;key&quot;</span>: <span class="s2">&quot;europe&quot;</span>,
-</span><span class='line'>                <span class="s2">&quot;flags&quot;</span>: 0,
-</span><span class='line'>                <span class="s2">&quot;value&quot;</span>: <span class="s2">&quot;NzQzLjE=&quot;</span>
-</span><span class='line'>        <span class="o">}</span>,
-</span><span class='line'>        <span class="o">{</span>
-</span><span class='line'>                <span class="s2">&quot;key&quot;</span>: <span class="s2">&quot;europe/france&quot;</span>,
-</span><span class='line'>                <span class="s2">&quot;flags&quot;</span>: 0,
-</span><span class='line'>                <span class="s2">&quot;value&quot;</span>: <span class="s2">&quot;NjYuOQ==&quot;</span>
-</span><span class='line'>        <span class="o">}</span>,
-</span><span class='line'>        <span class="o">{</span>
-</span><span class='line'>                <span class="s2">&quot;key&quot;</span>: <span class="s2">&quot;europe/germany&quot;</span>,
-</span><span class='line'>                <span class="s2">&quot;flags&quot;</span>: 0,
-</span><span class='line'>                <span class="s2">&quot;value&quot;</span>: <span class="s2">&quot;ODIuNjc=&quot;</span>
-</span><span class='line'>        <span class="o">}</span>
-</span><span class='line'><span class="o">]</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Consul exports the key-value pairs into the JSON format which is currently the only supported format. In the sample output, you can see that all the values are <a href="https://en.wikipedia.org/wiki/Base64">base64</a> encoded. The base64 encoding is commonly used in the text-based formats like JSON and XML to allow embedding of binary data.</p>
-
-<p>You can export a subset of the key-value pairs by specifying the prefix. For instance, to export the data pertaining Europe, you can speficy the <code>europe</code> prefix:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv <span class="nb">export </span>europe
-</span><span class='line'><span class="o">[</span>
-</span><span class='line'>        <span class="o">{</span>
-</span><span class='line'>                <span class="s2">&quot;key&quot;</span>: <span class="s2">&quot;europe&quot;</span>,
-</span><span class='line'>                <span class="s2">&quot;flags&quot;</span>: 0,
-</span><span class='line'>                <span class="s2">&quot;value&quot;</span>: <span class="s2">&quot;NzQzLjE=&quot;</span>
-</span><span class='line'>        <span class="o">}</span>,
-</span><span class='line'>        <span class="o">{</span>
-</span><span class='line'>                <span class="s2">&quot;key&quot;</span>: <span class="s2">&quot;europe/france&quot;</span>,
-</span><span class='line'>                <span class="s2">&quot;flags&quot;</span>: 0,
-</span><span class='line'>                <span class="s2">&quot;value&quot;</span>: <span class="s2">&quot;NjYuOQ==&quot;</span>
-</span><span class='line'>        <span class="o">}</span>,
-</span><span class='line'>        <span class="o">{</span>
-</span><span class='line'>                <span class="s2">&quot;key&quot;</span>: <span class="s2">&quot;europe/germany&quot;</span>,
-</span><span class='line'>                <span class="s2">&quot;flags&quot;</span>: 0,
-</span><span class='line'>                <span class="s2">&quot;value&quot;</span>: <span class="s2">&quot;ODIuNjc=&quot;</span>
-</span><span class='line'>        <span class="o">}</span>
-</span><span class='line'><span class="o">]</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>To import the JSON-formatted data back to the Consul key-value store, you can use the command <code>./consul kv import</code>.</p>
-
-<h2>Web UI</h2>
-
-<p>Besides the commmand-line client, you can access Consul through its beautiful Web interface. Point your web browser to <a href="http://localhost:8500">http://localhost:8500</a>.</p>
-
-<p><img class="right" src="http://alesnosek.com/images/posts/consul_ui.png"></p>
-
-<h2>Conclusion</h2>
-
-<p>In this blog post, we reviewed the basics of the key-value store in Consul. There are many other cool features of the key-value store that we didn&rsquo;t cover like atomic key updates using Check-and-Set operations, <a href="https://www.consul.io/api/txn.html">transactions</a>, <a href="https://www.consul.io/docs/commands/lock.html">locks</a> or <a href="https://www.consul.io/docs/commands/watch.html">watches</a>. Also, I recommend to you to take a look at the Consul&rsquo;s great <a href="https://www.consul.io/api/index.html">RESTful API</a> that allows you to interact with Consul programatically.</p>
-
-<p>If you&rsquo;re looking for a key-value store that would enhance your distributed application, Consul is definitely a candidate to consider. Besides that, Consul will be ready when you later on realize that service discovery is what you need to address next.</p>
-
-<p>Are you considering or already using Consul at your company? I would like to hear your experiences, please leave your comments below.</p>
-]]></content>
-  </entry>
-  
 </feed>

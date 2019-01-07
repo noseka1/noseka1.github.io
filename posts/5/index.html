@@ -8,16 +8,16 @@
   <title>Ales Nosek - The Software Practitioner</title>
   <meta name="author" content="Ales Nosek">
 
-  
-  <meta name="description" content="The OpenStack Liberty was released last week. In this article I&rsquo;ll briefly describe how to deploy the OpenStack Liberty on RHEL7 using RDO &hellip;">
-  
+
+  <meta name="description" content="RDO Manager defines multiple roles that nodes can play in OpenStack deployment. For large-sized installations, RDO features automatic assignment of &hellip;">
+
 
   <!-- http://t.co/dKP3o1e -->
   <meta name="HandheldFriendly" content="True">
   <meta name="MobileOptimized" content="320">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  
+
   <link rel="canonical" href="http://alesnosek.com/posts/5/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
@@ -31,7 +31,7 @@
 <link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
 <link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
 
-  
+
   <script type="text/javascript">
     var _gaq = _gaq || [];
     _gaq.push(['_setAccount', 'UA-61965164-1']);
@@ -51,24 +51,24 @@
   <header role="banner"><hgroup>
   <img src="/images/computers.png" align="right">
   <h1><a href="/">Ales Nosek - The Software Practitioner</a></h1>
-  
+
     <h2>Practicing to make software perfect.</h2>
-  
+
 </hgroup>
 
 </header>
   <nav role="navigation"><ul class="subscription" data-subscription="rss">
   <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
-  
+
 </ul>
-  
+
 <form action="https://www.google.com/search" method="get">
   <fieldset role="search">
     <input type="hidden" name="sitesearch" value="alesnosek.com">
     <input class="search" type="text" name="q" results="0" placeholder="Search"/>
   </fieldset>
 </form>
-  
+
 <ul class="main-navigation">
   <li><a href="/">Blog</a></li>
   <li><a href="/blog/archives">Archives</a></li>
@@ -78,162 +78,196 @@
   <div id="main">
     <div id="content">
       <div class="blog-index">
-  
-  
-  
+
+
+
     <article>
-      
+
   <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/10/19/installing-openstack-liberty-on-rhel7/">Installing OpenStack Liberty on RHEL7</a></h1>
-    
-    
+
+      <h1 class="entry-title"><a href="/blog/2015/11/09/assigning-roles-to-nodes-directly-in-rdo/">Assigning Roles to Nodes Directly in RDO</a></h1>
+
+
       <p class="meta">
-        
+
+
+
+
+
+<time class='entry-date' datetime='2015-11-09T20:49:40-08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>9</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>8:49 pm</span></time>
+
+      </p>
+
+  </header>
+
+
+  <div class="entry-content"><p>RDO Manager defines multiple roles that nodes can play in OpenStack deployment. For large-sized installations, RDO features automatic assignment of roles to nodes. This assignment is based on the facts that RDO obtained about each node during the introspection. However, for smaller deployments, you might prefer to assign the roles to the available nodes by hand. It was not straight forward for me to find out about this manual option even when it is described in the <a href="http://docs.openstack.org/developer/tripleo-docs/advanced_deployment/profile_matching.html#optional-manually-add-the-profiles-to-the-nodes" title="TripleO documentation">TripleO documentation</a>. Let&rsquo;s review the required configuration steps in this blogpost.</p>
+
+</div>
+
+
+    <footer>
+      <a rel="full-article" href="/blog/2015/11/09/assigning-roles-to-nodes-directly-in-rdo/">Read on &rarr;</a>
+    </footer>
+
+
+
+    </article>
+
+
+    <article>
+
+  <header>
+
+      <h1 class="entry-title"><a href="/blog/2015/10/19/installing-openstack-liberty-on-rhel7/">Installing OpenStack Liberty on RHEL7</a></h1>
+
+
+      <p class="meta">
+
 
 
 
 
 <time class='entry-date' datetime='2015-10-19T22:30:48-07:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>10:30 pm</span></time>
-        
+
       </p>
-    
+
   </header>
 
 
   <div class="entry-content"><p>The OpenStack Liberty was released last week. In this article I&rsquo;ll briefly describe how to deploy the OpenStack Liberty on RHEL7 using RDO Manager.</p>
 
 </div>
-  
-  
+
+
     <footer>
       <a rel="full-article" href="/blog/2015/10/19/installing-openstack-liberty-on-rhel7/">Read on &rarr;</a>
     </footer>
-  
+
 
 
     </article>
-  
-  
+
+
     <article>
-      
+
   <header>
-    
+
       <h1 class="entry-title"><a href="/blog/2015/09/28/network-configuration-with-os-net-config/">Network Configuration with os-net-config</a></h1>
-    
-    
+
+
       <p class="meta">
-        
+
 
 
 
 
 <time class='entry-date' datetime='2015-09-28T20:30:11-07:00'><span class='date'><span class='date-month'>Sep</span> <span class='date-day'>28</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>8:30 pm</span></time>
-        
+
       </p>
-    
+
   </header>
 
 
   <div class="entry-content"><p><a href="https://github.com/openstack/os-net-config" title="os-net-config">Os-net-config</a> is a simple tool to configure networking of Linux hosts. Combined with Cloud-init, it&rsquo;s suitable for network configuration of virtual machines when booting in the cloud. Let&rsquo;s take a closer look at os-net-config.</p>
 
 </div>
-  
-  
+
+
     <footer>
       <a rel="full-article" href="/blog/2015/09/28/network-configuration-with-os-net-config/">Read on &rarr;</a>
     </footer>
-  
+
 
 
     </article>
-  
-  
+
+
     <article>
-      
+
   <header>
-    
+
       <h1 class="entry-title"><a href="/blog/2015/09/07/bridging-vlan-trunk-to-the-guest/">Bridging VLAN Trunk to the Guest</a></h1>
-    
-    
+
+
       <p class="meta">
-        
+
 
 
 
 
 <time class='entry-date' datetime='2015-09-07T07:12:22-07:00'><span class='date'><span class='date-month'>Sep</span> <span class='date-day'>7</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>7:12 am</span></time>
-        
+
       </p>
-    
+
   </header>
 
 
   <div class="entry-content"><p>In this article, we&rsquo;re going to make an entire VLAN trunk on the host accessible to the guest machine. The guest machine can then create VLAN subinterfaces in order to access a particular VLAN.</p>
 
 </div>
-  
-  
+
+
     <footer>
       <a rel="full-article" href="/blog/2015/09/07/bridging-vlan-trunk-to-the-guest/">Read on &rarr;</a>
     </footer>
-  
+
 
 
     </article>
-  
-  
+
+
     <article>
-      
+
   <header>
-    
+
       <h1 class="entry-title"><a href="/blog/2015/08/16/multiple-rhel-mirrors-on-a-single-machine/">Multiple RHEL Mirrors on a Single Machine</a></h1>
-    
-    
+
+
       <p class="meta">
-        
+
 
 
 
 
 <time class='entry-date' datetime='2015-08-16T22:23:11-07:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>16</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>10:23 pm</span></time>
-        
+
       </p>
-    
+
   </header>
 
 
   <div class="entry-content"><p><em>Reposync</em> can mirror the yum repository to which your machine is subscribed to. However, you cannot subscribe your machine to the RHEL6 and RHEL7 at the same time. Let&rsquo;s take a look at how Docker can help us here.</p>
 
 </div>
-  
-  
+
+
     <footer>
       <a rel="full-article" href="/blog/2015/08/16/multiple-rhel-mirrors-on-a-single-machine/">Read on &rarr;</a>
     </footer>
-  
+
 
 
     </article>
-  
-  
+
+
     <article>
-      
+
   <header>
-    
+
       <h1 class="entry-title"><a href="/blog/2015/08/03/improving-ansibles-ini-file-module/">Improving Ansible&#8217;s ini_file Module</a></h1>
-    
-    
+
+
       <p class="meta">
-        
+
 
 
 
 
 <time class='entry-date' datetime='2015-08-03T20:01:30-07:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>3</span><span class='date-suffix'>rd</span>, <span class='date-year'>2015</span></span> <span class='time'>8:01 pm</span></time>
-        
+
       </p>
-    
+
   </header>
 
 
@@ -242,248 +276,219 @@
 <p>For editing Windows INI files, Ansible comes with an <code>ini_file</code> module built in. Unfortunately, this module uses Python&rsquo;s <code>ConfigParser</code> module which reformats the entire INI file whenever you want to change a single line. It removes all the comment lines, too. For me this was not acceptable. After looking for a possible solution I decided to improve the <code>ini_file</code> module and created <code>ini_file2</code>. I realized how easy it is to create an Ansible module.</p>
 
 </div>
-  
-  
+
+
     <footer>
       <a rel="full-article" href="/blog/2015/08/03/improving-ansibles-ini-file-module/">Read on &rarr;</a>
     </footer>
-  
+
 
 
     </article>
-  
-  
+
+
     <article>
-      
+
   <header>
-    
+
       <h1 class="entry-title"><a href="/blog/2015/07/19/browsing-docker-source-using-eclipse/">Browsing Docker Source using Eclipse</a></h1>
-    
-    
+
+
       <p class="meta">
-        
+
 
 
 
 
 <time class='entry-date' datetime='2015-07-19T20:59:12-07:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>8:59 pm</span></time>
-        
+
       </p>
-    
+
   </header>
 
 
   <div class="entry-content"><p>Do you like Docker technology and want to learn more about it? There&rsquo;s no better way to learn than reading the source code. In this article, we&rsquo;ll install the Go programming language, download the latest Docker source code and navigate through it in Eclipse.</p>
 
 </div>
-  
-  
+
+
     <footer>
       <a rel="full-article" href="/blog/2015/07/19/browsing-docker-source-using-eclipse/">Read on &rarr;</a>
     </footer>
-  
+
 
 
     </article>
-  
-  
+
+
     <article>
-      
+
   <header>
-    
+
       <h1 class="entry-title"><a href="/blog/2015/07/04/running-wine-within-docker/">Running Wine within Docker</a></h1>
-    
-    
+
+
       <p class="meta">
-        
+
 
 
 
 
 <time class='entry-date' datetime='2015-07-04T22:46:55-07:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>4</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>10:46 pm</span></time>
-        
+
       </p>
-    
+
   </header>
 
 
   <div class="entry-content"><p>After upgrading to Debian Jessie, my Windows application running under Wine stopped working. In this article we&rsquo;ll use Docker to restore the Wine environment from Debian Wheezy. We&rsquo;ll run the Windows application inside this Docker container.</p>
 
 </div>
-  
-  
+
+
     <footer>
       <a rel="full-article" href="/blog/2015/07/04/running-wine-within-docker/">Read on &rarr;</a>
     </footer>
-  
+
 
 
     </article>
-  
-  
+
+
     <article>
-      
+
   <header>
-    
+
       <h1 class="entry-title"><a href="/blog/2015/06/28/diagrams-and-images-in-doxygen/">Diagrams and Images in Doxygen</a></h1>
-    
-    
+
+
       <p class="meta">
-        
+
 
 
 
 
 <time class='entry-date' datetime='2015-06-28T21:54:54-07:00'><span class='date'><span class='date-month'>Jun</span> <span class='date-day'>28</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>9:54 pm</span></time>
-        
+
       </p>
-    
+
   </header>
 
 
   <div class="entry-content"><p>Is your technical documentation hard to read? Diagrams and images liven up technical documentation and help the reader to better understand the subject. In the last article of the Doxygen miniseries we&rsquo;ll go over a couple of options how to include diagrams and images in Doxygen documentation.</p>
 
 </div>
-  
-  
+
+
     <footer>
       <a rel="full-article" href="/blog/2015/06/28/diagrams-and-images-in-doxygen/">Read on &rarr;</a>
     </footer>
-  
+
 
 
     </article>
-  
-  
+
+
     <article>
-      
+
   <header>
-    
+
       <h1 class="entry-title"><a href="/blog/2015/06/21/the-structure-of-doxygen-documentation/">The Structure of Doxygen Documentation</a></h1>
-    
-    
+
+
       <p class="meta">
-        
+
 
 
 
 
 <time class='entry-date' datetime='2015-06-21T17:48:59-07:00'><span class='date'><span class='date-month'>Jun</span> <span class='date-day'>21</span><span class='date-suffix'>st</span>, <span class='date-year'>2015</span></span> <span class='time'>5:48 pm</span></time>
-        
+
       </p>
-    
+
   </header>
 
 
   <div class="entry-content"><p>Let&rsquo;s review some basic means that Doxygen provides to structure your documentation. If you&rsquo;re a newcomer to Doxygen this blogpost might be useful for you.</p>
 
 </div>
-  
-  
+
+
     <footer>
       <a rel="full-article" href="/blog/2015/06/21/the-structure-of-doxygen-documentation/">Read on &rarr;</a>
     </footer>
-  
+
 
 
     </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/06/14/technical-documentation-with-doxygen/">Technical Documentation with Doxygen</a></h1>
-    
-    
-      <p class="meta">
-        
 
-
-
-
-<time class='entry-date' datetime='2015-06-14T22:04:36-07:00'><span class='date'><span class='date-month'>Jun</span> <span class='date-day'>14</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>10:04 pm</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Do you create project documentation in your company&rsquo;s internal wiki? I did it for quite some time until I realized that a good old Doxygen combined with Git can do a much better job.</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2015/06/14/technical-documentation-with-doxygen/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
-    
+
       <a class="prev" href="/posts/6">&larr; Older</a>
-    
+
     <a href="/blog/archives">Blog Archives</a>
-    
+
     <a class="next" href="/posts/4">Newer &rarr;</a>
-    
+
   </div>
 </div>
 <aside class="sidebar">
-  
+
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
-    
+
+      <li class="post">
+        <a href="/blog/2018/12/28/tips-for-passing-the-red-hat-certified-specialist-in-gluster-storage-administration-exam/">Tips for Passing the Red Hat Certified Specialist in Gluster Storage Administration Exam</a>
+      </li>
+
       <li class="post">
         <a href="/blog/2018/09/24/speaking-at-the-red-hat-training-partner-and-instructor-conference/">Speaking at the Red Hat Training Partner &amp; Instructor Conference</a>
       </li>
-    
+
       <li class="post">
         <a href="/blog/2018/08/30/how-i-achieved-the-aws-associate-certifications/">How I Achieved the AWS Associate Certifications</a>
       </li>
-    
+
       <li class="post">
         <a href="/blog/2018/06/17/four-ansible-practices-i-would-recommend/">Four Ansible Practices I Would Recommend</a>
       </li>
-    
+
       <li class="post">
         <a href="/blog/2018/05/14/red-hat-summit-2018/">Red Hat Summit 2018</a>
       </li>
-    
-      <li class="post">
-        <a href="/blog/2018/05/03/designing-a-common-build-system/">Designing a Common Build System</a>
-      </li>
-    
+
   </ul>
+</section>
+<section>
+  <h1>About Me</h1>
+  <script type="text/javascript" src="https://platform.linkedin.com/badges/js/profile.js" async defer></script>
+  <div class="LI-profile-badge"  data-version="v1" data-size="medium" data-locale="en_US" data-type="vertical" data-theme="light" data-vanity="alesnosek"><a class="LI-simple-link" href='https://www.linkedin.com/in/alesnosek?trk=profile-badge'>Ales Nosek</a></div>
 </section>
 
 
 
 
 
-  
+
 </aside>
 
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2018 - Ales Nosek -
+  Copyright &copy; 2019 - Ales Nosek -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 
 </footer>
-  
+
 
 <script type="text/javascript">
       var disqus_shortname = 'alesnosekcom';
-      
-        
+
+
         var disqus_script = 'count.js';
-      
+
     (function () {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
       dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
