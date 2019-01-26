@@ -30,4 +30,4 @@ And how did I do on the exam? Well, I would not say that the exam was difficult,
 
 Are you preparing for the Red Hat Gluster Storage exam? I would love to hear from you! Please, leave your comments or questions in the comment section below.
 
-{% img right /images/posts/rhcs_gluster_storage_administration_badge.png %}
+{% img /images/posts/rhcs_gluster_storage_administration_badge.png %}
