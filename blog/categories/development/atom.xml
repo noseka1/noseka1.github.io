@@ -4,15 +4,117 @@
   <title><![CDATA[Category: development | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/development/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2019-01-07T12:37:30-08:00</updated>
+  <updated>2019-01-25T16:38:49-08:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
-    
+
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
-  
+
+  <entry>
+    <title type="html"><![CDATA[Comparing OpenAPI with gRPC]]></title>
+    <link href="http://alesnosek.com/blog/2019/01/25/comparing-openapi-with-grpc/"/>
+    <updated>2019-01-25T15:22:46-08:00</updated>
+    <id>http://alesnosek.com/blog/2019/01/25/comparing-openapi-with-grpc</id>
+    <content type="html"><![CDATA[<p>Are you still coding your API client libraries by hand? Is your manually maintained API documentation drifting away from what was actually implemented? You may be interested in reviewing the two popular technologies that solve this problem. In this article, we are going to look at OpenAPI and gRPC side-by-side.</p>
+
+<!-- more -->
+
+
+<p>Both OpenAPI and gRPC are communication technologies very much needed in the today&rsquo;s world of microservices applications. They allow you to describe your APIs using  a formal language. This description then serves as a source of truth from which you can generate the client and server code and API documentation. As there are two viable alternatives, the question is which one is going to work better for you? As I was trying to answer the same question I did some research on the Internet and came up with a comparison table. I didn&rsquo;t include every single detail, however, this table could perhaps be a good starting point for you:</p>
+
+<table>
+<thead>
+<tr>
+<th> Criteria </th>
+<th> OpenAPI </th>
+<th> gRPC </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td> Origins </td>
+<td> <a href="https://www.openapis.org/">OpenAPI</a> evolved from the <a href="https://swagger.io/">Swagger</a> project. Swagger started out as a specification for documenting RESTful APIs. Later on, tools to generate client and server code and generating of test-cases were added. While the original Swagger Specification was donated to the <a href="https://linuxfoundation.org">Linux Foundation</a> and renamed the OpenAPI,  Swagger remains one of the most widely used open source tool sets for developing OpenAPIs. </td>
+<td> <a href="https://grpc.io/">gRPC</a> was originally developed at Google. Later on, it was donated to <a href="https://www.cncf.io/">Cloud Native Computing Foundation</a>. </td>
+</tr>
+<tr>
+<td> Communication Protocol </td>
+<td> OpenAPI uses HTTP/1.1 protocol for transport. For the data representation, JSON is generally assumed. </td>
+<td> gRPC uses HTTP/2 protocol for transport and <a href="https://developers.google.com/protocol-buffers/">Protocol Buffers</a> as a serialization format. </td>
+</tr>
+<tr>
+<td> API Description Format </td>
+<td> Developers describe their APIs using JSON or YAML documents that follow the <a href="https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md">OpenAPI Specification</a> schema. You can find a large archive of sample OpenAPI descriptions at <a href="https://apis.guru/openapi-directory/">apis.guru/openapi-directory</a>. </td>
+<td> APIs are described using <code>.proto</code> files written in a <a href="https://developers.google.com/protocol-buffers/docs/proto3">Protocol Buffer Language</a>. </td>
+</tr>
+<tr>
+<td> Description Style </td>
+<td> REST APIs are described using HTTP verbs and URIs. Each URI represents a resource in your system, and the HTTP verbs represent actions you take on your resources. <br/><br/> REST APIs use <a href="https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html">HTTP status codes</a> to signalize the results of the operation invocations. As the HTTP status codes were primarily meant to convey the results of the transport operations, the mapping of status codes to the results of your API functions may be a bit loose. </td>
+<td> With gRPC, you can describe your API in terms of methods or procedures. However, if a lot of methods are added over time, the end result can be a complex and confusing API due to the fact that developers must understand what each method does individually. Instead, Google suggests to use a <a href="https://cloud.google.com/apis/design/resources">resource-oriented design</a> which applies the REST design principles to gRPC. This results in more comprehensible APIs. Also, if you intend to transcode HTTP/JSON API into gRPC, you will greatly benefit from a gRPC API designed using the resource-oriented approach. <br/><br/> gRPC offers a set of <a href="https://godoc.org/google.golang.org/grpc/codes">error codes</a> that are well suited to describe the outcome of API operations. </td>
+</tr>
+<tr>
+<td> Client and Server Code Generation </td>
+<td>  There are several tools for generating code based on the OpenAPI description. The most widely used code generation project is <a href="https://swagger.io/tools/swagger-codegen/">Swagger Codegen</a>. Other projects include <a href="https://github.com/Azure/autorest">AutoRest</a> and <a href="https://github.com/capitalone/oas-nodegen">oas-nodegen</a>. </td>
+<td> gRPC comes with a modular code generator called <em>protoc</em>. Each supported language is implemented as a separate plugin. The code generator was part of the gRPC project from its inception. </td>
+</tr>
+<tr>
+<td> Interactive Documentation </td>
+<td> <a href="https://swagger.io/tools/swagger-ui/">Swagger UI</a> is a great tool to visualize your API and execute test requests against your API. </td>
+<td> <a href="https://github.com/sourcegraph/prototools">prototools</a> and <a href="https://github.com/pseudomuto/protoc-gen-doc">protoc-gen-doc</a> can generate documentation based on your <code>.proto</code> files. </td>
+</tr>
+<tr>
+<td> Tooling </td>
+<td> <a href="https://swagger.io/">Swagger Tools</a>, <a href="https://curl.haxx.se/">curl</a>, <a href="https://www.getpostman.com/">Postman</a>, web browsers, <a href="https://www.tcpdump.org/">tcpdump</a>, <a href="https://www.wireshark.org/">Wireshark</a> </td>
+<td> <a href="https://github.com/grpc-ecosystem/awesome-grpc">Awesome gRPC</a>, <a href="https://github.com/fullstorydev/grpcurl">gRPCurl</a>. At the time of this writing, Wireshark supports gRPC only partially. </td>
+</tr>
+<tr>
+<td> Performance </td>
+<td> HTTP/1.1 protocol is a request/response protocol. When sending multiple requests over a single TCP connection, the next request can only be sent after the response to the previous request was received. This would normally result in a poor performance especially on the connections with higher latency. To increase the performance, HTTP client opens multiple TCP connections to a single server and sends multiple HTTP requests in parallel. New connections are opened as they are needed. As establishing a new TCP connection is associated with a cost, clients implement <em>connection pooling</em> to reuse the existing TCP connections. Remember to tune the clients connection pool to achieve good performance. <br/><br/> Some HTTP clients/servers may support HTTP/1.1 <em>pipelining</em>. Each HTTP request over the TCP connection may be made immediately without waiting for the previous request&rsquo;s response to return. As request responses must be returned in the order requested, this is prone to head of line blocking. <br/><br/> HTTP/1.1 is a text-based protocol and JSON is a text-based serialization format which hurts the performance. </td>
+<td> By default HTTP/2 client opens a single TCP connection to the server and multiplexes multiple requests on this connection. Requests and responses are split into chunks and can be returned in an intermingled fashion. This prevents the head of line blocking that HTTP/1.1 pipelining may suffer from. In addition to that, the client can open multiple HTTP/2 connections to a single server and implement connection pooling. However, it is common to use a single TCP connection only. <br/><br/> HTTP/2 is a binary protocol. Also, according to <a href="https://medium.com/apis-and-digital-transformation/openapi-and-grpc-side-by-side-b6afb08f75ed">this</a> article by Tim Burks of Google, the Protocol Buffers binary format can be orders of magnitude faster to read than corresponding JSON serializations. <br/><br/> Overall, gRPC offers a better performance than OpenAPI. </td>
+</tr>
+<tr>
+<td> Overall Summary </td>
+<td> OpenAPI offers a great interoperability due to leveraging widely used HTTP/1.1 protocol and the JSON format. There is a great amount of tools available that will work with OpenAPI-based interfaces. </td>
+<td> If you are looking for maximum performance, gRPC is a great choice for you. Also, HTTP/2 protocol is gradually gaining market share. Why not start using it today? </td>
+</tr>
+</tbody>
+</table>
+
+
+<h2>Where to go from here?</h2>
+
+<p>The comparison table in the previous section highlights only the basic characteristics of OpenAPI and gRPC. I constructed the table based on many great articles that I found on the web. If you are interested in further details on how OpenAPI and gRPC compares I recommend to you to visit the following references:</p>
+
+<ul>
+<li><a href="https://medium.com/apis-and-digital-transformation/openapi-and-grpc-side-by-side-b6afb08f75ed">OpenAPI and gRPC Side-by-Side</a></li>
+<li><a href="https://sookocheff.com/post/api/swagger-thrift-or-grpc/">Comparing Swagger with Thrift or gRPC</a></li>
+<li><a href="https://code.tutsplus.com/tutorials/rest-vs-grpc-battle-of-the-apis--cms-30711">REST vs. gRPC: Battle of the APIs</a></li>
+<li><a href="http://www.andrewconnell.com/blog/grpc-and-protocol-buffers-an-alternative-to-rest-apis-and-json">gRPC and Protocol Buffers: an Alternative to REST APIs and JSON</a></li>
+<li><a href="https://www.sajari.com/blog/grpc-and-displacement-of-rest-apis">gRPC and the displacement of REST-based APIs</a></li>
+<li><a href="https://improbable.io/games/blog/grpc-web-moving-past-restjson-towards-type-safe-web-apis">gRPC-Web: Moving past REST+JSON towards type-safe Web APIs</a></li>
+<li><a href="https://husobee.github.io/golang/rest/grpc/2016/05/28/golang-rest-v-grpc.html">REST v. gRPC</a></li>
+<li><a href="https://blogs.dropbox.com/tech/2019/01/courier-dropbox-migration-to-grpc/">Courier: Dropbox migration to gRPC</a></li>
+</ul>
+
+
+<h2>Combining OpenAPI and gRPC</h2>
+
+<p>Do you have to use either OpenAPI or gRPC? If you like the awesome performance offered by gRPC but still need to provide REST interfaces to the external third-party clients there is a solution for you. You can leverage one of the proxies (<a href="https://www.envoyproxy.io/docs/envoy/latest/configuration/http_filters/grpc_json_transcoder_filter">Envoy</a>,  <a href="https://github.com/grpc-ecosystem/grpc-gateway">grpc-gateway</a>) that can transcode the REST interface into gRPC. If you design your gRPC interfaces in a <a href="https://cloud.google.com/apis/design/resources">resource-oriented</a> fashion the transcoding process is straight forward. The resulting system architecture may look like this:</p>
+
+<p><img src="/images/posts/comparing_openapi_with_grpc.svg"></p>
+
+<p>The third-party REST client talks to the proxy using HTTP/JSON. Client requests are transcoded on-the-fly into gRPC requests. After the requests are processed, the resulting responses are transcoded from gRPC back to HTTP/JSON and delivered to the client.</p>
+
+<h2>Conclusion</h2>
+
+<p>In this blog post, we compared the basic characteristics of OpenAPI and gRPC. OpenAPI is a great choice due to its interoperability. On the other hand, gRPC offers a better performance. However, you don&rsquo;t have to choose one or the other. You can happily combine both technologies in a single system.</p>
+
+<p>I hope you enjoyed this article. If you are looking into OpenAPI or gRPC I would be happy to hear about your thoughts. Please, feel free to leave your comments in the comment section below.</p>
+]]></content>
+  </entry>
+
   <entry>
     <title type="html"><![CDATA[Designing a Common Build System]]></title>
     <link href="http://alesnosek.com/blog/2018/05/03/designing-a-common-build-system/"/>
@@ -196,7 +298,7 @@
 <p>I hope you enjoyed the tour through the design of the common build system. I would be interested to know how you promote code reuse of the build scripts in your company. It would be great to hear about your approach. Please, feel free to leave your comments in the comment section below.</p>
 ]]></content>
   </entry>
-  
+
   <entry>
     <title type="html"><![CDATA[AWS Lambda Adapter for Vert.x Web Applications]]></title>
     <link href="http://alesnosek.com/blog/2017/10/18/aws-lambda-adapter-for-vert-dot-x-web-applications/"/>
@@ -222,7 +324,7 @@
 <p>As always, I&rsquo;d love to hear your feedback. What do you think about this project? Feel free to leave your comments below.</p>
 ]]></content>
   </entry>
-  
+
   <entry>
     <title type="html"><![CDATA[Evaluating Application Metrics Solutions - Prometheus?]]></title>
     <link href="http://alesnosek.com/blog/2017/09/10/evaluating-application-metrics-solutions-prometheus/"/>
@@ -286,7 +388,7 @@
 <p>If you have an application that you deliver on-premise as well as in the cloud, how did you solve the application metrics collection and monitoring? Is Prometheus a good way to go? Please, leave your comments below.</p>
 ]]></content>
   </entry>
-  
+
   <entry>
     <title type="html"><![CDATA[Centralized Configuration Management, Our Approach]]></title>
     <link href="http://alesnosek.com/blog/2017/08/20/centralized-configuration-management/"/>
@@ -339,94 +441,5 @@
 <p>Do you use confd or consul-template to configure your application? Or did you build your own centralized configuration management? I would like to hear your comments. Feel free to use the comment section below.</p>
 ]]></content>
   </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Git - Getting the Timing Right]]></title>
-    <link href="http://alesnosek.com/blog/2017/01/02/git-getting-the-timing-right/"/>
-    <updated>2017-01-02T16:50:48-08:00</updated>
-    <id>http://alesnosek.com/blog/2017/01/02/git-getting-the-timing-right</id>
-    <content type="html"><![CDATA[<p>Do you work on a development team that is distributed across several time zones? Got confused by the dates that Git shows in the commit logs? In this blog post we&rsquo;re going to review some basics about how Git deals with time.</p>
 
-<!-- more -->
-
-
-<h2>Pay attention to the commit timestamps</h2>
-
-<p>Let&rsquo;s assume that two developers work in the same Git repository. The first developer Prasad is located in Bangalore, India. His colleague Joe is located in San Diego, US. The Git log they created looks as follows:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>git log
-</span><span class='line'>commit 0f7a87b545d23870aa3dfe2665e242fd1a807445
-</span><span class='line'>Author: Joe Smith &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#109;&amp;#97;&amp;#x69;&amp;#108;&amp;#x74;&amp;#x6f;&amp;#58;&amp;#x6a;&amp;#x73;&amp;#x6d;&amp;#105;&amp;#x74;&amp;#x68;&amp;#64;&amp;#x73;&amp;#97;&amp;#110;&amp;#100;&amp;#105;&amp;#x65;&amp;#x67;&amp;#x6f;&amp;#x2e;&amp;#x75;&amp;#115;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#106;&amp;#x73;&amp;#x6d;&amp;#105;&amp;#x74;&amp;#104;&amp;#64;&amp;#x73;&amp;#x61;&amp;#110;&amp;#100;&amp;#105;&amp;#101;&amp;#x67;&amp;#111;&amp;#46;&amp;#117;&amp;#x73;&lt;/a&gt;</span>
-</span><span class='line'>Date:   Tue Dec <span class="m">6</span> 11:41:44 <span class="m">2016</span> -0800&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;pre&gt;&lt;code&gt;Commit 3
-</span><span class='line'>&lt;/code&gt;&lt;/pre&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;commit 62d95dfbc185ad60cd3ce2a4a3d02a12c1fb7dea
-</span><span class='line'>Author: Prasad Gupta &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#x6d;&amp;#97;&amp;#x69;&amp;#x6c;&amp;#116;&amp;#x6f;&amp;#x3a;&amp;#112;&amp;#x67;&amp;#x75;&amp;#x70;&amp;#116;&amp;#x61;&amp;#x40;&amp;#x62;&amp;#97;&amp;#x6e;&amp;#x67;&amp;#97;&amp;#108;&amp;#111;&amp;#x72;&amp;#101;&amp;#x2e;&amp;#105;&amp;#x6e;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#112;&amp;#103;&amp;#x75;&amp;#112;&amp;#x74;&amp;#97;&amp;#64;&amp;#98;&amp;#97;&amp;#x6e;&amp;#103;&amp;#x61;&amp;#x6c;&amp;#x6f;&amp;#114;&amp;#101;&amp;#x2e;&amp;#x69;&amp;#x6e;&lt;/a&gt;</span>
-</span><span class='line'>Date:   Tue Dec <span class="m">6</span> 21:45:51 <span class="m">2016</span> +0530&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;pre&gt;&lt;code&gt;Commit 2
-</span><span class='line'>&lt;/code&gt;&lt;/pre&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;commit 106db71e39e3b25fb3fa3df4c55cc8f063e78ff5
-</span><span class='line'>Author: Prasad Gupta &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#x6d;&amp;#97;&amp;#x69;&amp;#108;&amp;#116;&amp;#x6f;&amp;#58;&amp;#112;&amp;#x67;&amp;#x75;&amp;#112;&amp;#116;&amp;#97;&amp;#64;&amp;#x62;&amp;#97;&amp;#x6e;&amp;#103;&amp;#x61;&amp;#108;&amp;#111;&amp;#114;&amp;#101;&amp;#x2e;&amp;#x69;&amp;#x6e;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#112;&amp;#x67;&amp;#117;&amp;#x70;&amp;#116;&amp;#x61;&amp;#x40;&amp;#x62;&amp;#x61;&amp;#110;&amp;#103;&amp;#97;&amp;#108;&amp;#111;&amp;#x72;&amp;#101;&amp;#46;&amp;#x69;&amp;#110;&lt;/a&gt;</span>
-</span><span class='line'>Date:   Tue Dec <span class="m">6</span> 21:45:00 <span class="m">2016</span> +0530&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;pre&gt;&lt;code&gt;Commit 1
-</span><span class='line'>&lt;/code&gt;&lt;/pre&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Git orders the commits based on the commit timestamps with the most recent commit shown on top. In the sample logs above you can see that all three commits were made on the same day Tuesday, December 6 2016. What might look a little bit odd is the order of the commits in the logs. <code>Commit 3</code> made at 11:41 should have actually appeared below the commits <code>Commit 1</code> and <code>Commit 2</code> made at 21:45, right? Wrong!</p>
-
-<p>In the commit logs, Git displays the timestamp in the format <em>localtime + timezone offset</em>. When reading the timestamps it&rsquo;s important to take the timezone offset into account. Using the timezone offset you can convert the timestamp of the <code>Commit 2</code> and <code>Commit 3</code> into the UTC time in order to compare them. Because the <code>Commit 2</code> was made at 21:45 +0530 (= 16:15 UTC) and <code>Commit 3</code> was made at 11:41 -0800 (= 19:41 UTC) the <code>Commit 3</code> was created after the commits <code>Commit 1</code> and <code>Commit 2</code> and the chronological order displayed by Git is indeed correct.</p>
-
-<h2>Check the time settings on the developer machines</h2>
-
-<p>The timestamp recorded in the Git commit is based solely on the current time on the machine where the commit was created. Even if you have a corporate Git server where you push all your commits to you have to know that the Git server doesn&rsquo;t modify the timestamps in any way. You have to encourage your developers to have the time on their machines set correctly. This includes the correct local time as well as the time zone. On the Linux machines equipped with <a href="https://www.freedesktop.org/wiki/Software/systemd/">systemd</a> these time settings can be changed using the <code>timedatectl</code> command. Use <code>date</code> command to validate your settings:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>date
-</span><span class='line'>Mon Jan  <span class="m">2</span> 20:33:04 PST 2017
-</span></code></pre></td></tr></table></div></figure>
-The output shows my correct local time and the correct time zone (PST) as I&rsquo;m located on the west coast of the US.</p>
-
-<h2>Author date and commit date</h2>
-
-<p>In the aforementioned example with the <code>git log</code> command I simplified the situation a little bit. There are actually two different timestamps recorded by Git for each commit: the <em>author date</em> and the <em>commit date</em>. When the commit is created both the timestamps are set to the current time of the machine where the commit was made. The author date denotes the time when the commit was originally made and it never changes. The commit date is updated every time the commit is being modified for example when rebasing or cherry-picking.</p>
-
-<p>By default <code>git log</code> orders the logs according to the commit date, however, the author date is actually displayed in the output. This can easily lead to confusion when there are commits present for which the commit date and the author date actually differ. The parameter <code>--author-date-order</code> can be used to order the commits based on the author timestamp:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>git log <span class="p">&amp;</span>ndash<span class="p">;</span>author-date-order
-</span></code></pre></td></tr></table></div></figure></p>
-]]></content>
-  </entry>
-  
 </feed>

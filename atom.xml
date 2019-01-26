@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2019-01-07T12:37:30-08:00</updated>
+  <updated>2019-01-25T16:38:49-08:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,108 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[Comparing OpenAPI with gRPC]]></title>
+    <link href="http://alesnosek.com/blog/2019/01/25/comparing-openapi-with-grpc/"/>
+    <updated>2019-01-25T15:22:46-08:00</updated>
+    <id>http://alesnosek.com/blog/2019/01/25/comparing-openapi-with-grpc</id>
+    <content type="html"><![CDATA[<p>Are you still coding your API client libraries by hand? Is your manually maintained API documentation drifting away from what was actually implemented? You may be interested in reviewing the two popular technologies that solve this problem. In this article, we are going to look at OpenAPI and gRPC side-by-side.</p>
+
+<!-- more -->
+
+
+<p>Both OpenAPI and gRPC are communication technologies very much needed in the today&rsquo;s world of microservices applications. They allow you to describe your APIs using  a formal language. This description then serves as a source of truth from which you can generate the client and server code and API documentation. As there are two viable alternatives, the question is which one is going to work better for you? As I was trying to answer the same question I did some research on the Internet and came up with a comparison table. I didn&rsquo;t include every single detail, however, this table could perhaps be a good starting point for you:</p>
+
+<table>
+<thead>
+<tr>
+<th> Criteria </th>
+<th> OpenAPI </th>
+<th> gRPC </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td> Origins </td>
+<td> <a href="https://www.openapis.org/">OpenAPI</a> evolved from the <a href="https://swagger.io/">Swagger</a> project. Swagger started out as a specification for documenting RESTful APIs. Later on, tools to generate client and server code and generating of test-cases were added. While the original Swagger Specification was donated to the <a href="https://linuxfoundation.org">Linux Foundation</a> and renamed the OpenAPI,  Swagger remains one of the most widely used open source tool sets for developing OpenAPIs. </td>
+<td> <a href="https://grpc.io/">gRPC</a> was originally developed at Google. Later on, it was donated to <a href="https://www.cncf.io/">Cloud Native Computing Foundation</a>. </td>
+</tr>
+<tr>
+<td> Communication Protocol </td>
+<td> OpenAPI uses HTTP/1.1 protocol for transport. For the data representation, JSON is generally assumed. </td>
+<td> gRPC uses HTTP/2 protocol for transport and <a href="https://developers.google.com/protocol-buffers/">Protocol Buffers</a> as a serialization format. </td>
+</tr>
+<tr>
+<td> API Description Format </td>
+<td> Developers describe their APIs using JSON or YAML documents that follow the <a href="https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md">OpenAPI Specification</a> schema. You can find a large archive of sample OpenAPI descriptions at <a href="https://apis.guru/openapi-directory/">apis.guru/openapi-directory</a>. </td>
+<td> APIs are described using <code>.proto</code> files written in a <a href="https://developers.google.com/protocol-buffers/docs/proto3">Protocol Buffer Language</a>. </td>
+</tr>
+<tr>
+<td> Description Style </td>
+<td> REST APIs are described using HTTP verbs and URIs. Each URI represents a resource in your system, and the HTTP verbs represent actions you take on your resources. <br/><br/> REST APIs use <a href="https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html">HTTP status codes</a> to signalize the results of the operation invocations. As the HTTP status codes were primarily meant to convey the results of the transport operations, the mapping of status codes to the results of your API functions may be a bit loose. </td>
+<td> With gRPC, you can describe your API in terms of methods or procedures. However, if a lot of methods are added over time, the end result can be a complex and confusing API due to the fact that developers must understand what each method does individually. Instead, Google suggests to use a <a href="https://cloud.google.com/apis/design/resources">resource-oriented design</a> which applies the REST design principles to gRPC. This results in more comprehensible APIs. Also, if you intend to transcode HTTP/JSON API into gRPC, you will greatly benefit from a gRPC API designed using the resource-oriented approach. <br/><br/> gRPC offers a set of <a href="https://godoc.org/google.golang.org/grpc/codes">error codes</a> that are well suited to describe the outcome of API operations. </td>
+</tr>
+<tr>
+<td> Client and Server Code Generation </td>
+<td>  There are several tools for generating code based on the OpenAPI description. The most widely used code generation project is <a href="https://swagger.io/tools/swagger-codegen/">Swagger Codegen</a>. Other projects include <a href="https://github.com/Azure/autorest">AutoRest</a> and <a href="https://github.com/capitalone/oas-nodegen">oas-nodegen</a>. </td>
+<td> gRPC comes with a modular code generator called <em>protoc</em>. Each supported language is implemented as a separate plugin. The code generator was part of the gRPC project from its inception. </td>
+</tr>
+<tr>
+<td> Interactive Documentation </td>
+<td> <a href="https://swagger.io/tools/swagger-ui/">Swagger UI</a> is a great tool to visualize your API and execute test requests against your API. </td>
+<td> <a href="https://github.com/sourcegraph/prototools">prototools</a> and <a href="https://github.com/pseudomuto/protoc-gen-doc">protoc-gen-doc</a> can generate documentation based on your <code>.proto</code> files. </td>
+</tr>
+<tr>
+<td> Tooling </td>
+<td> <a href="https://swagger.io/">Swagger Tools</a>, <a href="https://curl.haxx.se/">curl</a>, <a href="https://www.getpostman.com/">Postman</a>, web browsers, <a href="https://www.tcpdump.org/">tcpdump</a>, <a href="https://www.wireshark.org/">Wireshark</a> </td>
+<td> <a href="https://github.com/grpc-ecosystem/awesome-grpc">Awesome gRPC</a>, <a href="https://github.com/fullstorydev/grpcurl">gRPCurl</a>. At the time of this writing, Wireshark supports gRPC only partially. </td>
+</tr>
+<tr>
+<td> Performance </td>
+<td> HTTP/1.1 protocol is a request/response protocol. When sending multiple requests over a single TCP connection, the next request can only be sent after the response to the previous request was received. This would normally result in a poor performance especially on the connections with higher latency. To increase the performance, HTTP client opens multiple TCP connections to a single server and sends multiple HTTP requests in parallel. New connections are opened as they are needed. As establishing a new TCP connection is associated with a cost, clients implement <em>connection pooling</em> to reuse the existing TCP connections. Remember to tune the clients connection pool to achieve good performance. <br/><br/> Some HTTP clients/servers may support HTTP/1.1 <em>pipelining</em>. Each HTTP request over the TCP connection may be made immediately without waiting for the previous request&rsquo;s response to return. As request responses must be returned in the order requested, this is prone to head of line blocking. <br/><br/> HTTP/1.1 is a text-based protocol and JSON is a text-based serialization format which hurts the performance. </td>
+<td> By default HTTP/2 client opens a single TCP connection to the server and multiplexes multiple requests on this connection. Requests and responses are split into chunks and can be returned in an intermingled fashion. This prevents the head of line blocking that HTTP/1.1 pipelining may suffer from. In addition to that, the client can open multiple HTTP/2 connections to a single server and implement connection pooling. However, it is common to use a single TCP connection only. <br/><br/> HTTP/2 is a binary protocol. Also, according to <a href="https://medium.com/apis-and-digital-transformation/openapi-and-grpc-side-by-side-b6afb08f75ed">this</a> article by Tim Burks of Google, the Protocol Buffers binary format can be orders of magnitude faster to read than corresponding JSON serializations. <br/><br/> Overall, gRPC offers a better performance than OpenAPI. </td>
+</tr>
+<tr>
+<td> Overall Summary </td>
+<td> OpenAPI offers a great interoperability due to leveraging widely used HTTP/1.1 protocol and the JSON format. There is a great amount of tools available that will work with OpenAPI-based interfaces. </td>
+<td> If you are looking for maximum performance, gRPC is a great choice for you. Also, HTTP/2 protocol is gradually gaining market share. Why not start using it today? </td>
+</tr>
+</tbody>
+</table>
+
+
+<h2>Where to go from here?</h2>
+
+<p>The comparison table in the previous section highlights only the basic characteristics of OpenAPI and gRPC. I constructed the table based on many great articles that I found on the web. If you are interested in further details on how OpenAPI and gRPC compares I recommend to you to visit the following references:</p>
+
+<ul>
+<li><a href="https://medium.com/apis-and-digital-transformation/openapi-and-grpc-side-by-side-b6afb08f75ed">OpenAPI and gRPC Side-by-Side</a></li>
+<li><a href="https://sookocheff.com/post/api/swagger-thrift-or-grpc/">Comparing Swagger with Thrift or gRPC</a></li>
+<li><a href="https://code.tutsplus.com/tutorials/rest-vs-grpc-battle-of-the-apis--cms-30711">REST vs. gRPC: Battle of the APIs</a></li>
+<li><a href="http://www.andrewconnell.com/blog/grpc-and-protocol-buffers-an-alternative-to-rest-apis-and-json">gRPC and Protocol Buffers: an Alternative to REST APIs and JSON</a></li>
+<li><a href="https://www.sajari.com/blog/grpc-and-displacement-of-rest-apis">gRPC and the displacement of REST-based APIs</a></li>
+<li><a href="https://improbable.io/games/blog/grpc-web-moving-past-restjson-towards-type-safe-web-apis">gRPC-Web: Moving past REST+JSON towards type-safe Web APIs</a></li>
+<li><a href="https://husobee.github.io/golang/rest/grpc/2016/05/28/golang-rest-v-grpc.html">REST v. gRPC</a></li>
+<li><a href="https://blogs.dropbox.com/tech/2019/01/courier-dropbox-migration-to-grpc/">Courier: Dropbox migration to gRPC</a></li>
+</ul>
+
+
+<h2>Combining OpenAPI and gRPC</h2>
+
+<p>Do you have to use either OpenAPI or gRPC? If you like the awesome performance offered by gRPC but still need to provide REST interfaces to the external third-party clients there is a solution for you. You can leverage one of the proxies (<a href="https://www.envoyproxy.io/docs/envoy/latest/configuration/http_filters/grpc_json_transcoder_filter">Envoy</a>,  <a href="https://github.com/grpc-ecosystem/grpc-gateway">grpc-gateway</a>) that can transcode the REST interface into gRPC. If you design your gRPC interfaces in a <a href="https://cloud.google.com/apis/design/resources">resource-oriented</a> fashion the transcoding process is straight forward. The resulting system architecture may look like this:</p>
+
+<p><img src="http://alesnosek.com/images/posts/comparing_openapi_with_grpc.svg"></p>
+
+<p>The third-party REST client talks to the proxy using HTTP/JSON. Client requests are transcoded on-the-fly into gRPC requests. After the requests are processed, the resulting responses are transcoded from gRPC back to HTTP/JSON and delivered to the client.</p>
+
+<h2>Conclusion</h2>
+
+<p>In this blog post, we compared the basic characteristics of OpenAPI and gRPC. OpenAPI is a great choice due to its interoperability. On the other hand, gRPC offers a better performance. However, you don&rsquo;t have to choose one or the other. You can happily combine both technologies in a single system.</p>
+
+<p>I hope you enjoyed this article. If you are looking into OpenAPI or gRPC I would be happy to hear about your thoughts. Please, feel free to leave your comments in the comment section below.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[Tips for Passing the Red Hat Certified Specialist in Gluster Storage Administration Exam]]></title>
@@ -46,7 +148,7 @@
 
 <p>Are you preparing for the Red Hat Gluster Storage exam? I would love to hear from you! Please, leave your comments or questions in the comment section below.</p>
 
-<p><img class="right" src="http://alesnosek.com/images/posts/rhcs_gluster_storage_administration_badge.png"></p>
+<p><img src="http://alesnosek.com/images/posts/rhcs_gluster_storage_administration_badge.png"></p>
 ]]></content>
   </entry>
 
@@ -2455,371 +2557,6 @@
 <p>Passing these two exams concluded my <a href="https://www.redhat.com/en/services/certification/rhca">RHCA</a> journey and earned me the Red Hat Certified Architect certificate. Here is the obligatory link to my current list of certifications on the <a href="https://www.redhat.com/rhtapps/certification/verify/?certId=160-216-727">Verify a Red Hat Certified Professional</a> website.</p>
 
 <p>I believe that many folks are on their way to become RHCA. How are you doing on your journey? Would you like to share your experiences with the Red Hat certification program? Please, leave your comments below.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[Check-and-Set Operation and Transactions in Consul]]></title>
-    <link href="http://alesnosek.com/blog/2017/07/25/check-and-set-operation-and-transactions-in-consul/"/>
-    <updated>2017-07-25T23:07:07-07:00</updated>
-    <id>http://alesnosek.com/blog/2017/07/25/check-and-set-operation-and-transactions-in-consul</id>
-    <content type="html"><![CDATA[<p>In the <a href="http://alesnosek.com/blog/2017/07/15/first-look-at-the-key-value-store-in-consul/">previous</a> blog post, we were checking out the basic functionality of the key-value store in Consul. In this article, we will explore two of the more advanced features of Consul&rsquo;s key-value store, namely: Check-and-Set operation and transactions.</p>
-
-<!-- more -->
-
-
-<p><img class="right" src="http://alesnosek.com/images/posts/consul_logo.png" width="200" height="300"></p>
-
-<p>For our experimenting, let&rsquo;s start a one-node Consul cluster. The meaning of the individual command-line parameters was described in the <a href="http://alesnosek.com/blog/2017/07/15/first-look-at-the-key-value-store-in-consul/">previous</a> article:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul agent -ui -server -data-dir mydata -advertise 127.0.0.1 -bootstrap-expect 1
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>In a short moment, the one-node Consul cluster should be up and ready. In the following, we&rsquo;re going to leverage Consul&rsquo;s <a href="https://www.consul.io/api/index.html">HTTP API</a> as not all the desired functionality is exposed via the command-line client. First, let&rsquo;s verify that the Consul cluster is working properly. For that, we&rsquo;ll ask it to provide us with a list of cluster nodes:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>curl http://localhost:8500/v1/catalog/nodes?pretty
-</span><span class='line'><span class="o">[</span>
-</span><span class='line'>    <span class="o">{</span>
-</span><span class='line'>        <span class="s2">&quot;ID&quot;</span>: <span class="s2">&quot;be79786e-749d-758c-2b65-824c1e956788&quot;</span>,
-</span><span class='line'>        <span class="s2">&quot;Node&quot;</span>: <span class="s2">&quot;zihadlo&quot;</span>,
-</span><span class='line'>        <span class="s2">&quot;Address&quot;</span>: <span class="s2">&quot;127.0.0.1&quot;</span>,
-</span><span class='line'>        <span class="s2">&quot;Datacenter&quot;</span>: <span class="s2">&quot;dc1&quot;</span>,
-</span><span class='line'>        <span class="s2">&quot;TaggedAddresses&quot;</span>: <span class="o">{</span>
-</span><span class='line'>            <span class="s2">&quot;lan&quot;</span>: <span class="s2">&quot;127.0.0.1&quot;</span>,
-</span><span class='line'>            <span class="s2">&quot;wan&quot;</span>: <span class="s2">&quot;127.0.0.1&quot;</span>
-</span><span class='line'>        <span class="o">}</span>,
-</span><span class='line'>        <span class="s2">&quot;Meta&quot;</span>: <span class="o">{}</span>,
-</span><span class='line'>        <span class="s2">&quot;CreateIndex&quot;</span>: 5,
-</span><span class='line'>        <span class="s2">&quot;ModifyIndex&quot;</span>: 6
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'><span class="o">]</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>The response from Consul contains information about the single node which is what we expected.</p>
-
-<h2>Check-and-Set operation</h2>
-
-<p>The purpose of the Check-and-Set operation is to avoid lost updates when multiple clients are simultaneously trying to update a value of the same key. Check-and-Set operation allows the update to happen only if the value has not been changed since the client last read it. If the current value does not match what the client previously read, the client will receive a conflicting update error message and will have to retry the read-update cycle.</p>
-
-<p>The Check-and-Set operation can be used to implement a shared counter, semaphore or a distributed lock. Let&rsquo;s demonstrate how to create a basic distributed lock using the Check-and-Set operation. We&rsquo;ll start with creating a key that will represent our lock:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>curl --request PUT http://localhost:8500/v1/kv/mylock --data <span class="s2">&quot;&quot;</span>
-</span><span class='line'><span class="nb">true</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>We created the <code>mylock</code> key holding an empty value. The empty value signalizes that the lock is not taken. Before trying to acquire the lock, each client has to check whether the lock is unlocked:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>curl http://localhost:8500/v1/kv/mylock?pretty
-</span><span class='line'><span class="o">[</span>
-</span><span class='line'>    <span class="o">{</span>
-</span><span class='line'>        <span class="s2">&quot;LockIndex&quot;</span>: 0,
-</span><span class='line'>        <span class="s2">&quot;Key&quot;</span>: <span class="s2">&quot;mylock&quot;</span>,
-</span><span class='line'>        <span class="s2">&quot;Flags&quot;</span>: 0,
-</span><span class='line'>        <span class="s2">&quot;Value&quot;</span>: null,
-</span><span class='line'>        <span class="s2">&quot;CreateIndex&quot;</span>: 5638,
-</span><span class='line'>        <span class="s2">&quot;ModifyIndex&quot;</span>: 5638
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'><span class="o">]</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>The value of the key in the Consul&rsquo;s response is still empty (null) which indicates that nobody is holding the lock. The second important item in the Consul&rsquo;s response is the <code>ModifyIndex</code>. Each key in the key-value store has its own <code>ModifyIndex</code>. The <code>ModifyIndex</code> is incremented by Consul each time the respective key is modified.</p>
-
-<p>After verifying that the lock is not taken, the client can try to acquire it:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>curl --request PUT http://localhost:8500/v1/kv/mylock?cas<span class="o">=</span><span class="m">5638</span> --data <span class="s2">&quot;client1&quot;</span>
-</span><span class='line'><span class="nb">true</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>The client is trying to update the value of the key <code>mylock</code>. The value of the <code>ModifyIndex</code> is passed along as the query parameter <code>cas=5638</code> (cas meaning Check-and-Set). Because the query parameter <code>cas=5638</code> is specified in the request, Consul will update the value of the <code>mylock</code> key only if the current <code>ModifyIndex</code> of the <code>mylock</code> key matches 5638. In other words, the key has not been updated since the client last read it. In our example, the update was successful and the client is now holding the lock. Note that an arbitrary non-empty value can be stored under the <code>mylock</code> key. We chose to use the identification of the client that has acquired the lock.</p>
-
-<p>Let&rsquo;s pretend that at the same time a second client was competing for the lock. The <code>client2</code> was trying to acquire the lock by sending this request to Consul including the same query parameter <code>cas=5638</code>:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>curl --request PUT http://localhost:8500/v1/kv/mylock?cas<span class="o">=</span><span class="m">5638</span> --data <span class="s2">&quot;client2&quot;</span>
-</span><span class='line'><span class="nb">false</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Consul&rsquo;s response sent to <code>client2</code> shows that Consul refused to update the <code>mylock</code> value as, in the meantime, this value has been modified. In order to check the current status of the lock, <code>client2</code> can follow up with a get request:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>curl http://localhost:8500/v1/kv/mylock?pretty
-</span><span class='line'><span class="o">[</span>
-</span><span class='line'>    <span class="o">{</span>
-</span><span class='line'>        <span class="s2">&quot;LockIndex&quot;</span>: 0,
-</span><span class='line'>        <span class="s2">&quot;Key&quot;</span>: <span class="s2">&quot;mylock&quot;</span>,
-</span><span class='line'>        <span class="s2">&quot;Flags&quot;</span>: 0,
-</span><span class='line'>        <span class="s2">&quot;Value&quot;</span>: <span class="s2">&quot;Y2xpZW50MQ==&quot;</span>,
-</span><span class='line'>        <span class="s2">&quot;CreateIndex&quot;</span>: 5638,
-</span><span class='line'>        <span class="s2">&quot;ModifyIndex&quot;</span>: 5801
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'><span class="o">]</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>In Consul&rsquo;s response we can see that the lock is currently being held by <code>client1</code>. Until <code>client1</code> hasn&rsquo;t released the lock, <code>client2</code> must not try to acquire it. It can only periodically check the status of the lock and wait until it is released. To release the lock, <code>clent1</code> will simply set its value to an empty-value:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>curl --request PUT http://localhost:8500/v1/kv/mylock --data <span class="s2">&quot;&quot;</span>
-</span><span class='line'><span class="nb">true</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>There are two more comments to add. First, the lock we implemented is purely advisory. All the clients working with the lock have to follow the same rules for the lock to function properly. Each client has to check that the lock was not acquired by somebody else before trying to acquire it. A misbehaved client can easily break the lock. Second, if the client holding the lock fails to release it (e.g. client crashes before releasing the lock), the lock will remain locked and no other client will be able to acquire it. More robust locks that are automatically released in the case of client failure can be implemented using the Consul&rsquo;s <a href="https://www.consul.io/docs/internals/sessions.html">sessions</a> along with the acquire and release operations.</p>
-
-<h2>Leveraging the parameter cas=0</h2>
-
-<p>In our lock implementation, we created an opened lock first and the lock acquisition comprised of two steps. In the first step, the client read the current <code>ModifyIndex</code> of the lock. In the second step, the client tried to update the lock while passing the <code>ModifyIndex</code> as a <code>cas</code> query parameter. When implementing the lock, we could have alternatively leveraged the fact that if the <code>cas</code> parameter is set to <code>0</code>, Consul will only create the key in the key-value store if it does not already exist. The state of our lock would then correspond to the existence or non-existence of the respective key in the key-value store. In order to acquire the lock, the client would send a request to create the key:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>curl --request PUT localhost:8500/v1/kv/mykey2?cas<span class="o">=</span><span class="m">0</span> --data <span class="s1">&#39;client1&#39;</span>
-</span><span class='line'><span class="nb">true</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>And to release the lock, the client would simply remove the respective key from the key-value store:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>curl --request DELETE localhost:8500/v1/kv/mykey2
-</span><span class='line'><span class="nb">true</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Transactions</h2>
-
-<p><a href="https://www.consul.io/api/txn.html">Transactions</a> in Consul manage updates or selects of multiple keys within a single, atomic transaction. A list of operations that will be executed in the transaction is specified in the body of the HTTP request. First, let&rsquo;s create a list of operations and save it as a file <code>transaction1.txt</code>:</p>
-
-<figure class='code'><figcaption><span>transaction1.txt </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">[</span>
-</span><span class='line'>  <span class="o">{</span>
-</span><span class='line'>    <span class="s2">&quot;KV&quot;</span>: <span class="o">{</span>
-</span><span class='line'>      <span class="s2">&quot;Verb&quot;</span>: <span class="s2">&quot;set&quot;</span>,
-</span><span class='line'>      <span class="s2">&quot;Key&quot;</span>: <span class="s2">&quot;foo&quot;</span>,
-</span><span class='line'>      <span class="s2">&quot;Value&quot;</span>: <span class="s2">&quot;MQ==&quot;</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'>  <span class="o">}</span>,
-</span><span class='line'>  <span class="o">{</span>
-</span><span class='line'>    <span class="s2">&quot;KV&quot;</span>: <span class="o">{</span>
-</span><span class='line'>      <span class="s2">&quot;Verb&quot;</span>: <span class="s2">&quot;set&quot;</span>,
-</span><span class='line'>      <span class="s2">&quot;Key&quot;</span>: <span class="s2">&quot;bar&quot;</span>,
-</span><span class='line'>      <span class="s2">&quot;Value&quot;</span>: <span class="s2">&quot;Mg==&quot;</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'>  <span class="o">}</span>
-</span><span class='line'><span class="o">]</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Our transaction doesn&rsquo;t do anything spectacular. It just creates two key-value pairs <code>foo=1</code> and <code>bar=2</code>. Let&rsquo;s submit the transaction to Consul:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>curl --request PUT <span class="s1">&#39;localhost:8500/v1/txn?pretty&#39;</span> --data @transaction1.txt
-</span><span class='line'><span class="o">{</span>
-</span><span class='line'>    <span class="s2">&quot;Results&quot;</span>: <span class="o">[</span>
-</span><span class='line'>        <span class="o">{</span>
-</span><span class='line'>            <span class="s2">&quot;KV&quot;</span>: <span class="o">{</span>
-</span><span class='line'>                <span class="s2">&quot;LockIndex&quot;</span>: 0,
-</span><span class='line'>                <span class="s2">&quot;Key&quot;</span>: <span class="s2">&quot;foo&quot;</span>,
-</span><span class='line'>                <span class="s2">&quot;Flags&quot;</span>: 0,
-</span><span class='line'>                <span class="s2">&quot;Value&quot;</span>: null,
-</span><span class='line'>                <span class="s2">&quot;CreateIndex&quot;</span>: 7267,
-</span><span class='line'>                <span class="s2">&quot;ModifyIndex&quot;</span>: 7267
-</span><span class='line'>            <span class="o">}</span>
-</span><span class='line'>        <span class="o">}</span>,
-</span><span class='line'>        <span class="o">{</span>
-</span><span class='line'>            <span class="s2">&quot;KV&quot;</span>: <span class="o">{</span>
-</span><span class='line'>                <span class="s2">&quot;LockIndex&quot;</span>: 0,
-</span><span class='line'>                <span class="s2">&quot;Key&quot;</span>: <span class="s2">&quot;bar&quot;</span>,
-</span><span class='line'>                <span class="s2">&quot;Flags&quot;</span>: 0,
-</span><span class='line'>                <span class="s2">&quot;Value&quot;</span>: null,
-</span><span class='line'>                <span class="s2">&quot;CreateIndex&quot;</span>: 7267,
-</span><span class='line'>                <span class="s2">&quot;ModifyIndex&quot;</span>: 7267
-</span><span class='line'>            <span class="o">}</span>
-</span><span class='line'>        <span class="o">}</span>
-</span><span class='line'>    <span class="o">]</span>,
-</span><span class='line'>    <span class="s2">&quot;Errors&quot;</span>: null
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>The transaction completed successfully. In the response from Consul, we can find the list of results. The order of results corresponds to the order of operations that we submitted in our request. The value of the <code>ModifyIndex</code> <code>7267</code> is the same for both keys <code>foo</code> and <code>bar</code> as they were updated in the same transaction.</p>
-
-<p>Next, let&rsquo;s see what happens if one of the operations in the transaction fails. To demonstrate this, we&rsquo;ll create a transaction that consists of two operations. The first operation updates the key <code>foo</code> to value <code>10</code>. The second operation updates the key <code>bar</code> to value <code>20</code> but only if the <code>ModifyIndex</code> of <code>bar</code> matches 100. We know that this condition is not fulfilled and the update should fail.</p>
-
-<figure class='code'><figcaption><span>transaction2.txt </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">[</span>
-</span><span class='line'>  <span class="o">{</span>
-</span><span class='line'>    <span class="s2">&quot;KV&quot;</span>: <span class="o">{</span>
-</span><span class='line'>      <span class="s2">&quot;Verb&quot;</span>: <span class="s2">&quot;set&quot;</span>,
-</span><span class='line'>      <span class="s2">&quot;Key&quot;</span>: <span class="s2">&quot;foo&quot;</span>,
-</span><span class='line'>      <span class="s2">&quot;Value&quot;</span>: <span class="s2">&quot;MTA=&quot;</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'>  <span class="o">}</span>,
-</span><span class='line'>  <span class="o">{</span>
-</span><span class='line'>    <span class="s2">&quot;KV&quot;</span>: <span class="o">{</span>
-</span><span class='line'>      <span class="s2">&quot;Verb&quot;</span>: <span class="s2">&quot;cas&quot;</span>,
-</span><span class='line'>      <span class="s2">&quot;Index&quot;</span>: 100,
-</span><span class='line'>      <span class="s2">&quot;Key&quot;</span>: <span class="s2">&quot;bar&quot;</span>,
-</span><span class='line'>      <span class="s2">&quot;Value&quot;</span>: <span class="s2">&quot;MjA=&quot;</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'>  <span class="o">}</span>
-</span><span class='line'><span class="o">]</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Let&rsquo;s submit the transaction to Consul:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>curl --request PUT <span class="s1">&#39;localhost:8500/v1/txn?pretty&#39;</span> --data @transaction2.txt
-</span><span class='line'><span class="o">{</span>
-</span><span class='line'>    <span class="s2">&quot;Results&quot;</span>: null,
-</span><span class='line'>    <span class="s2">&quot;Errors&quot;</span>: <span class="o">[</span>
-</span><span class='line'>        <span class="o">{</span>
-</span><span class='line'>            <span class="s2">&quot;OpIndex&quot;</span>: 1,
-</span><span class='line'>            <span class="s2">&quot;What&quot;</span>: <span class="s2">&quot;failed to set key \&quot;bar\&quot;, index is stale&quot;</span>
-</span><span class='line'>        <span class="o">}</span>
-</span><span class='line'>    <span class="o">]</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>The transaction failed, indeed. The returned error list contains all errors that occurred during the transaction processing. The operations that failed are denoted by the <code>OpIndex</code> which starts from value 0. In the example output we can see that the second operation in our transaction failed because of the stale index. Let&rsquo;s check the values of the keys <code>foo</code> and <code>bar</code> after the failed transaction:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./consul kv get foo
-</span><span class='line'>1
-</span><span class='line'><span class="nv">$ </span>./consul kv get bar
-</span><span class='line'>2
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>As expected, due to the failed udpate the entire transaction has been rolled back. Keys <code>foo</code> and <code>bar</code> retained their original values <code>1</code> and <code>2</code>.</p>
-
-<h2>Conclusion</h2>
-
-<p>In this blog post, we explored the Check-and-Set operation supported by Consul and used it to implement a simple distributed lock. In the second part of the article, we poked into the transaction capabilities of Consul.</p>
-
-<p>And what about you? How is your experience with using Consul for distributed locking or leader election? Did you get a chance to use transactions? I would like to hear your experiences, feel free to use the comment section below.</p>
 ]]></content>
   </entry>
 

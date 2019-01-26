@@ -4,7 +4,7 @@
   <title><![CDATA[Category: devops | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/devops/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2019-01-07T12:37:30-08:00</updated>
+  <updated>2019-01-25T16:38:49-08:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -46,7 +46,7 @@
 
 <p>Are you preparing for the Red Hat Gluster Storage exam? I would love to hear from you! Please, leave your comments or questions in the comment section below.</p>
 
-<p><img class="right" src="/images/posts/rhcs_gluster_storage_administration_badge.png"></p>
+<p><img src="/images/posts/rhcs_gluster_storage_administration_badge.png"></p>
 ]]></content>
   </entry>
 
