@@ -4,7 +4,7 @@
   <title><![CDATA[Category: development | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/development/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2019-01-25T16:38:49-08:00</updated>
+  <updated>2019-02-26T13:25:54-08:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,359 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[Remote Debugging of Java Applications on OpenShift]]></title>
+    <link href="http://alesnosek.com/blog/2019/02/26/remote-debugging-of-java-applications-on-openshift/"/>
+    <updated>2019-02-26T13:08:30-08:00</updated>
+    <id>http://alesnosek.com/blog/2019/02/26/remote-debugging-of-java-applications-on-openshift</id>
+    <content type="html"><![CDATA[<p>In this article I am going to show you how to attach a debugger and a VisualVM profiler to the Java application running on OpenShift. The approach described here doesn&rsquo;t make use of the <a href="https://jolokia.org/">Jolokia</a> bridge. Instead, we are going to leverage the port-forwarding feature of OpenShift.</p>
+
+<!-- more -->
+
+
+<p>The whole setup can be divided into three steps:</p>
+
+<ol>
+<li>Enable debug and JMX ports on the JVM</li>
+<li>Set up port forwarding</li>
+<li>Attach debugger and VisualVM to the forwarded ports</li>
+</ol>
+
+
+<p>I am going to use OpenShift v3.11 that I installed using Minishift and a test application built with Java OpenJDK 1.8. This is how the complete setup is going to look like:</p>
+
+<p><img src="/images/posts/remote_debugging_of_java_applications_on_openshift.svg"></p>
+
+<h2>Hello world application</h2>
+
+<p>For those of you who want to follow along, let&rsquo;s set up a test application which we will use for debugging. If you already have your Java application running on OpenShift, you can jump ahead to the next section.</p>
+
+<p>Let&rsquo;s deploy a Hello world application that I found on <a href="https://github.com/vert-x3/vertx-openshift-s2i">GitHub</a>. This application was originally created to demonstrate how to build <a href="https://vertx.io/">Vert.x</a>-based microservices on OpenShift. You can get this application up and running in just two steps.</p>
+
+<p>First, issue this command to build an S2I builder image for Vert.x applications:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>oc create -f &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;https://raw.githubusercontent.com/vert-x3/vertx-openshift-s2i/master/vertx-s2i-all.json&quot;</span>&gt;https://raw.githubusercontent.com/vert-x3/vertx-openshift-s2i/master/vertx-s2i-all.json&lt;/a&gt;
+</span><span class='line'>buildconfig.build.openshift.io/vertx-s2i created
+</span><span class='line'>imagestream.image.openshift.io/vertx-centos created
+</span><span class='line'>imagestream.image.openshift.io/vertx-s2i created
+</span><span class='line'>template.template.openshift.io/vertx-helloworld-maven created
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>OpenShift started the build of the builder image and you can follow the progress with:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>oc log -f bc/vertx-s2i&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;<span class="p">&amp;</span>hellip<span class="p">;</span>&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;Removing intermediate container fc4bff8f426c
+</span><span class='line'>Successfully built bd4a858867e9
+</span><span class='line'>Pushing image 172.30.1.1:5000/myproject/vertx-s2i:latest <span class="p">&amp;</span>hellip<span class="p">;</span>
+</span><span class='line'>Pushed 1/8 layers, 50% <span class="nb">complete</span>
+</span><span class='line'>Pushed 2/8 layers, 25% <span class="nb">complete</span>
+</span><span class='line'>Pushed 3/8 layers, 38% <span class="nb">complete</span>
+</span><span class='line'>Pushed 4/8 layers, 50% <span class="nb">complete</span>
+</span><span class='line'>Pushed 5/8 layers, 63% <span class="nb">complete</span>
+</span><span class='line'>Pushed 6/8 layers, 97% <span class="nb">complete</span>
+</span><span class='line'>Pushed 7/8 layers, 99% <span class="nb">complete</span>
+</span><span class='line'>Pushed 8/8 layers, 100% <span class="nb">complete</span>
+</span><span class='line'>Push successful
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>At the end of the build process OpenShift pushed the new image into the integrated Docker registry. Next, we are going to use the builder image to build and run a sample Vert.x application:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>oc new-app vertx-helloworld-maven
+</span><span class='line'><span class="p">&amp;</span>ndash<span class="p">;</span>&gt; Deploying template <span class="p">&amp;</span>ldquo<span class="p">;</span>myproject/vertx-helloworld-maven<span class="p">&amp;</span>rdquo<span class="p">;</span> to project myproject&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;pre&gt;&lt;code&gt; vertx-helloworld-maven
+</span><span class='line'> ---------
+</span><span class='line'> Sample Vert.x application build with Maven
+</span><span class='line'>
+</span><span class='line'> * With parameters:
+</span><span class='line'>    * <span class="nv">APPLICATION_NAME</span><span class="o">=</span>hello-world
+</span><span class='line'>    * <span class="nv">APPLICATION_HOSTNAME</span><span class="o">=</span>
+</span><span class='line'>    * <span class="nv">GIT_URI</span><span class="o">=</span>https://github.com/vert-x3/vertx-openshift-s2i.git
+</span><span class='line'>    * <span class="nv">GIT_REF</span><span class="o">=</span>master
+</span><span class='line'>    * <span class="nv">CONTEXT_DIR</span><span class="o">=</span><span class="nb">test</span>/test-app-maven
+</span><span class='line'>    * <span class="nv">APP_OPTIONS</span><span class="o">=</span>
+</span><span class='line'>    * <span class="nv">GITHUB_TRIGGER_SECRET</span><span class="o">=</span>EM325a5K <span class="c"># generated</span>
+</span><span class='line'>    * <span class="nv">GENERIC_TRIGGER_SECRET</span><span class="o">=</span>CBCcCIWr <span class="c"># generated</span>
+</span><span class='line'>&lt;/code&gt;&lt;/pre&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;<span class="p">&amp;</span>ndash<span class="p">;</span>&gt; Creating resources <span class="p">&amp;</span>hellip<span class="p">;</span>
+</span><span class='line'>    buildconfig.build.openshift.io <span class="p">&amp;</span>ldquo<span class="p">;</span>hello-world<span class="p">&amp;</span>rdquo<span class="p">;</span> created
+</span><span class='line'>    imagestream.image.openshift.io <span class="p">&amp;</span>ldquo<span class="p">;</span>hello-world<span class="p">&amp;</span>rdquo<span class="p">;</span> created
+</span><span class='line'>    deploymentconfig.apps.openshift.io <span class="p">&amp;</span>ldquo<span class="p">;</span>hello-world<span class="p">&amp;</span>rdquo<span class="p">;</span> created
+</span><span class='line'>    route.route.openshift.io <span class="p">&amp;</span>ldquo<span class="p">;</span>hello-world<span class="p">&amp;</span>rdquo<span class="p">;</span> created
+</span><span class='line'>    service <span class="p">&amp;</span>ldquo<span class="p">;</span>hello-world<span class="p">&amp;</span>rdquo<span class="p">;</span> created
+</span><span class='line'><span class="p">&amp;</span>ndash<span class="p">;</span>&gt; Success
+</span><span class='line'>    Build scheduled, use <span class="p">&amp;</span>lsquo<span class="p">;</span>oc logs -f bc/hello-world<span class="p">&amp;</span>rsquo<span class="p">;</span> to track its progress.
+</span><span class='line'>    Access your application via route <span class="p">&amp;</span>lsquo<span class="p">;</span>hello-world-myproject.192.168.42.115.nip.io<span class="p">&amp;</span>rsquo<span class="p">;</span>
+</span><span class='line'>    Run <span class="p">&amp;</span>lsquo<span class="p">;</span>oc status<span class="p">&amp;</span>rsquo<span class="p">;</span> to view your app.
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>You can follow the build logs by issuing the command:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>oc log -f bc/hello-world&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;<span class="p">&amp;</span>hellip<span class="p">;</span>&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;<span class="o">[</span>INFO<span class="o">]</span>
+</span><span class='line'><span class="o">[</span>INFO<span class="o">]</span> <span class="p">&amp;</span>mdash<span class="p">;</span> maven-clean-plugin:2.5:clean <span class="o">(</span>default-clean<span class="o">)</span> @ vertx-hello-world <span class="p">&amp;</span>mdash<span class="p">;</span>
+</span><span class='line'><span class="o">[</span>INFO<span class="o">]</span> Deleting /opt/app-root/src/source/target
+</span><span class='line'><span class="o">[</span>INFO<span class="o">]</span> <span class="p">&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;</span>
+</span><span class='line'><span class="o">[</span>INFO<span class="o">]</span> BUILD SUCCESS
+</span><span class='line'><span class="o">[</span>INFO<span class="o">]</span> <span class="p">&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;</span>
+</span><span class='line'><span class="o">[</span>INFO<span class="o">]</span> Total <span class="nb">time</span>:  1.102 s
+</span><span class='line'><span class="o">[</span>INFO<span class="o">]</span> Finished at: 2019-02-26T20:21:57Z
+</span><span class='line'><span class="o">[</span>INFO<span class="o">]</span> <span class="p">&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;&amp;</span>mdash<span class="p">;</span>
+</span><span class='line'>Application jar file is located in /opt/openshift/vertx-app.jar
+</span><span class='line'>Files located in the application directory:
+</span><span class='line'>total 13216
+</span><span class='line'>-rw-r<span class="p">&amp;</span>ndash<span class="p">;</span>r<span class="p">&amp;</span>ndash<span class="p">;</span>. <span class="m">1</span> default root      <span class="m">286</span> Feb <span class="m">26</span> 20:21 additional_files.md
+</span><span class='line'>-rw-r<span class="p">&amp;</span>ndash<span class="p">;</span>r<span class="p">&amp;</span>ndash<span class="p">;</span>. <span class="m">1</span> default root <span class="m">13525420</span> Feb <span class="m">26</span> 20:21 vertx-app.jar
+</span><span class='line'>Pushing image 172.30.1.1:5000/myproject2/hello-world:latest <span class="p">&amp;</span>hellip<span class="p">;</span>
+</span><span class='line'>Pushed 0/9 layers, 2% <span class="nb">complete</span>
+</span><span class='line'>Pushed 1/9 layers, 11% <span class="nb">complete</span>
+</span><span class='line'>Push successful
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>If everything went fine, you should be able to see the Hello world application running:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>oc get pod <span class="p">|</span> grep hello-world
+</span><span class='line'>hello-world-1-build   0/1       Completed    <span class="m">0</span>          6m
+</span><span class='line'>hello-world-1-dw5lf   1/1       Running      <span class="m">0</span>          42s
+</span></code></pre></td></tr></table></div></figure></p>
+
+<h2>Enabling Debug and JMX ports on JVM</h2>
+
+<p>In the following, I am going to use OpenJDK 1.8. Note that the available JVM options may vary depending on the version of Java  platform you are using.</p>
+
+<p>To enable a remote debug port on JVM, one has to pass the following option to the JVM:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>-agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=n</span></code></pre></td></tr></table></div></figure></p>
+
+<p>In order to enable JMX, the following JVM options are needed:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>-Dcom.sun.management.jmxremote=true
+</span><span class='line'>-Dcom.sun.management.jmxremote.port=3000
+</span><span class='line'>-Dcom.sun.management.jmxremote.rmi.port=3001
+</span><span class='line'>-Djava.rmi.server.hostname=127.0.0.1
+</span><span class='line'>-Dcom.sun.management.jmxremote.authenticate=false
+</span><span class='line'>-Dcom.sun.management.jmxremote.ssl=false</span></code></pre></td></tr></table></div></figure></p>
+
+<p>This set of options deserves a bit more explanation. By default, JMX utilizes RMI as the underlying technology for the communication between the JMX client and the remote JVM. And as a matter of fact, there are two RMI ports needed for this communication:
+* RMI registry port
+* RMI server port</p>
+
+<p>At the beginning, the client connects to the RMI registry on port 3000 and looks up the connection to the RMI server. After the successful lookup, the client initiates a second connection to the RMI server. Based on our configuration, the client is going to connect to 127.0.0.1:3001. However, there&rsquo;s no RMI server running on the local machine, so what&rsquo;s the deal? As you will see in the next section, we are going to forward the local port 3001 back to the remote server.</p>
+
+<p>Next, we need to convey our configuration options to the JVM running inside the OpenShift pod. It turns out that there exists an environment variable <code>JAVA_TOOL_OPTIONS</code> that is interpreted directly by the JVM and where you can put your JVM configuration options. I recommend using this variable as there is a great chance that this variable will work no matter how deep in your wrapper scripts you are launching the JVM. Go ahead and modify the DeploymentConfig or Pod descriptor of your application in OpenShift to add the <code>JAVA_TOOL_OPTIONS</code> variable. For example, you can open the DeloymentConfig for editing like this:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>oc edit dc hello-world
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>&hellip; and add the <code>JAVA_TOOL_OPTIONS</code> environment variable to the container section of the specification:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&hellip;&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;pre>&lt;code>spec:
+</span><span class='line'>  containers:
+</span><span class='line'>  - env:
+</span><span class='line'>    - name: JAVA_TOOL_OPTIONS
+</span><span class='line'>      value: -agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=n
+</span><span class='line'>        -Dcom.sun.management.jmxremote=true -Dcom.sun.management.jmxremote.port=3000
+</span><span class='line'>        -Dcom.sun.management.jmxremote.rmi.port=3001 -Djava.rmi.server.hostname=127.0.0.1
+</span><span class='line'>        -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false
+</span><span class='line'>&lt;/code>&lt;/pre>
+</span><span class='line'>
+</span><span class='line'>&lt;p>&hellip;</span></code></pre></td></tr></table></div></figure></p>
+
+<p>After applying the above changes, OpenShift will redeploy the application pod. At startup, JVM will print out the following line to the stderr which will show up in the container logs:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>oc logs dc/hello-world <span class="p">|</span> grep JAVA_TOOL_OPTIONS
+</span><span class='line'>Picked up JAVA_TOOL_OPTIONS: -agentlib:jdwp<span class="o">=</span><span class="nv">transport</span><span class="o">=</span>dt_socket,server<span class="o">=</span>y,address<span class="o">=</span>8000,suspend<span class="o">=</span>n -Dcom.sun.management.jmxremote<span class="o">=</span><span class="nb">true</span> -Dcom.sun.management.jmxremote.port<span class="o">=</span><span class="m">3000</span> -Dcom.sun.management.jmxremote.rmi.port<span class="o">=</span><span class="m">3001</span> -Djava.rmi.server.hostname<span class="o">=</span>127.0.0.1 -Dcom.sun.management.jmxremote.authenticate<span class="o">=</span><span class="nb">false</span> -Dcom.sun.management.jmxremote.ssl<span class="o">=</span><span class="nb">false</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>This verifies that our JVM options are in effect and the debug port and JMX ports are open. How are we going to connect to these ports? Let&rsquo;s set up port forwarding on the local machine next.</p>
+
+<h2>Setting up port forwarding</h2>
+
+<p>OpenShift features <a href="https://docs.okd.io/latest/dev_guide/port_forwarding.html">port forwarding</a> that allows you to connect to an arbitrary port of a pod running on OpenShift. Port forwarding doesn&rsquo;t require you to define any additional objects like Service or Route to enable it. What you need though is to start a port forwarding proxy on your local machine. Issue the following command on your local machine to start the proxy and forward the three ports 8000, 3000, and 3001 to the remote pod running on OpenShift:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>oc port-forward &lt;POD&gt; <span class="m">8000</span> <span class="m">3000</span> 3001
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>In the above command, remember to replace <code>&lt;POD&gt;</code> with the name of your application pod. If everything worked well, you should see the following output :</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>oc port-forward hello-world-2-55zlq <span class="m">8000</span> <span class="m">3000</span> 3001
+</span><span class='line'>Forwarding from 127.0.0.1:8000 -&gt; 8000
+</span><span class='line'>Forwarding from 127.0.0.1:3000 -&gt; 3000
+</span><span class='line'>Forwarding from 127.0.0.1:3001 -&gt; 3001
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Note that the proxy keeps running on the foreground.</p>
+
+<h2>Attaching to the JVM running on OpenShift</h2>
+
+<p>Having our port-forwarding proxy all set, let&rsquo;s fire up a debugger and attach it to our application. Note that we instruct the debugger to connect to the localhost on port 8000. This port is in turn forwarded to the port 8000 on the JVM:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>jdb -connect com.sun.jdi.SocketAttach:hostname<span class="o">=</span>localhost,port<span class="o">=</span>8000
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>After the debugger attaches, you can list existing JVM threads using the <code>threads</code> command:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;blockquote>&lt;p>threads
+</span><span class='line'>Group system:
+</span><span class='line'>  (java.lang.ref.Reference$ReferenceHandler)0x133a                                             Reference Handler                                   cond. waiting
+</span><span class='line'>  (java.lang.ref.Finalizer$FinalizerThread)0x133b                                              Finalizer                                           cond. waiting
+</span><span class='line'>  (java.lang.Thread)0x133c                                                                     Signal Dispatcher                                   running
+</span><span class='line'>  (java.lang.Thread)0x133d                                                                     RMI TCP Accept-3001                                 running
+</span><span class='line'>  (java.lang.Thread)0x133e                                                                     RMI TCP Accept-3000                                 running
+</span><span class='line'>  (java.lang.Thread)0x133f                                                                     RMI TCP Accept-0                                    running
+</span><span class='line'>Group main:
+</span><span class='line'>  (java.util.TimerThread)0x1342                                                                vertx-blocked-thread-checker                        cond. waiting
+</span><span class='line'>  (io.vertx.core.impl.VertxThread)0x1343                                                       vert.x-worker-thread-0                              cond. waiting&lt;/p>&lt;/blockquote>
+</span><span class='line'>
+</span><span class='line'>&lt;p>&hellip;</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Next, let&rsquo;s check out if we can attach <a href="https://visualvm.github.io/">VisualVM</a> to our application as well:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>visualvm <span class="p">&amp;</span>ndash<span class="p">;</span>openjmx localhost:3000
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Works like a charm, doesn&rsquo;t it?</p>
+
+<p><img src="/images/posts/visualvm_attached.png"></p>
+
+<h2>Conclusion</h2>
+
+<p>In this blog post, we were able to attach a debugger and VisualVM to the Java application running on OpenShift. We didn&rsquo;t need to deploy Jolokia proxy or create additional Service or Route objects to make our setup work. Instead, we leveraged the port-forwarding feature already available in OpenShift. The demonstrated method has additional security benefits as we are not exposing any additional ports of the application container.</p>
+
+<p>Hope you enjoyed this article and was able to reproduce this setup for yourself. If you have any thoughts or questions feel free to add them to the comment section below.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[Comparing OpenAPI with gRPC]]></title>
@@ -386,59 +739,6 @@
 <p>Prometheus is a modern monitoring system. It was the first system we evaluated as we were trying to find a good solution for application metrics. In addition to application-level metrics, we could use Prometheus to collect system-level metrics as well. This would make Prometheus a single monitoring solution for our application. The only bigger issue for us is the absence of the AWS Lambda monitoring story.</p>
 
 <p>If you have an application that you deliver on-premise as well as in the cloud, how did you solve the application metrics collection and monitoring? Is Prometheus a good way to go? Please, leave your comments below.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[Centralized Configuration Management, Our Approach]]></title>
-    <link href="http://alesnosek.com/blog/2017/08/20/centralized-configuration-management/"/>
-    <updated>2017-08-20T13:09:28-07:00</updated>
-    <id>http://alesnosek.com/blog/2017/08/20/centralized-configuration-management</id>
-    <content type="html"><![CDATA[<p>Are you migrating your existing application to the cloud? Are you missing a solution for centralized configuration management? Read on to learn, how we implemented centralized configuration management on top of our existing application and got it ready for the cloud.</p>
-
-<!-- more -->
-
-
-<p>Our existing application is a <a href="https://en.wikipedia.org/wiki/Service-oriented_architecture">SOA-based</a> application, i.e an application consisting of multiple services that communicate with each other and that are deployed across multiple nodes. Services are configured using configuration files located on the local filesystem. Currently, the operator has to edit multiple configuration files across multiple nodes by hand. In addition to that, for the sake of performance and redundancy, there are multiple instances of each service deployed behind a load balancer. This increases the configuration burden even further as the operator has to keep the configuration files consistent across several instances of the same service.</p>
-
-<p>With the growing number of services and the need to deploy our application into dynamic cloud environments, a centralized configuration management became a necessity.</p>
-
-<h2>Looking for a solution</h2>
-
-<p>It would be possible to leverage the standard DevOps tools like Puppet, Chef or Ansible to manage the configuration files on each of the deployed nodes. For bare metal deployments or when deploying on virtual machines in the cloud, these tools could do a decent job. However, on our way to the cloud, we’re looking at containerizing all of our services. Furthermore, down the road we would also like to leverage serverless architecture as well. For updating a handful of configuration files inside of a Docker container, Puppet, Chef or Ansible just seem too heavy. Needless to say that these tools would not be usable when considering serverless architecture.</p>
-
-<p>When searching for a solution, we came across the <a href="https://github.com/kelseyhightower/confd">confd</a> and <a href="https://github.com/hashicorp/consul-template">consul-template</a> projects. Both tools are based on the same principle. First, the values of the configuration options are persisted in a backend store. While consul-template can store values in Consul only, confd supports a host of different backends like Consul, etcd, Redis or DynamoDB. Second, a set of templates on the filesystem is populated with the values from the backend store and hence forming valid configuration files. These configuration files are then consumed by the application. We drew a great deal of inspiration from this approach.</p>
-
-<h2>Our approach</h2>
-
-<p>Our centralized configuration management consists of two components: <em>CCS</em> (Centralized Configuration Store) which is a Consul cluster holding the configuration data, and <em>CCT</em> (Centralized Configuration Tool) which is a command-line client. CCT implements two functions. First, it allows the operator to query and modify the configuration values persisted in CCS. Second, it syncs up the configuration files on the local filesystem with their state in CCS. The following diagram depicts the components involved in the centralized configuration management:</p>
-
-<p><img class="left" src="/images/posts/centralized_configuration_management.png"></p>
-
-<p>In addition to the configuration values, the CCS component also stores all the additional data that is needed to completely recreate a given configuration file on the local filesystem. For instance, in the case of an ini file, CCS stores the absolute file path, file owner, file group, file mode, sections of the ini file, ini options with their values and all comment lines. Each ini option is also assigned a type or a set of allowed values and any configuration changes made by the operator are checked against the type information before they are accepted.</p>
-
-<p>Apart from the ini file format, Java properties and XML files are also supported. The configuration management verifies that the XML file either conforms to a specific XML schema or is well-formed, before it is accepted. Lastly, all other configuration files that are not parsed by the configuration management are marked as &ldquo;unmanaged&rdquo; and the entire content of such a file is stored under a single key in the key-value store in Consul.</p>
-
-<p>Next, let&rsquo;s review an example scenario where an operator wants to modify a configuration of a specific service. The individual steps are depicted in the diagram above:</p>
-
-<ol>
-<li><p>Using the CCT command-line client, the operator obtains a list of configuration files for a specific service managed by CCS. The operator uses CCT to edit the selected configuration file. CCT fetches all the data from CCS that are required to recreate the configuration file and presents it to the operator for editing (for example by opening the file in the operator&rsquo;s favorite editor).</p></li>
-<li><p>After the operator made changes to the configuration file, the CCT parses the file to find out which values have been modified. The modified values are checked for corectness by CCT before they are saved in CCS.</p></li>
-<li><p>Upon request, CCT fetches the configuration data from CCS in order to use it in the next step.</p></li>
-<li><p>CCT syncs up the configuration files on the local filesystem with the data fetched from CCS.</p></li>
-<li><p>The new configuration takes effect after the respective service has been restarted by the operator.</p></li>
-</ol>
-
-
-<p>Overall, CCS is a single source of truth for the application configuration. This is in contrast with the confd or consul-template approach where the configuration values are stored in the backend while the templates are stored on the filesystem. When a new release of the application is deployed, having all configuration data in one place makes the upgrade of the configuration data easier.</p>
-
-<h2>Future directions</h2>
-
-<p>It was important to us to introduce the centralized configuration management into our existing application without breaking the existing operational workflows. For example, operators should be able to edit the configuration files as they did in the previous versions of our application. Also, as the configuration files are written to the filesystem, the existing services continue to work without any modification from the previous versions. Hence the centralized configuration management can be deployed as a truly optional component on top of the existing application.</p>
-
-<p>In the future, when some of our services will be deployed as (Lambda) functions in the serverless environment, those services will need to fetch their configuration by directly contacting CCS. However, nothing will change from the operator&rsquo;s standpoint. The operator will continue editing configuration files even when those won&rsquo;t exist on any filesystem anymore.</p>
-
-<p>Do you use confd or consul-template to configure your application? Or did you build your own centralized configuration management? I would like to hear your comments. Feel free to use the comment section below.</p>
 ]]></content>
   </entry>
 
