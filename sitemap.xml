@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>http://alesnosek.com/blog/2019/04/21/speaking-at-red-hat-summit-2019/</loc>
+    <lastmod>2019-04-21T12:41:43-07:00</lastmod>
+  </url>
+  <url>
     <loc>http://alesnosek.com/blog/2019/02/26/remote-debugging-of-java-applications-on-openshift/</loc>
     <lastmod>2019-02-26T13:08:30-08:00</lastmod>
   </url>
