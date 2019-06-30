@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2019-05-10T15:27:06-07:00</updated>
+  <updated>2019-06-30T11:22:28-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,126 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[Troubleshooting the Performance of Vert.x Applications, Part I &mdash; The Event Loop Model]]></title>
+    <link href="http://alesnosek.com/blog/2019/06/30/troubleshooting-the-performance-of-vert-dot-x-applications-part-i-the-event-loop-model/"/>
+    <updated>2019-06-30T10:16:31-07:00</updated>
+    <id>http://alesnosek.com/blog/2019/06/30/troubleshooting-the-performance-of-vert-dot-x-applications-part-i-the-event-loop-model</id>
+    <content type="html"><![CDATA[<p>This article is the first in a series of three articles which share my experience with troubleshooting the performance of Vert.x applications. The first article provides an overview of the Vert.x event loop model, the second acticle covers techniques to prevent delays on the event loop, and the third article focuses on troubleshooting of event loop delays.</p>
+
+<!-- more -->
+
+
+<p>Programming with Vert.x requires a good understanding of its event loop model. From what I saw in practice, delayed or blocked event loop threads are the number one contributor to performance problems with Vert.x applications. But don&rsquo;t worry. In this article, we are going to review the event loop model.</p>
+
+<h2>Event loop theads and worker threads</h2>
+
+<p>Depending on how you register your handler with Vert.x APIs, Vert.x will either execute your handler using an event loop thread or a worker thread. There are only these two options in Vert.x. The determination whether the handler is going to be executed on an event loop thread or a worker thread is made at the time you register the handler and doesn&rsquo;t change throughout the lifetime of your application. Take a look at this example:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">class</span> <span class="nc">MyVerticle</span> <span class="kd">extends</span> <span class="n">AbstractVerticle</span> <span class="o">{</span>
+</span><span class='line'>  <span class="nd">@Override</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">start</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="n">Handler</span><span class="o">&lt;</span><span class="n">Future</span><span class="o">&lt;</span><span class="n">Void</span><span class="o">&gt;&gt;</span> <span class="n">blockingCodeHandler</span> <span class="o">=</span> <span class="n">future</span> <span class="o">-&gt;</span> <span class="o">{</span>
+</span><span class='line'>          <span class="c1">// this handler will be executed on a worker thread</span>
+</span><span class='line'>      <span class="o">};</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="n">Handler</span><span class="o">&lt;</span><span class="n">AsyncResult</span><span class="o">&lt;</span><span class="n">Void</span><span class="o">&gt;&gt;</span> <span class="n">resultHandler</span> <span class="o">=</span> <span class="n">result</span> <span class="o">-&gt;</span> <span class="o">{</span>
+</span><span class='line'>          <span class="c1">// this handler will be executed on an event loop thread</span>
+</span><span class='line'>      <span class="o">};</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="n">vertx</span><span class="o">.</span><span class="na">executeBlocking</span><span class="o">(</span><span class="n">blockingCodeHandler</span><span class="o">,</span> <span class="n">resultHandler</span><span class="o">);</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The API call <code>vertx.executeBlocking()</code> registered two handlers. Vert.x will call the <code>blockingCodeHandler()</code> using a worker thread and the <code>resultHandler()</code> using an event loop thread. Because there are restrictions on what code can be executed on event loop threads, you want to structure your code so that it&rsquo;s clear to a casual reader whether a specific piece of code executes on a worker thread or an event loop thread.</p>
+
+<p>Event loop frameworks like Vert.x employ a small amount of event loop threads at their core to do all the computational work. Using a low amount of threads minimizes the need for context switching which leads to a better performance than what a thread-per-request model can achieve.</p>
+
+<blockquote><p>In an ideal situation, your Vert.x application would exclusively use event loop threads.</p></blockquote>
+
+<p>The increased utilization of computing resources resulting in increased performance is a great benefit that event loop frameworks bring to the table. However, there are situations where employing worker threads is inevitable. We are going to show you some examples of such situations in the second article of this series. Just keep in mind that an excessive use of worker threads results in frequent context switching which will impact the overall performance of your application. This context switching negates the benefit of employing event loop frameworks like Vert.x in the first place.</p>
+
+<h2>Taking the event loop for a spin</h2>
+
+<p>The whole purpose of the event loop is to react to events which are delivered to the event loop by the operating system. Event loop processes those events by executing handlers. To explain how the event loop operates, let&rsquo;s imagine a typical HTTP server application serving multiple client connections at the same time. There&rsquo;s data being sent back and forth between the server and the client on each of the connections. And here is how the event loop handles it. First, the event loop waits for any of the events like incoming data available on the connection, or connection is ready to send more data. If any of those events happens, the event loop executes handlers that were registered to handle that specific event. For example, if there is incoming data available, the event loop calls the respective handler that stores the incoming data into a buffer and passes that buffer through a chain of handlers to your handler to process it. Handlers registered with a given event loop are executed one by one because the event loop is a single thread after all. After the processing of the event is finished, event loop returns back to wait for the next event.</p>
+
+<p><img class="center" src="http://alesnosek.com/images/posts/vertx_event_loop.svg"></p>
+
+<p>I would like to highlight that the event loop is a single thread that executes the handlers sequentially. In order for this scheme to work smoothly:</p>
+
+<blockquote><p>Handlers should not run code that would delay the event loop.</p></blockquote>
+
+<p>In the case that the application is under full load, the events are queuing up while the event loop is busy executing handlers. In this case, the event loop doesn&rsquo;t really wait for events. Instead, it just picks up the next event and continues with executing handlers straight away.</p>
+
+<p>On the other hand, if the application is idle and there are no events to process, the event loop will wait for events by blocking. It means the event loop thread will relinquish the CPU. Later on when the events arrive, the operating system scheduler will wake up the event loop thread again. Blocking while waiting for events is part of the event loop implementation and it is the only place where the event loop thread is supposed block. In contrast, handlers registered with the event loop  should never issue a blocking call.</p>
+
+<p>On my Linux machine, if I dump a stack trace of an idle event loop thread I will get this:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="s">&quot;vert.x-eventloop-thread-0&quot;</span> <span class="err">#</span><span class="mi">13</span> <span class="n">prio</span><span class="o">=</span><span class="mi">5</span> <span class="n">os_prio</span><span class="o">=</span><span class="mi">0</span> <span class="n">tid</span><span class="o">=</span><span class="mh">0x00007f89e0523800</span> <span class="n">nid</span><span class="o">=</span><span class="mh">0x1d67</span> <span class="n">runnable</span> <span class="o">[</span><span class="mh">0x00007f89cc4e0000</span><span class="o">]</span>
+</span><span class='line'>   <span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">Thread</span><span class="o">.</span><span class="na">State</span><span class="o">:</span> <span class="n">RUNNABLE</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">sun</span><span class="o">.</span><span class="na">nio</span><span class="o">.</span><span class="na">ch</span><span class="o">.</span><span class="na">EPollArrayWrapper</span><span class="o">.</span><span class="na">epollWait</span><span class="o">(</span><span class="n">Native</span> <span class="n">Method</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">sun</span><span class="o">.</span><span class="na">nio</span><span class="o">.</span><span class="na">ch</span><span class="o">.</span><span class="na">EPollArrayWrapper</span><span class="o">.</span><span class="na">poll</span><span class="o">(</span><span class="n">EPollArrayWrapper</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">269</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">sun</span><span class="o">.</span><span class="na">nio</span><span class="o">.</span><span class="na">ch</span><span class="o">.</span><span class="na">EPollSelectorImpl</span><span class="o">.</span><span class="na">doSelect</span><span class="o">(</span><span class="n">EPollSelectorImpl</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">93</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">sun</span><span class="o">.</span><span class="na">nio</span><span class="o">.</span><span class="na">ch</span><span class="o">.</span><span class="na">SelectorImpl</span><span class="o">.</span><span class="na">lockAndDoSelect</span><span class="o">(</span><span class="n">SelectorImpl</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">86</span><span class="o">)</span>
+</span><span class='line'>        <span class="o">-</span> <span class="n">locked</span> <span class="o">&lt;</span><span class="mh">0x000000076ee73e18</span><span class="o">&gt;</span> <span class="o">(</span><span class="n">a</span> <span class="n">io</span><span class="o">.</span><span class="na">netty</span><span class="o">.</span><span class="na">channel</span><span class="o">.</span><span class="na">nio</span><span class="o">.</span><span class="na">SelectedSelectionKeySet</span><span class="o">)</span>
+</span><span class='line'>        <span class="o">-</span> <span class="n">locked</span> <span class="o">&lt;</span><span class="mh">0x000000076ee72be0</span><span class="o">&gt;</span> <span class="o">(</span><span class="n">a</span> <span class="n">java</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">Collections$UnmodifiableSet</span><span class="o">)</span>
+</span><span class='line'>        <span class="o">-</span> <span class="n">locked</span> <span class="o">&lt;</span><span class="mh">0x000000076ee72ac8</span><span class="o">&gt;</span> <span class="o">(</span><span class="n">a</span> <span class="n">sun</span><span class="o">.</span><span class="na">nio</span><span class="o">.</span><span class="na">ch</span><span class="o">.</span><span class="na">EPollSelectorImpl</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">sun</span><span class="o">.</span><span class="na">nio</span><span class="o">.</span><span class="na">ch</span><span class="o">.</span><span class="na">SelectorImpl</span><span class="o">.</span><span class="na">select</span><span class="o">(</span><span class="n">SelectorImpl</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">97</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">io</span><span class="o">.</span><span class="na">netty</span><span class="o">.</span><span class="na">channel</span><span class="o">.</span><span class="na">nio</span><span class="o">.</span><span class="na">SelectedSelectionKeySetSelector</span><span class="o">.</span><span class="na">select</span><span class="o">(</span><span class="n">SelectedSelectionKeySetSelector</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">62</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">io</span><span class="o">.</span><span class="na">netty</span><span class="o">.</span><span class="na">channel</span><span class="o">.</span><span class="na">nio</span><span class="o">.</span><span class="na">NioEventLoop</span><span class="o">.</span><span class="na">select</span><span class="o">(</span><span class="n">NioEventLoop</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">753</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">io</span><span class="o">.</span><span class="na">netty</span><span class="o">.</span><span class="na">channel</span><span class="o">.</span><span class="na">nio</span><span class="o">.</span><span class="na">NioEventLoop</span><span class="o">.</span><span class="na">run</span><span class="o">(</span><span class="n">NioEventLoop</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">408</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">io</span><span class="o">.</span><span class="na">netty</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">concurrent</span><span class="o">.</span><span class="na">SingleThreadEventExecutor$5</span><span class="o">.</span><span class="na">run</span><span class="o">(</span><span class="n">SingleThreadEventExecutor</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">897</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">io</span><span class="o">.</span><span class="na">netty</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">concurrent</span><span class="o">.</span><span class="na">FastThreadLocalRunnable</span><span class="o">.</span><span class="na">run</span><span class="o">(</span><span class="n">FastThreadLocalRunnable</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">30</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">at</span> <span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">Thread</span><span class="o">.</span><span class="na">run</span><span class="o">(</span><span class="n">Thread</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">748</span><span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Vert.x tool-kit is built on top of <a href="https://netty.io/">Netty</a> framework and the event loop implementation is actually part of Netty. In the stack trace you can see that the Java thread is executing the Netty&rsquo;s event loop code which calls the Java NIO APIs which somewhere in the native code invokes the <code>epoll_wait</code> system call. This system call puts the event loop thread to sleep until the next event arrives.</p>
+
+<p>Interestingly, while blocking in the <code>epoll_wait</code> system call, from the Java standpoint the thread is in a <code>RUNNABLE</code> state and not for example in the state <code>BLOCKED</code> which I would intuitively expect. JVM as an abstraction on top of the operating system has its own <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Thread.State.html">definition of thread states</a>. According to this definition the thread is indeed in the <code>RUNNABLE</code> state even when from the stand point of the operating system it is in the state <em>interruptible sleep</em> and hence blocked.</p>
+
+<h2>Conclusion</h2>
+
+<p>In this article, we familiarized ourselves with the event loop model which is rather different from the thread-per-request model. The next part in the series will cover techniques to prevent delays on the event loop.</p>
+
+<p>Comment below if you found this article helpful or if you have suggestions for future blog subjects.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[Speaking at Red Hat Summit 2019]]></title>
@@ -2361,7 +2481,7 @@
   </entry>
 
   <entry>
-    <title type="html"><![CDATA[Evaluating Application Metrics Solutions - Prometheus?]]></title>
+    <title type="html"><![CDATA[Evaluating Application Metrics Solutions &mdash; Prometheus?]]></title>
     <link href="http://alesnosek.com/blog/2017/09/10/evaluating-application-metrics-solutions-prometheus/"/>
     <updated>2017-09-10T16:17:49-07:00</updated>
     <id>http://alesnosek.com/blog/2017/09/10/evaluating-application-metrics-solutions-prometheus</id>
@@ -2806,59 +2926,6 @@
 <p>OpenShift is a feature-rich container platform. In this blog post, we were only able to scratch the surface.</p>
 
 <p>Are you considering to host your containerized application on OpenShift? Or are you already running your production apps on OpenShift? I would like to hear your experiences, please, leave your comments below.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[Centralized Configuration Management, Our Approach]]></title>
-    <link href="http://alesnosek.com/blog/2017/08/20/centralized-configuration-management/"/>
-    <updated>2017-08-20T13:09:28-07:00</updated>
-    <id>http://alesnosek.com/blog/2017/08/20/centralized-configuration-management</id>
-    <content type="html"><![CDATA[<p>Are you migrating your existing application to the cloud? Are you missing a solution for centralized configuration management? Read on to learn, how we implemented centralized configuration management on top of our existing application and got it ready for the cloud.</p>
-
-<!-- more -->
-
-
-<p>Our existing application is a <a href="https://en.wikipedia.org/wiki/Service-oriented_architecture">SOA-based</a> application, i.e an application consisting of multiple services that communicate with each other and that are deployed across multiple nodes. Services are configured using configuration files located on the local filesystem. Currently, the operator has to edit multiple configuration files across multiple nodes by hand. In addition to that, for the sake of performance and redundancy, there are multiple instances of each service deployed behind a load balancer. This increases the configuration burden even further as the operator has to keep the configuration files consistent across several instances of the same service.</p>
-
-<p>With the growing number of services and the need to deploy our application into dynamic cloud environments, a centralized configuration management became a necessity.</p>
-
-<h2>Looking for a solution</h2>
-
-<p>It would be possible to leverage the standard DevOps tools like Puppet, Chef or Ansible to manage the configuration files on each of the deployed nodes. For bare metal deployments or when deploying on virtual machines in the cloud, these tools could do a decent job. However, on our way to the cloud, we’re looking at containerizing all of our services. Furthermore, down the road we would also like to leverage serverless architecture as well. For updating a handful of configuration files inside of a Docker container, Puppet, Chef or Ansible just seem too heavy. Needless to say that these tools would not be usable when considering serverless architecture.</p>
-
-<p>When searching for a solution, we came across the <a href="https://github.com/kelseyhightower/confd">confd</a> and <a href="https://github.com/hashicorp/consul-template">consul-template</a> projects. Both tools are based on the same principle. First, the values of the configuration options are persisted in a backend store. While consul-template can store values in Consul only, confd supports a host of different backends like Consul, etcd, Redis or DynamoDB. Second, a set of templates on the filesystem is populated with the values from the backend store and hence forming valid configuration files. These configuration files are then consumed by the application. We drew a great deal of inspiration from this approach.</p>
-
-<h2>Our approach</h2>
-
-<p>Our centralized configuration management consists of two components: <em>CCS</em> (Centralized Configuration Store) which is a Consul cluster holding the configuration data, and <em>CCT</em> (Centralized Configuration Tool) which is a command-line client. CCT implements two functions. First, it allows the operator to query and modify the configuration values persisted in CCS. Second, it syncs up the configuration files on the local filesystem with their state in CCS. The following diagram depicts the components involved in the centralized configuration management:</p>
-
-<p><img class="left" src="http://alesnosek.com/images/posts/centralized_configuration_management.png"></p>
-
-<p>In addition to the configuration values, the CCS component also stores all the additional data that is needed to completely recreate a given configuration file on the local filesystem. For instance, in the case of an ini file, CCS stores the absolute file path, file owner, file group, file mode, sections of the ini file, ini options with their values and all comment lines. Each ini option is also assigned a type or a set of allowed values and any configuration changes made by the operator are checked against the type information before they are accepted.</p>
-
-<p>Apart from the ini file format, Java properties and XML files are also supported. The configuration management verifies that the XML file either conforms to a specific XML schema or is well-formed, before it is accepted. Lastly, all other configuration files that are not parsed by the configuration management are marked as &ldquo;unmanaged&rdquo; and the entire content of such a file is stored under a single key in the key-value store in Consul.</p>
-
-<p>Next, let&rsquo;s review an example scenario where an operator wants to modify a configuration of a specific service. The individual steps are depicted in the diagram above:</p>
-
-<ol>
-<li><p>Using the CCT command-line client, the operator obtains a list of configuration files for a specific service managed by CCS. The operator uses CCT to edit the selected configuration file. CCT fetches all the data from CCS that are required to recreate the configuration file and presents it to the operator for editing (for example by opening the file in the operator&rsquo;s favorite editor).</p></li>
-<li><p>After the operator made changes to the configuration file, the CCT parses the file to find out which values have been modified. The modified values are checked for corectness by CCT before they are saved in CCS.</p></li>
-<li><p>Upon request, CCT fetches the configuration data from CCS in order to use it in the next step.</p></li>
-<li><p>CCT syncs up the configuration files on the local filesystem with the data fetched from CCS.</p></li>
-<li><p>The new configuration takes effect after the respective service has been restarted by the operator.</p></li>
-</ol>
-
-
-<p>Overall, CCS is a single source of truth for the application configuration. This is in contrast with the confd or consul-template approach where the configuration values are stored in the backend while the templates are stored on the filesystem. When a new release of the application is deployed, having all configuration data in one place makes the upgrade of the configuration data easier.</p>
-
-<h2>Future directions</h2>
-
-<p>It was important to us to introduce the centralized configuration management into our existing application without breaking the existing operational workflows. For example, operators should be able to edit the configuration files as they did in the previous versions of our application. Also, as the configuration files are written to the filesystem, the existing services continue to work without any modification from the previous versions. Hence the centralized configuration management can be deployed as a truly optional component on top of the existing application.</p>
-
-<p>In the future, when some of our services will be deployed as (Lambda) functions in the serverless environment, those services will need to fetch their configuration by directly contacting CCS. However, nothing will change from the operator&rsquo;s standpoint. The operator will continue editing configuration files even when those won&rsquo;t exist on any filesystem anymore.</p>
-
-<p>Do you use confd or consul-template to configure your application? Or did you build your own centralized configuration management? I would like to hear your comments. Feel free to use the comment section below.</p>
 ]]></content>
   </entry>
 
