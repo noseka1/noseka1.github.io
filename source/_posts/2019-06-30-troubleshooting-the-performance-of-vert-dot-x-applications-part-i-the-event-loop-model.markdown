@@ -46,7 +46,7 @@ The increased utilization of computing resources resulting in increased performa
 
 The whole purpose of the event loop is to react to events which are delivered to the event loop by the operating system. Event loop processes those events by executing handlers. To explain how the event loop operates, let's imagine a typical HTTP server application serving multiple client connections at the same time. There's data being sent back and forth between the server and the client on each of the connections. And here is how the event loop handles it. First, the event loop waits for any of the events like incoming data available on the connection, or connection is ready to send more data. If any of those events happens, the event loop executes handlers that were registered to handle that specific event. For example, if there is incoming data available, the event loop calls the respective handler that stores the incoming data into a buffer and passes that buffer through a chain of handlers to your handler to process it. Handlers registered with a given event loop are executed one by one because the event loop is a single thread after all. After the processing of the event is finished, event loop returns back to wait for the next event.
 
-{% img center /images/posts/vertx_event_loop.svg %}
+{% img center /images/posts/vertx_event_loop.png %}
 
 I would like to highlight that the event loop is a single thread that executes the handlers sequentially. In order for this scheme to work smoothly:
 
