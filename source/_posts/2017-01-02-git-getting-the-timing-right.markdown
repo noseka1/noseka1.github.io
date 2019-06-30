@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Git - Getting the Timing Right"
+title: "Git &mdash; Getting the Timing Right"
 date: 2017-01-02 16:50:48 -0800
 comments: true
 categories: development

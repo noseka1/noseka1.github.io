@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Evaluating Application Metrics Solutions - Prometheus?"
+title: "Evaluating Application Metrics Solutions &mdash; Prometheus?"
 date: 2017-09-10 16:17:49 -0700
 comments: true
 categories: cloud devops development
