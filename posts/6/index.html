@@ -9,7 +9,7 @@
   <meta name="author" content="Ales Nosek">
 
 
-  <meta name="description" content="Do you like Docker technology and want to learn more about it? There&rsquo;s no better way to learn than reading the source code. In this article, we &hellip;">
+  <meta name="description" content="Update 3/31/2016: The implementation of the ini_file module described in this blogpost has been merged into Ansible version 2.0. For editing Windows &hellip;">
 
 
   <!-- http://t.co/dKP3o1e -->
@@ -79,6 +79,42 @@
     <div id="content">
       <div class="blog-index">
 
+
+
+    <article>
+
+  <header>
+
+      <h1 class="entry-title"><a href="/blog/2015/08/03/improving-ansibles-ini-file-module/">Improving Ansible&#8217;s ini_file Module</a></h1>
+
+
+      <p class="meta">
+
+
+
+
+
+<time class='entry-date' datetime='2015-08-03T20:01:30-07:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>3</span><span class='date-suffix'>rd</span>, <span class='date-year'>2015</span></span> <span class='time'>8:01 pm</span></time>
+
+      </p>
+
+  </header>
+
+
+  <div class="entry-content"><p><strong> Update 3/31/2016: </strong> The implementation of the ini_file module described in this blogpost has been merged into Ansible version 2.0.</p>
+
+<p>For editing Windows INI files, Ansible comes with an <code>ini_file</code> module built in. Unfortunately, this module uses Python&rsquo;s <code>ConfigParser</code> module which reformats the entire INI file whenever you want to change a single line. It removes all the comment lines, too. For me this was not acceptable. After looking for a possible solution I decided to improve the <code>ini_file</code> module and created <code>ini_file2</code>. I realized how easy it is to create an Ansible module.</p>
+
+</div>
+
+
+    <footer>
+      <a rel="full-article" href="/blog/2015/08/03/improving-ansibles-ini-file-module/">Read on &rarr;</a>
+    </footer>
+
+
+
+    </article>
 
 
     <article>
@@ -386,40 +422,6 @@
 
     </article>
 
-
-    <article>
-
-  <header>
-
-      <h1 class="entry-title"><a href="/blog/2015/05/11/java-logging-quick-reference/">Java Logging Quick Reference</a></h1>
-
-
-      <p class="meta">
-
-
-
-
-
-<time class='entry-date' datetime='2015-05-11T00:13:09-07:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>11</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>12:13 am</span></time>
-
-      </p>
-
-  </header>
-
-
-  <div class="entry-content"><p>The Simple Logging Facade for Java (SLF4J) serves as a simple abstraction for various logging frameworks. Let&rsquo;s look at how to configure SLF4J to work with SLF4J Simple logger, JDK 1.4 logger, Log4j, Logback and Log4j2 framework.</p>
-
-</div>
-
-
-    <footer>
-      <a rel="full-article" href="/blog/2015/05/11/java-logging-quick-reference/">Read on &rarr;</a>
-    </footer>
-
-
-
-    </article>
-
   <div class="pagination">
 
       <a class="prev" href="/posts/7">&larr; Older</a>
@@ -437,6 +439,10 @@
   <ul id="recent_posts">
 
       <li class="post">
+        <a href="/blog/2019/07/08/installing-openshift-4-dot-1-using-libvirt-and-kvm/">Installing OpenShift 4.1 Using Libvirt and KVM</a>
+      </li>
+
+      <li class="post">
         <a href="/blog/2019/06/30/troubleshooting-the-performance-of-vert-dot-x-applications-part-i-the-event-loop-model/">Troubleshooting the Performance of Vert.x Applications, Part I &mdash; The Event Loop Model</a>
       </li>
 
@@ -450,10 +456,6 @@
 
       <li class="post">
         <a href="/blog/2019/01/25/comparing-openapi-with-grpc/">Comparing OpenAPI with gRPC</a>
-      </li>
-
-      <li class="post">
-        <a href="/blog/2018/12/28/tips-for-passing-the-red-hat-certified-specialist-in-gluster-storage-administration-exam/">Tips for Passing the Red Hat Certified Specialist in Gluster Storage Administration Exam</a>
       </li>
 
   </ul>
