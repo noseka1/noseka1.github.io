@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "TripleO Installer - the Good, the Bad and the Ugly"
+title: "TripleO Installer &mdash; The Good, the Bad and the Ugly"
 date: 2016-03-27 19:39:15 -0700
 comments: true
 categories: cloud
