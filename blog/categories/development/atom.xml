@@ -4,7 +4,7 @@
   <title><![CDATA[Category: development | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/development/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2019-07-22T14:27:37-07:00</updated>
+  <updated>2019-07-22T14:30:22-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -358,7 +358,7 @@
 
 <h2>Conclusion</h2>
 
-<p>In this article, we familiarized ourselves with the event loop model which is rather different from the thread-per-request model. The next part in the series will cover techniques to prevent delays on the event loop.</p>
+<p>In this article, we familiarized ourselves with the event loop model which is rather different from the thread-per-request model. The <a href="/blog/2019/07/22/troubleshooting-the-performance-of-vert-dot-x-applications-preventing-event-loop-delays/">next part</a> in the series will cover techniques to prevent delays on the event loop.</p>
 
 <p>Comment below if you found this article helpful or if you have suggestions for future blog subjects.</p>
 ]]></content>
