@@ -83,6 +83,6 @@ Interestingly, while blocking in the `epoll_wait` system call, from the Java sta
 
 ## Conclusion
 
-In this article, we familiarized ourselves with the event loop model which is rather different from the thread-per-request model. The next part in the series will cover techniques to prevent delays on the event loop.
+In this article, we familiarized ourselves with the event loop model which is rather different from the thread-per-request model. The [next part](/blog/2019/07/22/troubleshooting-the-performance-of-vert-dot-x-applications-preventing-event-loop-delays/) in the series will cover techniques to prevent delays on the event loop.
 
 Comment below if you found this article helpful or if you have suggestions for future blog subjects.
