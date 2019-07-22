@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>http://alesnosek.com/blog/2019/07/22/troubleshooting-the-performance-of-vert-dot-x-applications-preventing-event-loop-delays/</loc>
+    <lastmod>2019-07-22T11:15:42-07:00</lastmod>
+  </url>
+  <url>
     <loc>http://alesnosek.com/blog/2019/07/08/installing-openshift-4-dot-1-using-libvirt-and-kvm/</loc>
     <lastmod>2019-07-08T11:53:54-07:00</lastmod>
   </url>
@@ -285,5 +289,23 @@
   </url>
   <url>
     <loc>http://alesnosek.com/blog/categories/design/</loc>
+  </url>
+  <url>
+    <loc>http://alesnosek.com/posts/2/</loc>
+  </url>
+  <url>
+    <loc>http://alesnosek.com/posts/3/</loc>
+  </url>
+  <url>
+    <loc>http://alesnosek.com/posts/4/</loc>
+  </url>
+  <url>
+    <loc>http://alesnosek.com/posts/5/</loc>
+  </url>
+  <url>
+    <loc>http://alesnosek.com/posts/6/</loc>
+  </url>
+  <url>
+    <loc>http://alesnosek.com/posts/7/</loc>
   </url>
 </urlset>

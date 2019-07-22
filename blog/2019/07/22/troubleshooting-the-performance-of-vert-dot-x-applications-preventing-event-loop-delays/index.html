@@ -1,0 +1,479 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Troubleshooting the Performance of Vert.x Applications, Part II &mdash; Preventing Event Loop Delays - Ales Nosek - The Software Practitioner</title>
+  <meta name="author" content="Ales Nosek">
+
+
+  <meta name="description" content="In the previous part of the series, we took a closer look at the event loop model. In this article, we are going to discuss several techniques that &hellip;">
+
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <link rel="canonical" href="http://alesnosek.com/blog/2019/07/22/troubleshooting-the-performance-of-vert-dot-x-applications-preventing-event-loop-delays/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/stylesheets/data-table.css" media="screen, projection" rel="stylesheet" type="text/css" />
+  <link href="/atom.xml" rel="alternate" title="Ales Nosek - The Software Practitioner" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-61965164-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <img src="/images/computers.png" align="right">
+  <h1><a href="/">Ales Nosek - The Software Practitioner</a></h1>
+
+    <h2>Practicing to make software perfect.</h2>
+
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+
+</ul>
+
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="alesnosek.com">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+
+  <header>
+
+      <h1 class="entry-title">Troubleshooting the Performance of Vert.x Applications, Part II &mdash; Preventing Event Loop Delays</h1>
+
+
+      <p class="meta">
+
+
+
+
+
+<time class='entry-date' datetime='2019-07-22T11:15:42-07:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>22</span><span class='date-suffix'>nd</span>, <span class='date-year'>2019</span></span> <span class='time'>11:15 am</span></time>
+
+      </p>
+
+  </header>
+
+
+<div class="entry-content"><p>In the <a href="/blog/2019/06/30/troubleshooting-the-performance-of-vert-dot-x-applications-part-i-the-event-loop-model/">previous part</a> of the series, we took a closer look at the event loop model. In this article, we are going to discuss several techniques that help you to prevent event loop delays.</p>
+
+<!-- more -->
+
+
+<p>The causes of event loop delays can be divided into two categories. The first category contains event loop delays caused by a handler calling a blocking API. The second category covers delays caused by a handler code taking a great amount of CPU time to complete. Let&rsquo;s start with the first category and talk about blocking API calls.</p>
+
+<h2>Working with blocking APIs</h2>
+
+<p>Calling a blocking API on the event loop thread is especially hurtful for the performance of your application and you should avoid it at all cost. When you call a blocking API from the event loop thread, the event loop thread will be put to sleep, i.e. it will relinquish the CPU. The duration of the sleep can be rather long in comparison to how much work the event loop thread could have accomplished if it would remain executing on the CPU. This is going to result in a serious decrease of the throughput of your application. In addition to impacting the throughput, the latency of your application is going to raise, too. Because as the event loop thread is sleeping no processing is taking place and so all the outstanding work is going to be pushed back by the duration of the sleep.</p>
+
+<p>Common examples of blocking APIs that you should not call from the event loop thread are:</p>
+
+<ul>
+<li>&ldquo;Old&rdquo; Java  I/O APIs found in the <code>java.io</code> package</li>
+<li>JDBC APIs</li>
+<li>Locking APIs in the <code>java.util.concurrent.locks</code> package</li>
+<li>Using <code>synchronized</code> keyword in your code</li>
+<li>Other blocking APIs</li>
+</ul>
+
+
+<p>You should also check the various third-party libraries you may be using to ensure that their APIs are non-blocking. Sometimes the differences can be really subtle. For example, if you are using <a href="https://logging.apache.org/log4j/2.x/">Apache Log4j 2</a> library for logging, you may want to configure it to use <a href="https://logging.apache.org/log4j/log4j-2.0/manual/async.html">asynchronous loggers</a> when logging from the event loop.</p>
+
+<p>There are situations where you cannot avoid using blocking APIs. A typical example is when a third-party library you want to use provides only blocking APIs. As there is no way how to execute a blocking API on the event loop thread without putting this thread to sleep, your only option in Vert.x is to offload the blocking calls to a worker thread. I am going to show you two techniques how you can accomplish this.</p>
+
+<p>The first technique is straight forward. It leverages the <code>executeBlocking</code> method provided by Vert.x. In the following example, the event loop thread schedules a <code>blockingCodeHandler</code> to run on a worker thread by calling the <code>vertx.executeBlocking()</code> method. After the execution of the <code>blockingCodeHandler</code> is complete, the <code>resultHandler</code> will be executed  on the event loop thread that made the original <code>vertx.executeBlocking()</code> call:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">class</span> <span class="nc">ExecuteBlockingExample</span> <span class="kd">extends</span> <span class="n">AbstractVerticle</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nd">@Override</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">start</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>      <span class="c1">// on the event loop thread</span>
+</span><span class='line'>      <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;Calling from &quot;</span> <span class="o">+</span> <span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">().</span><span class="na">getName</span><span class="o">());</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="n">Handler</span><span class="o">&lt;</span><span class="n">Future</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;&gt;</span> <span class="n">blockingCodeHandler</span> <span class="o">=</span> <span class="n">future</span> <span class="o">-&gt;</span> <span class="o">{</span>
+</span><span class='line'>          <span class="c1">// executed on a worker thread</span>
+</span><span class='line'>          <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;Work executed on &quot;</span> <span class="o">+</span> <span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">().</span><span class="na">getName</span><span class="o">());</span>
+</span><span class='line'>          <span class="n">future</span><span class="o">.</span><span class="na">complete</span><span class="o">(</span><span class="s">&quot;OK&quot;</span><span class="o">);</span>
+</span><span class='line'>      <span class="o">};</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="n">Handler</span><span class="o">&lt;</span><span class="n">AsyncResult</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;&gt;</span> <span class="n">resultHandler</span> <span class="o">=</span> <span class="n">result</span> <span class="o">-&gt;</span> <span class="o">{</span>
+</span><span class='line'>          <span class="c1">// back on the calling event loop thread</span>
+</span><span class='line'>          <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;Result &#39;&quot;</span> <span class="o">+</span> <span class="n">result</span><span class="o">.</span><span class="na">result</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot;&#39; received on &quot;</span> <span class="o">+</span> <span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">().</span><span class="na">getName</span><span class="o">());</span>
+</span><span class='line'>      <span class="o">};</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="n">vertx</span><span class="o">.</span><span class="na">executeBlocking</span><span class="o">(</span><span class="n">blockingCodeHandler</span><span class="o">,</span> <span class="n">resultHandler</span><span class="o">);</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>After running the example code, you will see the following output:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">Calling</span> <span class="n">from</span> <span class="n">vert</span><span class="o">.</span><span class="na">x</span><span class="o">-</span><span class="n">eventloop</span><span class="o">-</span><span class="n">thread</span><span class="o">-</span><span class="mi">0</span>
+</span><span class='line'><span class="n">Work</span> <span class="n">executed</span> <span class="n">on</span> <span class="n">vert</span><span class="o">.</span><span class="na">x</span><span class="o">-</span><span class="n">worker</span><span class="o">-</span><span class="n">thread</span><span class="o">-</span><span class="mi">0</span>
+</span><span class='line'><span class="n">Result</span> <span class="err">&#39;</span><span class="n">OK</span><span class="err">&#39;</span> <span class="n">received</span> <span class="n">on</span> <span class="n">vert</span><span class="o">.</span><span class="na">x</span><span class="o">-</span><span class="n">eventloop</span><span class="o">-</span><span class="n">thread</span><span class="o">-</span><span class="mi">0</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The second technique for offloading the blocking API calls to a worker thread is a bit more involved. We are going to deploy a worker verticle and send it the work as a message using the event bus. After the worker thread completes the work it will reply sending the result back to us.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">vertx</span><span class="o">.</span><span class="na">deployVerticle</span><span class="o">(</span><span class="k">new</span> <span class="nf">AbstractVerticle</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>  <span class="nd">@Override</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">start</span><span class="o">(</span><span class="n">Future</span><span class="o">&lt;</span><span class="n">Void</span><span class="o">&gt;</span> <span class="n">startFuture</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="c1">// work handler</span>
+</span><span class='line'>      <span class="n">Handler</span><span class="o">&lt;</span><span class="n">Message</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;&gt;</span> <span class="n">handler</span> <span class="o">=</span> <span class="n">message</span> <span class="o">-&gt;</span> <span class="o">{</span>
+</span><span class='line'>          <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;Received message on &quot;</span> <span class="o">+</span> <span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">().</span><span class="na">getName</span><span class="o">());</span>
+</span><span class='line'>
+</span><span class='line'>          <span class="c1">// do work</span>
+</span><span class='line'>          <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;Working ...&quot;</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>          <span class="n">message</span><span class="o">.</span><span class="na">reply</span><span class="o">(</span><span class="s">&quot;OK&quot;</span><span class="o">);</span>
+</span><span class='line'>      <span class="o">};</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="c1">// wait for work</span>
+</span><span class='line'>      <span class="n">vertx</span><span class="o">.</span><span class="na">eventBus</span><span class="o">().</span><span class="na">consumer</span><span class="o">(</span><span class="s">&quot;worker&quot;</span><span class="o">,</span> <span class="n">handler</span><span class="o">).</span><span class="na">completionHandler</span><span class="o">(</span><span class="n">r</span> <span class="o">-&gt;</span> <span class="o">{</span>
+</span><span class='line'>          <span class="n">startFuture</span><span class="o">.</span><span class="na">complete</span><span class="o">();</span>
+</span><span class='line'>      <span class="o">});</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'><span class="o">},</span> <span class="k">new</span> <span class="nf">DeploymentOptions</span><span class="o">().</span><span class="na">setWorker</span><span class="o">(</span><span class="kc">true</span><span class="o">));</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">vertx</span><span class="o">.</span><span class="na">deployVerticle</span><span class="o">(</span><span class="k">new</span> <span class="nf">AbstractVerticle</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>  <span class="nd">@Override</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">start</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="c1">// reply handler</span>
+</span><span class='line'>      <span class="n">Handler</span><span class="o">&lt;</span><span class="n">AsyncResult</span><span class="o">&lt;</span><span class="n">Message</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;&gt;&gt;</span> <span class="n">replyHandler</span> <span class="o">=</span> <span class="n">message</span> <span class="o">-&gt;</span> <span class="o">{</span>
+</span><span class='line'>          <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span>
+</span><span class='line'>              <span class="s">&quot;Received reply &#39;&quot;</span> <span class="o">+</span> <span class="n">message</span><span class="o">.</span><span class="na">result</span><span class="o">().</span><span class="na">body</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot;&#39; on &quot;</span> <span class="o">+</span> <span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">().</span><span class="na">getName</span><span class="o">());</span>
+</span><span class='line'>      <span class="o">};</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="c1">// dispatch work</span>
+</span><span class='line'>      <span class="n">vertx</span><span class="o">.</span><span class="na">eventBus</span><span class="o">().</span><span class="na">send</span><span class="o">(</span><span class="s">&quot;worker&quot;</span><span class="o">,</span> <span class="s">&quot;request&quot;</span><span class="o">,</span> <span class="n">replyHandler</span><span class="o">);</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'><span class="o">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>After running the above code  you will receive the following output:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>Received message on vert.x-worker-thread-1
+</span><span class='line'>Working ...
+</span><span class='line'>Received reply <span class="s1">&#39;OK&#39;</span> on vert.x-eventloop-thread-0
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Executing compute intensive tasks</h2>
+
+<p>What is a compute intensive task? It is a task that makes heavy use of CPU and memory. Common examples of compute intensive tasks are parsing, encryption, compression and others. Executing compute intensive task within the event loop handler doesn&rsquo;t affect the throughput of your application because the event loop thread is busy doing useful work which would need to be done anyway. However, as the event loop thread is kept busy, other handlers on the event loop will be processed with a delay. How can we improve the situation and allow other handlers to be processed in a timely fashion?</p>
+
+<p>Let&rsquo;s assume that you are able to chunk up the compute intensive task into several chunks. Then instead of running the entire compute intensive task at once:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">workChunk1</span><span class="o">();</span>
+</span><span class='line'><span class="n">workChunk2</span><span class="o">();</span>
+</span><span class='line'><span class="n">workChunk3</span><span class="o">();</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You can distribute the execution of individual chunks in time allowing the event loop to process other handlers in between. In the following example, we are creating pauses of 100 milliseconds between the work chunks to allow the event loop to interleave other handlers:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kt">long</span> <span class="n">delay</span> <span class="o">=</span> <span class="mi">100</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">workChunk1</span><span class="o">();</span>
+</span><span class='line'><span class="n">vertx</span><span class="o">.</span><span class="na">setTimer</span><span class="o">(</span><span class="n">delay</span><span class="o">,</span> <span class="n">timerId</span> <span class="o">-&gt;</span> <span class="o">{</span>
+</span><span class='line'>  <span class="n">workChunk2</span><span class="o">();</span>
+</span><span class='line'>  <span class="n">vertx</span><span class="o">.</span><span class="na">setTimer</span><span class="o">(</span><span class="n">delay</span><span class="o">,</span> <span class="n">timerId2</span> <span class="o">-&gt;</span> <span class="o">{</span>
+</span><span class='line'>      <span class="n">workChunk3</span><span class="o">();</span>
+</span><span class='line'>  <span class="o">});</span>
+</span><span class='line'><span class="o">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You may encounter scenarios where you won&rsquo;t be able to chunk up the compute intensive task. For example, the compute intensive task&rsquo;s code is contained within a third-party library and executes all at once. In this case, you will have to defer to running this task on a worker thread and incur the cost of context switching. The operating system scheduler will periodically preempt the compute intensive task to prevent it from hogging the CPU and giving your event loop threads a chance to run.</p>
+
+<h2>Conclusion</h2>
+
+<p>In this article, we discussed how to work with blocking APIs in Vert.x. A blocking API call has to be made on a worker thread and not on an event loop thread. Futhermore, we described a technique that allows you to execute compute intensive tasks on the event loop without considerably delaying the processing of other tasks on the same event loop.</p>
+
+<p>If you have any comments or questions please feel free to use the comment section below. In the final article in the series we will cover some techniques for troubleshooting event loop delays.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+
+
+
+<span class="byline author vcard">Posted by <span class="fn">Ales Nosek</span></span>
+
+
+
+
+
+
+<time class='entry-date' datetime='2019-07-22T11:15:42-07:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>22</span><span class='date-suffix'>nd</span>, <span class='date-year'>2019</span></span> <span class='time'>11:15 am</span></time>
+
+
+<span class="categories">
+
+    <a class='category' href='/blog/categories/development/'>development</a>
+
+</span>
+
+
+    </p>
+
+      <div class="sharing">
+
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://alesnosek.com/blog/2019/07/22/troubleshooting-the-performance-of-vert-dot-x-applications-preventing-event-loop-delays/" data-via="" data-counturl="http://alesnosek.com/blog/2019/07/22/troubleshooting-the-performance-of-vert-dot-x-applications-preventing-event-loop-delays/" >Tweet</a>
+
+
+  <div class="g-plusone" data-size="medium"></div>
+
+
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+
+</div>
+
+
+    <p class="meta">
+
+        <a class="basic-alignment left" href="/blog/2019/07/08/installing-openshift-4-dot-1-using-libvirt-and-kvm/" title="Previous Post: Installing OpenShift 4.1 Using Libvirt and KVM">&laquo; Installing OpenShift 4.1 Using Libvirt and KVM</a>
+
+
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+
+      <li class="post">
+        <a href="/blog/2019/07/22/troubleshooting-the-performance-of-vert-dot-x-applications-preventing-event-loop-delays/">Troubleshooting the Performance of Vert.x Applications, Part II &mdash; Preventing Event Loop Delays</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2019/07/08/installing-openshift-4-dot-1-using-libvirt-and-kvm/">Installing OpenShift 4.1 Using Libvirt and KVM</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2019/06/30/troubleshooting-the-performance-of-vert-dot-x-applications-part-i-the-event-loop-model/">Troubleshooting the Performance of Vert.x Applications, Part I &mdash; The Event Loop Model</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2019/04/21/speaking-at-red-hat-summit-2019/">Speaking at Red Hat Summit 2019</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2019/02/26/remote-debugging-of-java-applications-on-openshift/">Remote Debugging of Java Applications on OpenShift</a>
+      </li>
+
+  </ul>
+</section>
+<section>
+  <h1>About Me</h1>
+  <script type="text/javascript" src="https://platform.linkedin.com/badges/js/profile.js" async defer></script>
+  <div class="LI-profile-badge"  data-version="v1" data-size="medium" data-locale="en_US" data-type="vertical" data-theme="light" data-vanity="alesnosek"><a class="LI-simple-link" href='https://www.linkedin.com/in/alesnosek?trk=profile-badge'>Ales Nosek</a></div>
+</section>
+
+
+
+
+
+
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2019 - Ales Nosek -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'alesnosekcom';
+
+
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://alesnosek.com/blog/2019/07/22/troubleshooting-the-performance-of-vert-dot-x-applications-preventing-event-loop-delays/';
+        var disqus_url = 'http://alesnosek.com/blog/2019/07/22/troubleshooting-the-performance-of-vert-dot-x-applications-preventing-event-loop-delays/';
+        var disqus_script = 'embed.js';
+
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
