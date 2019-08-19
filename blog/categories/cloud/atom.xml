@@ -4,15 +4,189 @@
   <title><![CDATA[Category: cloud | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/cloud/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2019-08-07T08:31:44-07:00</updated>
+  <updated>2019-08-19T11:13:58-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
-    
+
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
-  
+
+  <entry>
+    <title type="html"><![CDATA[Configuring Envoy to Auto-Discover Pods on Kubernetes]]></title>
+    <link href="http://alesnosek.com/blog/2019/08/19/configuring-envoy-to-audo-discover-pods-on-kubernetes/"/>
+    <updated>2019-08-19T11:04:51-07:00</updated>
+    <id>http://alesnosek.com/blog/2019/08/19/configuring-envoy-to-audo-discover-pods-on-kubernetes</id>
+    <content type="html"><![CDATA[<p>Pods on Kubernetes are ephemeral and can be created and destroyed at any time. In order for Envoy to load balance the traffic across pods, Envoy needs to be able to track the IP addresses of the pods over time. In this blog post, I am going to show you how to leverage Envoy&rsquo;s Strict DNS discovery in combination with a headless service in Kubernetes to accomplish this.</p>
+
+<!-- more -->
+
+
+<h2>Overview</h2>
+
+<p>Envoy provides several <a href="https://www.envoyproxy.io/docs/envoy/v1.10.0/intro/arch_overview/service_discovery">options</a> on how to discover back-end servers. When using the <a href="https://www.envoyproxy.io/docs/envoy/v1.10.0/intro/arch_overview/service_discovery#strict-dns">Strict DNS</a> option,  Envoy will periodically query a specified DNS name. If there are multiple IP addresses included in the response to Envoy&rsquo;s query, each returned IP address will be considered a back-end server. Envoy will load balance the inbound traffic across all of them.</p>
+
+<p>How to configure a DNS server to return multiple IP addresses to Envoy? Kubernetes comes with a <a href="https://kubernetes.io/docs/concepts/services-networking/service/">Service</a> object which, roughly speaking, provides two functions. It can create a single DNS name for a group of pods for discovery and it can load balance the traffic across those pods. We are not interested in the load balancing feature as we aim to use Envoy for that. However, we can make a good use of the discovery mechanism. The Service configuration we are looking for is called a <a href="https://kubernetes.io/docs/concepts/services-networking/service/#headless-services">headless service</a> with selectors.</p>
+
+<p>The diagram below depicts how to configure Envoy to auto-discover pods on Kubernetes. We are combining Envoy&rsquo;s Strict DNS service discovery with a headless service in Kubernetes:</p>
+
+<p><img class="center" src="/images/posts/envoy_auto_discovery.png"></p>
+
+<h2>Practical implementation</h2>
+
+<p>To put this configuration into practice, I used <a href="https://www.okd.io/minishift/">Minishift</a> 3.11 which is a variant of Minikube developed by Red Hat. First, I deployed two replicas of the httpd server on Kubernetes to play the role of back-end services. Next, I created a headless service using the following definition:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">apiVersion</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">v1</span>
+</span><span class='line'><span class="l-Scalar-Plain">kind</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Service</span>
+</span><span class='line'><span class="l-Scalar-Plain">metadata</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">httpd-discovery</span>
+</span><span class='line'><span class="l-Scalar-Plain">spec</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">clusterIP</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">None</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">ports</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">http</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">port</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">8080</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">selector</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">app</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">httpd</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">type</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">ClusterIP</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Note that we are explicitly specifying &ldquo;None&rdquo; for the cluster IP in the service definition. As a result, Kubernetes creates the respective Endpoints object containing the IP addresses of the discovered httpd pods:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>oc get endpoints
+</span><span class='line'>NAME              ENDPOINTS                                                        AGE
+</span><span class='line'>httpd-discovery   172.17.0.21:8080,172.17.0.22:8080                                30s
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p> If you ssh to one of the cluster nodes or rsh to any of the pods running on the cluster, you can verify that the DNS discovery is working:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>host httpd-discovery
+</span><span class='line'>httpd-discovery.mynamespace.svc.cluster.local has address 172.17.0.21
+</span><span class='line'>httpd-discovery.mynamespace.svc.cluster.local has address 172.17.0.22
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Next, I used the container image <code>docker.io/envoyproxy/envoy:v1.7.0</code> to create an Envoy proxy. I deployed the proxy into the same Kubernetes namespace called <code>mynamespace</code> where I created the headless service before. A minimum Envoy configuration that can accomplish our goal looks as follows:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">static_resources</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">listeners</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">listener_0</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">address</span><span class="p-Indicator">:</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">socket_address</span><span class="p-Indicator">:</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">protocol</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">TCP</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">address</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">0.0.0.0</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">port_value</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">10000</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">filter_chains</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">filters</span><span class="p-Indicator">:</span>
+</span><span class='line'>      <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">envoy.http_connection_manager</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">config</span><span class="p-Indicator">:</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">stat_prefix</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">ingress_http</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">route_config</span><span class="p-Indicator">:</span>
+</span><span class='line'>            <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">local_route</span>
+</span><span class='line'>            <span class="l-Scalar-Plain">virtual_hosts</span><span class="p-Indicator">:</span>
+</span><span class='line'>            <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">local_service</span>
+</span><span class='line'>              <span class="l-Scalar-Plain">domains</span><span class="p-Indicator">:</span> <span class="p-Indicator">[</span><span class="nl">&amp;ldquo</span><span class="nv">;*&amp;rdquo;</span><span class="p-Indicator">]</span>
+</span><span class='line'>              <span class="l-Scalar-Plain">routes</span><span class="p-Indicator">:</span>
+</span><span class='line'>              <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">match</span><span class="p-Indicator">:</span>
+</span><span class='line'>                  <span class="l-Scalar-Plain">prefix</span><span class="p-Indicator">:</span> <span class="nl">&amp;ldquo</span><span class="l-Scalar-Plain">;/&amp;rdquo;</span>
+</span><span class='line'>                <span class="l-Scalar-Plain">route</span><span class="p-Indicator">:</span>
+</span><span class='line'>                  <span class="l-Scalar-Plain">host_rewrite</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">httpd</span>
+</span><span class='line'>                  <span class="l-Scalar-Plain">cluster</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">httpd</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">http_filters</span><span class="p-Indicator">:</span>
+</span><span class='line'>          <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">envoy.router</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">clusters</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">httpd</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">connect_timeout</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">0.25s</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">type</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">STRICT_DNS</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">dns_lookup_family</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">V4_ONLY</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">lb_policy</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">ROUND_ROBIN</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">hosts</span><span class="p-Indicator">:</span>
+</span><span class='line'>      <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">socket_address</span><span class="p-Indicator">:</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">address</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">httpd-discovery</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">port_value</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">8080</span>
+</span><span class='line'><span class="l-Scalar-Plain">admin</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">access_log_path</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">/tmp/admin_access.log</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">address</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">socket_address</span><span class="p-Indicator">:</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">protocol</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">TCP</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">address</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">127.0.0.1</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">port_value</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">9901</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Note that in the above configuration,  I instructed Envoy to use the Strict DNS discovery and pointed it to the DNS name <code>httpd-discovery</code> that is managed by Kubernetes.</p>
+
+<p>That&rsquo;s all that was needed to be done! Envoy is load balancing the inbound traffic across the two httpd pods now. And if you create a third pod replica, Envoy is going to route the traffic to this replica as well.</p>
+
+<h2>Conclusion</h2>
+
+<p>In this article, I shared with you the idea of using Envoy&rsquo;s Strict DNS service discovery in combination with the headless service in Kubernetes to allow Envoy to auto-discover the back-end pods. While writing this article, I discovered this <a href="https://blog.markvincze.com/how-to-use-envoy-as-a-load-balancer-in-kubernetes/">blog post</a> by Mark Vincze that describes the same idea and you should take a look at it as well.</p>
+
+<p>This idea opens the door for you to utilize the advanced features of Envoy proxy in your microservices architecture. However, if you find yourself looking for a more complex solution down the road, I would suggest that you evaluate the <a href="https://istio.io/">Istio</a> project. Istio provides a control plane that can manage Envoy proxies for you achieving the so called service mesh.</p>
+
+<p>Hope you found this article useful. If you are using Envoy proxy on top of Kubernetes I would be happy to hear about your experiences. You can leave your comments in the comment section below.</p>
+]]></content>
+  </entry>
+
   <entry>
     <title type="html"><![CDATA[How I Achieved the AWS Associate Certifications]]></title>
     <link href="http://alesnosek.com/blog/2018/08/30/how-i-achieved-the-aws-associate-certifications/"/>
@@ -70,7 +244,7 @@
 <a href="https://www.certmetrics.com/amazon/public/badge.aspx?i=3&amp;t=c&amp;d=2018-08-28&amp;ci=AWS00414888"><img src="/images/posts/aws_certified_sysops_administrator_associate.png"></a></p>
 ]]></content>
   </entry>
-  
+
   <entry>
     <title type="html"><![CDATA[Booting Amazon Linux 2 on OpenStack]]></title>
     <link href="http://alesnosek.com/blog/2018/04/21/booting-amazon-linux-2-on-openstack/"/>
@@ -208,7 +382,7 @@
 <p>This is the end of the tutorial. You have a working Amazon Linux 2 image on OpenStack, congratulations! If you have any comments or questions, let me know in the comment section below.</p>
 ]]></content>
   </entry>
-  
+
   <entry>
     <title type="html"><![CDATA[18 Months with OpenStack, Our Experience, Part II]]></title>
     <link href="http://alesnosek.com/blog/2018/03/08/18-months-with-openstack-our-experience-part-ii/"/>
@@ -307,7 +481,7 @@
 <p>If you&rsquo;d like to share your experience with operating OpenStack, I would love to hear from you. Please, feel free to use the comment section below.</p>
 ]]></content>
   </entry>
-  
+
   <entry>
     <title type="html"><![CDATA[18 Months with OpenStack, Our Experience, Part I]]></title>
     <link href="http://alesnosek.com/blog/2018/02/19/18-months-with-openstack-our-experience-part-i/"/>
@@ -407,720 +581,5 @@
 <p>If you have battle scars from working with OpenStack, I would love to hear from you. Please, feel free to share your comments and stories in the comment section below.</p>
 ]]></content>
   </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Edge Security for Your Cloud Application, Part II]]></title>
-    <link href="http://alesnosek.com/blog/2018/01/12/edge-security-for-your-cloud-application-part-ii/"/>
-    <updated>2018-01-12T21:21:19-08:00</updated>
-    <id>http://alesnosek.com/blog/2018/01/12/edge-security-for-your-cloud-application-part-ii</id>
-    <content type="html"><![CDATA[<p>In this article, we&rsquo;re going to create a proof-of-concept deployment featuring a non-TLS client connecting to our cloud application. We are going to leverage the architecture approach discussed in the <a href="/blog/2018/01/10/edge-security-for-your-cloud-application-part-i">previous blog post</a>. A secure communication channel is going to be established between the client and the cloud application including mutual authentication.</p>
 
-<!-- more -->
-
-
-<h2>Deployment overview</h2>
-
-<p>Before we get our hands dirty, let&rsquo;s gain a better understanding of what we are trying to achieve. The diagram depicting our test deployment looks as follows:</p>
-
-<p><img src="/images/posts/edge_security_for_your_cloud_application_poc_arch.svg" width="1000" title="Architecture Overview" ></p>
-
-<p>We&rsquo;re going to spin up two virtual instances. The edge instance will host our edge service. The client instance will host the client that will be accessing our edge service. For the sake of POC, the edge service is going to be an Apache web server and we&rsquo;re going to use the curl command-line utility in place of the client. The battle-proven HAProxy is going to play the role of the client-side as well as the server-side proxy, securing the client-server communication.</p>
-
-<h2>Getting started</h2>
-
-<p>You can start off with creating two CentOS 7 instances in AWS. Choose a minimalist t2.micro instance type which is sufficient for our proof of concept. In the security groups settings, make sure that in addition to the SSH port you have also enabled access to port 443 (HTTPS) from anywhere.</p>
-
-<p>After the instances booted up, install HAProxy on both instances:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>yum install -y haproxy
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>And create a directory that will hold the keys and certificates required by HAProxy:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>mkdir /etc/haproxy/ssl
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Make sure that you run the above command on both instances, too.</p>
-
-<h2>PKI keys and certificates</h2>
-
-<p>We are going to leverage the TLS protocol to establish a secure, mutually authenticated connection between the two proxies. TLS relies on PKI keys and certificates that we&rsquo;ll need to generate. The PKI setup for our company consists of a root CA, a layer of subordinate CAs and three end-entity certificates.</p>
-
-<p><img src="/images/posts/edge_security_for_your_cloud_application_pki.svg" width="500" height="600" title="PKI" ></p>
-
-<p>It is a common practice to sign the end-entity certificates by one or more subordinate CAs as it prevents the necessity of revoking a root certificate in the case that an end-entity certificate is incorrectly issued or compromised.</p>
-
-<p>In total, we are going to generate three end-entity certificates. <code>Edge Service Certificate</code> is going to be used by the reverse proxy running on the edge instance in order to authenticate itself to the clients. <code>Customer1 Client Certificate</code> and <code>Customer2 Client Certificate</code> are certificates that our company securely distributes to the tenants (customers). Each tenant uses her certificate and the associated private key to authenticate herself when accessing the cloud application.</p>
-
-<p>A PKI certificate can be created in three steps:</p>
-
-<ol>
-<li>Generate a private key.</li>
-<li>Using the private key, generate a Certificate Signing Request (CSR).</li>
-<li>Using a CA certificate along with the respective private key and the CSR, generate the certificate.</li>
-</ol>
-
-
-<p>An exeption from this three-step procedure is the root certificate which is self-signed.</p>
-
-<p>In the following, we are going to generate seven certificates. All the commands are to be issued on the edge instance. Note that you can populate the certificate fields with pretty arbitrary values with one exception: the <code>Common Name</code> field of the end-entity certificates. <code>Common Name</code> of the <code>Edge Service Certificate</code> must match the DNS name of the edge instance. <code>Common Name</code> of the <code>Customer1 Client Certificate</code> and the <code>Customer2 Client Certificate</code> must match the HAProxy configuration. By inspecting the <code>Common Name</code> field, HAProxy is able to recognize which client is trying to access the cloud application and it is able to route the client request to the appropriate backend service.</p>
-
-<h3>Company RootCA certificate</h3>
-
-<p>Let&rsquo;s generate the company&rsquo;s greatest secret - the private key of the Company&rsquo;s RootCA:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openssl genrsa -out rootca.company.example.key.pem 4096
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>And create a self-signed RootCA certificate. Below you can see the sample input data:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;h2&gt;<span class="nv">$ </span>openssl req -key rootca.company.example.key.pem -new -x509 -extensions v3_ca -out rootca.company.example.crt.pem&lt;/h2&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;Country Name <span class="o">(</span><span class="m">2</span> letter code<span class="o">)</span> <span class="o">[</span>XX<span class="o">]</span>:US
-</span><span class='line'>State or Province Name <span class="o">(</span>full name<span class="o">)</span> <span class="o">[]</span>:CA
-</span><span class='line'>Locality Name <span class="o">(</span>eg, city<span class="o">)</span> <span class="o">[</span>Default City<span class="o">]</span>:San Diego
-</span><span class='line'>Organization Name <span class="o">(</span>eg, company<span class="o">)</span> <span class="o">[</span>Default Company Ltd<span class="o">]</span>:Company RootCA
-</span><span class='line'>Organizational Unit Name <span class="o">(</span>eg, section<span class="o">)</span> <span class="o">[]</span>:
-</span><span class='line'>Common Name <span class="o">(</span>eg, your name or your server<span class="p">&amp;</span>rsquo<span class="p">;</span>s hostname<span class="o">)</span> <span class="o">[]</span>:rootca.company.example
-</span><span class='line'>Email Address <span class="o">[]</span>:
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>For the sake of conciseness, I shortened the console output a bit. Note that we are adding the command-line option <code>-extensions v3_ca</code> to denote this certificate as a CA certificate. Otherwise, an end-entity certificate would have been generated by default.</p>
-
-<h3>Company SubCA certificate</h3>
-
-<p>Next, issue the command to generate the private key of the Company&rsquo;s SubCA:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openssl genrsa -out subca.company.example.key.pem 4096
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Using the private key, let&rsquo;s create a Certificate Signing Request:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;h2&gt;<span class="nv">$ </span>openssl req -new -key subca.company.example.key.pem -out subca.company.example.csr.pem&lt;/h2&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;Country Name <span class="o">(</span><span class="m">2</span> letter code<span class="o">)</span> <span class="o">[</span>XX<span class="o">]</span>:US
-</span><span class='line'>State or Province Name <span class="o">(</span>full name<span class="o">)</span> <span class="o">[]</span>:CA
-</span><span class='line'>Locality Name <span class="o">(</span>eg, city<span class="o">)</span> <span class="o">[</span>Default City<span class="o">]</span>:San Diego
-</span><span class='line'>Organization Name <span class="o">(</span>eg, company<span class="o">)</span> <span class="o">[</span>Default Company Ltd<span class="o">]</span>:Company SubCA
-</span><span class='line'>Organizational Unit Name <span class="o">(</span>eg, section<span class="o">)</span> <span class="o">[]</span>:
-</span><span class='line'>Common Name <span class="o">(</span>eg, your name or your server<span class="p">&amp;</span>rsquo<span class="p">;</span>s hostname<span class="o">)</span> <span class="o">[]</span>:subca.company.example
-</span><span class='line'>Email Address <span class="o">[]</span>:&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;Please enter the following <span class="p">&amp;</span>lsquo<span class="p">;</span>extra<span class="p">&amp;</span>rsquo<span class="p">;</span> attributes
-</span><span class='line'>to be sent with your certificate request
-</span><span class='line'>A challenge password <span class="o">[]</span>:
-</span><span class='line'>An optional company name <span class="o">[]</span>:
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>And finally, generate the certificate of the Company&rsquo;s SubCA:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openssl x509 -req -in subca.company.example.csr.pem -CA rootca.company.example.crt.pem -CAkey rootca.company.example.key.pem -CAcreateserial -extfile /etc/pki/tls/openssl.cnf -extensions v3_ca -out subca.company.example.crt.pem
-</span></code></pre></td></tr></table></div></figure></p>
-
-<h3>Customer1 SubCA certificate</h3>
-
-<p>Steps to generate the Customer1 SubCA certificate should be quite clear now:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openssl genrsa -out subca.customer1.example.key.pem 4096
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;h2&gt;<span class="nv">$ </span>openssl req -new -key subca.customer1.example.key.pem -out subca.customer1.example.csr.pem&lt;/h2&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;Country Name <span class="o">(</span><span class="m">2</span> letter code<span class="o">)</span> <span class="o">[</span>XX<span class="o">]</span>:US
-</span><span class='line'>State or Province Name <span class="o">(</span>full name<span class="o">)</span> <span class="o">[]</span>:CA
-</span><span class='line'>Locality Name <span class="o">(</span>eg, city<span class="o">)</span> <span class="o">[</span>Default City<span class="o">]</span>:San Diego
-</span><span class='line'>Organization Name <span class="o">(</span>eg, company<span class="o">)</span> <span class="o">[</span>Default Company Ltd<span class="o">]</span>:Customer1 SubCA
-</span><span class='line'>Organizational Unit Name <span class="o">(</span>eg, section<span class="o">)</span> <span class="o">[]</span>:
-</span><span class='line'>Common Name <span class="o">(</span>eg, your name or your server<span class="p">&amp;</span>rsquo<span class="p">;</span>s hostname<span class="o">)</span> <span class="o">[]</span>:subca.customer1.example
-</span><span class='line'>Email Address <span class="o">[]</span>:&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;Please enter the following <span class="p">&amp;</span>lsquo<span class="p">;</span>extra<span class="p">&amp;</span>rsquo<span class="p">;</span> attributes
-</span><span class='line'>to be sent with your certificate request
-</span><span class='line'>A challenge password <span class="o">[]</span>:
-</span><span class='line'>An optional company name <span class="o">[]</span>:
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openssl x509 -req -in subca.customer1.example.csr.pem -CA rootca.company.example.crt.pem -CAkey rootca.company.example.key.pem -CAserial rootca.srl -extfile /etc/pki/tls/openssl.cnf -extensions v3_ca -out subca.customer1.example.crt.pem
-</span></code></pre></td></tr></table></div></figure></p>
-
-<h3>Customer2 SubCA certificate</h3>
-
-<p>Analogicaly,  we are going to generate the Customer2 SubCA certificate:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openssl genrsa -out subca.customer2.example.key.pem 4096
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;h2&gt;<span class="nv">$ </span>openssl req -new -key subca.customer2.example.key.pem -out subca.customer2.example.csr.pem&lt;/h2&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;Country Name <span class="o">(</span><span class="m">2</span> letter code<span class="o">)</span> <span class="o">[</span>XX<span class="o">]</span>:US
-</span><span class='line'>State or Province Name <span class="o">(</span>full name<span class="o">)</span> <span class="o">[]</span>:CA
-</span><span class='line'>Locality Name <span class="o">(</span>eg, city<span class="o">)</span> <span class="o">[</span>Default City<span class="o">]</span>:San Diego
-</span><span class='line'>Organization Name <span class="o">(</span>eg, company<span class="o">)</span> <span class="o">[</span>Default Company Ltd<span class="o">]</span>:Customer2 SubCA
-</span><span class='line'>Organizational Unit Name <span class="o">(</span>eg, section<span class="o">)</span> <span class="o">[]</span>:
-</span><span class='line'>Common Name <span class="o">(</span>eg, your name or your server<span class="p">&amp;</span>rsquo<span class="p">;</span>s hostname<span class="o">)</span> <span class="o">[]</span>:subca.customer2.example
-</span><span class='line'>Email Address <span class="o">[]</span>:&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;Please enter the following <span class="p">&amp;</span>lsquo<span class="p">;</span>extra<span class="p">&amp;</span>rsquo<span class="p">;</span> attributes
-</span><span class='line'>to be sent with your certificate request
-</span><span class='line'>A challenge password <span class="o">[]</span>:
-</span><span class='line'>An optional company name <span class="o">[]</span>:
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openssl x509 -req -in subca.customer2.example.csr.pem -CA rootca.company.example.crt.pem -CAkey rootca.company.example.key.pem -CAserial rootca.srl -extfile /etc/pki/tls/openssl.cnf -extensions v3_ca -out subca.customer2.example.crt.pem
-</span></code></pre></td></tr></table></div></figure></p>
-
-<h3>Edge service certificate</h3>
-
-<p>This is the first out of the three end-entity certificates. First, we will generate the private key:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openssl genrsa -out app.company.example.key.pem 2048
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Next, we are going to create the CSR. Make sure you populate the <code>Common Name</code> field exactly as you can see below:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;h2&gt;<span class="nv">$ </span>openssl req -new -key app.company.example.key.pem -out app.company.example.csr.pem&lt;/h2&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;Country Name <span class="o">(</span><span class="m">2</span> letter code<span class="o">)</span> <span class="o">[</span>XX<span class="o">]</span>:US
-</span><span class='line'>State or Province Name <span class="o">(</span>full name<span class="o">)</span> <span class="o">[]</span>:CA
-</span><span class='line'>Locality Name <span class="o">(</span>eg, city<span class="o">)</span> <span class="o">[</span>Default City<span class="o">]</span>:San Diego
-</span><span class='line'>Organization Name <span class="o">(</span>eg, company<span class="o">)</span> <span class="o">[</span>Default Company Ltd<span class="o">]</span>:Company
-</span><span class='line'>Organizational Unit Name <span class="o">(</span>eg, section<span class="o">)</span> <span class="o">[]</span>:
-</span><span class='line'>Common Name <span class="o">(</span>eg, your name or your server<span class="p">&amp;</span>rsquo<span class="p">;</span>s hostname<span class="o">)</span> <span class="o">[]</span>:app.company.example
-</span><span class='line'>Email Address <span class="o">[]</span>:&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;Please enter the following <span class="p">&amp;</span>lsquo<span class="p">;</span>extra<span class="p">&amp;</span>rsquo<span class="p">;</span> attributes
-</span><span class='line'>to be sent with your certificate request
-</span><span class='line'>A challenge password <span class="o">[]</span>:
-</span><span class='line'>An optional company name <span class="o">[]</span>:
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>And finally, type this command to generate the certificate:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openssl x509 -req -in app.company.example.csr.pem -CA subca.company.example.crt.pem -CAkey subca.company.example.key.pem -CAcreateserial -out app.company.example.crt.pem
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Note that we didn&rsquo;t include the <code>-extensions v3_ca</code> option as we wanted to create an end-entity certificate.</p>
-
-<h3>Customer1 client certificate</h3>
-
-<p>Now we are going to create a certificate for our first customer.</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openssl genrsa -out customer1.example.key.pem 2048
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;h2&gt;<span class="nv">$ </span>openssl req -new -key customer1.example.key.pem -out customer1.example.csr.pem&lt;/h2&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;Country Name <span class="o">(</span><span class="m">2</span> letter code<span class="o">)</span> <span class="o">[</span>XX<span class="o">]</span>:US
-</span><span class='line'>State or Province Name <span class="o">(</span>full name<span class="o">)</span> <span class="o">[]</span>:MA
-</span><span class='line'>Locality Name <span class="o">(</span>eg, city<span class="o">)</span> <span class="o">[</span>Default City<span class="o">]</span>:Boston
-</span><span class='line'>Organization Name <span class="o">(</span>eg, company<span class="o">)</span> <span class="o">[</span>Default Company Ltd<span class="o">]</span>:Customer1
-</span><span class='line'>Organizational Unit Name <span class="o">(</span>eg, section<span class="o">)</span> <span class="o">[]</span>:
-</span><span class='line'>Common Name <span class="o">(</span>eg, your name or your server<span class="p">&amp;</span>rsquo<span class="p">;</span>s hostname<span class="o">)</span> <span class="o">[]</span>:customer1.example
-</span><span class='line'>Email Address <span class="o">[]</span>:&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;Please enter the following <span class="p">&amp;</span>lsquo<span class="p">;</span>extra<span class="p">&amp;</span>rsquo<span class="p">;</span> attributes
-</span><span class='line'>to be sent with your certificate request
-</span><span class='line'>A challenge password <span class="o">[]</span>:
-</span><span class='line'>An optional company name <span class="o">[]</span>:
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openssl x509 -req -in customer1.example.csr.pem -CA subca.customer1.example.crt.pem -CAkey subca.customer1.example.key.pem -CAcreateserial -out customer1.example.crt.pem
-</span></code></pre></td></tr></table></div></figure></p>
-
-<h3>Customer2 client certificate</h3>
-
-<p>And finally, we are going to create a certificate for our second customer.</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openssl genrsa -out customer2.example.key.pem 2048
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;h2&gt;<span class="nv">$ </span>openssl req -new -key customer2.example.key.pem -out customer2.example.csr.pem&lt;/h2&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;Country Name <span class="o">(</span><span class="m">2</span> letter code<span class="o">)</span> <span class="o">[</span>XX<span class="o">]</span>:US
-</span><span class='line'>State or Province Name <span class="o">(</span>full name<span class="o">)</span> <span class="o">[]</span>:TX
-</span><span class='line'>Locality Name <span class="o">(</span>eg, city<span class="o">)</span> <span class="o">[</span>Default City<span class="o">]</span>:Austin
-</span><span class='line'>Organization Name <span class="o">(</span>eg, company<span class="o">)</span> <span class="o">[</span>Default Company Ltd<span class="o">]</span>:Customer2
-</span><span class='line'>Organizational Unit Name <span class="o">(</span>eg, section<span class="o">)</span> <span class="o">[]</span>:
-</span><span class='line'>Common Name <span class="o">(</span>eg, your name or your server<span class="p">&amp;</span>rsquo<span class="p">;</span>s hostname<span class="o">)</span> <span class="o">[]</span>:customer2.example
-</span><span class='line'>Email Address <span class="o">[]</span>:&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;Please enter the following <span class="p">&amp;</span>lsquo<span class="p">;</span>extra<span class="p">&amp;</span>rsquo<span class="p">;</span> attributes
-</span><span class='line'>to be sent with your certificate request
-</span><span class='line'>A challenge password <span class="o">[]</span>:
-</span><span class='line'>An optional company name <span class="o">[]</span>:
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openssl x509 -req -in customer2.example.csr.pem -CA subca.customer2.example.crt.pem -CAkey subca.customer2.example.key.pem -CAcreateserial -out customer2.example.crt.pem
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>If everything went well, your working directory should contain a collection of PKI files similar to this list:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>ls -1
-</span><span class='line'>app.company.example.crt.pem
-</span><span class='line'>app.company.example.csr.pem
-</span><span class='line'>app.company.example.key.pem
-</span><span class='line'>customer1.example.crt.pem
-</span><span class='line'>customer1.example.csr.pem
-</span><span class='line'>customer1.example.key.pem
-</span><span class='line'>customer2.example.crt.pem
-</span><span class='line'>customer2.example.csr.pem
-</span><span class='line'>customer2.example.key.pem
-</span><span class='line'>rootca.company.example.crt.pem
-</span><span class='line'>rootca.company.example.key.pem
-</span><span class='line'>rootca.srl
-</span><span class='line'>subca.company.example.crt.pem
-</span><span class='line'>subca.company.example.csr.pem
-</span><span class='line'>subca.company.example.key.pem
-</span><span class='line'>subca.customer1.example.crt.pem
-</span><span class='line'>subca.customer1.example.csr.pem
-</span><span class='line'>subca.customer1.example.key.pem
-</span><span class='line'>subca.customer2.example.crt.pem
-</span><span class='line'>subca.customer2.example.csr.pem
-</span><span class='line'>subca.customer2.example.key.pem
-</span><span class='line'>subca.srl
-</span></code></pre></td></tr></table></div></figure></p>
-
-<h2>Installing the edge service</h2>
-
-<p>In our POC project, the role of the edge service will be played by the Apache server. To install the Apache server, issue the following command on the edge instance:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>yum install -y httpd
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>You can start the Apache server by typing:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>systemctl start httpd
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>The default static web page served by Apache is for our purposes a bit too long. Let&rsquo;s replace it with a simple, one line message:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span><span class="nb">echo</span> <span class="p">&amp;</span>lsquo<span class="p">;</span>It works!<span class="p">&amp;</span>rsquo<span class="p">;</span> &gt; /var/www/html/index.html
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>To verify that Apache was installed properly and is running, issue the command:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>curl localhost
-</span><span class='line'>It works!
-</span></code></pre></td></tr></table></div></figure></p>
-
-<h2>Configuring the reverse proxy on the edge instance</h2>
-
-<p>In this section, we are going to set up the reverse proxy on the edge instance. First, let&rsquo;s prepare two files which will be referred to from the HAProxy configuration. The file <code>app.crt</code> will include the edge service certificate along with the CA chain and the respective private key. It is used by HAProxy to authenticate itself to the clients. In the following sections, we will configure the client-side HAProxy to trust these certificates and hence verify that it is connecting to the correct service and not for example to a service of an attacker. To create the <code>app.crt</code> file, you can type:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>cat <span class="se">\</span>
-</span><span class='line'>app.company.example.crt.pem <span class="se">\</span>
-</span><span class='line'>subca.company.example.crt.pem <span class="se">\</span>
-</span><span class='line'>rootca.company.example.crt.pem <span class="se">\</span>
-</span><span class='line'>app.company.example.key.pem <span class="se">\&lt;</span>/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;blockquote&gt;&lt;p&gt;/etc/haproxy/ssl/app.crt
-</span></code></pre></td></tr></table></div></figure></p></blockquote>
-
-<p>The important task of the server-side HAProxy is to authenticate the incoming client connections. In our project, we are looking at two customers that should be allowed to access our application. For that, we&rsquo;re going to include the CA certificate chains of the two customers into the <code>customer-ca.crt</code> file:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>cat <span class="se">\</span>
-</span><span class='line'>subca.customer1.example.crt.pem <span class="se">\</span>
-</span><span class='line'>subca.customer2.example.crt.pem <span class="se">\</span>
-</span><span class='line'>rootca.company.example.crt.pem <span class="se">\&lt;</span>/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;blockquote&gt;&lt;p&gt;/etc/haproxy/ssl/customer-ca.crt
-</span></code></pre></td></tr></table></div></figure></p></blockquote>
-
-<p>As the last step in this section, we are going to configure HAProxy. You can open the HAProxy configuration file <code>/etc/haproxy/haproxy.cfg</code> in your favorite editor and replace its content with:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>global
-</span><span class='line'>  tune.ssl.default-dh-param 1024&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;defaults
-</span><span class='line'>  timeout client 30s
-</span><span class='line'>  timeout server 30s
-</span><span class='line'>  timeout connect 5s&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;frontend proxy
-</span><span class='line'>  <span class="nb">bind </span>0.0.0.0:443 ssl crt /etc/haproxy/ssl/app.crt ca-file /etc/haproxy/ssl/customer-ca.crt verify required
-</span><span class='line'>  mode http&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;  use_backend edge_customer1 <span class="k">if</span> <span class="o">{</span> ssl_c_s_dn<span class="o">(</span>cn<span class="o">)</span> -i customer1.example <span class="o">}</span>
-</span><span class='line'>  use_backend edge_customer2 <span class="k">if</span> <span class="o">{</span> ssl_c_s_dn<span class="o">(</span>cn<span class="o">)</span> -i customer2.example <span class="o">}</span>&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;backend edge_customer1
-</span><span class='line'>  mode http
-</span><span class='line'>  server customer1 127.0.0.1:80 check&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;backend edge_customer2
-</span><span class='line'>  mode http
-</span><span class='line'>  server customer2 127.0.0.1:80 check
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>This is a minimalist configuration file, good enough for our proof of concept. HAProxy is going to listen on port 443 for incoming TLS connections. It will present the edge service certificate to the clients. At the same time, it will only accept connections from the clients sending the Customer1 or Customer2 certificate. Based on the <code>Common Name</code> field of the client&rsquo;s certificate, HAProxy will forward the request to the respective backend. In our case, both customers will be served by the same service listening on 127.0.0.1:80, however, you can imagine that in the real scenario there would be two separate edge services perhaps running on two different machines.</p>
-
-<p>You can start the HAProxy service using the following command:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>systemctl restart haproxy
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Before moving on, check the HAProxy logs. If everything worked well, there should be no errors or warnings:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>journalctl -u haproxy -e
-</span></code></pre></td></tr></table></div></figure></p>
-
-<h2>Configuring the proxy on the client instance</h2>
-
-<p>In this section, we&rsquo;re going to turn our attention to the client instance. First, we&rsquo;ll need to copy some of the PKI keys and certificates from the edge instance to the client instance. I configured SSH between the two instances, so that I can issue the following command on the edge instance to copy the files to the client instance:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>scp <span class="se">\</span>
-</span><span class='line'>customer1.example.crt.pem <span class="se">\</span>
-</span><span class='line'>customer1.example.key.pem <span class="se">\</span>
-</span><span class='line'>customer2.example.crt.pem <span class="se">\</span>
-</span><span class='line'>customer2.example.key.pem <span class="se">\</span>
-</span><span class='line'>subca.company.example.crt.pem <span class="se">\</span>
-</span><span class='line'>rootca.company.example.crt.pem <span class="se">\</span>
-</span><span class='line'>ip-172-31-33-109.us-west-2.compute.internal:
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>In the above command, make sure that you replace the target host name <code>ip-172-31-33-109.us-west-2.compute.internal</code> with the DNS name of your client instance.</p>
-
-<p>On the client instance, we are going to add a line to the <code>/etc/hosts</code> file which will make the DNS name <code>app.company.example</code> resolve to the IP address of the edge instance. In the following command, replace the IP address with the IP address of your edge instance:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span><span class="nb">echo </span>172.31.44.105 app.company.example &gt;&gt; /etc/hosts
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Let&rsquo;s check that the TLS client is able to connect to the edge service. On the client instance, type:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>curl <span class="se">\</span>
-</span><span class='line'><span class="p">&amp;</span>ndash<span class="p">;</span>cacert rootca.company.example.crt.pem <span class="se">\</span>
-</span><span class='line'><span class="p">&amp;</span>ndash<span class="p">;</span>cert ./customer1.example.crt.pem <span class="se">\</span>
-</span><span class='line'><span class="p">&amp;</span>ndash<span class="p">;</span>key ./customer1.example.key.pem <span class="se">\</span>
-</span><span class='line'>&lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;https://app.company.example&quot;</span>&gt;https://app.company.example&lt;/a&gt;
-</span><span class='line'>It works!
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Excellent! We&rsquo;ve just verified that the client with the built-in TLS support is able to successfully connect to our edge service and authenticate itself as Customer1.</p>
-
-<p>The ultimate goal of this tutorial was to allow a client without TLS support to access the edge service, too. In order to achieve this goal, we&rsquo;re going to set up a client-side HAProxy. First, let&rsquo;s prepare two files that will be needed by HAProxy. The <code>customer1.crt</code> file enables HAProxy to authenticate itself to the edge service as Customer1. You can create this file by issuing the command:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>cat <span class="se">\</span>
-</span><span class='line'>customer1.example.crt.pem <span class="se">\</span>
-</span><span class='line'>customer1.example.key.pem <span class="se">\&lt;</span>/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;blockquote&gt;&lt;p&gt;/etc/haproxy/ssl/customer1.crt
-</span></code></pre></td></tr></table></div></figure></p></blockquote>
-
-<p>Second file allows HAProxy to verify the authenticity of the edge service. It includes a chain of CA certificates, against which the certificate presented by the edge service will be verified. You can create the <code>company-ca.crt</code> file using the following command:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>cat <span class="se">\</span>
-</span><span class='line'>subca.company.example.crt.pem <span class="se">\</span>
-</span><span class='line'>rootca.company.example.crt.pem <span class="se">\&lt;</span>/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;blockquote&gt;&lt;p&gt;/etc/haproxy/ssl/company-ca.crt
-</span></code></pre></td></tr></table></div></figure></p></blockquote>
-
-<p>And finally, we are going to configure the client-side HAProxy. On the client instance, open the file <code>/etc/haproxy/haproxy.cfg</code>  in your favorite editor and replace its content with the following configuration:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>global
-</span><span class='line'>  tune.ssl.default-dh-param 1024&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;defaults
-</span><span class='line'>  timeout client 30s
-</span><span class='line'>  timeout server 30s
-</span><span class='line'>  timeout connect 5s&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;frontend proxy
-</span><span class='line'>  <span class="nb">bind </span>0.0.0.0:80
-</span><span class='line'>  mode http&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;  use_backend app&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;backend app
-</span><span class='line'>  mode http
-</span><span class='line'>  server app.company.example app.company.example:443 check ssl verify required ca-file /etc/haproxy/ssl/company-ca.crt crt /etc/haproxy/ssl/customer1.crt
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>HAProxy will listen on port 80 for the incoming HTTP connections. For each HTTP connection it will open a secure HTTPS connection to the edge service and it will pass the data back and forth between the two connections. You can start the HAProxy on the client instance by typing:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>systemctl restart haproxy
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Double-check that there are no warnings or errors in the HAProxy logs:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>journalctl -u haproxy -e
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>If everything went well, you should be able to connect to the edge service using a non-TLS client. Here we go:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>curl localhost
-</span><span class='line'>It works!
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>To verify that our client is recognized by the cloud application as Customer1, you can comment out the line <code>use_backend edge_customer1 if ...</code> in the <code>/etc/haproxy/haproxy.cfg</code> file on the edge instance. Remember to restart HAProxy after you modified the configuration. The repeated test from the client instance proves that indeed there&rsquo;s no backend for the Customer1 available anymore:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>curl localhost
-</span><span class='line'>&lt;html&gt;&lt;body&gt;&lt;h1&gt;503 Service Unavailable&lt;/h1&gt;
-</span><span class='line'>No server is available to handle this request.
-</span><span class='line'>&lt;/body&gt;&lt;/html&gt;
-</span></code></pre></td></tr></table></div></figure></p>
-
-<h2>Conclusion and final remarks</h2>
-
-<p>In this blog post, we established a secure communication channel between the client and our application running in the cloud. As demonstrated, our approach is also suitable for client applications that don&rsquo;t support TLS.</p>
-
-<p>In our example, the client certificate authentication was carried out by HAProxy and the edge service sitting behind the proxy didn&rsquo;t get any information about the client. To improve the design, HAProxy could be configured to forward the attributes of the certificate presented by the client to the backend, by setting them as HTTP request headers. HAProxy even allows to insert the entire client certificate into a request header for the backend.</p>
-
-<p>Our server presented a certificate that was signed by our own CA. In practice, we would deploy a certificate signed by a trusted third-party CA. AWS provides <a href="https://aws.amazon.com/certificate-manager">AWS Certificate Manager</a> (ACM) service to generate certificates for ELBs, API Gateway and other AWS services. Unfortunately, we cannot utilize this service for our use case as it doesn&rsquo;t provide access to the private key. Instead, we can purchase a certificate from one of the trusted certificate authorities or leverage the free of charge <a href="https://letsencrypt.org/">Let&rsquo;s Encrypt</a> certificate authority.</p>
-
-<p>This concludes our miniseries about edge security for cloud applications. We are still evaluating the proposed approach. What do you think about it? If you have any feedback, please, feel free to add your comments in the comment section below.</p>
-]]></content>
-  </entry>
-  
 </feed>

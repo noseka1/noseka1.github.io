@@ -4,7 +4,7 @@
   <title><![CDATA[Category: devops | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/devops/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2019-08-07T08:31:44-07:00</updated>
+  <updated>2019-08-19T11:13:58-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,180 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[Configuring Envoy to Auto-Discover Pods on Kubernetes]]></title>
+    <link href="http://alesnosek.com/blog/2019/08/19/configuring-envoy-to-audo-discover-pods-on-kubernetes/"/>
+    <updated>2019-08-19T11:04:51-07:00</updated>
+    <id>http://alesnosek.com/blog/2019/08/19/configuring-envoy-to-audo-discover-pods-on-kubernetes</id>
+    <content type="html"><![CDATA[<p>Pods on Kubernetes are ephemeral and can be created and destroyed at any time. In order for Envoy to load balance the traffic across pods, Envoy needs to be able to track the IP addresses of the pods over time. In this blog post, I am going to show you how to leverage Envoy&rsquo;s Strict DNS discovery in combination with a headless service in Kubernetes to accomplish this.</p>
+
+<!-- more -->
+
+
+<h2>Overview</h2>
+
+<p>Envoy provides several <a href="https://www.envoyproxy.io/docs/envoy/v1.10.0/intro/arch_overview/service_discovery">options</a> on how to discover back-end servers. When using the <a href="https://www.envoyproxy.io/docs/envoy/v1.10.0/intro/arch_overview/service_discovery#strict-dns">Strict DNS</a> option,  Envoy will periodically query a specified DNS name. If there are multiple IP addresses included in the response to Envoy&rsquo;s query, each returned IP address will be considered a back-end server. Envoy will load balance the inbound traffic across all of them.</p>
+
+<p>How to configure a DNS server to return multiple IP addresses to Envoy? Kubernetes comes with a <a href="https://kubernetes.io/docs/concepts/services-networking/service/">Service</a> object which, roughly speaking, provides two functions. It can create a single DNS name for a group of pods for discovery and it can load balance the traffic across those pods. We are not interested in the load balancing feature as we aim to use Envoy for that. However, we can make a good use of the discovery mechanism. The Service configuration we are looking for is called a <a href="https://kubernetes.io/docs/concepts/services-networking/service/#headless-services">headless service</a> with selectors.</p>
+
+<p>The diagram below depicts how to configure Envoy to auto-discover pods on Kubernetes. We are combining Envoy&rsquo;s Strict DNS service discovery with a headless service in Kubernetes:</p>
+
+<p><img class="center" src="/images/posts/envoy_auto_discovery.png"></p>
+
+<h2>Practical implementation</h2>
+
+<p>To put this configuration into practice, I used <a href="https://www.okd.io/minishift/">Minishift</a> 3.11 which is a variant of Minikube developed by Red Hat. First, I deployed two replicas of the httpd server on Kubernetes to play the role of back-end services. Next, I created a headless service using the following definition:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">apiVersion</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">v1</span>
+</span><span class='line'><span class="l-Scalar-Plain">kind</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Service</span>
+</span><span class='line'><span class="l-Scalar-Plain">metadata</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">httpd-discovery</span>
+</span><span class='line'><span class="l-Scalar-Plain">spec</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">clusterIP</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">None</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">ports</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">http</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">port</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">8080</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">selector</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">app</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">httpd</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">type</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">ClusterIP</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Note that we are explicitly specifying &ldquo;None&rdquo; for the cluster IP in the service definition. As a result, Kubernetes creates the respective Endpoints object containing the IP addresses of the discovered httpd pods:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>oc get endpoints
+</span><span class='line'>NAME              ENDPOINTS                                                        AGE
+</span><span class='line'>httpd-discovery   172.17.0.21:8080,172.17.0.22:8080                                30s
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p> If you ssh to one of the cluster nodes or rsh to any of the pods running on the cluster, you can verify that the DNS discovery is working:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>host httpd-discovery
+</span><span class='line'>httpd-discovery.mynamespace.svc.cluster.local has address 172.17.0.21
+</span><span class='line'>httpd-discovery.mynamespace.svc.cluster.local has address 172.17.0.22
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Next, I used the container image <code>docker.io/envoyproxy/envoy:v1.7.0</code> to create an Envoy proxy. I deployed the proxy into the same Kubernetes namespace called <code>mynamespace</code> where I created the headless service before. A minimum Envoy configuration that can accomplish our goal looks as follows:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">static_resources</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">listeners</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">listener_0</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">address</span><span class="p-Indicator">:</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">socket_address</span><span class="p-Indicator">:</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">protocol</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">TCP</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">address</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">0.0.0.0</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">port_value</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">10000</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">filter_chains</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">filters</span><span class="p-Indicator">:</span>
+</span><span class='line'>      <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">envoy.http_connection_manager</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">config</span><span class="p-Indicator">:</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">stat_prefix</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">ingress_http</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">route_config</span><span class="p-Indicator">:</span>
+</span><span class='line'>            <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">local_route</span>
+</span><span class='line'>            <span class="l-Scalar-Plain">virtual_hosts</span><span class="p-Indicator">:</span>
+</span><span class='line'>            <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">local_service</span>
+</span><span class='line'>              <span class="l-Scalar-Plain">domains</span><span class="p-Indicator">:</span> <span class="p-Indicator">[</span><span class="nl">&amp;ldquo</span><span class="nv">;*&amp;rdquo;</span><span class="p-Indicator">]</span>
+</span><span class='line'>              <span class="l-Scalar-Plain">routes</span><span class="p-Indicator">:</span>
+</span><span class='line'>              <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">match</span><span class="p-Indicator">:</span>
+</span><span class='line'>                  <span class="l-Scalar-Plain">prefix</span><span class="p-Indicator">:</span> <span class="nl">&amp;ldquo</span><span class="l-Scalar-Plain">;/&amp;rdquo;</span>
+</span><span class='line'>                <span class="l-Scalar-Plain">route</span><span class="p-Indicator">:</span>
+</span><span class='line'>                  <span class="l-Scalar-Plain">host_rewrite</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">httpd</span>
+</span><span class='line'>                  <span class="l-Scalar-Plain">cluster</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">httpd</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">http_filters</span><span class="p-Indicator">:</span>
+</span><span class='line'>          <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">envoy.router</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">clusters</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">httpd</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">connect_timeout</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">0.25s</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">type</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">STRICT_DNS</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">dns_lookup_family</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">V4_ONLY</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">lb_policy</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">ROUND_ROBIN</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">hosts</span><span class="p-Indicator">:</span>
+</span><span class='line'>      <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">socket_address</span><span class="p-Indicator">:</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">address</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">httpd-discovery</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">port_value</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">8080</span>
+</span><span class='line'><span class="l-Scalar-Plain">admin</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">access_log_path</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">/tmp/admin_access.log</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">address</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">socket_address</span><span class="p-Indicator">:</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">protocol</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">TCP</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">address</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">127.0.0.1</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">port_value</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">9901</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Note that in the above configuration,  I instructed Envoy to use the Strict DNS discovery and pointed it to the DNS name <code>httpd-discovery</code> that is managed by Kubernetes.</p>
+
+<p>That&rsquo;s all that was needed to be done! Envoy is load balancing the inbound traffic across the two httpd pods now. And if you create a third pod replica, Envoy is going to route the traffic to this replica as well.</p>
+
+<h2>Conclusion</h2>
+
+<p>In this article, I shared with you the idea of using Envoy&rsquo;s Strict DNS service discovery in combination with the headless service in Kubernetes to allow Envoy to auto-discover the back-end pods. While writing this article, I discovered this <a href="https://blog.markvincze.com/how-to-use-envoy-as-a-load-balancer-in-kubernetes/">blog post</a> by Mark Vincze that describes the same idea and you should take a look at it as well.</p>
+
+<p>This idea opens the door for you to utilize the advanced features of Envoy proxy in your microservices architecture. However, if you find yourself looking for a more complex solution down the road, I would suggest that you evaluate the <a href="https://istio.io/">Istio</a> project. Istio provides a control plane that can manage Envoy proxies for you achieving the so called service mesh.</p>
+
+<p>Hope you found this article useful. If you are using Envoy proxy on top of Kubernetes I would be happy to hear about your experiences. You can leave your comments in the comment section below.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[Installing OpenShift 4.1 Using Libvirt and KVM]]></title>
@@ -802,106 +976,6 @@
 <p>OpenStack is not the easiest software to run, however, if you do your homework you will succeed. At the present time, OpenStack just works for us and brings a lot of value to the teams in our company.</p>
 
 <p>If you&rsquo;d like to share your experience with operating OpenStack, I would love to hear from you. Please, feel free to use the comment section below.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[18 Months with OpenStack, Our Experience, Part I]]></title>
-    <link href="http://alesnosek.com/blog/2018/02/19/18-months-with-openstack-our-experience-part-i/"/>
-    <updated>2018-02-19T21:06:17-08:00</updated>
-    <id>http://alesnosek.com/blog/2018/02/19/18-months-with-openstack-our-experience-part-i</id>
-    <content type="html"><![CDATA[<p>It has been 18 months since we deployed OpenStack cloud in our company. In this article, I would like to review our time with OpenStack and describe some of the experience we gained. Are you thinking about building an OpenStack-based cloud? This article might provide you with additional insights and tips that will help you succeed.</p>
-
-<!-- more -->
-
-
-<h2>Introduction</h2>
-
-<p>Right at the beginning, I&rsquo;d like to say that our company is not a cloud provider. We didn&rsquo;t build a cloud to provide a service to customers. Instead, we built a private cloud to support our engineering team in their software development efforts. Our OpenStack is running development machines, build machines and test machines. The requirements on the availability and reliability of our OpenStack cluster are therefore lower than the requirements that a public cloud would have to meet.</p>
-
-<p>We started evaluating OpenStack around the Kilo release and ended up going with Mitaka into production. Around that time, Internet was flooded with articles criticizing the complexity of OpenStack including scary stories of companies failing their OpenStack projects. I can confirm that deploying OpenStack was a real challenge and that as we were working on it, the OpenStack version of the Kennedy&rsquo;s famous words passed through my mind several times:</p>
-
-<blockquote><p>We choose to deploy OpenStack not because it is easy, but because it is hard.</p></blockquote>
-
-<p>However, nothing can scare away a proficent software practitioner. Eventually, we got the job done and the invested effort did pay off.</p>
-
-<h2>OpenStack essentials</h2>
-
-<p><a href="https://www.openstack.org/">OpenStack</a> is an open-source infrastructure-as-a-service (IaaS) cloud platform. It&rsquo;s important to understand that OpenStack itself is only a controlling layer that relies on other software projects to provide the implementation of the underlying functionality. For instance, OpenStack can spin up virtual machines, however, you would not find any code in the OpenStack project that would actually implement a hypervisor. Instead, OpenStack integrates with an existing hypervisor software to do the job. A very popular choice of the hypervisor used along with OpenStack is <a href="https://www.linux-kvm.org">KVM</a> and so when the user creates a virtual machine on OpenStack, OpenStack merely calls the KVM hypervisor to spin up the virtual machine. The same holds true for other areas of OpenStack functionality like networking and storage where OpenStack drives the underlying networking and storage software to do the actual job.</p>
-
-<p>When planning an OpenStack cluster, you will have to choose from a variety of underlying technologies. For instance, in addition to the KVM hypervisor, OpenStack also supports Xen, VMware vSphere and Hyper-V. Most of the time you will just pick the technology you already run at your place and for which you have the staff to manage it. The freedom of choice you have with OpenStack is amazing, however, I would recommend to always look at the most popular choices first because their integration with OpenStack tends to be more solid. In our case, we chose KVM as a hypervisor, <a href="http://www.openvswitch.org/">Open vSwitch</a> as a networking implementation and <a href="https://ceph.com/">Ceph</a> to provide object and block storage.</p>
-
-<p>OpenStack is an umbrella project under which you can find a host of projects each dealing with a different portion of the cloud functionality. The core projects that one can find installed in the majority of OpenStack deployments are:</p>
-
-<ul>
-<li><a href="https://wiki.openstack.org/wiki/Nova">Nova</a>. Manages virtual machines.</li>
-<li><a href="https://wiki.openstack.org/wiki/Neutron">Neutron</a>. Provides networking to virtual machines.</li>
-<li><a href="https://wiki.openstack.org/wiki/Cinder">Cinder</a>. Provides block storage that can be attached to virtual machines.</li>
-<li><a href="https://wiki.openstack.org/wiki/Glance">Glance</a>. Stores virtual machine images.</li>
-<li><a href="https://wiki.openstack.org/wiki/Horizon">Horizon</a>. Web-based user interface to OpenStack services.</li>
-<li><a href="https://wiki.openstack.org/wiki/Keystone">Keystone</a>. Identity service.</li>
-</ul>
-
-
-<p>Additionally, project <a href="https://wiki.openstack.org/wiki/Heat">Heat</a>, <a href="https://wiki.openstack.org/wiki/Swift">Swift</a>, and <a href="https://wiki.openstack.org/wiki/Telemetry">Ceilometer</a> are also rather popular. You can find plenty of other OpenStack projects listed on the <a href="https://www.openstack.org/software/project-navigator">Project navigator</a> page. When choosing OpenStack projects for your deployment, you should always consider the adoption and the maturity of the projects. Many projects on the list are still in the early stages of development and not ready for production use.</p>
-
-<p>OpenStack was designed for massive scale deployments as you can tell if you look at the <a href="https://docs.openstack.org/arch-design/design.html">OpenStack architecture diagram</a>. Each OpenStack project consists of multiple services (daemons) that can be deployed on separate physical machines allowing OpenStack to scale out. OpenStack services communicate with each other over the network using RESTful APIs. In addition, some of the projects like Nova, Neutron and Cinder chose to leverage a message broker for internal communication. The high number of services that form an OpenStack deployment contributes to its operational complexity.</p>
-
-<h2>Getting started with OpenStack</h2>
-
-<p>If you are new to OpenStack, a great place to start learning OpenStack is the <a href="https://docs.openstack.org/devstack/latest/">DevStack project</a>. DevStack allows you to create an all-in-one deployment of OpenStack. With DevStack you can access debug logs of individual OpenStack services as well as easily restart OpenStack services after you changed their configuration. It took me a while to figure out which configuration option affects which OpenStack service and how OpenStack services communicate with each other. I learned a lot by re-deploying DevStack many times, trying to make the individual OpenStack features work properly.</p>
-
-<p>OpenStack is a fast moving project with two major releases per year. Especially in the past, the project documentation could not keep up with the many changes packed in each release. The documentation was outdated on many places or was missing altogether. When working with OpenStack I quickly realized that reading the OpenStack&rsquo;s Python code was necessary in order to understand how some of the configuration options worked or when troubleshooting various issues.</p>
-
-<blockquote><p> Ability to read the OpenStack source code was required to succeed.</p></blockquote>
-
-<p>OpenStack is written using a beautiful idiomatic Python code which was most of the time a pleasure to read. At first, I started walking through the code of simpler projects like Glance and learned the patterns that were commonly used in other OpenStack projects, too. Only later I dived deeper into the internals of Nova, the OpenStack&rsquo;s brain that schedules and creates virtual machines. When between OpenStack releases configuration options were renamed or moved to different INI file sections, I just grepped through the source code and learned about the changes avoiding any further frustration.</p>
-
-<p>If you are getting started with OpenStack, prepare for a steep learning curve. Apart from studying the OpenStack project documentation, you will have to refer to the documentation of the technologies that you integrate with OpenStack, too. For instance, I spend quite a bit of time studying the documentation of <a href="https://www.rabbitmq.com/documentation.html">RabbitMQ</a>, <a href="https://libvirt.org/docs.html">libvirt</a>, <a href="http://docs.openvswitch.org">Open vSwitch</a>, and <a href="http://docs.ceph.com">Ceph</a>.</p>
-
-<h2>Choosing an OpenStack distribution</h2>
-
-<p>There are several OpenStack distributions available out there. For us the choice was pretty straight forward. As we are a Red Hat shop, we went with <a href="https://www.rdoproject.org/">RDO</a> installed on top of RHEL7. I spent large amounts of time working with RDO and yeah, it was challenging, at least in its Mitaka release. For further details on our experience with OpenStack RDO, you can refer to articles: <a href="/blog/2016/03/27/tripleo-installer-the-good/">1</a>, <a href="/blog/2017/01/15/tripleo-installer-production-ready">2</a>. Due to the complexity of OpenStack, it is rather difficult to create a tool to manage its life-cycle and I&rsquo;m certain that further development effort will have to be spent before reaching perfection.</p>
-
-<p>By the way, some OpenStack distributions come with a GUI-based installer. As there are dozens of configuration parameters to set during the installation, I don&rsquo;t see the point of using a graphical interface to do this. Instead, a well commented configuration file seems more desirable to me. Does the GUI-based installer enable product managers to make a check mark on their data sheet? I would say yes, but you can safely ignore it when choosing your OpenStack distribution.</p>
-
-<h2>Choosing server hardware</h2>
-
-<p>We started with a small OpenStack deployment comprised of 3 controller nodes, 2 compute nodes and 3 Ceph nodes. Over time, we added further nodes to meet the growing demand and ended up with the current size of the cluster being 3 controller nodes, 13 compute nodes and 7 Ceph nodes. Majority of the nodes are HP ProLiant DL360 Gen9 machines with the following hardware parameters:</p>
-
-<ul>
-<li><strong>Controller nodes.</strong> 96GB RAM, 2 x 300GB SAS 10K HDD in RAID1, 1Gbit Ethernet NICs</li>
-<li><strong>Compute nodes.</strong> 288GB RAM, 8 x 300GB SAS 10K HDD in RAID10 (for the OS + instance ephemeral storage), 1Gbit and 10Gbit Ethernet NICs</li>
-<li><strong>Ceph nodes.</strong> 32GB RAM, 2 x 300GB SAS 10K HDD in RAID1 (for the OS), 6 x 1.2TB SAS 10K HDD (Ceph OSD storage drives), 1Gbit and 10Gbit Ethernet NICs</li>
-</ul>
-
-
-<p>1Gbit Ethernet NICs are used to access OpenStack APIs on the controller nodes. Compute nodes and Ceph storage nodes are interconnected using 10Gbit Ethernet. All network interfaces are bonded and connected to two different switches to avoid a single-point-of-failure. There is a dedicated 1Gbit link attached to each of the OpenStack nodes used for node management via SSH.</p>
-
-<p>From our experience, each of the compute nodes can run up to 40-50 virtual machines using the default OpenStack RDO settings: cpu_allocation_ratio=16.0, ram_allocation_ratio=1.0 and disk_allocation_ratio=1.0. Our current limit preventing us to achieve even higher density is the amount of provisioned RAM on the nodes. In the future, we are considering adding more RAM to the compute nodes or increasing the ram_allocation_ratio.</p>
-
-<h2>Deployment overview</h2>
-
-<p>Finally, we are going to take a look at the high-level overview of our OpenStack deployment. In the diagram below you can see the OpenStack projects that we chose for the deployment:</p>
-
-<p><img src="/images/posts/18_months_with_openstack_components.png" width="800" height="1000" title="OpenStack Components" ></p>
-
-<p>Let me comment on some of the projects we deployed:</p>
-
-<ul>
-<li><strong><a href="https://docs.openstack.org/ironic">Ironic</a>.</strong> We deployed Ironic in order to manage baremetal machines that we use for performance testing. Performance tests are more accurate when carried out in an isolated baremetal environment than on the virtual machines that share the resources of the hypervisor. To this date we didn&rsquo;t realize this our plan but we will get back to it in the future.</li>
-<li><strong><a href="https://docs.openstack.org/magnum">Magnum</a>.</strong> Magnum project simplifies the deployment of container orchestrators like Kubernetes, Swarm and Mesos on top of OpenStack. To accomplish this, Magnum leverages Heat templates behind the scenes and the actual provisioning is done by Heat. To be honest, we never really started using Magnum. When deploying Kubernetes, we preferred to use Heat templates provided by the Kubernetes project. This approach turned to be more straight forward than involving yet another service like Magnum. You can read about it <a href="/blog/2016/06/26/deploying-kubernetes-on-openstack-using-heat">here</a>.</li>
-<li><strong><a href="https://docs.openstack.org/sahara">Sahara</a>.</strong> Sahara project allows you to deploy big data frameworks like Apache Hadoop and Apache Spark on top of OpenStack. We made similar experience with Sahara as we made with Magnum. We just didn&rsquo;t start using it at all. It turned out that there were already pre-existing deployment scripts provided by Hortonworks and others that it made no sense for us to use Sahara. While Hortonworks <a href="https://github.com/hortonworks/ansible-hortonworks">scripts</a> can deploy Hadoop on any of the major clouds, Sahara would be an OpenStack-only solution.</li>
-<li><strong><a href="https://docs.openstack.org/manila">Manila</a>.</strong> While not depicted in the diagram, we also deployed OpenStack Manila. Manila is a shared file system service and we use it to provision NFS shares. Manila project started as a code copy of the Cinder project and perhaps that&rsquo;s why it was pretty stable and usable soon after its inception. I wrote an <a href="http://alesnosek.com/blog/2016/05/22/test-driving-openstack-manila/">article</a> about Manila at the time we were evaluating it.</li>
-<li><strong><a href="https://docs.openstack.org/designate">Designate</a>.</strong>  Designate is a DNS as a service for OpenStack. After evaluating this project, we realized that for our simple purpose Designate was too involved. We ended up writing a Python script that dynamically registers OpenStack virtual machines with our internal DNS server. This script works reliably ever since and you can read about it in this <a href="/blog/2015/05/31/openstack-dynamic-dns-updates">blog post</a>.</li>
-</ul>
-
-
-<h2>Conclusion</h2>
-
-<p>In this post, we described some of our experience with planning the OpenStack cloud and deploying it. In the <a href="/blog/2018/03/08/18-months-with-openstack-our-experience-part-ii/">second</a> blog post, we are going to share the lessons learned when operating OpenStack.</p>
-
-<p>If you have battle scars from working with OpenStack, I would love to hear from you. Please, feel free to share your comments and stories in the comment section below.</p>
 ]]></content>
   </entry>
 

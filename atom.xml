@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2019-08-07T08:31:44-07:00</updated>
+  <updated>2019-08-19T11:13:58-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,184 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[Configuring Envoy to Auto-Discover Pods on Kubernetes]]></title>
+    <link href="http://alesnosek.com/blog/2019/08/19/configuring-envoy-to-audo-discover-pods-on-kubernetes/"/>
+    <updated>2019-08-19T11:04:51-07:00</updated>
+    <id>http://alesnosek.com/blog/2019/08/19/configuring-envoy-to-audo-discover-pods-on-kubernetes</id>
+    <content type="html"><![CDATA[<p>Pods on Kubernetes are ephemeral and can be created and destroyed at any time. In order for Envoy to load balance the traffic across pods, Envoy needs to be able to track the IP addresses of the pods over time. In this blog post, I am going to show you how to leverage Envoy&rsquo;s Strict DNS discovery in combination with a headless service in Kubernetes to accomplish this.</p>
+
+<!-- more -->
+
+
+<h2>Overview</h2>
+
+<p>Envoy provides several <a href="https://www.envoyproxy.io/docs/envoy/v1.10.0/intro/arch_overview/service_discovery">options</a> on how to discover back-end servers. When using the <a href="https://www.envoyproxy.io/docs/envoy/v1.10.0/intro/arch_overview/service_discovery#strict-dns">Strict DNS</a> option,  Envoy will periodically query a specified DNS name. If there are multiple IP addresses included in the response to Envoy&rsquo;s query, each returned IP address will be considered a back-end server. Envoy will load balance the inbound traffic across all of them.</p>
+
+<p>How to configure a DNS server to return multiple IP addresses to Envoy? Kubernetes comes with a <a href="https://kubernetes.io/docs/concepts/services-networking/service/">Service</a> object which, roughly speaking, provides two functions. It can create a single DNS name for a group of pods for discovery and it can load balance the traffic across those pods. We are not interested in the load balancing feature as we aim to use Envoy for that. However, we can make a good use of the discovery mechanism. The Service configuration we are looking for is called a <a href="https://kubernetes.io/docs/concepts/services-networking/service/#headless-services">headless service</a> with selectors.</p>
+
+<p>The diagram below depicts how to configure Envoy to auto-discover pods on Kubernetes. We are combining Envoy&rsquo;s Strict DNS service discovery with a headless service in Kubernetes:</p>
+
+<p><img class="center" src="http://alesnosek.com/images/posts/envoy_auto_discovery.png"></p>
+
+<h2>Practical implementation</h2>
+
+<p>To put this configuration into practice, I used <a href="https://www.okd.io/minishift/">Minishift</a> 3.11 which is a variant of Minikube developed by Red Hat. First, I deployed two replicas of the httpd server on Kubernetes to play the role of back-end services. Next, I created a headless service using the following definition:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">apiVersion</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">v1</span>
+</span><span class='line'><span class="l-Scalar-Plain">kind</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Service</span>
+</span><span class='line'><span class="l-Scalar-Plain">metadata</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">httpd-discovery</span>
+</span><span class='line'><span class="l-Scalar-Plain">spec</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">clusterIP</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">None</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">ports</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">http</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">port</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">8080</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">selector</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">app</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">httpd</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">type</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">ClusterIP</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Note that we are explicitly specifying &ldquo;None&rdquo; for the cluster IP in the service definition. As a result, Kubernetes creates the respective Endpoints object containing the IP addresses of the discovered httpd pods:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>oc get endpoints
+</span><span class='line'>NAME              ENDPOINTS                                                        AGE
+</span><span class='line'>httpd-discovery   172.17.0.21:8080,172.17.0.22:8080                                30s
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p> If you ssh to one of the cluster nodes or rsh to any of the pods running on the cluster, you can verify that the DNS discovery is working:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>host httpd-discovery
+</span><span class='line'>httpd-discovery.mynamespace.svc.cluster.local has address 172.17.0.21
+</span><span class='line'>httpd-discovery.mynamespace.svc.cluster.local has address 172.17.0.22
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Next, I used the container image <code>docker.io/envoyproxy/envoy:v1.7.0</code> to create an Envoy proxy. I deployed the proxy into the same Kubernetes namespace called <code>mynamespace</code> where I created the headless service before. A minimum Envoy configuration that can accomplish our goal looks as follows:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">static_resources</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">listeners</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">listener_0</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">address</span><span class="p-Indicator">:</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">socket_address</span><span class="p-Indicator">:</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">protocol</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">TCP</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">address</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">0.0.0.0</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">port_value</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">10000</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">filter_chains</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">filters</span><span class="p-Indicator">:</span>
+</span><span class='line'>      <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">envoy.http_connection_manager</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">config</span><span class="p-Indicator">:</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">stat_prefix</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">ingress_http</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">route_config</span><span class="p-Indicator">:</span>
+</span><span class='line'>            <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">local_route</span>
+</span><span class='line'>            <span class="l-Scalar-Plain">virtual_hosts</span><span class="p-Indicator">:</span>
+</span><span class='line'>            <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">local_service</span>
+</span><span class='line'>              <span class="l-Scalar-Plain">domains</span><span class="p-Indicator">:</span> <span class="p-Indicator">[</span><span class="s">&quot;*&quot;</span><span class="p-Indicator">]</span>
+</span><span class='line'>              <span class="l-Scalar-Plain">routes</span><span class="p-Indicator">:</span>
+</span><span class='line'>              <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">match</span><span class="p-Indicator">:</span>
+</span><span class='line'>                  <span class="l-Scalar-Plain">prefix</span><span class="p-Indicator">:</span> <span class="s">&quot;/&quot;</span>
+</span><span class='line'>                <span class="l-Scalar-Plain">route</span><span class="p-Indicator">:</span>
+</span><span class='line'>                  <span class="l-Scalar-Plain">host_rewrite</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">httpd</span>
+</span><span class='line'>                  <span class="l-Scalar-Plain">cluster</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">httpd</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">http_filters</span><span class="p-Indicator">:</span>
+</span><span class='line'>          <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">envoy.router</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">clusters</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">httpd</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">connect_timeout</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">0.25s</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">type</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">STRICT_DNS</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">dns_lookup_family</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">V4_ONLY</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">lb_policy</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">ROUND_ROBIN</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">hosts</span><span class="p-Indicator">:</span>
+</span><span class='line'>      <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">socket_address</span><span class="p-Indicator">:</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">address</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">httpd-discovery</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">port_value</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">8080</span>
+</span><span class='line'><span class="l-Scalar-Plain">admin</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">access_log_path</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">/tmp/admin_access.log</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">address</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">socket_address</span><span class="p-Indicator">:</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">protocol</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">TCP</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">address</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">127.0.0.1</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">port_value</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">9901</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Note that in the above configuration,  I instructed Envoy to use the Strict DNS discovery and pointed it to the DNS name <code>httpd-discovery</code> that is managed by Kubernetes.</p>
+
+<p>That&rsquo;s all that was needed to be done! Envoy is load balancing the inbound traffic across the two httpd pods now. And if you create a third pod replica, Envoy is going to route the traffic to this replica as well.</p>
+
+<h2>Conclusion</h2>
+
+<p>In this article, I shared with you the idea of using Envoy&rsquo;s Strict DNS service discovery in combination with the headless service in Kubernetes to allow Envoy to auto-discover the back-end pods. While writing this article, I discovered this <a href="https://blog.markvincze.com/how-to-use-envoy-as-a-load-balancer-in-kubernetes/">blog post</a> by Mark Vincze that describes the same idea and you should take a look at it as well.</p>
+
+<p>This idea opens the door for you to utilize the advanced features of Envoy proxy in your microservices architecture. However, if you find yourself looking for a more complex solution down the road, I would suggest that you evaluate the <a href="https://istio.io/">Istio</a> project. Istio provides a control plane that can manage Envoy proxies for you achieving the so called service mesh.</p>
+
+<p>Hope you found this article useful. If you are using Envoy proxy on top of Kubernetes I would be happy to hear about your experiences. You can leave your comments in the comment section below.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[Troubleshooting the Performance of Vert.x Applications, Part III &mdash; Troubleshooting Event Loop Delays]]></title>
@@ -399,7 +577,7 @@
 
 <p>In this article, we discussed how to work with blocking APIs in Vert.x. A blocking API call has to be made on a worker thread and not on an event loop thread. Futhermore, we described a technique that allows you to execute compute intensive tasks on the event loop without considerably delaying the processing of other tasks on the same event loop.</p>
 
-<p>If you have any comments or questions please feel free to use the comment section below. In the <a href="http://alesnosek.com/blog/2019/07/22/troubleshooting-the-performance-of-vert-dot-x-applications-preventing-event-loop-delays/">final article</a> in the series we will cover some techniques for troubleshooting event loop delays.</p>
+<p>If you have any comments or questions please feel free to use the comment section below. In the final article in the series we will cover some techniques for troubleshooting event loop delays.</p>
 ]]></content>
   </entry>
 
@@ -3358,32 +3536,6 @@
 </li>
 </ul>
 
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[AWS Lambda Adapter for Vert.x Web Applications]]></title>
-    <link href="http://alesnosek.com/blog/2017/10/18/aws-lambda-adapter-for-vert-dot-x-web-applications/"/>
-    <updated>2017-10-18T23:09:33-07:00</updated>
-    <id>http://alesnosek.com/blog/2017/10/18/aws-lambda-adapter-for-vert-dot-x-web-applications</id>
-    <content type="html"><![CDATA[<p><a href="http://vertx.io/">Vert.x</a> is an awesome tool-kit for developing reactive microservices. In this article, I&rsquo;m going to present an adapter that allows you to run your Vert.x web service as a Lambda function on AWS.</p>
-
-<!-- more -->
-
-
-<p><img class="right" src="http://alesnosek.com/images/posts/vertx_logo.png" width="130" height="130"></p>
-
-<p>If you are creating web services using Vert.x, you are leveraging the HTTP server built into the core of the Vert.x tool-kit. This HTTP server is based on the <a href="https://netty.io/">Netty</a> framework. When your web service comes up, the HTTP server opens a network port and starts listening for the incoming client connections. After a client connects, the HTTP server reads the HTTP request and processes this request by invoking callbacks that you registered. HTTP response generated by your implementation is returned back to the client. The web service remains running and processing requests until you shut it down.</p>
-
-<p><img class="right" src="http://alesnosek.com/images/posts/aws_lambda_logo.png" width="100" height="100"></p>
-
-<p>In contrast to the constantly running web service, an AWS Lambda function is instantiated to serve a single HTTP request. After the HTTP request has been processed, the Lambda function is torn down.</p>
-
-<p>In our company, we&rsquo;re looking at deploying our web services on-premise and in the cloud. We realized that when deploying into AWS it would be more cost effective if we could run some of our web services as Lambda functions. The question was, how to allow a Vert.x web service to alternatively run as a Lambda function? And how to accomplish this with a minimum development and maintenance effort?</p>
-
-<p>After browsing through the Vert.x source code, it occurred to me that it would be possible to write a simple adapter that would convert HTTP requests and responses between the Lambda API and the Vert.x API. I then get on with the job and implemented such an adapter. And because software practitioners love open source, you can find this adapter along with the sample application on GitHub: <a href="https://github.com/noseka1/vertx-aws-lambda">vertx-aws-lambda</a>.</p>
-
-<p>As always, I&rsquo;d love to hear your feedback. What do you think about this project? Feel free to leave your comments below.</p>
 ]]></content>
   </entry>
 
