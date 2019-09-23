@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>OpenStack Dynamic DNS Updates - Ales Nosek - The Software Practitioner</title>
+  <title>Future-Proof Monolithic Applications with Modular Design - Ales Nosek - The Software Practitioner</title>
   <meta name="author" content="Ales Nosek">
 
 
-  <meta name="description" content="Today&rsquo;s user story is: As a private cloud user I&rsquo;d like to have virtual machines registered with internal DNS. Let&rsquo;s look at how a &hellip;">
+  <meta name="description" content="The Cloud Native Virtual Event, presented by Red Hat, is coming up on October 10th, 2019. As part of the Development track, I will be co-presenting &hellip;">
 
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
 
-  <link rel="canonical" href="http://alesnosek.com/blog/2015/05/31/openstack-dynamic-dns-updates/">
+  <link rel="canonical" href="http://alesnosek.com/blog/2019/09/23/future-proof-monolithic-applications-with-modular-design/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/stylesheets/data-table.css" media="screen, projection" rel="stylesheet" type="text/css" />
@@ -82,7 +82,7 @@
 
   <header>
 
-      <h1 class="entry-title">OpenStack Dynamic DNS Updates</h1>
+      <h1 class="entry-title">Future-Proof Monolithic Applications with Modular Design</h1>
 
 
       <p class="meta">
@@ -91,23 +91,14 @@
 
 
 
-<time class='entry-date' datetime='2015-05-31T22:49:39-07:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>31</span><span class='date-suffix'>st</span>, <span class='date-year'>2015</span></span> <span class='time'>10:49 pm</span></time>
+<time class='entry-date' datetime='2019-09-23T14:34:26-07:00'><span class='date'><span class='date-month'>Sep</span> <span class='date-day'>23</span><span class='date-suffix'>rd</span>, <span class='date-year'>2019</span></span> <span class='time'>2:34 pm</span></time>
 
       </p>
 
   </header>
 
 
-<div class="entry-content"><p>Today&rsquo;s user story is: As a private cloud user I&rsquo;d like to have virtual machines registered with internal DNS. Let&rsquo;s look at how a software practitioner solves this problem in a truly agile way.</p>
-
-<!-- more -->
-
-
-<p>The OpenStack <a href="https://wiki.openstack.org/wiki/Designate" title="Designate">Designate</a> project implements DNSaaS. After trying out Designate, I realized that for simple DNS updates DNSaaS is a little too involved.</p>
-
-<p>In my previous <a href="/blog/2015/05/25/openstack-nova-notifications-subscriber" title="OpenStack Nova Notifications Subscriber">article</a> I described how to monitor Nova events on RabbitMQ message bus. Two events of interest are <code>compute.instance.create.end</code> and <code>compute.instance.delete.start</code> that are sent by Nova on instance creation and instance deletion. Both events carry enough information for us to create a simple script to extract the hostname and IP addresses of the instance from the events and update the internal DNS using the <code>nsupdate</code> command.</p>
-
-<p>You can find the DNS updates implementantion including the systemd startup script at GitHub: <a href="https://github.com/noseka1/openstack-dns-updater" title="openstack-dns-updater">openstack-dns-updater</a>.</p>
+<div class="entry-content"><p>The <a href="https://www.redhat.com/en/events/webinar/develop-deploy-deliver-continuously">Cloud Native Virtual Event</a>, presented by Red Hat, is coming up on October 10th, 2019. As part of the Development track, I will be co-presenting on the topic: <em>Future-proof monolithic applications with modular design</em>. If you are interested in hearing Eric Murphy and myself discussing the development of highly-modular applications, you can register for the event <a href="https://www.redhat.com/en/events/webinar/develop-deploy-deliver-continuously#registration">here</a>. As part of our presentation, we will be demonstrating a sample Quarkus + Vert.x application that can be deployed both as a monolith or as a set of microservices while using the same code and modular design.</p>
 </div>
 
 
@@ -123,12 +114,12 @@
 
 
 
-<time class='entry-date' datetime='2015-05-31T22:49:39-07:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>31</span><span class='date-suffix'>st</span>, <span class='date-year'>2015</span></span> <span class='time'>10:49 pm</span></time>
+<time class='entry-date' datetime='2019-09-23T14:34:26-07:00'><span class='date'><span class='date-month'>Sep</span> <span class='date-day'>23</span><span class='date-suffix'>rd</span>, <span class='date-year'>2019</span></span> <span class='time'>2:34 pm</span></time>
 
 
 <span class="categories">
 
-    <a class='category' href='/blog/categories/cloud/'>cloud</a>, <a class='category' href='/blog/categories/devops/'>devops</a>
+    <a class='category' href='/blog/categories/events/'>events</a>
 
 </span>
 
@@ -137,7 +128,7 @@
 
       <div class="sharing">
 
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://alesnosek.com/blog/2015/05/31/openstack-dynamic-dns-updates/" data-via="" data-counturl="http://alesnosek.com/blog/2015/05/31/openstack-dynamic-dns-updates/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://alesnosek.com/blog/2019/09/23/future-proof-monolithic-applications-with-modular-design/" data-via="" data-counturl="http://alesnosek.com/blog/2019/09/23/future-proof-monolithic-applications-with-modular-design/" >Tweet</a>
 
 
   <div class="g-plusone" data-size="medium"></div>
@@ -150,10 +141,8 @@
 
     <p class="meta">
 
-        <a class="basic-alignment left" href="/blog/2015/05/25/openstack-nova-notifications-subscriber/" title="Previous Post: OpenStack Nova Notifications Subscriber">&laquo; OpenStack Nova Notifications Subscriber</a>
+        <a class="basic-alignment left" href="/blog/2019/08/19/configuring-envoy-to-audo-discover-pods-on-kubernetes/" title="Previous Post: Configuring Envoy to Auto-Discover Pods on Kubernetes">&laquo; Configuring Envoy to Auto-Discover Pods on Kubernetes</a>
 
-
-        <a class="basic-alignment right" href="/blog/2015/06/06/seven-tips-for-better-code/" title="Next Post: Seven Tips for Better Code">Seven Tips for Better Code &raquo;</a>
 
     </p>
   </footer>
@@ -224,8 +213,8 @@
 
 
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://alesnosek.com/blog/2015/05/31/openstack-dynamic-dns-updates/';
-        var disqus_url = 'http://alesnosek.com/blog/2015/05/31/openstack-dynamic-dns-updates/';
+        var disqus_identifier = 'http://alesnosek.com/blog/2019/09/23/future-proof-monolithic-applications-with-modular-design/';
+        var disqus_url = 'http://alesnosek.com/blog/2019/09/23/future-proof-monolithic-applications-with-modular-design/';
         var disqus_script = 'embed.js';
 
     (function () {

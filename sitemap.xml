@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>http://alesnosek.com/blog/2019/09/23/future-proof-monolithic-applications-with-modular-design/</loc>
+    <lastmod>2019-09-23T14:34:26-07:00</lastmod>
+  </url>
+  <url>
     <loc>http://alesnosek.com/blog/2019/08/19/configuring-envoy-to-audo-discover-pods-on-kubernetes/</loc>
     <lastmod>2019-08-19T11:04:51-07:00</lastmod>
   </url>
