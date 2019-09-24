@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2019-09-23T14:39:53-07:00</updated>
+  <updated>2019-09-24T09:44:21-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -18,7 +18,7 @@
     <link href="http://alesnosek.com/blog/2019/09/23/future-proof-monolithic-applications-with-modular-design/"/>
     <updated>2019-09-23T14:34:26-07:00</updated>
     <id>http://alesnosek.com/blog/2019/09/23/future-proof-monolithic-applications-with-modular-design</id>
-    <content type="html"><![CDATA[<p>The <a href="https://www.redhat.com/en/events/webinar/develop-deploy-deliver-continuously">Cloud Native Virtual Event</a>, presented by Red Hat, is coming up on October 10th, 2019. As part of the Development track, I will be co-presenting on the topic: <em>Future-proof monolithic applications with modular design</em>. If you are interested in hearing Eric Murphy and myself discussing the development of highly-modular applications, you can register for the event <a href="https://www.redhat.com/en/events/webinar/develop-deploy-deliver-continuously#registration">here</a>. As part of our presentation, we will be demonstrating a sample Quarkus + Vert.x application that can be deployed both as a monolith or as a set of microservices while using the same code and modular design.</p>
+    <content type="html"><![CDATA[<p>The <a href="https://www.redhat.com/en/events/webinar/develop-deploy-deliver-continuously?sc_cid=701f2000000uI48AAE">Cloud Native Virtual Event</a>, presented by Red Hat, is coming up on October 10th, 2019. As part of the Development track, I will be co-presenting on the topic: <em>Future-proof monolithic applications with modular design</em>. If you are interested in hearing Eric Murphy and myself discussing the development of highly-modular applications, you can register for the event <a href="https://www.redhat.com/en/events/webinar/develop-deploy-deliver-continuously?sc_cid=701f2000000uI48AAE#registration">here</a>. As part of our presentation, we will be demonstrating a sample Quarkus + Vert.x application that can be deployed both as a monolith or as a set of microservices while using the same code and modular design.</p>
 ]]></content>
   </entry>
 
@@ -586,7 +586,7 @@
 
 <p>In this article, we discussed how to work with blocking APIs in Vert.x. A blocking API call has to be made on a worker thread and not on an event loop thread. Futhermore, we described a technique that allows you to execute compute intensive tasks on the event loop without considerably delaying the processing of other tasks on the same event loop.</p>
 
-<p>If you have any comments or questions please feel free to use the comment section below. In the final article in the series we will cover some techniques for troubleshooting event loop delays.</p>
+<p>If you have any comments or questions please feel free to use the comment section below. In the <a href="http://alesnosek.com/blog/2019/07/22/troubleshooting-the-performance-of-vert-dot-x-applications-preventing-event-loop-delays/">final article</a> in the series we will cover some techniques for troubleshooting event loop delays.</p>
 ]]></content>
   </entry>
 
