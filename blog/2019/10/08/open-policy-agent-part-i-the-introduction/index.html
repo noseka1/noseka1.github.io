@@ -1,0 +1,487 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Open Policy Agent, Part I &mdash; The Introduction - Ales Nosek - The Software Practitioner</title>
+  <meta name="author" content="Ales Nosek">
+
+
+  <meta name="description" content="Recently I was looking for a way to implement access control for microservices. I needed a solution that would allow defining complex authorization &hellip;">
+
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <link rel="canonical" href="http://alesnosek.com/blog/2019/10/08/open-policy-agent-part-i-the-introduction/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/stylesheets/data-table.css" media="screen, projection" rel="stylesheet" type="text/css" />
+  <link href="/atom.xml" rel="alternate" title="Ales Nosek - The Software Practitioner" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-61965164-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <img src="/images/computers.png" align="right">
+  <h1><a href="/">Ales Nosek - The Software Practitioner</a></h1>
+
+    <h2>Practicing to make software perfect.</h2>
+
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+
+</ul>
+
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="alesnosek.com">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+
+  <header>
+
+      <h1 class="entry-title">Open Policy Agent, Part I &mdash; The Introduction</h1>
+
+
+      <p class="meta">
+
+
+
+
+
+<time class='entry-date' datetime='2019-10-08T07:13:38-07:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>8</span><span class='date-suffix'>th</span>, <span class='date-year'>2019</span></span> <span class='time'>7:13 am</span></time>
+
+      </p>
+
+  </header>
+
+
+<div class="entry-content"><p>Recently I was looking for a way to implement access control for microservices. I needed a solution that would allow defining complex authorization rules that could be enforced across many services. After searching the web, I discovered a very promising <a href="https://www.openpolicyagent.org/">Open Policy Agent</a> project that seems to be the right tool for the job. In this series of three blog posts, I am going to introduce Open Policy Agent to you and highlight how it can help you.</p>
+
+<!-- more -->
+
+
+<h2>What is Open Policy Agent?</h2>
+
+<p>Open Policy Agent (OPA) is a policy engine that can be used to implement fine-grained access control for your application. For example, you can use OPA to implement <a href="https://www.openpolicyagent.org/docs/latest/http-api-authorization/">authorization</a> across microservices. However, there is much more that can be accomplished with OPA. For your inspiration, there are several open-source projects that integrate with OPA to implement fine-grained access control like <a href="https://github.com/open-policy-agent/opa-docker-authz">Docker</a>, <a href="https://github.com/open-policy-agent/opa-istio-plugin">Istio</a> and <a href="https://github.com/open-policy-agent/contrib">others</a>. Furthermore, OPA as a general-purpose policy engine, can be leveraged in use cases beyond access control, for instance to make advanced pod placement decisions in <a href="https://github.com/open-policy-agent/opa-kube-scheduler">Kubernetes</a>.</p>
+
+<p>OPA can be deployed as a standalone service along with your microservices. In order to protect your application, each request coming to a microservice must be authorized before it can be processed. To check the authorization, the microservice makes an API call to OPA to decide whether the request is authorized or not. Note that while you can offload authorization decisions from your application to OPA, your application still has to implement the enforcement of those decisions. For example, your application can ask OPA the question <em>&ldquo;Is user Alice allowed to invoke GET /protected/resource?&rdquo;</em> and if OPA answers <em>&ldquo;No&rdquo;</em>, your application has to send HTTP 403 Forbidden back to Alice.</p>
+
+<p><img class="center" src="/images/posts/open_policy_agent/opa_basic_flow.png"></p>
+
+<p>OPA is written in the Go language and its source code is available on <a href="https://github.com/open-policy-agent/opa">GitHub</a> under the Apache License 2.0. The Open Policy Agent project is hosted by <a href="https://www.cncf.io/">CNCF</a> as an incubating project.</p>
+
+<h2>Making policy decisions</h2>
+
+<p>In this section, I am going to explain how OPA works. Don&rsquo;t worry if everything is not clear to you right away. In the following section, we are going to work through a practical example which will help clarify the details.</p>
+
+<p>What does it take for OPA to make a policy decision? In OPA, there are three inputs into the decision-making process:</p>
+
+<ol>
+<li><strong>Data</strong> is a set of facts about the outside world that OPA refers to while making a decision. For example, when controlling access based on the access control list, the data would be a list of users along with the permissions they were granted. Another example: when deciding where to place the next pod on the Kubernetes cluster, the data would be a list of Kubernetes nodes and their currently available capacity. Note that data may change over time and OPA caches its latest state in memory. The data must be provided to OPA in the JSON format.</li>
+<li><strong>Query Input</strong> triggers the decision computation. It specifies the question that OPA should decide upon. The query input must be formatted as JSON. For instance, for the question <em>&ldquo;Is user Alice allowed to invoke GET /protected/resource?&rdquo;</em> the query input would contain parameters: <em>Alice</em>, <em>GET</em>, and <em>/protected/resource</em>.</li>
+<li><strong>Policy</strong> specifies the computational logic that for the given <em>data</em> and <em>query input</em> yields a policy decision aka query result. The computational logic is described as a set of policy rules in the OPA&rsquo;s custom policy language called <a href="https://www.openpolicyagent.org/docs/latest/how-do-i-write-policies/">Rego</a>. Note that OPA doesn&rsquo;t come with any pre-defined policies. OPA is a policy engine that is able to interpret a policy, however, in order to make use of it you have to create a policy yourself and provide it to OPA.</li>
+</ol>
+
+
+<p><img class="center" src="/images/posts/open_policy_agent/opa_policy_decision.png"></p>
+
+<p>In order to make a policy decision, all three inputs (data, query input, and the policy) are fed into the Policy Engine. The Policy Engine interprets the rules included in the policy and based on the data and the query input makes a policy decision. The policy decision generated by the Policy Engine is a JSON document.</p>
+
+<p>That is how OPA works from a high-level perspective. In the next section, we will dive into a practical example.</p>
+
+<h2>Hands-on tutorial</h2>
+
+<p>This section is a hands-on tutorial where I will walk you through an example of working with OPA. Although, all sorts of access control models can be implemented using OPA, the goal of this exercise is to implement access control using an Access Control List (ACL). So, let&rsquo;s get started!</p>
+
+<h3>Creating data</h3>
+
+<p>Access control list specifies which users have access to the application as well as what operations they are allowed to invoke. For the purposes of this tutorial, I came up with a simple ACL definition:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>{
+</span><span class='line'>  "alice": [
+</span><span class='line'>    "read",
+</span><span class='line'>    "write"
+</span><span class='line'>  ],
+</span><span class='line'>  "bob": [
+</span><span class='line'>    "read"
+</span><span class='line'>  ]
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>According to this ACL, a user named <code>alice</code> was granted <code>read</code> and <code>write</code> access to the application. In addition, a user named <code>bob</code> was given <code>read</code> access. No other users were given any access to the application. For now, you can save this ACL definition as a file called <code>myapi-acl.json</code>.</p>
+
+<p>Note that later on we are going to inject this access control list as <em>data</em> into OPA to allow it to make policy decisions based on this list. How did we know what the structure of the ACL document looks like? As a matter of fact, OPA doesn&rsquo;t prescribe how you should structure your data. It only requires the data to be in a JSON format. The recommendation is to structure your data in a way that makes it easy to write policy rules against it. I followed this recommendation and the above access control list is what I came up with.</p>
+
+<h3>Defining query input</h3>
+
+<p>Next, we are going to define a structure of the <em>query input</em>. On each access to our application, we are going to ask OPA whether the given access is authorized or not. To answer that question, OPA needs to know the name of the user that is trying to access the application and the operation that the user is trying to invoke. Here is a sample query input that conveys the two query arguments to OPA :</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>{
+</span><span class='line'>  "input": {
+</span><span class='line'>    "user": "alice",
+</span><span class='line'>    "operation": "write"
+</span><span class='line'>  }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You can interpret this query input as the question: &ldquo;Is user <em>alice</em> allowed <em>write</em> access to the application?&rdquo;. Note that it&rsquo;s up to you how you structure your query input. OPA&rsquo;s only requirement is for the input to be in the JSON format.</p>
+
+<h3>Writing Rego policy</h3>
+
+<p>After we decided how our data and the query input look like, we can create a <em>policy</em> that implements the ACL semantics. Using the Rego language, let&rsquo;s create a policy with two rules <code>allow</code> and <code>whocan</code>:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>package myapi.policy
+</span><span class='line'>
+</span><span class='line'>import data.myapi.acl
+</span><span class='line'>import input
+</span><span class='line'>
+</span><span class='line'>default allow = false
+</span><span class='line'>
+</span><span class='line'>allow {
+</span><span class='line'>        access = acl[input.user]
+</span><span class='line'>        access[_] == input.access
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>whocan[user] {
+</span><span class='line'>        access = acl[user]
+</span><span class='line'>        access[_] == input.access
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The <code>allow</code>  rule checks whether the user is allowed access according to the ACL. It instructs the policy engine to first look up the user&rsquo;s record in ACL and then to check whether the operation the user is trying to invoke is included on user&rsquo;s permission list. Only if there is an ACL record for the given user and the user was granted given access permission, the allow rule results to <code>true</code>. Otherwise it results to <code>false</code>.</p>
+
+<p>The second rule in our policy is the <code>whocan</code> rule. This rule takes the operation as the input argument. For the given operation, <code>whocan</code> rule returns a list of all users that are allowed to invoke the given operation.</p>
+
+<p>You can save the above policy as a file called <code>myapi-policy.rego</code>. We are going to upload it into OPA in just a moment. At this point, both the ACL file <code>myapi-acl.json</code> we created earlier and the policy file  <code>myapi-policy.rego</code> are sitting in our working directory. It&rsquo;s now time to put OPA to work!</p>
+
+<h3>Starting up Open Policy Agent service</h3>
+
+<p>You can grab the OPA binary for your  platform (Linux, MacOS, or Windows) from <a href="https://github.com/open-policy-agent/opa/releases">GitHub</a>. After downloading the binary, start the OPA service by issuing the command:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ opa run --server</span></code></pre></td></tr></table></div></figure>
+
+
+<p>OPA service is now up and listening on port <code>8181</code>. Next, we are going to upload the ACL file and the policy file into OPA. Note that OPA stores both the data and policies in memory and so if you restart the OPA service, you will have to reload both of the files.</p>
+
+<p><img class="center" src="/images/posts/open_policy_agent/opa_upload_policy_and_data.png"></p>
+
+<p>First, upload the ACL file <code>myapi-acl.json</code> into OPA using the following <code>curl</code> command:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl -X PUT http://localhost:8181/v1/data/myapi/acl --data-binary @myapi-acl.json</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Next, upload the policy file <code>myapi-policy.rego</code> into OPA by issuing:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl -X PUT http://localhost:8181/v1/policies/myapi --data-binary @myapi-policy.rego</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Invoking policy queries</h3>
+
+<p>Finally, if everything went well, we are now ready to issue our first  query.</p>
+
+<p><img class="center" src="/images/posts/open_policy_agent/opa_query_policy.png"></p>
+
+<p>Let&rsquo;s ask OPA whether the user <code>alice</code> can invoke a <code>write</code> operation on our application:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl -X POST http://localhost:8181/v1/data/myapi/policy/allow \
+</span><span class='line'>--data-binary '{ "input": { "user": "alice", "access": "write" } }' \
+</span><span class='line'>| jq
+</span><span class='line'>{
+</span><span class='line'>  "result": true
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The query result returned by OPA says that the user <code>alice</code> is authorized for writing. Our application would now proceed with executing the write operation. And what about <code>bob</code>? Is user <code>bob</code> allowed to write?</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl -X POST http://localhost:8181/v1/data/myapi/policy/allow \
+</span><span class='line'>--data-binary '{ "input": { "user": "bob", "access": "write" } }' \
+</span><span class='line'>| jq
+</span><span class='line'>{
+</span><span class='line'>  "result": false
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The query result says it clearly. User <code>bob</code> is denied <code>write</code> access. Our application would return HTTP 403 Forbidden to <code>bob</code> at this point.</p>
+
+<p>From what we have seen so far, a query result can be a simple <code>true</code> or <code>false</code> value. However, this is not a limitation that OPA would impose. OPA allows you to write policy rules that can yield an arbitrarily complex JSON structure. For example, the <code>whocan</code> rule that we defined in our policy, returns a JSON list.</p>
+
+<p>Let&rsquo;s give it a try and ask OPA to return a list of users that were granted the <code>read</code> permission:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl -X POST http://localhost:8181/v1/data/myapi/policy/whocan \
+</span><span class='line'>--data-binary '{ "input": { "access": "read" } }' \
+</span><span class='line'>| jq
+</span><span class='line'>{
+</span><span class='line'>  "result": [
+</span><span class='line'>    "alice",
+</span><span class='line'>    "bob"
+</span><span class='line'>  ]
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Conclusion</h2>
+
+<p>In this article, we took an initial look at Open Policy Agent. After discussing how OPA works, we went through an example of implementing an Access Control List policy. In the next entry to this series, we are going to dive deeper into developing policies with OPA.</p>
+
+<p>I hope that you found this article useful. If you have any questions or comments, please add them to the comment section below. I look forward to hearing from you.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+
+
+
+<span class="byline author vcard">Posted by <span class="fn">Ales Nosek</span></span>
+
+
+
+
+
+
+<time class='entry-date' datetime='2019-10-08T07:13:38-07:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>8</span><span class='date-suffix'>th</span>, <span class='date-year'>2019</span></span> <span class='time'>7:13 am</span></time>
+
+
+<span class="categories">
+
+    <a class='category' href='/blog/categories/development/'>development</a>
+
+</span>
+
+
+    </p>
+
+      <div class="sharing">
+
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://alesnosek.com/blog/2019/10/08/open-policy-agent-part-i-the-introduction/" data-via="" data-counturl="http://alesnosek.com/blog/2019/10/08/open-policy-agent-part-i-the-introduction/" >Tweet</a>
+
+
+  <div class="g-plusone" data-size="medium"></div>
+
+
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+
+</div>
+
+
+    <p class="meta">
+
+        <a class="basic-alignment left" href="/blog/2019/09/23/future-proof-monolithic-applications-with-modular-design/" title="Previous Post: Future-Proof Monolithic Applications with Modular Design">&laquo; Future-Proof Monolithic Applications with Modular Design</a>
+
+
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+
+      <li class="post">
+        <a href="/blog/2019/10/08/open-policy-agent-part-i-the-introduction/">Open Policy Agent, Part I &mdash; The Introduction</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2019/09/23/future-proof-monolithic-applications-with-modular-design/">Future-Proof Monolithic Applications with Modular Design</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2019/08/19/configuring-envoy-to-audo-discover-pods-on-kubernetes/">Configuring Envoy to Auto-Discover Pods on Kubernetes</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2019/08/05/troubleshooting-the-performance-of-vert-dot-x-applications-troubleshooting-event-loop-delays/">Troubleshooting the Performance of Vert.x Applications, Part III &mdash; Troubleshooting Event Loop Delays</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2019/07/22/troubleshooting-the-performance-of-vert-dot-x-applications-preventing-event-loop-delays/">Troubleshooting the Performance of Vert.x Applications, Part II &mdash; Preventing Event Loop Delays</a>
+      </li>
+
+  </ul>
+</section>
+<section>
+  <h1>About Me</h1>
+  <script type="text/javascript" src="https://platform.linkedin.com/badges/js/profile.js" async defer></script>
+  <div class="LI-profile-badge"  data-version="v1" data-size="medium" data-locale="en_US" data-type="vertical" data-theme="light" data-vanity="alesnosek"><a class="LI-simple-link" href='https://www.linkedin.com/in/alesnosek?trk=profile-badge'>Ales Nosek</a></div>
+</section>
+
+
+
+
+
+
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2019 - Ales Nosek -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'alesnosekcom';
+
+
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://alesnosek.com/blog/2019/10/08/open-policy-agent-part-i-the-introduction/';
+        var disqus_url = 'http://alesnosek.com/blog/2019/10/08/open-policy-agent-part-i-the-introduction/';
+        var disqus_script = 'embed.js';
+
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
