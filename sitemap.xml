@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>http://alesnosek.com/blog/2019/10/27/open-policy-agent-part-ii-developing-policies/</loc>
+    <lastmod>2019-10-27T20:37:08-07:00</lastmod>
+  </url>
+  <url>
     <loc>http://alesnosek.com/blog/2019/10/08/open-policy-agent-part-i-the-introduction/</loc>
     <lastmod>2019-10-08T07:13:38-07:00</lastmod>
   </url>
