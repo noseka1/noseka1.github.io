@@ -171,6 +171,6 @@ $ curl -X POST http://localhost:8181/v1/data/myapi/policy/whocan \
 
 ## Conclusion
 
-In this article, we took an initial look at Open Policy Agent. After discussing how OPA works, we went through an example of implementing an Access Control List policy. In the next entry to this series, we are going to dive deeper into developing policies with OPA.
+In this article, we took an initial look at Open Policy Agent. After discussing how OPA works, we went through an example of implementing an Access Control List policy. In the [next entry](/blog/2019/10/27/open-policy-agent-part-ii-developing-policies/) to this series, we are going to dive deeper into developing policies with OPA.
 
 I hope that you found this article useful. If you have any questions or comments, please add them to the comment section below. I look forward to hearing from you.
