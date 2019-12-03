@@ -4,7 +4,7 @@
   <title><![CDATA[Category: development | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/development/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2019-12-03T13:07:46-08:00</updated>
+  <updated>2019-12-03T14:03:12-08:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -129,7 +129,7 @@
 
 <h2>Conclusion</h2>
 
-<p>In this blog post, I shared with you several tips and approaches for how to design policies in Open Policy Agent. In the final article in the series we will focus on how you can integrate Open Policy Agent with your application.</p>
+<p>In this blog post, I shared with you several tips and approaches for how to design policies in Open Policy Agent. In the <a href="/blog/2019/12/03/open-policy-agent-part-iii-integrating-with-your-application/">final article</a> in the series we will focus on how you can integrate Open Policy Agent with your application.</p>
 
 <p>If you have any comments or questions, please use the comment section below. I look forward to hearing from you.</p>
 ]]></content>
