@@ -4,7 +4,7 @@
   <title><![CDATA[Category: development | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/development/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2019-10-27T20:51:02-07:00</updated>
+  <updated>2019-12-03T13:07:46-08:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,84 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[Open Policy Agent, Part III &mdash; Integrating with Your Application]]></title>
+    <link href="http://alesnosek.com/blog/2019/12/03/open-policy-agent-part-iii-integrating-with-your-application/"/>
+    <updated>2019-12-03T12:46:10-08:00</updated>
+    <id>http://alesnosek.com/blog/2019/12/03/open-policy-agent-part-iii-integrating-with-your-application</id>
+    <content type="html"><![CDATA[<p>In the <a href="/blog/2019/10/27/open-policy-agent-part-ii-developing-policies/">previous entry</a> to this series, we discussed developing policies with Open Policy Agent. In this final article in the series, we are going to focus on how you can integrate Open Policy Agent with your application.</p>
+
+<!-- more -->
+
+
+<h2>Integrating OPA with your application</h2>
+
+<p>There are several options how you can integrate OPA with your application. If you happen to build your application using the Go language, you can link OPA as a library straight into your application. Otherwise, you will run OPA as a stand-alone service (daemon). If you deploy your application on Kubernetes, you can run OPA service as a side-car container along with your application services. This minimizes the communication latency between OPA and your application. It also avoids possible communication issues between OPA and your application due to network failures. If you are deploying on virtual machines, you can run one replica of the OPA service on each of your virtual machines to achieve the same benefits. In summary, deploying OPA as a side-car service or a host-local service is the recommended approach.</p>
+
+<p><img class="center" src="/images/posts/open_policy_agent/opa_integration.png"></p>
+
+<p>Another deployment option would be running multiple OPA services behind a load balancer. Your application and OPA services would in this case talk over the network and the communication would go through the load balancer. You would incur the cost of network latency. However, I am not sure how would the overall reliability of this approach compare to the side-car approach. OPA documentation doesn&rsquo;t really mention this option of deploying multiple OPA services behind a load balancer. However, if you are building your application as a set of Lambda functions, then this might be the way to go:</p>
+
+<p><img class="center" src="/images/posts/open_policy_agent/opa_integration_lambda.png"></p>
+
+<h2>Utilizing Open Policy Agent APIs</h2>
+
+<p>Open Policy Agent comes with a whole set of APIs that you can use in order to utilize OPA to its full potential. I depicted the possible API integrations in the following diagram:</p>
+
+<p><img class="center" src="/images/posts/open_policy_agent/opa_integration_full.png"></p>
+
+<p>In the diagram above, the green box is your application invoking policy queries against OPA. The purple services are optional services that you can include in your architecture. These services have to be implemented by yourself and they must expose APIs that are specified by OPA. Two blue boxes depict the Prometheus monitoring server and Kubernetes. OPA can integrate with them right away. In the diagram, the direction of the arrows between services is significant. The arrows indicate which service from the pair initiates the TCP connection. In the following subsections, let&rsquo;s take a closer look at each of these OPA interfaces.</p>
+
+<h3>Open Policy Agent REST API</h3>
+
+<p>This is the main API provided by OPA that your application uses to manage data and policies, and to execute queries. It is well described in the OPA&rsquo;s <a href="https://www.openpolicyagent.org/docs/latest/rest-api/">REST API documentation</a>. I would like to highlight two things that I learned about the OPA REST APIs:</p>
+
+<p>First, OPA allows you to set watches on policy queries in order for you to be notified whenever the result of the query evaluation changes. Watches utilize the HTTP long polling mechanism. For additional details, you can refer to the <a href="https://www.openpolicyagent.org/docs/latest/rest-api/#watches">Watches</a> section of the OPA&rsquo;s documentation.</p>
+
+<p>Second, the communication between the client (i.e. your application) and the OPA service can be protected using TLS. OPA authenticates itself to the client by presenting a valid TLS certificate. Client can authenticate itself to OPA either by presenting a client TLS certificate or by presenting a security token. And guess how OPA handles API authorization? Of course, by evaluating a Rego policy that you supply. For further details on OPA&rsquo;s security settings, refer to the <a href="https://www.openpolicyagent.org/docs/latest/security/">Security</a> section of OPA&rsquo;s documentation.</p>
+
+<h3>Optional APIs</h3>
+
+<p>These APIs are specified by OPA  and you can opt to implement them in order to gain additional functionality and better integrate OPA into your system.</p>
+
+<p>If you recall, in the first part of the series we imported data and policies into OPA by pushing it via the REST APIs. Pushing the data and policies into OPA is not always a feasible option. For example, if OPA is deployed as an ephemeral pod on Kubernetes, it would be difficult to ensure that the API call is made each time right after the pod has started.  How can you make OPA work in such scenarios? You can deploy a service which implements the <a href="https://www.openpolicyagent.org/docs/latest/bundles/#bundle-service-api">Bundle Service API</a> and configure OPA to periodically pull up-to-date policies and data from this service. In the simplest case, the service can be implemented as a static HTTP server that hosts the policy and data bundles. However, if your use case demands it, you can implement a service that generates policies and data for OPA on-the-fly. When pulling the policies and data, OPA checks the ETag to find out if a new version is available. The Bundle service allows you to ensure that your policies are consistent across many OPA instances and enables you to hot reload them at any time.</p>
+
+<p>OPA can be configured using a set of static configuration files. In Kubernetes, you would likely manage these configuration files as ConfigMaps. However, OPA comes with its own mechanism to manage configuration files from a central place. You can implement the <a href="https://www.openpolicyagent.org/docs/latest/discovery/">Discovery Service API</a> to expose the configuration files as discovery bundles to OPA instances. On the startup, OPA will download its configuration from the Discovery Service.</p>
+
+<p>OPA can send <a href="https://www.openpolicyagent.org/docs/latest/status/">status</a> updates to remote HTTP servers that implement a simple <a href="https://www.openpolicyagent.org/docs/latest/status/#status-service-api">Status Service API</a> . You will be notified whenever OPA downloads and actives a new bundle. Notifications are issued for both policy+data bundles and discovery bundles.</p>
+
+<p>OPA can periodically report <a href="https://www.openpolicyagent.org/docs/latest/decision-logs/">decision logs</a> to remote HTTP servers that implement a <a href="https://www.openpolicyagent.org/docs/latest/decision-logs/#decision-log-service-api">Decision Log Service API</a>. The reported decision logs record all the policy decisions made by OPA. How could you make use of it? You could implement a simple Decision Log Service that would run co-located with the OPA service and that would store the decision logs into a durable storage like Kafka. And here you go, an awesome audit log was born!</p>
+
+<h3>Health and Monitoring APIs</h3>
+
+<p>OPA exposes a <a href="https://www.openpolicyagent.org/docs/latest/rest-api/#health-api">Health API</a> for you to periodically verify that the OPA service is operational. If you are deploying OPA on top of Kubernetes,  you can leverage the Health API to define the <a href="https://www.openpolicyagent.org/docs/latest/deployments/#readiness-and-liveness-probes">liveness and readiness probes</a>. OPA also exposes Prometheus metrics to <a href="https://www.openpolicyagent.org/docs/latest/monitoring/">monitor</a> the performance of OPA API calls. Both health and monitoring APIs can be secured the same way as the OPA REST API which we discussed before.</p>
+
+<h2>Where to go from here?</h2>
+
+<p>In addition to the written sources that you can find on the web, I would like to point you to a couple of excellent presentations about Open Policy Agent hosted on YouTube:</p>
+
+<ul>
+<li><a href="https://www.youtube.com/watch?v=CDDsjMOtJ-c">Intro: Open Policy Agent - Torin Sandall, Styra (2018)</a></li>
+<li><a href="https://www.youtube.com/watch?v=n94_FNhuzy4">Deep Dive: Open Policy Agent - Torin Sandall &amp; Tim Hinrichs, Styra (2019)</a></li>
+</ul>
+
+
+<p>If you are evaluating Open Policy Agent from the security perspective, this <a href="https://github.com/open-policy-agent/opa/blob/master/SECURITY_AUDIT.pdf">audit report</a> might be of interest to you as well.</p>
+
+<h2>Conclusion</h2>
+
+<p>In this article, we discussed several ways for how you can integrate Open Policy Agent with your application. We also described the set of APIs defined by OPA that you can utilize to take full advantage of Open Policy Agent.</p>
+
+<p>Open Policy Agent is a young and fast-moving project. Despite my rather short experience with OPA, I can already recommend that you consider using Open Policy Agent in your project before spending time on implementing your own domain specific language for writing policies or coding your policies in a general-purpose programming language. OPA will keep the policies consistent across your system, will allow you to hot reload the policies at any time and will make policy decisions with very low latency for you.</p>
+
+<p>So far, each of the open source projects came up with its own way how to implement access control. System administrators have to learn how to grant access permissions in the Apache HTTP server, Kubernetes, and fill in your favorite open source project here. It would be great if OPA&rsquo;s Rego language would become an open standard for describing access control rules across the open source ecosystem. I hope that the future will show that this is possible.</p>
+
+<p>Regardless of what other projects decide for themselves, we are planning to utilize Open Policy Agent in the SaaS project I am involved with as a consultant. As we are moving forward,  I intend to share the experience that we gain with OPA with you in some of the future blog posts.</p>
+
+<p>I hope that you found this blog series about Open Policy Agent helpful. If you have any questions or comments, please leave them in the comment section below. I look forward to hearing from you.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[Open Policy Agent, Part II &mdash; Developing Policies]]></title>
@@ -621,128 +699,6 @@ $ curl -X POST http://localhost:8181/v1/data/myapi/policy/allow \
 <p>In this article, we discussed how to work with blocking APIs in Vert.x. A blocking API call has to be made on a worker thread and not on an event loop thread. Futhermore, we described a technique that allows you to execute compute intensive tasks on the event loop without considerably delaying the processing of other tasks on the same event loop.</p>
 
 <p>If you have any comments or questions please feel free to use the comment section below. In the final article in the series we will cover some techniques for troubleshooting event loop delays.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[Troubleshooting the Performance of Vert.x Applications, Part I &mdash; The Event Loop Model]]></title>
-    <link href="http://alesnosek.com/blog/2019/06/30/troubleshooting-the-performance-of-vert-dot-x-applications-part-i-the-event-loop-model/"/>
-    <updated>2019-06-30T10:16:31-07:00</updated>
-    <id>http://alesnosek.com/blog/2019/06/30/troubleshooting-the-performance-of-vert-dot-x-applications-part-i-the-event-loop-model</id>
-    <content type="html"><![CDATA[<p>This article is the first in a series of three articles which share my experience with troubleshooting the performance of Vert.x applications. The first article provides an overview of the Vert.x event loop model, the second acticle covers techniques to prevent delays on the event loop, and the third article focuses on troubleshooting of event loop delays.</p>
-
-<!-- more -->
-
-
-<p>Programming with Vert.x requires a good understanding of its event loop model. From what I saw in practice, delayed or blocked event loop threads are the number one contributor to performance problems with Vert.x applications. But don&rsquo;t worry. In this article, we are going to review the event loop model.</p>
-
-<h2>Event loop theads and worker threads</h2>
-
-<p>Depending on how you register your handler with Vert.x APIs, Vert.x will either execute your handler using an event loop thread or a worker thread. There are only these two options in Vert.x. The determination whether the handler is going to be executed on an event loop thread or a worker thread is made at the time you register the handler and doesn&rsquo;t change throughout the lifetime of your application. Take a look at this example:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">class</span> <span class="nc">MyVerticle</span> <span class="kd">extends</span> <span class="n">AbstractVerticle</span> <span class="o">{</span>
-</span><span class='line'>    <span class="nd">@Override</span>
-</span><span class='line'>    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">start</span><span class="o">()</span> <span class="o">{&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span>    <span class="n">Handler</span><span class="o">&amp;</span><span class="n">lt</span><span class="o">;</span><span class="n">Future</span><span class="o">&amp;</span><span class="n">lt</span><span class="o">;</span><span class="n">Void</span><span class="o">&amp;</span><span class="n">gt</span><span class="o">;&amp;</span><span class="n">gt</span><span class="o">;</span> <span class="n">blockingCodeHandler</span> <span class="o">=</span> <span class="n">future</span> <span class="o">-&amp;</span><span class="n">gt</span><span class="o">;</span> <span class="o">{</span>
-</span><span class='line'>        <span class="c1">// this handler will be executed on a worker thread</span>
-</span><span class='line'>    <span class="o">};</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="n">Handler</span><span class="o">&amp;</span><span class="n">lt</span><span class="o">;</span><span class="n">AsyncResult</span><span class="o">&amp;</span><span class="n">lt</span><span class="o">;</span><span class="n">Void</span><span class="o">&amp;</span><span class="n">gt</span><span class="o">;&amp;</span><span class="n">gt</span><span class="o">;</span> <span class="n">resultHandler</span> <span class="o">=</span> <span class="n">result</span> <span class="o">-&amp;</span><span class="n">gt</span><span class="o">;</span> <span class="o">{</span>
-</span><span class='line'>        <span class="c1">// this handler will be executed on an event loop thread</span>
-</span><span class='line'>    <span class="o">};</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="n">vertx</span><span class="o">.</span><span class="na">executeBlocking</span><span class="o">(</span><span class="n">blockingCodeHandler</span><span class="o">,</span> <span class="n">resultHandler</span><span class="o">);</span>
-</span><span class='line'><span class="o">}</span>
-</span><span class='line'><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;}</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>The API call <code>vertx.executeBlocking()</code> registered two handlers. Vert.x will call the <code>blockingCodeHandler()</code> using a worker thread and the <code>resultHandler()</code> using an event loop thread. Because there are restrictions on what code can be executed on event loop threads, you want to structure your code so that it&rsquo;s clear to a casual reader whether a specific piece of code executes on a worker thread or an event loop thread.</p>
-
-<p>Event loop frameworks like Vert.x employ a small amount of event loop threads at their core to do all the computational work. Using a low amount of threads minimizes the need for context switching which leads to a better performance than what a thread-per-request model can achieve.</p>
-
-<blockquote><p>In an ideal situation, your Vert.x application would exclusively use event loop threads.</p></blockquote>
-
-<p>The increased utilization of computing resources resulting in increased performance is a great benefit that event loop frameworks bring to the table. However, there are situations where employing worker threads is inevitable. We are going to show you some examples of such situations in the second article of this series. Just keep in mind that an excessive use of worker threads results in frequent context switching which will impact the overall performance of your application. This context switching negates the benefit of employing event loop frameworks like Vert.x in the first place.</p>
-
-<h2>Taking the event loop for a spin</h2>
-
-<p>The whole purpose of the event loop is to react to events which are delivered to the event loop by the operating system. Event loop processes those events by executing handlers. To explain how the event loop operates, let&rsquo;s imagine a typical HTTP server application serving multiple client connections at the same time. There&rsquo;s data being sent back and forth between the server and the client on each of the connections. And here is how the event loop handles it. First, the event loop waits for any of the events like incoming data available on the connection, or connection is ready to send more data. If any of those events happens, the event loop executes handlers that were registered to handle that specific event. For example, if there is incoming data available, the event loop calls the respective handler that stores the incoming data into a buffer and passes that buffer through a chain of handlers to your handler to process it. Handlers registered with a given event loop are executed one by one because the event loop is a single thread after all. After the processing of the event is finished, event loop returns back to wait for the next event.</p>
-
-<p><img class="center" src="/images/posts/vertx_event_loop.png"></p>
-
-<p>I would like to highlight that the event loop is a single thread that executes the handlers sequentially. In order for this scheme to work smoothly:</p>
-
-<blockquote><p>Handlers should not run code that would delay the event loop.</p></blockquote>
-
-<p>In the case that the application is under full load, the events are queuing up while the event loop is busy executing handlers. In this case, the event loop doesn&rsquo;t really wait for events. Instead, it just picks up the next event and continues with executing handlers straight away.</p>
-
-<p>On the other hand, if the application is idle and there are no events to process, the event loop will wait for events by blocking. It means the event loop thread will relinquish the CPU. Later on when the events arrive, the operating system scheduler will wake up the event loop thread again. Blocking while waiting for events is part of the event loop implementation and it is the only place where the event loop thread is supposed block. In contrast, handlers registered with the event loop  should never issue a blocking call.</p>
-
-<p>On my Linux machine, if I dump a stack trace of an idle event loop thread I will get this:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="o">&amp;</span><span class="n">ldquo</span><span class="o">;</span><span class="n">vert</span><span class="o">.</span><span class="na">x</span><span class="o">-</span><span class="n">eventloop</span><span class="o">-</span><span class="n">thread</span><span class="o">-</span><span class="mi">0</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="o">;</span> <span class="err">#</span><span class="mi">13</span> <span class="n">prio</span><span class="o">=</span><span class="mi">5</span> <span class="n">os_prio</span><span class="o">=</span><span class="mi">0</span> <span class="n">tid</span><span class="o">=</span><span class="mh">0x00007f89e0523800</span> <span class="n">nid</span><span class="o">=</span><span class="mh">0x1d67</span> <span class="n">runnable</span> <span class="o">[</span><span class="mh">0x00007f89cc4e0000</span><span class="o">]</span>
-</span><span class='line'>   <span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">Thread</span><span class="o">.</span><span class="na">State</span><span class="o">:</span> <span class="n">RUNNABLE</span>
-</span><span class='line'>        <span class="n">at</span> <span class="n">sun</span><span class="o">.</span><span class="na">nio</span><span class="o">.</span><span class="na">ch</span><span class="o">.</span><span class="na">EPollArrayWrapper</span><span class="o">.</span><span class="na">epollWait</span><span class="o">(</span><span class="n">Native</span> <span class="n">Method</span><span class="o">)</span>
-</span><span class='line'>        <span class="n">at</span> <span class="n">sun</span><span class="o">.</span><span class="na">nio</span><span class="o">.</span><span class="na">ch</span><span class="o">.</span><span class="na">EPollArrayWrapper</span><span class="o">.</span><span class="na">poll</span><span class="o">(</span><span class="n">EPollArrayWrapper</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">269</span><span class="o">)</span>
-</span><span class='line'>        <span class="n">at</span> <span class="n">sun</span><span class="o">.</span><span class="na">nio</span><span class="o">.</span><span class="na">ch</span><span class="o">.</span><span class="na">EPollSelectorImpl</span><span class="o">.</span><span class="na">doSelect</span><span class="o">(</span><span class="n">EPollSelectorImpl</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">93</span><span class="o">)</span>
-</span><span class='line'>        <span class="n">at</span> <span class="n">sun</span><span class="o">.</span><span class="na">nio</span><span class="o">.</span><span class="na">ch</span><span class="o">.</span><span class="na">SelectorImpl</span><span class="o">.</span><span class="na">lockAndDoSelect</span><span class="o">(</span><span class="n">SelectorImpl</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">86</span><span class="o">)</span>
-</span><span class='line'>        <span class="o">-</span> <span class="n">locked</span> <span class="o">&lt;</span><span class="mh">0x000000076ee73e18</span><span class="o">&gt;</span> <span class="o">(</span><span class="n">a</span> <span class="n">io</span><span class="o">.</span><span class="na">netty</span><span class="o">.</span><span class="na">channel</span><span class="o">.</span><span class="na">nio</span><span class="o">.</span><span class="na">SelectedSelectionKeySet</span><span class="o">)</span>
-</span><span class='line'>        <span class="o">-</span> <span class="n">locked</span> <span class="o">&lt;</span><span class="mh">0x000000076ee72be0</span><span class="o">&gt;</span> <span class="o">(</span><span class="n">a</span> <span class="n">java</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">Collections$UnmodifiableSet</span><span class="o">)</span>
-</span><span class='line'>        <span class="o">-</span> <span class="n">locked</span> <span class="o">&lt;</span><span class="mh">0x000000076ee72ac8</span><span class="o">&gt;</span> <span class="o">(</span><span class="n">a</span> <span class="n">sun</span><span class="o">.</span><span class="na">nio</span><span class="o">.</span><span class="na">ch</span><span class="o">.</span><span class="na">EPollSelectorImpl</span><span class="o">)</span>
-</span><span class='line'>        <span class="n">at</span> <span class="n">sun</span><span class="o">.</span><span class="na">nio</span><span class="o">.</span><span class="na">ch</span><span class="o">.</span><span class="na">SelectorImpl</span><span class="o">.</span><span class="na">select</span><span class="o">(</span><span class="n">SelectorImpl</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">97</span><span class="o">)</span>
-</span><span class='line'>        <span class="n">at</span> <span class="n">io</span><span class="o">.</span><span class="na">netty</span><span class="o">.</span><span class="na">channel</span><span class="o">.</span><span class="na">nio</span><span class="o">.</span><span class="na">SelectedSelectionKeySetSelector</span><span class="o">.</span><span class="na">select</span><span class="o">(</span><span class="n">SelectedSelectionKeySetSelector</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">62</span><span class="o">)</span>
-</span><span class='line'>        <span class="n">at</span> <span class="n">io</span><span class="o">.</span><span class="na">netty</span><span class="o">.</span><span class="na">channel</span><span class="o">.</span><span class="na">nio</span><span class="o">.</span><span class="na">NioEventLoop</span><span class="o">.</span><span class="na">select</span><span class="o">(</span><span class="n">NioEventLoop</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">753</span><span class="o">)</span>
-</span><span class='line'>        <span class="n">at</span> <span class="n">io</span><span class="o">.</span><span class="na">netty</span><span class="o">.</span><span class="na">channel</span><span class="o">.</span><span class="na">nio</span><span class="o">.</span><span class="na">NioEventLoop</span><span class="o">.</span><span class="na">run</span><span class="o">(</span><span class="n">NioEventLoop</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">408</span><span class="o">)</span>
-</span><span class='line'>        <span class="n">at</span> <span class="n">io</span><span class="o">.</span><span class="na">netty</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">concurrent</span><span class="o">.</span><span class="na">SingleThreadEventExecutor$5</span><span class="o">.</span><span class="na">run</span><span class="o">(</span><span class="n">SingleThreadEventExecutor</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">897</span><span class="o">)</span>
-</span><span class='line'>        <span class="n">at</span> <span class="n">io</span><span class="o">.</span><span class="na">netty</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">concurrent</span><span class="o">.</span><span class="na">FastThreadLocalRunnable</span><span class="o">.</span><span class="na">run</span><span class="o">(</span><span class="n">FastThreadLocalRunnable</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">30</span><span class="o">)</span>
-</span><span class='line'>        <span class="n">at</span> <span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">Thread</span><span class="o">.</span><span class="na">run</span><span class="o">(</span><span class="n">Thread</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">748</span><span class="o">)</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Vert.x tool-kit is built on top of <a href="https://netty.io/">Netty</a> framework and the event loop implementation is actually part of Netty. In the stack trace you can see that the Java thread is executing the Netty&rsquo;s event loop code which calls the Java NIO APIs which somewhere in the native code invokes the <code>epoll_wait</code> system call. This system call puts the event loop thread to sleep until the next event arrives.</p>
-
-<p>Interestingly, while blocking in the <code>epoll_wait</code> system call, from the Java standpoint the thread is in a <code>RUNNABLE</code> state and not for example in the state <code>BLOCKED</code> which I would intuitively expect. JVM as an abstraction on top of the operating system has its own <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Thread.State.html">definition of thread states</a>. According to this definition the thread is indeed in the <code>RUNNABLE</code> state even when from the stand point of the operating system it is in the state <em>interruptible sleep</em> and hence blocked.</p>
-
-<h2>Conclusion</h2>
-
-<p>In this article, we familiarized ourselves with the event loop model which is rather different from the thread-per-request model. The <a href="/blog/2019/07/22/troubleshooting-the-performance-of-vert-dot-x-applications-preventing-event-loop-delays/">next part</a> in the series will cover techniques to prevent delays on the event loop.</p>
-
-<p>Comment below if you found this article helpful or if you have suggestions for future blog subjects.</p>
 ]]></content>
   </entry>
 

@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2019-10-27T20:51:02-07:00</updated>
+  <updated>2019-12-03T13:07:46-08:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,84 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[Open Policy Agent, Part III &mdash; Integrating with Your Application]]></title>
+    <link href="http://alesnosek.com/blog/2019/12/03/open-policy-agent-part-iii-integrating-with-your-application/"/>
+    <updated>2019-12-03T12:46:10-08:00</updated>
+    <id>http://alesnosek.com/blog/2019/12/03/open-policy-agent-part-iii-integrating-with-your-application</id>
+    <content type="html"><![CDATA[<p>In the <a href="http://alesnosek.com/blog/2019/10/27/open-policy-agent-part-ii-developing-policies/">previous entry</a> to this series, we discussed developing policies with Open Policy Agent. In this final article in the series, we are going to focus on how you can integrate Open Policy Agent with your application.</p>
+
+<!-- more -->
+
+
+<h2>Integrating OPA with your application</h2>
+
+<p>There are several options how you can integrate OPA with your application. If you happen to build your application using the Go language, you can link OPA as a library straight into your application. Otherwise, you will run OPA as a stand-alone service (daemon). If you deploy your application on Kubernetes, you can run OPA service as a side-car container along with your application services. This minimizes the communication latency between OPA and your application. It also avoids possible communication issues between OPA and your application due to network failures. If you are deploying on virtual machines, you can run one replica of the OPA service on each of your virtual machines to achieve the same benefits. In summary, deploying OPA as a side-car service or a host-local service is the recommended approach.</p>
+
+<p><img class="center" src="http://alesnosek.com/images/posts/open_policy_agent/opa_integration.png"></p>
+
+<p>Another deployment option would be running multiple OPA services behind a load balancer. Your application and OPA services would in this case talk over the network and the communication would go through the load balancer. You would incur the cost of network latency. However, I am not sure how would the overall reliability of this approach compare to the side-car approach. OPA documentation doesn&rsquo;t really mention this option of deploying multiple OPA services behind a load balancer. However, if you are building your application as a set of Lambda functions, then this might be the way to go:</p>
+
+<p><img class="center" src="http://alesnosek.com/images/posts/open_policy_agent/opa_integration_lambda.png"></p>
+
+<h2>Utilizing Open Policy Agent APIs</h2>
+
+<p>Open Policy Agent comes with a whole set of APIs that you can use in order to utilize OPA to its full potential. I depicted the possible API integrations in the following diagram:</p>
+
+<p><img class="center" src="http://alesnosek.com/images/posts/open_policy_agent/opa_integration_full.png"></p>
+
+<p>In the diagram above, the green box is your application invoking policy queries against OPA. The purple services are optional services that you can include in your architecture. These services have to be implemented by yourself and they must expose APIs that are specified by OPA. Two blue boxes depict the Prometheus monitoring server and Kubernetes. OPA can integrate with them right away. In the diagram, the direction of the arrows between services is significant. The arrows indicate which service from the pair initiates the TCP connection. In the following subsections, let&rsquo;s take a closer look at each of these OPA interfaces.</p>
+
+<h3>Open Policy Agent REST API</h3>
+
+<p>This is the main API provided by OPA that your application uses to manage data and policies, and to execute queries. It is well described in the OPA&rsquo;s <a href="https://www.openpolicyagent.org/docs/latest/rest-api/">REST API documentation</a>. I would like to highlight two things that I learned about the OPA REST APIs:</p>
+
+<p>First, OPA allows you to set watches on policy queries in order for you to be notified whenever the result of the query evaluation changes. Watches utilize the HTTP long polling mechanism. For additional details, you can refer to the <a href="https://www.openpolicyagent.org/docs/latest/rest-api/#watches">Watches</a> section of the OPA&rsquo;s documentation.</p>
+
+<p>Second, the communication between the client (i.e. your application) and the OPA service can be protected using TLS. OPA authenticates itself to the client by presenting a valid TLS certificate. Client can authenticate itself to OPA either by presenting a client TLS certificate or by presenting a security token. And guess how OPA handles API authorization? Of course, by evaluating a Rego policy that you supply. For further details on OPA&rsquo;s security settings, refer to the <a href="https://www.openpolicyagent.org/docs/latest/security/">Security</a> section of OPA&rsquo;s documentation.</p>
+
+<h3>Optional APIs</h3>
+
+<p>These APIs are specified by OPA  and you can opt to implement them in order to gain additional functionality and better integrate OPA into your system.</p>
+
+<p>If you recall, in the first part of the series we imported data and policies into OPA by pushing it via the REST APIs. Pushing the data and policies into OPA is not always a feasible option. For example, if OPA is deployed as an ephemeral pod on Kubernetes, it would be difficult to ensure that the API call is made each time right after the pod has started.  How can you make OPA work in such scenarios? You can deploy a service which implements the <a href="https://www.openpolicyagent.org/docs/latest/bundles/#bundle-service-api">Bundle Service API</a> and configure OPA to periodically pull up-to-date policies and data from this service. In the simplest case, the service can be implemented as a static HTTP server that hosts the policy and data bundles. However, if your use case demands it, you can implement a service that generates policies and data for OPA on-the-fly. When pulling the policies and data, OPA checks the ETag to find out if a new version is available. The Bundle service allows you to ensure that your policies are consistent across many OPA instances and enables you to hot reload them at any time.</p>
+
+<p>OPA can be configured using a set of static configuration files. In Kubernetes, you would likely manage these configuration files as ConfigMaps. However, OPA comes with its own mechanism to manage configuration files from a central place. You can implement the <a href="https://www.openpolicyagent.org/docs/latest/discovery/">Discovery Service API</a> to expose the configuration files as discovery bundles to OPA instances. On the startup, OPA will download its configuration from the Discovery Service.</p>
+
+<p>OPA can send <a href="https://www.openpolicyagent.org/docs/latest/status/">status</a> updates to remote HTTP servers that implement a simple <a href="https://www.openpolicyagent.org/docs/latest/status/#status-service-api">Status Service API</a> . You will be notified whenever OPA downloads and actives a new bundle. Notifications are issued for both policy+data bundles and discovery bundles.</p>
+
+<p>OPA can periodically report <a href="https://www.openpolicyagent.org/docs/latest/decision-logs/">decision logs</a> to remote HTTP servers that implement a <a href="https://www.openpolicyagent.org/docs/latest/decision-logs/#decision-log-service-api">Decision Log Service API</a>. The reported decision logs record all the policy decisions made by OPA. How could you make use of it? You could implement a simple Decision Log Service that would run co-located with the OPA service and that would store the decision logs into a durable storage like Kafka. And here you go, an awesome audit log was born!</p>
+
+<h3>Health and Monitoring APIs</h3>
+
+<p>OPA exposes a <a href="https://www.openpolicyagent.org/docs/latest/rest-api/#health-api">Health API</a> for you to periodically verify that the OPA service is operational. If you are deploying OPA on top of Kubernetes,  you can leverage the Health API to define the <a href="https://www.openpolicyagent.org/docs/latest/deployments/#readiness-and-liveness-probes">liveness and readiness probes</a>. OPA also exposes Prometheus metrics to <a href="https://www.openpolicyagent.org/docs/latest/monitoring/">monitor</a> the performance of OPA API calls. Both health and monitoring APIs can be secured the same way as the OPA REST API which we discussed before.</p>
+
+<h2>Where to go from here?</h2>
+
+<p>In addition to the written sources that you can find on the web, I would like to point you to a couple of excellent presentations about Open Policy Agent hosted on YouTube:</p>
+
+<ul>
+<li><a href="https://www.youtube.com/watch?v=CDDsjMOtJ-c">Intro: Open Policy Agent - Torin Sandall, Styra (2018)</a></li>
+<li><a href="https://www.youtube.com/watch?v=n94_FNhuzy4">Deep Dive: Open Policy Agent - Torin Sandall &amp; Tim Hinrichs, Styra (2019)</a></li>
+</ul>
+
+
+<p>If you are evaluating Open Policy Agent from the security perspective, this <a href="https://github.com/open-policy-agent/opa/blob/master/SECURITY_AUDIT.pdf">audit report</a> might be of interest to you as well.</p>
+
+<h2>Conclusion</h2>
+
+<p>In this article, we discussed several ways for how you can integrate Open Policy Agent with your application. We also described the set of APIs defined by OPA that you can utilize to take full advantage of Open Policy Agent.</p>
+
+<p>Open Policy Agent is a young and fast-moving project. Despite my rather short experience with OPA, I can already recommend that you consider using Open Policy Agent in your project before spending time on implementing your own domain specific language for writing policies or coding your policies in a general-purpose programming language. OPA will keep the policies consistent across your system, will allow you to hot reload the policies at any time and will make policy decisions with very low latency for you.</p>
+
+<p>So far, each of the open source projects came up with its own way how to implement access control. System administrators have to learn how to grant access permissions in the Apache HTTP server, Kubernetes, and fill in your favorite open source project here. It would be great if OPA&rsquo;s Rego language would become an open standard for describing access control rules across the open source ecosystem. I hope that the future will show that this is possible.</p>
+
+<p>Regardless of what other projects decide for themselves, we are planning to utilize Open Policy Agent in the SaaS project I am involved with as a consultant. As we are moving forward,  I intend to share the experience that we gain with OPA with you in some of the future blog posts.</p>
+
+<p>I hope that you found this blog series about Open Policy Agent helpful. If you have any questions or comments, please leave them in the comment section below. I look forward to hearing from you.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[Open Policy Agent, Part II &mdash; Developing Policies]]></title>
@@ -2784,106 +2862,6 @@
 <p>OpenStack is not the easiest software to run, however, if you do your homework you will succeed. At the present time, OpenStack just works for us and brings a lot of value to the teams in our company.</p>
 
 <p>If you&rsquo;d like to share your experience with operating OpenStack, I would love to hear from you. Please, feel free to use the comment section below.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[18 Months with OpenStack, Our Experience, Part I]]></title>
-    <link href="http://alesnosek.com/blog/2018/02/19/18-months-with-openstack-our-experience-part-i/"/>
-    <updated>2018-02-19T21:06:17-08:00</updated>
-    <id>http://alesnosek.com/blog/2018/02/19/18-months-with-openstack-our-experience-part-i</id>
-    <content type="html"><![CDATA[<p>It has been 18 months since we deployed OpenStack cloud in our company. In this article, I would like to review our time with OpenStack and describe some of the experience we gained. Are you thinking about building an OpenStack-based cloud? This article might provide you with additional insights and tips that will help you succeed.</p>
-
-<!-- more -->
-
-
-<h2>Introduction</h2>
-
-<p>Right at the beginning, I&rsquo;d like to say that our company is not a cloud provider. We didn&rsquo;t build a cloud to provide a service to customers. Instead, we built a private cloud to support our engineering team in their software development efforts. Our OpenStack is running development machines, build machines and test machines. The requirements on the availability and reliability of our OpenStack cluster are therefore lower than the requirements that a public cloud would have to meet.</p>
-
-<p>We started evaluating OpenStack around the Kilo release and ended up going with Mitaka into production. Around that time, Internet was flooded with articles criticizing the complexity of OpenStack including scary stories of companies failing their OpenStack projects. I can confirm that deploying OpenStack was a real challenge and that as we were working on it, the OpenStack version of the Kennedy&rsquo;s famous words passed through my mind several times:</p>
-
-<blockquote><p>We choose to deploy OpenStack not because it is easy, but because it is hard.</p></blockquote>
-
-<p>However, nothing can scare away a proficent software practitioner. Eventually, we got the job done and the invested effort did pay off.</p>
-
-<h2>OpenStack essentials</h2>
-
-<p><a href="https://www.openstack.org/">OpenStack</a> is an open-source infrastructure-as-a-service (IaaS) cloud platform. It&rsquo;s important to understand that OpenStack itself is only a controlling layer that relies on other software projects to provide the implementation of the underlying functionality. For instance, OpenStack can spin up virtual machines, however, you would not find any code in the OpenStack project that would actually implement a hypervisor. Instead, OpenStack integrates with an existing hypervisor software to do the job. A very popular choice of the hypervisor used along with OpenStack is <a href="https://www.linux-kvm.org">KVM</a> and so when the user creates a virtual machine on OpenStack, OpenStack merely calls the KVM hypervisor to spin up the virtual machine. The same holds true for other areas of OpenStack functionality like networking and storage where OpenStack drives the underlying networking and storage software to do the actual job.</p>
-
-<p>When planning an OpenStack cluster, you will have to choose from a variety of underlying technologies. For instance, in addition to the KVM hypervisor, OpenStack also supports Xen, VMware vSphere and Hyper-V. Most of the time you will just pick the technology you already run at your place and for which you have the staff to manage it. The freedom of choice you have with OpenStack is amazing, however, I would recommend to always look at the most popular choices first because their integration with OpenStack tends to be more solid. In our case, we chose KVM as a hypervisor, <a href="http://www.openvswitch.org/">Open vSwitch</a> as a networking implementation and <a href="https://ceph.com/">Ceph</a> to provide object and block storage.</p>
-
-<p>OpenStack is an umbrella project under which you can find a host of projects each dealing with a different portion of the cloud functionality. The core projects that one can find installed in the majority of OpenStack deployments are:</p>
-
-<ul>
-<li><a href="https://wiki.openstack.org/wiki/Nova">Nova</a>. Manages virtual machines.</li>
-<li><a href="https://wiki.openstack.org/wiki/Neutron">Neutron</a>. Provides networking to virtual machines.</li>
-<li><a href="https://wiki.openstack.org/wiki/Cinder">Cinder</a>. Provides block storage that can be attached to virtual machines.</li>
-<li><a href="https://wiki.openstack.org/wiki/Glance">Glance</a>. Stores virtual machine images.</li>
-<li><a href="https://wiki.openstack.org/wiki/Horizon">Horizon</a>. Web-based user interface to OpenStack services.</li>
-<li><a href="https://wiki.openstack.org/wiki/Keystone">Keystone</a>. Identity service.</li>
-</ul>
-
-
-<p>Additionally, project <a href="https://wiki.openstack.org/wiki/Heat">Heat</a>, <a href="https://wiki.openstack.org/wiki/Swift">Swift</a>, and <a href="https://wiki.openstack.org/wiki/Telemetry">Ceilometer</a> are also rather popular. You can find plenty of other OpenStack projects listed on the <a href="https://www.openstack.org/software/project-navigator">Project navigator</a> page. When choosing OpenStack projects for your deployment, you should always consider the adoption and the maturity of the projects. Many projects on the list are still in the early stages of development and not ready for production use.</p>
-
-<p>OpenStack was designed for massive scale deployments as you can tell if you look at the <a href="https://docs.openstack.org/arch-design/design.html">OpenStack architecture diagram</a>. Each OpenStack project consists of multiple services (daemons) that can be deployed on separate physical machines allowing OpenStack to scale out. OpenStack services communicate with each other over the network using RESTful APIs. In addition, some of the projects like Nova, Neutron and Cinder chose to leverage a message broker for internal communication. The high number of services that form an OpenStack deployment contributes to its operational complexity.</p>
-
-<h2>Getting started with OpenStack</h2>
-
-<p>If you are new to OpenStack, a great place to start learning OpenStack is the <a href="https://docs.openstack.org/devstack/latest/">DevStack project</a>. DevStack allows you to create an all-in-one deployment of OpenStack. With DevStack you can access debug logs of individual OpenStack services as well as easily restart OpenStack services after you changed their configuration. It took me a while to figure out which configuration option affects which OpenStack service and how OpenStack services communicate with each other. I learned a lot by re-deploying DevStack many times, trying to make the individual OpenStack features work properly.</p>
-
-<p>OpenStack is a fast moving project with two major releases per year. Especially in the past, the project documentation could not keep up with the many changes packed in each release. The documentation was outdated on many places or was missing altogether. When working with OpenStack I quickly realized that reading the OpenStack&rsquo;s Python code was necessary in order to understand how some of the configuration options worked or when troubleshooting various issues.</p>
-
-<blockquote><p> Ability to read the OpenStack source code was required to succeed.</p></blockquote>
-
-<p>OpenStack is written using a beautiful idiomatic Python code which was most of the time a pleasure to read. At first, I started walking through the code of simpler projects like Glance and learned the patterns that were commonly used in other OpenStack projects, too. Only later I dived deeper into the internals of Nova, the OpenStack&rsquo;s brain that schedules and creates virtual machines. When between OpenStack releases configuration options were renamed or moved to different INI file sections, I just grepped through the source code and learned about the changes avoiding any further frustration.</p>
-
-<p>If you are getting started with OpenStack, prepare for a steep learning curve. Apart from studying the OpenStack project documentation, you will have to refer to the documentation of the technologies that you integrate with OpenStack, too. For instance, I spend quite a bit of time studying the documentation of <a href="https://www.rabbitmq.com/documentation.html">RabbitMQ</a>, <a href="https://libvirt.org/docs.html">libvirt</a>, <a href="http://docs.openvswitch.org">Open vSwitch</a>, and <a href="http://docs.ceph.com">Ceph</a>.</p>
-
-<h2>Choosing an OpenStack distribution</h2>
-
-<p>There are several OpenStack distributions available out there. For us the choice was pretty straight forward. As we are a Red Hat shop, we went with <a href="https://www.rdoproject.org/">RDO</a> installed on top of RHEL7. I spent large amounts of time working with RDO and yeah, it was challenging, at least in its Mitaka release. For further details on our experience with OpenStack RDO, you can refer to articles: <a href="http://alesnosek.com/blog/2016/03/27/tripleo-installer-the-good/">1</a>, <a href="http://alesnosek.com/blog/2017/01/15/tripleo-installer-production-ready">2</a>. Due to the complexity of OpenStack, it is rather difficult to create a tool to manage its life-cycle and I&rsquo;m certain that further development effort will have to be spent before reaching perfection.</p>
-
-<p>By the way, some OpenStack distributions come with a GUI-based installer. As there are dozens of configuration parameters to set during the installation, I don&rsquo;t see the point of using a graphical interface to do this. Instead, a well commented configuration file seems more desirable to me. Does the GUI-based installer enable product managers to make a check mark on their data sheet? I would say yes, but you can safely ignore it when choosing your OpenStack distribution.</p>
-
-<h2>Choosing server hardware</h2>
-
-<p>We started with a small OpenStack deployment comprised of 3 controller nodes, 2 compute nodes and 3 Ceph nodes. Over time, we added further nodes to meet the growing demand and ended up with the current size of the cluster being 3 controller nodes, 13 compute nodes and 7 Ceph nodes. Majority of the nodes are HP ProLiant DL360 Gen9 machines with the following hardware parameters:</p>
-
-<ul>
-<li><strong>Controller nodes.</strong> 96GB RAM, 2 x 300GB SAS 10K HDD in RAID1, 1Gbit Ethernet NICs</li>
-<li><strong>Compute nodes.</strong> 288GB RAM, 8 x 300GB SAS 10K HDD in RAID10 (for the OS + instance ephemeral storage), 1Gbit and 10Gbit Ethernet NICs</li>
-<li><strong>Ceph nodes.</strong> 32GB RAM, 2 x 300GB SAS 10K HDD in RAID1 (for the OS), 6 x 1.2TB SAS 10K HDD (Ceph OSD storage drives), 1Gbit and 10Gbit Ethernet NICs</li>
-</ul>
-
-
-<p>1Gbit Ethernet NICs are used to access OpenStack APIs on the controller nodes. Compute nodes and Ceph storage nodes are interconnected using 10Gbit Ethernet. All network interfaces are bonded and connected to two different switches to avoid a single-point-of-failure. There is a dedicated 1Gbit link attached to each of the OpenStack nodes used for node management via SSH.</p>
-
-<p>From our experience, each of the compute nodes can run up to 40-50 virtual machines using the default OpenStack RDO settings: cpu_allocation_ratio=16.0, ram_allocation_ratio=1.0 and disk_allocation_ratio=1.0. Our current limit preventing us to achieve even higher density is the amount of provisioned RAM on the nodes. In the future, we are considering adding more RAM to the compute nodes or increasing the ram_allocation_ratio.</p>
-
-<h2>Deployment overview</h2>
-
-<p>Finally, we are going to take a look at the high-level overview of our OpenStack deployment. In the diagram below you can see the OpenStack projects that we chose for the deployment:</p>
-
-<p><img src="http://alesnosek.com/images/posts/18_months_with_openstack_components.png" width="800" height="1000" title="OpenStack Components" ></p>
-
-<p>Let me comment on some of the projects we deployed:</p>
-
-<ul>
-<li><strong><a href="https://docs.openstack.org/ironic">Ironic</a>.</strong> We deployed Ironic in order to manage baremetal machines that we use for performance testing. Performance tests are more accurate when carried out in an isolated baremetal environment than on the virtual machines that share the resources of the hypervisor. To this date we didn&rsquo;t realize this our plan but we will get back to it in the future.</li>
-<li><strong><a href="https://docs.openstack.org/magnum">Magnum</a>.</strong> Magnum project simplifies the deployment of container orchestrators like Kubernetes, Swarm and Mesos on top of OpenStack. To accomplish this, Magnum leverages Heat templates behind the scenes and the actual provisioning is done by Heat. To be honest, we never really started using Magnum. When deploying Kubernetes, we preferred to use Heat templates provided by the Kubernetes project. This approach turned to be more straight forward than involving yet another service like Magnum. You can read about it <a href="http://alesnosek.com/blog/2016/06/26/deploying-kubernetes-on-openstack-using-heat">here</a>.</li>
-<li><strong><a href="https://docs.openstack.org/sahara">Sahara</a>.</strong> Sahara project allows you to deploy big data frameworks like Apache Hadoop and Apache Spark on top of OpenStack. We made similar experience with Sahara as we made with Magnum. We just didn&rsquo;t start using it at all. It turned out that there were already pre-existing deployment scripts provided by Hortonworks and others that it made no sense for us to use Sahara. While Hortonworks <a href="https://github.com/hortonworks/ansible-hortonworks">scripts</a> can deploy Hadoop on any of the major clouds, Sahara would be an OpenStack-only solution.</li>
-<li><strong><a href="https://docs.openstack.org/manila">Manila</a>.</strong> While not depicted in the diagram, we also deployed OpenStack Manila. Manila is a shared file system service and we use it to provision NFS shares. Manila project started as a code copy of the Cinder project and perhaps that&rsquo;s why it was pretty stable and usable soon after its inception. I wrote an <a href="http://alesnosek.com/blog/2016/05/22/test-driving-openstack-manila/">article</a> about Manila at the time we were evaluating it.</li>
-<li><strong><a href="https://docs.openstack.org/designate">Designate</a>.</strong>  Designate is a DNS as a service for OpenStack. After evaluating this project, we realized that for our simple purpose Designate was too involved. We ended up writing a Python script that dynamically registers OpenStack virtual machines with our internal DNS server. This script works reliably ever since and you can read about it in this <a href="http://alesnosek.com/blog/2015/05/31/openstack-dynamic-dns-updates">blog post</a>.</li>
-</ul>
-
-
-<h2>Conclusion</h2>
-
-<p>In this post, we described some of our experience with planning the OpenStack cloud and deploying it. In the <a href="http://alesnosek.com/blog/2018/03/08/18-months-with-openstack-our-experience-part-ii/">second</a> blog post, we are going to share the lessons learned when operating OpenStack.</p>
-
-<p>If you have battle scars from working with OpenStack, I would love to hear from you. Please, feel free to share your comments and stories in the comment section below.</p>
 ]]></content>
   </entry>
 
