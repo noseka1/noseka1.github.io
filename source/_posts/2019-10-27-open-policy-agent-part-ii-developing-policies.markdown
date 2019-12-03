@@ -38,6 +38,6 @@ OPA is a relatively new project, however, additional tooling and integrations wi
 
 ## Conclusion
 
-In this blog post, I shared with you several tips and approaches for how to design policies in Open Policy Agent. In the final article in the series we will focus on how you can integrate Open Policy Agent with your application.
+In this blog post, I shared with you several tips and approaches for how to design policies in Open Policy Agent. In the [final article](/blog/2019/12/03/open-policy-agent-part-iii-integrating-with-your-application/) in the series we will focus on how you can integrate Open Policy Agent with your application.
 
 If you have any comments or questions, please use the comment section below. I look forward to hearing from you.
