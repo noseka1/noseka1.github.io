@@ -9,7 +9,7 @@
   <meta name="author" content="Ales Nosek">
 
 
-  <meta name="description" content="In this article I am going to show you how to attach a debugger and a VisualVM profiler to the Java application running on OpenShift. The approach &hellip;">
+  <meta name="description" content="This article is the first in a series of three articles which share my experience with troubleshooting the performance of Vert.x applications. The &hellip;">
 
 
   <!-- http://t.co/dKP3o1e -->
@@ -79,6 +79,74 @@
     <div id="content">
       <div class="blog-index">
 
+
+
+    <article>
+
+  <header>
+
+      <h1 class="entry-title"><a href="/blog/2019/06/30/troubleshooting-the-performance-of-vert-dot-x-applications-part-i-the-event-loop-model/">Troubleshooting the Performance of Vert.x Applications, Part I &mdash; The Event Loop Model</a></h1>
+
+
+      <p class="meta">
+
+
+
+
+
+<time class='entry-date' datetime='2019-06-30T10:16:31-07:00'><span class='date'><span class='date-month'>Jun</span> <span class='date-day'>30</span><span class='date-suffix'>th</span>, <span class='date-year'>2019</span></span> <span class='time'>10:16 am</span></time>
+
+      </p>
+
+  </header>
+
+
+  <div class="entry-content"><p>This article is the first in a series of three articles which share my experience with troubleshooting the performance of Vert.x applications. The first article provides an overview of the Vert.x event loop model, the second acticle covers techniques to prevent delays on the event loop, and the third article focuses on troubleshooting of event loop delays.</p>
+
+</div>
+
+
+    <footer>
+      <a rel="full-article" href="/blog/2019/06/30/troubleshooting-the-performance-of-vert-dot-x-applications-part-i-the-event-loop-model/">Read on &rarr;</a>
+    </footer>
+
+
+
+    </article>
+
+
+    <article>
+
+  <header>
+
+      <h1 class="entry-title"><a href="/blog/2019/04/21/speaking-at-red-hat-summit-2019/">Speaking at Red Hat Summit 2019</a></h1>
+
+
+      <p class="meta">
+
+
+
+
+
+<time class='entry-date' datetime='2019-04-21T12:41:43-07:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>21</span><span class='date-suffix'>st</span>, <span class='date-year'>2019</span></span> <span class='time'>12:41 pm</span></time>
+
+      </p>
+
+  </header>
+
+
+  <div class="entry-content"><p>This year&rsquo;s <a href="https://www.redhat.com/en/summit/2019">Red Hat Summit</a> is going to be hosted in Boston on May 7-9, 2019. I will be co-presenting on the topic: <em>Using Domain-driven Design to Reimagine Monolithic Applications in a World of Microservices</em>. If you are interested in hearing about how to design monolithic applications in a practical, decomposable, and agile fashion, you can come and see Eric Murphy and myself at the Boston Convention &amp; Exhibition Center on Wednesday, May 8, 10:30 a.m.-11:15 a.m. Feel free to drop by to say hi!</p>
+
+</div>
+
+
+    <footer>
+      <a rel="full-article" href="/blog/2019/04/21/speaking-at-red-hat-summit-2019/">Read on &rarr;</a>
+    </footer>
+
+
+
+    </article>
 
 
     <article>
@@ -352,74 +420,6 @@
 
     </article>
 
-
-    <article>
-
-  <header>
-
-      <h1 class="entry-title"><a href="/blog/2018/04/21/booting-amazon-linux-2-on-openstack/">Booting Amazon Linux 2 on OpenStack</a></h1>
-
-
-      <p class="meta">
-
-
-
-
-
-<time class='entry-date' datetime='2018-04-21T22:21:04-07:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>21</span><span class='date-suffix'>st</span>, <span class='date-year'>2018</span></span> <span class='time'>10:21 pm</span></time>
-
-      </p>
-
-  </header>
-
-
-  <div class="entry-content"><p>Amazon Linux 2 runs on OpenStack perfectly fine. There is only one glitch that you should be aware of. Amazon Linux 2 won&rsquo;t accept metadata and user data provided by OpenStack on boot. That means that you won&rsquo;t be able to SSH into the instance after it comes up. In this brief tutorial, we are going to modify the Amazon Linux 2 image to fix this problem.</p>
-
-</div>
-
-
-    <footer>
-      <a rel="full-article" href="/blog/2018/04/21/booting-amazon-linux-2-on-openstack/">Read on &rarr;</a>
-    </footer>
-
-
-
-    </article>
-
-
-    <article>
-
-  <header>
-
-      <h1 class="entry-title"><a href="/blog/2018/03/08/18-months-with-openstack-our-experience-part-ii/">18 Months with OpenStack, Our Experience, Part II</a></h1>
-
-
-      <p class="meta">
-
-
-
-
-
-<time class='entry-date' datetime='2018-03-08T20:51:11-08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>8</span><span class='date-suffix'>th</span>, <span class='date-year'>2018</span></span> <span class='time'>8:51 pm</span></time>
-
-      </p>
-
-  </header>
-
-
-  <div class="entry-content"><p>In the <a href="/blog/2018/02/19/18-months-with-openstack-our-experience-part-i/">previous post</a>, we discussed our experience with the deployment of OpenStack. In this article, we&rsquo;re going to share the lessons learned when operating it. It took effort to tame the OpenStack beast and make it work reliably. If you want to know how we accomplished that, read on.</p>
-
-</div>
-
-
-    <footer>
-      <a rel="full-article" href="/blog/2018/03/08/18-months-with-openstack-our-experience-part-ii/">Read on &rarr;</a>
-    </footer>
-
-
-
-    </article>
-
   <div class="pagination">
 
       <a class="prev" href="/posts/3">&larr; Older</a>
@@ -437,6 +437,14 @@
   <ul id="recent_posts">
 
       <li class="post">
+        <a href="/blog/2020/04/26/speaking-at-red-hat-summit-2020/">Speaking at Red Hat Summit 2020</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2020/04/21/openshift-upi-using-static-ips/">OpenShift UPI Using Static IPs</a>
+      </li>
+
+      <li class="post">
         <a href="/blog/2019/12/03/open-policy-agent-part-iii-integrating-with-your-application/">Open Policy Agent, Part III &mdash; Integrating with Your Application</a>
       </li>
 
@@ -446,14 +454,6 @@
 
       <li class="post">
         <a href="/blog/2019/10/08/open-policy-agent-part-i-the-introduction/">Open Policy Agent, Part I &mdash; The Introduction</a>
-      </li>
-
-      <li class="post">
-        <a href="/blog/2019/09/23/future-proof-monolithic-applications-with-modular-design/">Future-Proof Monolithic Applications with Modular Design</a>
-      </li>
-
-      <li class="post">
-        <a href="/blog/2019/08/19/configuring-envoy-to-audo-discover-pods-on-kubernetes/">Configuring Envoy to Auto-Discover Pods on Kubernetes</a>
       </li>
 
   </ul>
@@ -474,7 +474,7 @@
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2019 - Ales Nosek -
+  Copyright &copy; 2020 - Ales Nosek -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

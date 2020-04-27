@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Technical Documentation with Doxygen - Ales Nosek - The Software Practitioner</title>
+  <title>OpenShift UPI Using Static IPs - Ales Nosek - The Software Practitioner</title>
   <meta name="author" content="Ales Nosek">
 
 
-  <meta name="description" content="Do you create project documentation in your company&rsquo;s internal wiki? I did it for quite some time until I realized that a good old Doxygen &hellip;">
+  <meta name="description" content="Recently, I have been working on the openshift-auto-upi project, which automates UPI deployments of OpenShift. I was looking for a way to configure &hellip;">
 
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
 
-  <link rel="canonical" href="http://alesnosek.com/blog/2015/06/14/technical-documentation-with-doxygen/">
+  <link rel="canonical" href="http://alesnosek.com/blog/2020/04/21/openshift-upi-using-static-ips/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/stylesheets/data-table.css" media="screen, projection" rel="stylesheet" type="text/css" />
@@ -82,7 +82,7 @@
 
   <header>
 
-      <h1 class="entry-title">Technical Documentation with Doxygen</h1>
+      <h1 class="entry-title">OpenShift UPI Using Static IPs</h1>
 
 
       <p class="meta">
@@ -91,46 +91,16 @@
 
 
 
-<time class='entry-date' datetime='2015-06-14T22:04:36-07:00'><span class='date'><span class='date-month'>Jun</span> <span class='date-day'>14</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>10:04 pm</span></time>
+<time class='entry-date' datetime='2020-04-21T20:29:52-07:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>21</span><span class='date-suffix'>st</span>, <span class='date-year'>2020</span></span> <span class='time'>8:29 pm</span></time>
 
       </p>
 
   </header>
 
 
-<div class="entry-content"><p>Do you create project documentation in your company&rsquo;s internal wiki? I did it for quite some time until I realized that a good old Doxygen combined with Git can do a much better job.</p>
+<div class="entry-content"><p>Recently, I have been working on the <a href="https://github.com/noseka1/openshift-auto-upi">openshift-auto-upi</a> project, which automates UPI deployments of OpenShift.  I was looking for a way to configure OpenShift nodes with static IP addresses. After several failed attempts, I found a working approach that can be easily automated. If you prefer using static IPs over the default DHCP provisioning, please read on as I share my approach with you.</p>
 
-<!-- more -->
-
-
-<p><a href="http://www.stack.nl/~dimitri/doxygen/" title="Doxygen">Doxygen</a> is a well-known tool for generating documentation directly out of the annotated source code. However, it can be utilized to create technical documentation, too. In version 1.8.0, <a href="http://www.stack.nl/~dimitri/doxygen/manual/markdown.html" title="Markdown support">Markdown support</a> was introduced to Doxygen. <a href="http://daringfireball.net/projects/markdown/" title="Markdown">Markdown</a> is a popular markup language. Plain text files written in Markdown format can be converted into HTML or many other formats. With Markdown support, creating technical documentation in Doxygen gets really easy.</p>
-
-<h2>Doxygen sample project</h2>
-
-<p>To get started, I read a <a href="http://svenax.net/site/2013/07/creating-user-documentation-with-doxygen/" title="Creating user documentation with Doxygen">very useful article</a> describing how to enable support of plain Markdown files in Doxygen and a couple of gotchas one might encounter. Gotchas? No worries! In record time I was able to create sample technical documentation. As sample content I used a couple of articles from my blog which were also coded in Markdown. Now I&rsquo;d like to share the project with you:</p>
-
-<ul>
-<li><a href="https://github.com/noseka1/tech-doc-with-doxygen" title="tech-doc-with-doxygen">Source code on GitHub</a></li>
-<li><a href="http://noseka1.github.com/tech-doc-with-doxygen/">The generated HTML output</a></li>
-<li><a href="http://noseka1.github.com/tech-doc-with-doxygen/refman.pdf">The generated PDF output</a></li>
-<li><a href="http://noseka1.github.com/tech-doc-with-doxygen/refman.rtf">The generated RTF output</a></li>
-</ul>
-
-
-<p>The project shows a basic document structure. If you want to learn more about Doxygen I recommend downloading the Doxygen source distribution <a href="http://www.stack.nl/~dimitri/doxygen/download.html">tarball</a> or clone the Doxygen&rsquo;s project <a href="https://github.com/doxygen/doxygen">Git repository</a>. After extracting the tar archive go to the <code>doc</code> directory where you can find the sources of the Doxygen&rsquo;s <a href="http://www.stack.nl/~dimitri/doxygen/index.html" title="Doxygen">webpage</a>. You can learn a lot by reading through them.</p>
-
-<p>Doxygen provides good support for creating graphs and diagrams in your technical document. For instance, you can insert graphs in <a href="https://en.wikipedia.org/wiki/DOT_(graph_description_language" title="DOT">DOT</a> format with <code>@dot</code> or <code>@dotfile</code> tags. You can include <a href="http://www.mcternan.me.uk/mscgen/" title="MSC">MSC</a> sequence diagrams with <code>@msc</code> or <code>@mscfile</code> tags. To insert decent looking <a href="http://plantuml.sourceforge.net/" title="PlantUML">PlantUML</a> UML diagrams use <code>@startuml</code> tag. If you like to draw your diagrams in <a href="http://dia-installer.de/" title="Dia">Dia</a> you can insert them to Doxygen via <code>@diafile</code> tag.</p>
-
-<h2>Conclusion</h2>
-
-<p>Doxygen is a very powerful documentation tool. Chances are that you&rsquo;re already using it to generate a documentation from your source code. It makes a lot of sense to me to use Doxygen for project documentation instead of creating it in the Wiki. If you combine Doxygen with a good source control (e.g. Git) you gain the following benefits:</p>
-
-<ul>
-<li>History tracking and branching that no Wiki can provide</li>
-<li>The same development workflow for your documentation as well as for your source code</li>
-<li>Project documentation and source code at one place and possibly referencing each other</li>
-</ul>
-
+<p>The blog is published at <a href="https://www.openshift.com/blog/openshift-upi-using-static-ips">openshift.com/blog</a>.</p>
 </div>
 
 
@@ -146,12 +116,12 @@
 
 
 
-<time class='entry-date' datetime='2015-06-14T22:04:36-07:00'><span class='date'><span class='date-month'>Jun</span> <span class='date-day'>14</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>10:04 pm</span></time>
+<time class='entry-date' datetime='2020-04-21T20:29:52-07:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>21</span><span class='date-suffix'>st</span>, <span class='date-year'>2020</span></span> <span class='time'>8:29 pm</span></time>
 
 
 <span class="categories">
 
-    <a class='category' href='/blog/categories/development/'>development</a>
+    <a class='category' href='/blog/categories/devops/'>devops</a>
 
 </span>
 
@@ -160,7 +130,7 @@
 
       <div class="sharing">
 
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://alesnosek.com/blog/2015/06/14/technical-documentation-with-doxygen/" data-via="" data-counturl="http://alesnosek.com/blog/2015/06/14/technical-documentation-with-doxygen/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://alesnosek.com/blog/2020/04/21/openshift-upi-using-static-ips/" data-via="" data-counturl="http://alesnosek.com/blog/2020/04/21/openshift-upi-using-static-ips/" >Tweet</a>
 
 
   <div class="g-plusone" data-size="medium"></div>
@@ -173,10 +143,10 @@
 
     <p class="meta">
 
-        <a class="basic-alignment left" href="/blog/2015/06/06/seven-tips-for-better-code/" title="Previous Post: Seven Tips for Better Code">&laquo; Seven Tips for Better Code</a>
+        <a class="basic-alignment left" href="/blog/2019/12/03/open-policy-agent-part-iii-integrating-with-your-application/" title="Previous Post: Open Policy Agent, Part III &mdash; Integrating with Your Application">&laquo; Open Policy Agent, Part III &mdash; Integrating with Your Application</a>
 
 
-        <a class="basic-alignment right" href="/blog/2015/06/21/the-structure-of-doxygen-documentation/" title="Next Post: The Structure of Doxygen Documentation">The Structure of Doxygen Documentation &raquo;</a>
+        <a class="basic-alignment right" href="/blog/2020/04/26/speaking-at-red-hat-summit-2020/" title="Next Post: Speaking at Red Hat Summit 2020">Speaking at Red Hat Summit 2020 &raquo;</a>
 
     </p>
   </footer>
@@ -247,8 +217,8 @@
 
 
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://alesnosek.com/blog/2015/06/14/technical-documentation-with-doxygen/';
-        var disqus_url = 'http://alesnosek.com/blog/2015/06/14/technical-documentation-with-doxygen/';
+        var disqus_identifier = 'http://alesnosek.com/blog/2020/04/21/openshift-upi-using-static-ips/';
+        var disqus_url = 'http://alesnosek.com/blog/2020/04/21/openshift-upi-using-static-ips/';
         var disqus_script = 'embed.js';
 
     (function () {

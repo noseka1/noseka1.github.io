@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2019-12-03T14:03:12-08:00</updated>
+  <updated>2020-04-26T21:58:28-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,37 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[Speaking at Red Hat Summit 2020]]></title>
+    <link href="http://alesnosek.com/blog/2020/04/26/speaking-at-red-hat-summit-2020/"/>
+    <updated>2020-04-26T20:33:11-07:00</updated>
+    <id>http://alesnosek.com/blog/2020/04/26/speaking-at-red-hat-summit-2020</id>
+    <content type="html"><![CDATA[<p>This year&rsquo;s <a href="https://www.redhat.com/en/summit">Red Hat Summit</a> is provided as a Virtual Experience on April 28-29, 2020. I will be presenting on the topic: <em>Design considerations and patterns for event-driven microservices</em>. The presentation will be available in three different time zones, and will cover patterns like transactional outbox, CQRS, and more:</p>
+
+<ul>
+<li>EMEA: Wednesday, April 29, 1:00 p.m. CEST</li>
+<li>NA &amp; LATAM: Wednesday, April 29, 1:00 p.m. EDT</li>
+<li>APAC: Wednesday, April 29, 4:00 p.m. SGT</li>
+</ul>
+
+
+<p>More information about the session can be found in the <a href="https://summit.redhat.com/conference/sessions?p1=eyJzcGVha2VyIjpbXSwidGltZXNsb3QiOltdLCJkYXkiOltdLCJyb29tIjpbXSwibG9jYXRpb24iOltdLCJzb3J0b3JkZXIiOiJkYXRlIiwic3RhcnQiOiIiLCJmaW5pc2giOiIiLCJwYWdlbnVtYmVyIjoxLCJzaGFyZWlkIjoiIiwiY2F0ZWdvcmllcyI6e30sImtleXdvcmQiOiJEZXNpZ24gY29uc2lkZXJhdGlvbnMgYW5kIHBhdHRlcm5zIGZvciBldmVudC1kcml2ZW4gbWljcm9zZXJ2aWNlcyJ9">session catalog</a>.</p>
+
+<p><img class="center" src="http://alesnosek.com/images/posts/red_hat_summit_2020.png"></p>
+]]></content>
+  </entry>
+
+  <entry>
+    <title type="html"><![CDATA[OpenShift UPI Using Static IPs]]></title>
+    <link href="http://alesnosek.com/blog/2020/04/21/openshift-upi-using-static-ips/"/>
+    <updated>2020-04-21T20:29:52-07:00</updated>
+    <id>http://alesnosek.com/blog/2020/04/21/openshift-upi-using-static-ips</id>
+    <content type="html"><![CDATA[<p>Recently, I have been working on the <a href="https://github.com/noseka1/openshift-auto-upi">openshift-auto-upi</a> project, which automates UPI deployments of OpenShift.  I was looking for a way to configure OpenShift nodes with static IP addresses. After several failed attempts, I found a working approach that can be easily automated. If you prefer using static IPs over the default DHCP provisioning, please read on as I share my approach with you.</p>
+
+<p>The blog is published at <a href="https://www.openshift.com/blog/openshift-upi-using-static-ips">openshift.com/blog</a>.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[Open Policy Agent, Part III &mdash; Integrating with Your Application]]></title>
@@ -2614,254 +2645,6 @@
 <p>In our company, the relentless improvement process never stops. The Ant + Ivy tools we leverage at the core of our build system are past their prime. So, what&rsquo;s next? I&rsquo;m very excited about our current progress in gradually replacing Ant + Ivy with the more modern Gradle build tool.</p>
 
 <p>I hope you enjoyed the tour through the design of the common build system. I would be interested to know how you promote code reuse of the build scripts in your company. It would be great to hear about your approach. Please, feel free to leave your comments in the comment section below.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[Booting Amazon Linux 2 on OpenStack]]></title>
-    <link href="http://alesnosek.com/blog/2018/04/21/booting-amazon-linux-2-on-openstack/"/>
-    <updated>2018-04-21T22:21:04-07:00</updated>
-    <id>http://alesnosek.com/blog/2018/04/21/booting-amazon-linux-2-on-openstack</id>
-    <content type="html"><![CDATA[<p>Amazon Linux 2 runs on OpenStack perfectly fine. There is only one glitch that you should be aware of. Amazon Linux 2 won&rsquo;t accept metadata and user data provided by OpenStack on boot. That means that you won&rsquo;t be able to SSH into the instance after it comes up. In this brief tutorial, we are going to modify the Amazon Linux 2 image to fix this problem.</p>
-
-<!-- more -->
-
-
-<p>You can download Amazon Linux 2 images from <a href="https://cdn.amazonlinux.com/os-images/latest/.">https://cdn.amazonlinux.com/os-images/latest/.</a> An image suitable for OpenStack is located in the <code>kvm</code> subdirectory. I downloaded the <code>amzn2-kvm-2017.12.0.20180330-x86_64.xfs.gpt.qcow2</code> version of the image. By the time you are reading this tutorial, a newer version of the image may be available.</p>
-
-<p>In the rest of this article, I&rsquo;m going to use my machine that is running RHEL7 to modify the Amazon Linux 2 image. First, let&#8217; download the image:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>wget https://cdn.amazonlinux.com/os-images/2017.12.0.20180330/kvm/amzn2-kvm-2017.12.0.20180330-x86_64.xfs.gpt.qcow2
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Next, let&rsquo;s install the <code>qemu-img</code> utility useful for manipulating qcow2 images:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>sudo yum install qemu-img
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Now we can convert the Amazon Linux 2 image from the qcow2 format to the raw format:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>qemu-img convert -f qcow2 -O raw amzn2-kvm-2017.12.0.20180330-x86_64.xfs.gpt.qcow2 amzn2-kvm.raw
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>The previous command creates a file <code>amzn2-kvm.raw</code> in the current working directory. This file is a binary image of the virtual machine disk. We can explore it using the <code>fdisk</code> command:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>fdisk -l amzn2-kvm.raw
-</span><span class='line'>Disk amzn2-kvm.raw: 26.8 GB, <span class="m">26843545600</span> bytes, <span class="m">52428800</span> sectors
-</span><span class='line'><span class="nv">Units</span> <span class="o">=</span> sectors of <span class="m">1</span> * <span class="nv">512</span> <span class="o">=</span> <span class="m">512</span> bytes
-</span><span class='line'>Sector size <span class="o">(</span>logical/physical<span class="o">)</span>: <span class="m">512</span> bytes / <span class="m">512</span> bytes
-</span><span class='line'>I/O size <span class="o">(</span>minimum/optimal<span class="o">)</span>: <span class="m">512</span> bytes / <span class="m">512</span> bytes
-</span><span class='line'>Disk label <span class="nb">type</span>: gpt
-</span><span class='line'>Disk identifier: 88B4CB3B-A2F1-4C9C-82DC-F18B0F440F56
-</span><span class='line'>
-</span><span class='line'>
-</span><span class='line'><span class="c">#         Start          End    Size  Type            Name</span>
-</span><span class='line'> <span class="m">1</span>         <span class="m">4096</span>     <span class="m">52428766</span>     25G  Linux filesyste Linux
-</span><span class='line'><span class="m">128</span>         <span class="m">2048</span>         <span class="m">4095</span>      1M  BIOS boot       BIOS Boot Partition
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>The output of the <code>fdisk</code> command shows that the disk contains two partitions. The size of the first partition is 25 GB and it holds a Linux filesystem. On the disk, the Linux filesystem starts at the sector number 4096. Given that the size of the sector is 512 bytes, we can tell that the Linux filesystem starts at offset 2097152 (4096 * 512) bytes from the start of the disk image. Knowing the offset of the Linux filesystem, let&rsquo;s loop mount the Linux filesystem under <code>/mnt</code>:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>sudo mount -o loop,offset<span class="o">=</span><span class="m">2097152</span> amzn2-kvm.raw /mnt
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>If everything went well, we can now take a look at the cloud-init configuration of the Amazon Linux 2 image:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>sudo vi /mnt/etc/cloud/cloud.cfg
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>In the cloud-init configuration file, you can find the data source list set as follows:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>datasource_list: <span class="o">[</span> NoCloud, AltCloud, ConfigDrive, OVF, None <span class="o">]</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Sadly, none of the listed data sources is available on OpenStack. OpenStack supports its own data source called <code>OpenStack</code>. Alternatively, OpenStack is compatible with the AWS data source called <code>Ec2</code>. This compatibility ensures that virtual machine images designed for EC2 will work properly on OpenStack. I would expect that the <code>Ec2</code> data source would be included in the data source list of the Amazon Linux 2 image but it is not. Let&rsquo;s add the <code>OpenStack</code> data source to the list:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>datasource_list: <span class="o">[</span> OpenStack, NoCloud, AltCloud, ConfigDrive, OVF, None <span class="o">]</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>I put the <code>OpenStack</code> data source at the beginning of the list. You can choose to add it anywhere else. Just make sure that the <code>None</code> data source remains as the last one on the list. <code>None</code> is a fallback datasource used when no other datasources can be selected and it provides empty metadata and empty user data.</p>
-
-<p>After you saved your changes, you can unmount the Linux filesystem:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>sudo umount /mnt
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>And convert the modified image back to the qcow2 format:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>qemu-img convert -f raw -O qcow2 amzn2-kvm.raw amzn2-kvm.qcow2
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Now you can upload the modified image into the OpenStack image repository:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openstack image create --min-disk <span class="m">25</span> --min-ram <span class="m">512</span> --container-format bare --disk-format qcow2 --file amzn2-kvm.qcow2 amzn2-kvm
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>After the image upload into OpenStack has completed, you can create a test virtual machine off of this image:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>openstack server create --image amzn2-kvm --flavor m1.medium --key-name &lt;key-name&gt; --nic net-id<span class="o">=</span>&lt;net-id&gt; amzn-test
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Note that in the above command, you&rsquo;ll have to replace the <code>&lt;key-name&gt;</code> and <code>&lt;net-id&gt;</code> placeholders with the name of your key pair and the name of the network you want your instance to be attached to. After the virtual machine has booted up, you should be able to connect to it using SSH. Note that the default user enabled on the Amazon Linux 2 image is <code>ec2-user</code>:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>ssh ec2-user@amzn-test
-</span><span class='line'>Last login: Sun Apr <span class="m">22</span> 05:08:45 <span class="m">2018</span> from ales.dev.ussd.verimatrix.com
-</span><span class='line'>
-</span><span class='line'>       __<span class="p">|</span>  __<span class="p">|</span>_  <span class="o">)</span>
-</span><span class='line'>       _<span class="p">|</span>  <span class="o">(</span>     /   Amazon Linux <span class="m">2</span> AMI
-</span><span class='line'>      ___<span class="p">|</span><span class="se">\_</span>__<span class="p">|</span>___<span class="p">|</span>
-</span><span class='line'>
-</span><span class='line'>https://aws.amazon.com/amazon-linux-2/
-</span><span class='line'>No packages needed <span class="k">for</span> security<span class="p">;</span> <span class="m">8</span> packages available
-</span><span class='line'>Run <span class="s2">&quot;sudo yum update&quot;</span> to apply all updates.
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>This is the end of the tutorial. You have a working Amazon Linux 2 image on OpenStack, congratulations! If you have any comments or questions, let me know in the comment section below.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[18 Months with OpenStack, Our Experience, Part II]]></title>
-    <link href="http://alesnosek.com/blog/2018/03/08/18-months-with-openstack-our-experience-part-ii/"/>
-    <updated>2018-03-08T20:51:11-08:00</updated>
-    <id>http://alesnosek.com/blog/2018/03/08/18-months-with-openstack-our-experience-part-ii</id>
-    <content type="html"><![CDATA[<p>In the <a href="http://alesnosek.com/blog/2018/02/19/18-months-with-openstack-our-experience-part-i/">previous post</a>, we discussed our experience with the deployment of OpenStack. In this article, we&rsquo;re going to share the lessons learned when operating it. It took effort to tame the OpenStack beast and make it work reliably. If you want to know how we accomplished that, read on.</p>
-
-<!-- more -->
-
-
-<h2>Monitoring OpenStack using Icinga</h2>
-
-<p>As the old sysadmin saying goes:</p>
-
-<blockquote><p>If you don&rsquo;t monitor it, it&rsquo;s not in production.</p></blockquote>
-
-<p>When looking for a tool to monitor OpenStack, we came across the <a href="https://wiki.openstack.org/wiki/Monasca">Monasca</a> project. Monasca is a monitoring-as-a-service solution built exclusively for OpenStack. The idea of deploying a system which was from the ground up designed for OpenStack was very appealing. However, after taking a closer look at Monasca we steered away from it. Firstly, Monasca was built around Big Data technologies like <a href="https://kafka.apache.org">Apache Kafka</a> and <a href="http://storm.apache.org/">Apache Storm</a> which are a great fit for large-scale deployments. For our rather low-scale use case they seemed to be a bit too heavy. Secondly, around Kilo release it was difficult to predict how much adoption Monasca would find in the community. Instead of Monasca, we eventually decided to go with <a href="https://www.icinga.com/">Icinga</a> which is a derivate of Nagios, a de facto industry standard between monitoring solutions. I wrote about the monitoring of OpenStack using Icinga in one of my previous <a href="http://alesnosek.com/blog/2015/11/30/monitoring-openstack-cluster-with-icinga/">posts</a>. Setting up Icinga to monitor OpenStack meant to search for Nagios plugins to check various parts of the OpenStack cluster. In addition to the standard set of plugins that comes with the Nagios distribution, we ended up using many plugins that we found on the Internet:</p>
-
-<ul>
-<li><a href="https://github.com/justintime/nagios-plugins">check_mem</a> Monitor Linux system memory usage.</li>
-<li><a href="https://github.com/mclarkson/check_diskstat">check_diskstat</a> Linux disk I/O checks, tps, read, write, avg. request size, avg. queue size and avg. wait time.</li>
-<li><a href="https://github.com/nguttman/Nagios-Checks/tree/master/Unix/Check_Process">check_process</a> UNIX process monitoring.</li>
-<li><a href="https://github.com/jonschipp/nagios-plugins/blob/master/check_service.sh">check_service</a> Monitors services managed by systemd.</li>
-<li><a href="https://github.com/Crapworks/check_ceph_dash">check-ceph-dash</a> Monitors overall Ceph cluster status. Requires <a href="https://github.com/Crapworks/ceph-dash">ceph-dash</a> to be installed.</li>
-<li><a href="https://github.com/noseka1/check_haproxy">check_haproxy</a> Monitors the health of HAProxy backends.</li>
-<li><a href="https://github.com/polymorf/check_haproxy">haproxy_http_stats</a> Turns the HAProxy statistics into Nagios performance data.</li>
-<li><a href="https://github.com/noseka1/nagios-plugin-check_galera_cluster">nagios-plugin-check_galera_cluster</a> Checks the status of a Galera cluster.</li>
-<li><a href="https://github.com/alaskacommunications/nagios_check_keepalived">check_keepalived_vrrp</a> Monitors Keepalived VRRP subsystem.</li>
-<li><a href="https://github.com/willixix/WL-NagiosPlugins/blob/master/check_memcached.pl">check_memcached</a> Checks Memcached statistics.</li>
-<li><a href="https://github.com/willixix/WL-NagiosPlugins/blob/master/check_redis.pl">check_redis</a> Checks Redis status variables.</li>
-<li><a href="https://github.com/willixix/WL-NagiosPlugins/blob/master/check_uptime.pl">check_uptime</a> Tracks system uptime. Great to detect power outages.</li>
-<li><a href="https://github.com/mzupan/nagios-plugin-mongodb">check_mongodb</a> Monitor MongoDB servers.</li>
-<li><a href="https://github.com/noseka1/monitoring-for-openstack">monitoring-for-openstack</a> Monitor various OpenStack services (Nova, Cinder, Glance, Neutron &hellip;)</li>
-<li><a href="https://github.com/noseka1/openstack-nagios-plugins">openstack-nagios-plugins</a> Yet another set of Nagios plugins to monitor OpenStack services.</li>
-<li><a href="https://labs.consol.de/nagios/check_mysql_health/index.html">check_mysql_health</a> Monitor health and performance of a MySQL database.</li>
-<li><a href="https://github.com/nagios-plugins-rabbitmq/nagios-plugins-rabbitmq">nagios-plugins-rabbitmq</a> Set of nagios checks useful for monitoring a RabbitMQ cluster.</li>
-</ul>
-
-
-<p>Besides monitoring the availability of OpenStack services, monitoring the performance of hypervisor hosts was another important point to ensure smooth operations and user happiness. You&rsquo;ve heard about the &ldquo;noisy neighbor&rdquo; problem before, haven&rsquo;t you? Time to time it happened to us that users unknowingly started a workload that would hog the CPU, disk or network I/O of the hypervisor to the extent that other virtual machines running on the same hypervisor were slowed down. In such a situation it was important that Icinga would alert the OpenStack operator that would resolve the problem before the affected users would notice.</p>
-
-<h2>Ceilometer metrics and events</h2>
-
-<p><a href="https://docs.openstack.org/ceilometer">Ceilometer</a> is an OpenStack data collection service that collects telemetry data across all OpenStack components. This telemetry data provides useful insights into the OpenStack operation and I would strongly recommend to you to deploy Ceilometer and configure it to store the telemetry data in the backend of your choice. The data provided by the Ceilometer service can be divided into two categories: measurements and events.</p>
-
-<h3>Ceilometer measurements</h3>
-
-<p><a href="https://docs.openstack.org/ceilometer/pike/admin/telemetry-measurements.html">Ceilometer measurements</a> are performance data. Ceilometer collects performance samples by polling the OpenStack infrastructure elements in regular intervals. For instance, Ceilometer measures CPU, memory, disk and network usage of individual virtual machines hosted on OpenStack, it can measure the performance of hypervisor hosts and much more. It&rsquo;s up to you to choose which data interests you. We ended up collecting merely the performance data of individual virtual machines. Monitoring of hypervisor hosts was better left to Icinga.</p>
-
-<p>There are many options of how to process the performance data generated by Ceilometer. We configured Ceilometer to send the performance samples in the <a href="https://msgpack.org">MessagePack</a> format over UDP protocol to <a href="https://www.elastic.co/products/logstash">Logstash</a>. Logstash in turn forwards the data to the <a href="https://www.influxdata.com/">InfluxDB</a> storage. <a href="https://grafana.com/">Grafana</a> is used to view and graph the performance data stored in InfluxDB. We spent quite a bit of time configuring Logstash to enrich the data coming from Ceilometer to be able to create a beautiful Grafana dashboard that would display the performance graphs of individual virtual machines hosted on OpenStack. Our OpenStack users would be able to look up their virtual machine in the Grafana dashboard based on the OpenStack project and the display name of the instance. After investing all the effort to create the dashboard the practice showed that nobody really cared about the performance monitoring of most of the virtual machines. And if we deployed a virtual machine we wanted to monitor, we preferred to just install the Icinga monitoring agent on it.</p>
-
-<h3>Ceilometer events</h3>
-
-<p><a href="https://docs.openstack.org/ceilometer/pike/admin/telemetry-events.html">Ceilometer events</a> represent any action made in the OpenStack system, for example: successful user authentication, creating a virtual machine, terminating a virtual machine, creating a volume, attaching a volume to a virtual machine and many others. Ceilometer generates events based on the notifications that are published by the OpenStack services on the message bus. For instance, the list of notifications published by the Nova components can be found <a href="https://docs.openstack.org/nova/latest/reference/notifications.html">here</a>. In the past, I wrote an <a href="http://alesnosek.com/blog/2015/05/25/openstack-nova-notifications-subscriber/">article</a> describing how to subscribe to the Nova notifications on the RabbitMQ message bus.</p>
-
-<p>In our OpenStack deployment, we configured Ceilometer to send events to <a href="https://www.elastic.co/">Elasticsearch</a>. <a href="https://www.elastic.co/products/kibana">Kibana</a> is used to view and search for the collected events. Having all the OpenStack events collected and archived at one place turned out to be really helpful. One day, a co-worker of mine brought up a complaint that somebody deleted his virtual machine. Deleting virtual machines of other people, who would dare that? Instead of asking around and disturbing people on the team, we were able to look up all the events pertaining to the lost virtual machine. We found out that the termination event ran on behalf of the Jenkins user. It didn&rsquo;t take much longer to identify the Jenkins job which deleted the virtual machine. Finally, it turned out that the co-worker that complained about the loss of &ldquo;his&rdquo; virtual machine was actually handed over the virtual machine only temporarily and that the machine was deleted and recreated every night by Jenkins. And I told to myself, what an <em>automated</em> world!</p>
-
-<h2>Log collection using ELK</h2>
-
-<p>In addition to storing Ceilometer events in Elasticsearch, we also configured <a href="https://www.elastic.co/products/beats/filebeat">Filebeat</a> to collect OpenStack logs and Linux system logs from all the OpenStack nodes and store them in Elasticsearch. They will come handy in the future when explaining other &ldquo;mysteries&rdquo; happening in our OpenStack cluster.</p>
-
-<h2>Tempest and Rally</h2>
-
-<p>When you deploy an OpenStack cluster, how do you verify that your cluster functions correctly? Icinga checks cover a very small subset of the OpenStack functionality. To accomplish a thorough verification of the OpenStack cluster, we started using the <a href="https://docs.openstack.org/tempest/latest/">Tempest</a> project. Tempest is a battery of integration tests that are used to verify OpenStack&rsquo;s functionality and it is a part of the continuous integration pipeline of the OpenStack project. Tempest tests send requests to the OpenStack APIs and verify the responses. As the goal of the Tempest project is to verify the integration of OpenStack components during development,  the included integration tests were a bit too low-level for our use case of merely verifying that the OpenStack cluster functioned properly. However, there were no better tools available at the time and it did the trick for us.</p>
-
-<p>After a while of using Tempest, we discovered yet another project called <a href="https://docs.openstack.org/developer/rally/">Rally</a>. Rally is a benchmarking tool that is used to measure OpenStack&rsquo;s performance and to identify performance bottlenecks. Rally builds on top of Tempest and it comes with a set of predefined scenarios that are executed against the OpenStack cluster. Example scenarios are: boot and delete server, boot server from volume, create a subnet, create and attach volume, create and delete a Heat stack, and many more. The available scenarios were just right to verify our cloud! On top of that, Rally generates beautiful reports with the overview of executed tasks and their duration. We ended up creating a cron job that schedules the Rally tests to run every two hours. The test results are monitored using Icinga which in the case of test failure sends an alert to the operator.</p>
-
-<p>Because our OpenStack cluster was constantly exercised by the Rally tests, we were able to quickly spot resources that OpenStack didn&rsquo;t clean up properly and that were piling up. We have seen diverse OpenStack database tables growing infinitely.  We have experienced Neutron leaving processes running on the controller nodes, leaving empty network namespaces behind or filling up the <code>/var/log/neutron</code> directory with files. Remember that we experienced these issues while using the Mitaka release of OpenStack. I&rsquo;m sure that things improved since then. To address the resource leaks, we wrote custom clean-up scripts. I&rsquo;m publishing them for you to use at your own risk. You can find them on <a href="https://github.com/noseka1/openstack-periodic-cleanup">GitHub</a>.</p>
-
-<h2>Tracking cloud resource usage</h2>
-
-<p>In OpenStack, we were missing some kind of reporting on resource usage. In our organization, each development team has its dedicated project in OpenStack. It is important to us to understand, how much of the cloud resources each team is consuming, i.e. how many CPU cores, memory, and volumes. In addition to per project usage, we also monitor the total resource usage across the entire cluster. In the case, that the total usage is reaching the total capacity available we can organize additional hardware ahead of time.</p>
-
-<p>Around OpenStack Mitaka release, we didn&rsquo;t find any tool that would generate the usage reports. However, OpenStack&rsquo;s MariaDB database contains all the input data required to create such reports. It was rather straightforward to create a set of SQL scripts to generate the reports directly out of the OpenStack&rsquo;s database. We run these scripts periodically using Icinga, so that we can see the report output on our monitoring dashboard. If you are interested, you can find our OpenStack usage report scripts on <a href="https://github.com/noseka1/openstack-cloud-report">GitHub</a>.</p>
-
-<h2>Further notes</h2>
-
-<p>I&rsquo;d like to describe several further observations that we made while operating OpenStack. Once again, our experience pertains to the Mitaka release of OpenStack only. Many of the issues we stumbled upon might have been resolved in the newer releases of OpenStack.</p>
-
-<ul>
-<li>In order to get OpenStack working smoothly, you should expect to use some amount of duct tape and bubble gum. As OpenStack was implemented in Python, patching OpenStack is relatively easy. Many times I was able to find fixes for our issues on the project development branches and needed just to port them to our OpenStack version.</li>
-<li>OpenStack is deployed on many nodes. It was useful for us to write Ansible scripts to automate the restart of the RabbitMQ cluster and to automate the restart of all OpenStack services on all nodes (aka restart the world). Due to the issues with the OpenStack TripleO installer in the Mitaka release, we are still forced to restart the world after adding a compute node.</li>
-<li>Switching to Keystone Fernet tokens considerably reduced the load on the MariaDB database. We enabled Fernet tokens even in the Mitaka release of OpenStack.</li>
-<li>RabbitMQ, Cinder Backup and several other services require higher amount of open file descriptors. For instance, RabbitMQ <a href="https://www.rabbitmq.com/production-checklist.html">recommends</a> to allow at least 50K of open file descriptors. Insufficient amount of file descriptors caused our RabbitMQ to crash. As RabbitMQ is the communication backbone of OpenStack, you can imagine how much fun it caused.</li>
-<li>Our OpenStack networking is set up to use Neutron&rsquo;s OpenVSwitch driver and VLANs. In the default configuration, it happened to us that the multicast traffic sent by a single virtual machine flooded the entire network and caused OpenVSwitch to begin dropping packets. We didn&rsquo;t do any further research on the multicast on OpenStack topic so far, just avoided sending multicast altogether.</li>
-<li>Kudos goes to the <a href="https://ceph.com/">Ceph</a> storage. We are running the old Ceph v0.94 Hammer which was able to survive emergency situations like lost storage node and running out of space condition without any problems.</li>
-</ul>
-
-
-<h2>Conclusion</h2>
-
-<p>In this blog post, we shared some of our experiences with operating OpenStack. We described the monitoring using Icinga, collecting Ceilometer metrics and events, collecting system logs using the ELK stack, verifying the OpenStack functionality with Rally and generating cloud resource usage reports.</p>
-
-<p>OpenStack is not the easiest software to run, however, if you do your homework you will succeed. At the present time, OpenStack just works for us and brings a lot of value to the teams in our company.</p>
-
-<p>If you&rsquo;d like to share your experience with operating OpenStack, I would love to hear from you. Please, feel free to use the comment section below.</p>
 ]]></content>
   </entry>
 

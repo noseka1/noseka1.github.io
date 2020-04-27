@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>http://alesnosek.com/blog/2020/04/26/speaking-at-red-hat-summit-2020/</loc>
+    <lastmod>2020-04-26T20:33:11-07:00</lastmod>
+  </url>
+  <url>
+    <loc>http://alesnosek.com/blog/2020/04/21/openshift-upi-using-static-ips/</loc>
+    <lastmod>2020-04-21T20:29:52-07:00</lastmod>
+  </url>
+  <url>
     <loc>http://alesnosek.com/blog/2019/12/03/open-policy-agent-part-iii-integrating-with-your-application/</loc>
     <lastmod>2019-12-03T12:46:10-08:00</lastmod>
   </url>
