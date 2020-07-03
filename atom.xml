@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2020-06-08T20:46:57-07:00</updated>
+  <updated>2020-07-02T18:14:08-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,132 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[CI/CD Pipeline Spanning Multiple OpenShift Clusters]]></title>
+    <link href="http://alesnosek.com/blog/2020/06/30/ci-slash-cd-pipeline-spanning-multiple-openshift-clusters/"/>
+    <updated>2020-06-30T17:53:09-07:00</updated>
+    <id>http://alesnosek.com/blog/2020/06/30/ci-slash-cd-pipeline-spanning-multiple-openshift-clusters</id>
+    <content type="html"><![CDATA[<p>This blog will cover how to create a CI/CD pipeline that spans multiple OpenShift clusters. It will show an example of a Jenkins-based pipeline, and design a pipeline that uses Tekton.</p>
+
+<!-- more -->
+
+
+<p>Traditionally, CI/CD pipelines were implemented on top of bare metal servers and virtual machines. Container platforms like Kubernetes and OpenShift appeared on the scene only later on. As more and more workloads are migrating to OpenShift, CI/CD pipelines are headed in the same direction. Pipeline jobs are executed in containers in the cluster.</p>
+
+<p>In the real world, companies don&rsquo;t deploy a single OpenShift cluster but run multiple clusters. Why is that? They want to run their workloads in different public clouds as well as on-premise. Or, if they leverage a single platform provider, they want to run in multiple regions. Sometimes there is a need for multiple clusters in a single region, too. For example, when each cluster is deployed into a different security zone.</p>
+
+<p>As there are plenty of reasons to use multiple OpenShift clusters, there is a need to create CI/CD pipelines that work across those clusters. The next sections are going to design such pipelines.</p>
+
+<h2>CI/CD pipeline using Jenkins</h2>
+
+<p>Jenkins is a legend among CI/CD tools. I remember meeting Jenkins back in the day when it was called Hudson but that&rsquo;s old history. How can we build a Jenkins pipeline that spans multiple OpenShift clusters? An important design goal for the pipeline is to achieve a single dashboard that can display output of all jobs involved in the pipeline. I gave it some thought and realized that achieving a single dashboard pretty much implies using a single Jenkins master. This Jenkins master is connected with each of the OpenShift clusters. During the pipeline execution, Jenkins master can run individual tasks on any of the clusters. The job output logs are collected and sent to the master as usual. If we consider having three OpenShift clusters Dev, Test, and Prod, the following diagram depicts the approach:</p>
+
+<p><img class="center" src="http://alesnosek.com/images/posts/ci_cd_pipeline_spanning_multiple_clusters_jenkins.png"></p>
+
+<p>The Jenkins <a href="https://plugins.jenkins.io/kubernetes/">Kubernetes plugin</a> is a perfect plugin for connecting Jenkins to OpenShift. It allows the Jenkins master to create ephemeral workers on the cluster. Each cluster can be assigned a different node label. You can run each stage of your pipeline on a different cluster by specifying the label. A simple pipeline definition for our example would look like this:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>stage ('Build') {
+</span><span class='line'>  node ("dev") {
+</span><span class='line'>    // running on dev cluster
+</span><span class='line'>  }
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>stage ('Test') {
+</span><span class='line'>  node ("test") {
+</span><span class='line'>    // running on test cluster
+</span><span class='line'>  }
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>stage ('Prod') {
+</span><span class='line'>  node ("prod") {
+</span><span class='line'>    // running on prod cluster
+</span><span class='line'>  }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>OpenShift comes with a Jenkins template which can be found in the <code>openshift</code> project. This template allows you to create a Jenkins master that is pre-configured to spin up worker pods on the same cluster. Further effort will be needed to connect this master to additional OpenShift clusters. A tricky part of this set up is networking. Jenkins worker pod, after it starts up, connects back to the Jenkins master. This requires the master to be reachable from the worker running on any of the OpenShift clusters.</p>
+
+<p>One last point I wanted to discuss is security. As long as the Jenkins master can spin up worker pods on OpenShift, it can execute arbitrary code on those workers. The OpenShift cluster has no means to control what code the Jenkins worker will run. The job definition is managed by Jenkins and it is solely up to the access controls in Jenkins to enforce which job is allowed to execute on which cluster.</p>
+
+<h2>Kubernetes-native Tekton pipeline</h2>
+
+<p>In this section, we are going to use Tekton to implement the CI/CD pipeline. In contrast to Jenkins, Tekton is a Kubernetes-native solution. It is implemented using Kubernetes building blocks and it is tightly integrated with Kubernetes. A single Kubernetes cluster is a natural boundary for Tekton. So, how can we build a Tekton pipeline that spans multiple OpenShift clusters?</p>
+
+<p>I came up with an idea of composing the Tekton pipelines. To compose multiple pipelines into a single pipeline, I implemented the <a href="https://github.com/noseka1/execute-remote-pipeline">execute-remote-pipeline</a> task that can execute a Tekton pipeline located on a remote OpenShift cluster. The task will tail the output of the remote pipeline while the remote pipeline is executing. With the help of this task, I can now combine Tekton pipelines across OpenShift clusters and run them as a single pipeline. For example, the diagram below shows a composition of three pipelines. Each of the pipelines is located on a different OpenShift cluster Dev, Test, and Prod:</p>
+
+<p><img class="center" src="http://alesnosek.com/images/posts/ci_cd_pipeline_spanning_multiple_clusters_tekton.png"></p>
+
+<p>The execution of this pipeline is started on the Dev cluster. The Dev pipeline will trigger the Test pipeline which will in turn trigger the Prod pipeline. The combined logs can be followed on the terminal:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ tkn pipeline start dev --showlog
+</span><span class='line'>Pipelinerun started: dev-run-bd5fs
+</span><span class='line'>Waiting for logs to be available...
+</span><span class='line'>[execute-remote-pipeline : execute-remote-pipeline-step] Logged into "https://api.cluster-affc.sandbox1480.opentlc.com:6443" as "system:serviceaccount:test-pipeline:pipeline-starter" using the token provided.
+</span><span class='line'>[execute-remote-pipeline : execute-remote-pipeline-step]
+</span><span class='line'>[execute-remote-pipeline : execute-remote-pipeline-step] You have one project on this server: "test-pipeline"
+</span><span class='line'>[execute-remote-pipeline : execute-remote-pipeline-step]
+</span><span class='line'>[execute-remote-pipeline : execute-remote-pipeline-step] Using project "test-pipeline".
+</span><span class='line'>[execute-remote-pipeline : execute-remote-pipeline-step] Welcome! See 'oc help' to get started.
+</span><span class='line'>[execute-remote-pipeline : execute-remote-pipeline-step] [execute-remote-pipeline : execute-remote-pipeline-step] Logged into "https://api.cluster-affc.sandbox1480.opentlc.com:6443" as "system:serviceaccount:prod-pipeline:pipeline-starter" using the token provided.
+</span><span class='line'>[execute-remote-pipeline : execute-remote-pipeline-step] [execute-remote-pipeline : execute-remote-pipeline-step]
+</span><span class='line'>[execute-remote-pipeline : execute-remote-pipeline-step] [execute-remote-pipeline : execute-remote-pipeline-step] You have one project on this server: "prod-pipeline"
+</span><span class='line'>[execute-remote-pipeline : execute-remote-pipeline-step] [execute-remote-pipeline : execute-remote-pipeline-step]
+</span><span class='line'>[execute-remote-pipeline : execute-remote-pipeline-step] [execute-remote-pipeline : execute-remote-pipeline-step] Using project "prod-pipeline".
+</span><span class='line'>[execute-remote-pipeline : execute-remote-pipeline-step] [execute-remote-pipeline : execute-remote-pipeline-step] Welcome! See 'oc help' to get started.
+</span><span class='line'>[execute-remote-pipeline : execute-remote-pipeline-step] [execute-remote-pipeline : execute-remote-pipeline-step] [prod : prod-step] Running on prod cluster
+</span><span class='line'>[execute-remote-pipeline : execute-remote-pipeline-step] [execute-remote-pipeline : execute-remote-pipeline-step]
+</span><span class='line'>[execute-remote-pipeline : execute-remote-pipeline-step]</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Note that this example is showing a cascading execution of Tekton pipelines. Another way of composing pipelines would be executing multiple remote pipelines in sequence.</p>
+
+<p>Before moving on to the final section of this blog, let&rsquo;s briefly discuss the pipeline composition in terms of security. As a Kubernetes-native solution, Tekton&rsquo;s access control is managed by RBAC. Before the task running on a local cluster can trigger a pipeline on a remote cluster, it has to be granted appropriate permissions. These permissions are defined by the remote cluster. This way a remote cluster running in a higher environment (Prod) can impose access restrictions on the tasks running in the lower environment (Test). For example, a Prod cluster will allow the Test cluster to only trigger pre-defined production pipelines. The Test cluster won&rsquo;t have permissions to create new pipelines in the Prod cluster.</p>
+
+<h2>Conclusion</h2>
+
+<p>This blog showed how to create CI/CD pipelines that span multiple OpenShift clusters using Jenkins and Tekton. It designed the pipelines and discussed some of the security aspects. The execute-remote-pipeline Tekton task was used to compose pipelines located on different OpenShift clusters into a single pipeline.</p>
+
+<p>Needless to say, containerized pipelines work the same way on any OpenShift cluster regardless of whether the cluster itself is running on top of a public cloud or on-premise. The vision of the hybrid cloud is well showcased here.</p>
+
+<p>Do you create pipelines that span multiple clusters? Would you like to share some of your design ideas?  I would be happy to hear about your thoughts. Please, feel free to leave your comments in the comment section below.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[Local Development with OpenShift and Tilt]]></title>
@@ -2539,97 +2665,6 @@
 <p>In this article, we shared some of the Ansible practices we found useful. We recommended to create a dedicated <code>ansible</code> account on each machine that is managed by Ansible. We described how to inform Ansible whether a script did or did not make any changes to the target machine. We showed you how to prevent a repeated execution of Ansible tasks by creating a custom stamp file. Lastly, we demonstrated that backporting Ansible modules is not that complicated as it may sound.</p>
 
 <p>Hope you enjoyed this article. Let me know if you have any comments or suggestions to the presented practices. Feel free to add your comments in the comment section below.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[Red Hat Summit 2018]]></title>
-    <link href="http://alesnosek.com/blog/2018/05/14/red-hat-summit-2018/"/>
-    <updated>2018-05-14T20:07:17-07:00</updated>
-    <id>http://alesnosek.com/blog/2018/05/14/red-hat-summit-2018</id>
-    <content type="html"><![CDATA[<p>Last week, I had the pleasure of attending Red Hat Summit 2018. It was hosted at the Moscone Center in San Francisco, May 8-10, 2018. I greatly enjoyed this conference and would like to share with you some of the interesting things I learned there.</p>
-
-<!-- more -->
-
-
-<p>You can view video recordings of the general sessions as well as a selection of the breakout sessions on <a href="https://www.youtube.com/user/redhatsummit">YouTube</a>.</p>
-
-<h2>Major announcements</h2>
-
-<p><a href="https://www.redhat.com/en/about/press-releases/red-hat-and-microsoft-co-develop-first-red-hat-openshift-jointly-managed-service-public-cloud">Red Hat OpenShift on Azure</a>. Red Hat and Microsoft are introducing OpenShift as a fully managed service on Azure. This brings customers the possibility to freely move workloads between their on-premise OpenShift clusters and Azure. Many of the Azure services will be accessible from within OpenShift via the Service Catalog. In the future, Windows containers will be supported alongside Linux containers. Support for Red Hat OpenShift on Azure will be provided by both Red Hat and Microsoft.</p>
-
-<p><a href="https://www.redhat.com/en/about/press-releases/ibm-and-red-hat-join-forces-accelerate-hybrid-cloud-adoption">Red Hat and IBM working toward a hybrid cloud</a>. Red Hat and IBM are expanding their collaboration to bring together enterprise application platforms, Red Hat OpenShift and IBM Cloud Private. IBM&rsquo;s recent move to re-engineer its entire software portfolio with containers, including WebSphere, MQ Series and Db2 will allow it to make this sofware available on the hybrid cloud with IBM Cloud Private and Red Hat OpenShift serving as the common foundation.</p>
-
-<p>Both major announcements go along with the Red Hat&rsquo;s vision of the future being the hybrid cloud. There&rsquo;s no doubt that Red Hat stands behind the hybrid cloud. In one of the general sessions, I heard Red Hat&rsquo;s Paul Cormier saying:</p>
-
-<blockquote><p>Hybrid cloud is the only practical way forward.</p></blockquote>
-
-<h2>Sessions attended</h2>
-
-<ul>
-<li><strong>CoreOS and Red Hat</strong>
-
-<ul>
-<li>After Red Hat <a href="https://www.redhat.com/en/about/press-releases/red-hat-acquire-coreos-expanding-its-kubernetes-and-containers-leadership">acquired</a> CoreOS in January this year, developers from both companies are busy with merging features of CoreOS Tectonic into Red Hat OpenShift. While CoreOS Tectonic was focused on operators, Red Hat OpenShift was more oriented toward developers. After the merge is completed, Red Hat OpenShift should become a product with a strong appeal to both operators and developers.</li>
-<li>OpenShift console will be extended by an Admin console which is based on the Tectonic Console.</li>
-<li>OpenShift is embracing the <a href="https://github.com/operator-framework">Operator Framework</a> originally developed by CoreOS. Initially, more than 60 ISVs are planning to provide certified OpenShift operators to end users.</li>
-<li>Quay Enterprise is going to be rebranded to Red Hat Quay. It remains a standalone product. Customers with higher demands may prefer leveraging Red Hat Quay in place of the integrated OpenShift image registry.</li>
-<li>CoreOS Container Linux and RHEL Atomic Host are going to be merged into a new container operating system called Red Hat CoreOS. Initially, Red Hat CoreOS is going to be based on RHEL 7.5, however, later on Red Hat CoreOS will be updated faster than RHEL.</li>
-</ul>
-</li>
-<li><strong>Next-generation tools for container technology</strong>
-
-<ul>
-<li>Dan Walsh discussed several Linux container related tools developed by his team: <a href="https://github.com/kubernetes-incubator/cri-o">CRI-O</a> container runtime, <a href="https://github.com/projectatomic/buildah">Buildah</a>, <a href="https://github.com/projectatomic/skopeo/">Skopeo</a>, and <a href="https://github.com/projectatomic/libpod">Podman</a>. With a certain dose of sarcasm, Dan explained the flaws in the design of the Docker tool -  mainly the unfortunate decision to create a &ldquo;big fat&rdquo; Docker daemon. Podman is a command-line tool that reimplements the Docker functionality without the need for a Docker daemon. In the future, Podman could replace the Docker tool.</li>
-</ul>
-</li>
-<li><strong>Kubernetes and the platform of the future</strong>
-
-<ul>
-<li>This was a chat with Clayton Coleman (Chief Engineer for OpenShift) and Brandon Philips (previously CTO of CoreOS, acquired by Red Hat) about the future of Kubernetes and OpenShift projects.</li>
-<li>Kubernetes is considered to be a new distributed operating system. &ldquo;We have a deployment target for the open-source community for multiple machines, as we had Linux as a target for a single machine&rdquo;.</li>
-</ul>
-</li>
-<li><strong>Low-risk mono to microservices: Istio, Teiid, and Spring Boot</strong>
-
-<ul>
-<li>In this session, I learned about several open-source projects that may come in handy when moving toward a microservice architecture: <a href="http://arquillian.org/">Arquillian</a> is an integration testing framework, <a href="https://istio.io/">Istio</a> is a service mesh, <a href="https://github.com/kiali/kiali">Kiali</a> is an Istio observability project, <a href="https://www.apicur.io/">apicurio</a> is a tool for designing RESTful APIs according to the <a href="https://github.com/OAI/OpenAPI-Specification">OpenAPI</a> specification, <a href="http://teiid.jboss.org/">Teiid</a> is a data virtualization system.</li>
-<li>If you want to release your software frequently, monolithic architecture may become a bottleneck. You can begin to break up your monolithic project into microservices to speed up the release process. If you&rsquo;ve gotten to the point where you can go faster, stop breaking things up! You don&rsquo;t want to cross the point of diminishing returns. If there is some monolith left in your project, that&rsquo;s okay.</li>
-</ul>
-</li>
-<li><strong>OpenShift roadmap: You won&rsquo;t believe what&rsquo;s next</strong>
-
-<ul>
-<li>Prometheus monitoring system is going to be integrated into OpenShift more deeply. In addition to monitoring, metrics collected by Prometheus are going to be used for container auto healing.</li>
-<li>Work is underway for Open Virtual Network (OVN) to become the default OpenShift SDN in the future.</li>
-<li>Red Hat is investing in the <a href="https://github.com/kubevirt">KubeVirt</a> project whose goal is to run virtual machines on Kubernetes/OpenShift.</li>
-<li>Red Hat is also investing in <a href="https://openwhisk.apache.org/">Apache OpenWhisk</a>. OpenWhisk is a serverless platform allowing to run functions on Kubernetes.</li>
-</ul>
-</li>
-<li><strong>Intelligent applications on OpenShift from prototype to production</strong>
-
-<ul>
-<li>OpenShift is entering the big data arena. This was an introductory talk about running Spark on OpenShift for machine learning. If you are interested to run data analysis on OpenShift, check out the <a href="https://radanalytics.io/">rad analytics</a> project.</li>
-</ul>
-</li>
-</ul>
-
-
-<h2>Some photos from the event</h2>
-
-<p><img class="center" src="http://alesnosek.com/images/posts/redhatsummit2018/keynote.jpeg"></p>
-
-<p>Opening keynote session.</p>
-
-<p><img class="center" src="http://alesnosek.com/images/posts/redhatsummit2018/cruise.jpeg"></p>
-
-<p>Harbor cruise for Red Hat Certified Professionals, including myself ;-)</p>
-
-<p><img class="center" src="http://alesnosek.com/images/posts/redhatsummit2018/sf1.jpeg"></p>
-
-<p><img class="center" src="http://alesnosek.com/images/posts/redhatsummit2018/sf2.jpeg"></p>
-
-<p>San Francisco skyline as viewed from the cruise.</p>
 ]]></content>
   </entry>
 

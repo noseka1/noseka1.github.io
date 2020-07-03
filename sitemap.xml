@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>http://alesnosek.com/blog/2020/06/30/ci-slash-cd-pipeline-spanning-multiple-openshift-clusters/</loc>
+    <lastmod>2020-06-30T17:53:09-07:00</lastmod>
+  </url>
+  <url>
     <loc>http://alesnosek.com/blog/2020/06/08/local-development-with-openshift-and-tilt/</loc>
     <lastmod>2020-06-08T20:36:36-07:00</lastmod>
   </url>
