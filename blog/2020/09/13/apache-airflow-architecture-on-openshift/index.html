@@ -1,0 +1,308 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Apache Airflow Architecture on OpenShift - Ales Nosek - The Software Practitioner</title>
+  <meta name="author" content="Ales Nosek">
+
+
+  <meta name="description" content="This blog will walk you through the Apache Airflow architecture on OpenShift. We are going to discuss the function of the individual Airflow &hellip;">
+
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <link rel="canonical" href="http://alesnosek.com/blog/2020/09/13/apache-airflow-architecture-on-openshift/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/stylesheets/data-table.css" media="screen, projection" rel="stylesheet" type="text/css" />
+  <link href="/atom.xml" rel="alternate" title="Ales Nosek - The Software Practitioner" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-61965164-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <img src="/images/computers.png" align="right">
+  <h1><a href="/">Ales Nosek - The Software Practitioner</a></h1>
+
+    <h2>Practicing to make software perfect.</h2>
+
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+
+</ul>
+
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="alesnosek.com">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+
+  <header>
+
+      <h1 class="entry-title">Apache Airflow Architecture on OpenShift</h1>
+
+
+      <p class="meta">
+
+
+
+
+
+<time class='entry-date' datetime='2020-09-13T18:48:20-07:00'><span class='date'><span class='date-month'>Sep</span> <span class='date-day'>13</span><span class='date-suffix'>th</span>, <span class='date-year'>2020</span></span> <span class='time'>6:48 pm</span></time>
+
+      </p>
+
+  </header>
+
+
+<div class="entry-content"><p>This blog will walk you through the Apache Airflow architecture on OpenShift. We are going to discuss the function of the individual Airflow components and how they can be deployed to OpenShift. This article focuses on the latest Apache Airflow version 1.10.12.</p>
+
+<!-- more -->
+
+
+<h2>Architecture overview</h2>
+
+<p>The three main components of Apache Airflow are the Webserver, Scheduler, and Workers. The Webserver provides the Web UI which is the Airflow&rsquo;s main user interface. It allows users to visualize their DAGs (Directed Acyclic Graph) and control the execution of their DAGs. In addition to the Web UI, the Webserver also provides an experimental REST API that allows controlling Airflow programatically as opposed to through the Web UI. The second component &mdash; the Airflow Scheduler &mdash; orchestrates the execution of DAGs by starting the DAG tasks at the right time and in the right order. Both Airflow Webserver and Scheduler are long-running services. On the other hand, Airflow Workers &mdash; the last of the three main components &mdash; run as ephemeral pods. They are created by the Kubernetes Executor and their sole purpose is to execute a single DAG task. After the task execution is complete, the Worker pod is deleted. The following diagram depicts the Aiflow architecture on OpenShift:</p>
+
+<p><img src="/images/posts/apache_airflow_architecture_on_openshift.png"></p>
+
+<h2>Shared database</h2>
+
+<p>As shown in the architecture diagram above, none of the Airflow components communicate directly with each other. Instead, they all read and modify the state that is stored in the <em>shared database</em>. For instance,  the Webserver reads the current state of the DAG execution from the database and displays it in the Web UI. If you trigger a DAG in the Web UI, the Webserver will update the DAG in the database accordingly. Next comes the Scheduler that checks the DAG state in the database periodically. It finds the triggered DAG and if the time is right, it will schedule the new tasks for execution. After the execution of the specific task is complete, the Worker marks that state of the task in the database as done. Finally, the Web UI will learn the new state of the task from the database and will show it to the user.</p>
+
+<p>The shared database architecture provides Airflow components with a perfectly consistent view of the current state. On the other hand, as the number of tasks to execute grows, the database becomes a performance bottleneck as more and more Workers connect to the database. To alleviate the load on the database, a connection pool like <a href="https://www.pgbouncer.org/">PgBouncer</a> may be deployed in front of the database. The pool manages a relatively small amount of database connections which are re-used to serve requests of different Workers.</p>
+
+<p>Regarding the choice of a particular DBMS, in production deployments the database of choice is typically PostgreSQL or MySQL. You can choose to run the database directly on OpenShift. In that case, you will need to put it on an RWO (ReadWriteOnce) persistent volume provided for example by <a href="https://www.redhat.com/en/technologies/cloud-computing/openshift-container-storage">OpenShift Container Storage</a>. Or, you can use an external database. For instance, if you are hosting OpenShift on top of AWS, you can leverage a fully managed database provided by <a href="https://aws.amazon.com/rds/">Amazon RDS</a>.</p>
+
+<h2>Making DAGs accessible to Airflow components</h2>
+
+<p>All three Airflow components Webserver, Scheduler, and Workers assume that the DAG definitions can be read from the local filesystem.  The question is, how to make the DAGs available on the local filesystem in the container? There are two approaches to achieve this. In the first approach, a shared volume is created to hold all the DAGs. This volume is then attached to the Airflow pods. The second approach assumes that your DAGs are hosted in a git repository. A sidecar container is deployed along with the Airflow Server and Scheduler. This sidecar container synchronizes the latest version of your DAGs with the local filesystem periodically. For the Worker pods, the pulling of the DAGs from the git repository is done only once by the init container before the Worker is brought up.</p>
+
+<p>Note that since Airflow 1.10.10, you can use the <a href="https://airflow.apache.org/docs/1.10.10/dag-serialization.html">DAG Serialization</a> feature. With DAG Serialization, the Scheduler reads the DAGs from the local filesystem and saves them in the database. The Airflow Webserver then reads the DAGs from the database instead of the local filesystem. For the Webserver container, you can avoid the need to mount a shared volume or configure git-sync if you enable the DAG Serialization.</p>
+
+<p>To synchronize the DAGs with the local filesystem, I personally prefer using git-sync over the shared volumes approach. First, you want to keep you DAGs in the source control anyway to facilitate the development of the DAGs. Second, git-sync seems to be easier to troubleshoot and recover in the case of failure.</p>
+
+<h2>Airflow monitoring</h2>
+
+<p>As the old saying goes, &ldquo;If you are not monitoring it, it&rsquo;s not in production&rdquo;. So, how can we monitor Apache Airflow running on OpenShift? <a href="https://prometheus.io/">Prometheus</a> is a monitoring system widely used for monitoring Kubernetes workloads and I recommend that you consider it for monitoring Airflow as well. Airflow itself reports metrics using the statsd protocol, so you will need to deploy the <a href="https://github.com/prometheus/statsd_exporter">statsd_exporter</a> piece between Airflow and the Prometheus server. This exporter will aggregate the statsd metrics, convert them into Prometheus format and expose them for the Prometheus server to scrape.</p>
+
+<h2>Collecting Airflow logs</h2>
+
+<p>By default, Apache Airflow writes the logs to the local filesystem. If you have an RWX (ReadWriteMany) persistent volume available, you can attach it to the Webserver, Scheduler, and Worker pods to capture the logs. As the Worker logs are written to the shared volume, they are instantly accessible by the Webserver. This allows for viewing the logs live in the Web UI.</p>
+
+<p>An alternative approach to handling the Airflow logs is to enable remote logging.  With remote logging, the Worker logs can be pushed to the remote location like S3. The logs are then grabbed from S3 by the Webserver to display them in the Web UI. Note that when using an object store as your remote location, the Worker logs are uploaded to the object store only after the task run is complete. That means that you won&rsquo;t be able to view the logs live in the Web UI while the task is still running.</p>
+
+<p>The remote logging feature in Airflow takes care of the Worker logs. How can you handle Webserver and Scheduler logs when not using a persistent volume? You can configure Airflow to dump the logs to stdout. The OpenShift logging will collect the logs and send them to the central location.</p>
+
+<h2>Conclusion</h2>
+
+<p>In this article, we reviewed the Apache Airflow architecture on OpenShift. We discussed the role of individual Airflow components and described how they interact with each other. We discussed the Airflow&rsquo;s shared database, explained how to make DAGs accessible to the Airflow components, and talked about Ariflow monitoring and log collection.</p>
+
+<p>Apache Airflow can be deployed in several different ways. What is your favorite architecture for deploying Airflow? I would like to hear about your approach. If you have any further questions or comments, please add them to the comment section below.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+
+
+
+<span class="byline author vcard">Posted by <span class="fn">Ales Nosek</span></span>
+
+
+
+
+
+
+<time class='entry-date' datetime='2020-09-13T18:48:20-07:00'><span class='date'><span class='date-month'>Sep</span> <span class='date-day'>13</span><span class='date-suffix'>th</span>, <span class='date-year'>2020</span></span> <span class='time'>6:48 pm</span></time>
+
+
+<span class="categories">
+
+    <a class='category' href='/blog/categories/devops/'>devops</a>
+
+</span>
+
+
+    </p>
+
+      <div class="sharing">
+
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://alesnosek.com/blog/2020/09/13/apache-airflow-architecture-on-openshift/" data-via="" data-counturl="http://alesnosek.com/blog/2020/09/13/apache-airflow-architecture-on-openshift/" >Tweet</a>
+
+
+  <div class="g-plusone" data-size="medium"></div>
+
+
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+
+</div>
+
+
+    <p class="meta">
+
+        <a class="basic-alignment left" href="/blog/2020/07/13/speaking-at-red-hat-summit-2020/" title="Previous Post: Speaking at Red Hat Summit 2020, Part II">&laquo; Speaking at Red Hat Summit 2020, Part II</a>
+
+
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+
+      <li class="post">
+        <a href="/blog/2020/09/13/apache-airflow-architecture-on-openshift/">Apache Airflow Architecture on OpenShift</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2020/07/13/speaking-at-red-hat-summit-2020/">Speaking at Red Hat Summit 2020, Part II</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2020/06/30/ci-slash-cd-pipeline-spanning-multiple-openshift-clusters/">CI/CD Pipeline Spanning Multiple OpenShift Clusters</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2020/06/08/local-development-with-openshift-and-tilt/">Local Development with OpenShift and Tilt</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2020/04/26/speaking-at-red-hat-summit-2020/">Speaking at Red Hat Summit 2020</a>
+      </li>
+
+  </ul>
+</section>
+<section>
+  <h1>About Me</h1>
+  <script type="text/javascript" src="https://platform.linkedin.com/badges/js/profile.js" async defer></script>
+  <div class="LI-profile-badge"  data-version="v1" data-size="medium" data-locale="en_US" data-type="vertical" data-theme="light" data-vanity="alesnosek"><a class="LI-simple-link" href='https://www.linkedin.com/in/alesnosek?trk=profile-badge'>Ales Nosek</a></div>
+</section>
+
+
+
+
+
+
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2020 - Ales Nosek -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'alesnosekcom';
+
+
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://alesnosek.com/blog/2020/09/13/apache-airflow-architecture-on-openshift/';
+        var disqus_url = 'http://alesnosek.com/blog/2020/09/13/apache-airflow-architecture-on-openshift/';
+        var disqus_script = 'embed.js';
+
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

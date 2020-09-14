@@ -4,7 +4,7 @@
   <title><![CDATA[Category: devops | Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/blog/categories/devops/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2020-07-13T19:49:17-07:00</updated>
+  <updated>2020-09-13T18:57:22-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,58 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[Apache Airflow Architecture on OpenShift]]></title>
+    <link href="http://alesnosek.com/blog/2020/09/13/apache-airflow-architecture-on-openshift/"/>
+    <updated>2020-09-13T18:48:20-07:00</updated>
+    <id>http://alesnosek.com/blog/2020/09/13/apache-airflow-architecture-on-openshift</id>
+    <content type="html"><![CDATA[<p>This blog will walk you through the Apache Airflow architecture on OpenShift. We are going to discuss the function of the individual Airflow components and how they can be deployed to OpenShift. This article focuses on the latest Apache Airflow version 1.10.12.</p>
+
+<!-- more -->
+
+
+<h2>Architecture overview</h2>
+
+<p>The three main components of Apache Airflow are the Webserver, Scheduler, and Workers. The Webserver provides the Web UI which is the Airflow&rsquo;s main user interface. It allows users to visualize their DAGs (Directed Acyclic Graph) and control the execution of their DAGs. In addition to the Web UI, the Webserver also provides an experimental REST API that allows controlling Airflow programatically as opposed to through the Web UI. The second component &mdash; the Airflow Scheduler &mdash; orchestrates the execution of DAGs by starting the DAG tasks at the right time and in the right order. Both Airflow Webserver and Scheduler are long-running services. On the other hand, Airflow Workers &mdash; the last of the three main components &mdash; run as ephemeral pods. They are created by the Kubernetes Executor and their sole purpose is to execute a single DAG task. After the task execution is complete, the Worker pod is deleted. The following diagram depicts the Aiflow architecture on OpenShift:</p>
+
+<p><img src="/images/posts/apache_airflow_architecture_on_openshift.png"></p>
+
+<h2>Shared database</h2>
+
+<p>As shown in the architecture diagram above, none of the Airflow components communicate directly with each other. Instead, they all read and modify the state that is stored in the <em>shared database</em>. For instance,  the Webserver reads the current state of the DAG execution from the database and displays it in the Web UI. If you trigger a DAG in the Web UI, the Webserver will update the DAG in the database accordingly. Next comes the Scheduler that checks the DAG state in the database periodically. It finds the triggered DAG and if the time is right, it will schedule the new tasks for execution. After the execution of the specific task is complete, the Worker marks that state of the task in the database as done. Finally, the Web UI will learn the new state of the task from the database and will show it to the user.</p>
+
+<p>The shared database architecture provides Airflow components with a perfectly consistent view of the current state. On the other hand, as the number of tasks to execute grows, the database becomes a performance bottleneck as more and more Workers connect to the database. To alleviate the load on the database, a connection pool like <a href="https://www.pgbouncer.org/">PgBouncer</a> may be deployed in front of the database. The pool manages a relatively small amount of database connections which are re-used to serve requests of different Workers.</p>
+
+<p>Regarding the choice of a particular DBMS, in production deployments the database of choice is typically PostgreSQL or MySQL. You can choose to run the database directly on OpenShift. In that case, you will need to put it on an RWO (ReadWriteOnce) persistent volume provided for example by <a href="https://www.redhat.com/en/technologies/cloud-computing/openshift-container-storage">OpenShift Container Storage</a>. Or, you can use an external database. For instance, if you are hosting OpenShift on top of AWS, you can leverage a fully managed database provided by <a href="https://aws.amazon.com/rds/">Amazon RDS</a>.</p>
+
+<h2>Making DAGs accessible to Airflow components</h2>
+
+<p>All three Airflow components Webserver, Scheduler, and Workers assume that the DAG definitions can be read from the local filesystem.  The question is, how to make the DAGs available on the local filesystem in the container? There are two approaches to achieve this. In the first approach, a shared volume is created to hold all the DAGs. This volume is then attached to the Airflow pods. The second approach assumes that your DAGs are hosted in a git repository. A sidecar container is deployed along with the Airflow Server and Scheduler. This sidecar container synchronizes the latest version of your DAGs with the local filesystem periodically. For the Worker pods, the pulling of the DAGs from the git repository is done only once by the init container before the Worker is brought up.</p>
+
+<p>Note that since Airflow 1.10.10, you can use the <a href="https://airflow.apache.org/docs/1.10.10/dag-serialization.html">DAG Serialization</a> feature. With DAG Serialization, the Scheduler reads the DAGs from the local filesystem and saves them in the database. The Airflow Webserver then reads the DAGs from the database instead of the local filesystem. For the Webserver container, you can avoid the need to mount a shared volume or configure git-sync if you enable the DAG Serialization.</p>
+
+<p>To synchronize the DAGs with the local filesystem, I personally prefer using git-sync over the shared volumes approach. First, you want to keep you DAGs in the source control anyway to facilitate the development of the DAGs. Second, git-sync seems to be easier to troubleshoot and recover in the case of failure.</p>
+
+<h2>Airflow monitoring</h2>
+
+<p>As the old saying goes, &ldquo;If you are not monitoring it, it&rsquo;s not in production&rdquo;. So, how can we monitor Apache Airflow running on OpenShift? <a href="https://prometheus.io/">Prometheus</a> is a monitoring system widely used for monitoring Kubernetes workloads and I recommend that you consider it for monitoring Airflow as well. Airflow itself reports metrics using the statsd protocol, so you will need to deploy the <a href="https://github.com/prometheus/statsd_exporter">statsd_exporter</a> piece between Airflow and the Prometheus server. This exporter will aggregate the statsd metrics, convert them into Prometheus format and expose them for the Prometheus server to scrape.</p>
+
+<h2>Collecting Airflow logs</h2>
+
+<p>By default, Apache Airflow writes the logs to the local filesystem. If you have an RWX (ReadWriteMany) persistent volume available, you can attach it to the Webserver, Scheduler, and Worker pods to capture the logs. As the Worker logs are written to the shared volume, they are instantly accessible by the Webserver. This allows for viewing the logs live in the Web UI.</p>
+
+<p>An alternative approach to handling the Airflow logs is to enable remote logging.  With remote logging, the Worker logs can be pushed to the remote location like S3. The logs are then grabbed from S3 by the Webserver to display them in the Web UI. Note that when using an object store as your remote location, the Worker logs are uploaded to the object store only after the task run is complete. That means that you won&rsquo;t be able to view the logs live in the Web UI while the task is still running.</p>
+
+<p>The remote logging feature in Airflow takes care of the Worker logs. How can you handle Webserver and Scheduler logs when not using a persistent volume? You can configure Airflow to dump the logs to stdout. The OpenShift logging will collect the logs and send them to the central location.</p>
+
+<h2>Conclusion</h2>
+
+<p>In this article, we reviewed the Apache Airflow architecture on OpenShift. We discussed the role of individual Airflow components and described how they interact with each other. We discussed the Airflow&rsquo;s shared database, explained how to make DAGs accessible to the Airflow components, and talked about Ariflow monitoring and log collection.</p>
+
+<p>Apache Airflow can be deployed in several different ways. What is your favorite architecture for deploying Airflow? I would like to hear about your approach. If you have any further questions or comments, please add them to the comment section below.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[CI/CD Pipeline Spanning Multiple OpenShift Clusters]]></title>
@@ -793,43 +845,6 @@ Waiting for logs to be available...
 <p>In this blog post, we discussed how to deploy OpenShift 4.1 into the Libvirt/KVM-based virtualized environment. We created and configured a bunch of user-provisioned infrastructure which was a prerequisite for the OpenShift installation. With the user-provisioned infrastructure in place, we followed the OpenShift bare metal deployment guide to create an OpenShift cluster.</p>
 
 <p>I hope that you found this article useful and you have your OpenShift 4.1 cluster running by now. If you have any questions or comments please feel free to add them to the comment section below.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[Tips for Passing the Red Hat Certified Specialist in Gluster Storage Administration Exam]]></title>
-    <link href="http://alesnosek.com/blog/2018/12/28/tips-for-passing-the-red-hat-certified-specialist-in-gluster-storage-administration-exam/"/>
-    <updated>2018-12-28T11:24:40-08:00</updated>
-    <id>http://alesnosek.com/blog/2018/12/28/tips-for-passing-the-red-hat-certified-specialist-in-gluster-storage-administration-exam</id>
-    <content type="html"><![CDATA[<p>Recently I passed the <a href="https://www.redhat.com/en/services/training/ex236-red-hat-certified-specialist-in-gluster-storage-administration-exam">Red Hat Certified Specialist in Gluster Storage Administration</a> exam. In this blog post, I would like to share some of my experience and exam tips with you.</p>
-
-<!-- more -->
-
-
-<p>There are two major open-source storage technologies available today: <a href="https://ceph.com/">Ceph</a> and <a href="https://www.gluster.org/">Gluster</a>. For a couple of years, I used Ceph as a provider of a block and object storage for an OpenStack cluster with great success. I was curious to learn about what Gluster has to offer. To explore Gluster, I leveraged the training materials and labs included in my <a href="https://www.redhat.com/en/services/training/learning-subscription">Red Hat Learning Subscription</a>. Also, to give myself a particular goal to achieve, I signed up for the Red Hat Certified Specialist in Gluster Storage Administration exam. The main topics included on the exam are creating different types of Gluster volumes, volume snapshotting, exporting Gluster volumes via highly-available NFS and Samba, asynchronous replication (geo-replication), tiered volumes and transport security.</p>
-
-<p>As I was working through the learning materials for the first time, I used the provided virtual machines to solve the lab exercises. I liked that after I completed the exercise I could run a grading script that would check my configuration and to see if anything was still missing. However, after I realized that setting up a Gluster cluster from scratch doesn&rsquo;t take much effort, I decided to spin up my own practice environment. I created three virtual machines (2 GB RAM, 4 vCPUs) on my laptop using libvirt/QEMU/KVM and installed CentOS 7 and Gluster 4.1. The software on the real exam is RHEL 7 and Gluster 3, however, it didn&rsquo;t make much difference to me. Switching to my custom practice environment removed the perceived latency while typing and allowed me to easily copy and paste between console windows. In addition to that, I could keep my virtual machines running all the time. Virtual machines in the lab environment provided by Red Hat shutdown automatically after two hours unless you bump up the timer.</p>
-
-<p>If you are preparing for the Gluster certification exam, here are several things that are good to know:</p>
-
-<ul>
-<li>The complete <a href="https://access.redhat.com/documentation/en-us/red_hat_gluster_storage">Red Hat Gluster Storage documentation</a> is available to you during the exam in a searchable PDF format. The Red Hat Gluster Storage Administration Guide turned out to be particularly useful. I recommend reading through the guide as a part of the preparation for the exam. You will learn where the important configuration parts are located in the guide and will be able to quickly refer to them during the exam.</li>
-<li>Preparing underlying LVM volumes for Gluster bricks takes quite a bit of time which you won&rsquo;t have plenty of in the exam. Here is my advice: at the beginning of the exam, walk through the exam tasks and create all the LVM volumes that you will need up front.</li>
-<li>Command <code>gluster volume set help</code> lists all the Gluster volume parameters along with their short descriptions. If you cannot remember the exact parameter name just grep through the output of this command.</li>
-<li>If you cannot remember the Gluster mount options, you can find them by typing <code>man mount.glusterfs</code></li>
-<li>Provisioning of LVM thin volumes is thoroughly documented in <code>man lvmthin</code></li>
-<li>To list all services that you can enable on the firewall, type <code>firewall-cmd --get-services</code></li>
-<li>To find out whether SELinux denied access, issue the command  <code>grep denied /var/log/audit/audit.log</code>. SELinux can provide a hint on how to possibly solve the access issue, use the command <code>sealert -a /var/log/audit/audit.log</code></li>
-<li>To list SELinux types related to Gluster, you can type <code>strings /sys/fs/selinux/policy | grep gluster</code></li>
-<li>And last but not least, you can list volumes exported by the NFS server with <code>showmount -e &lt;HOST&gt;</code>. To show volumes available on a Samba server, issue the command <code>smbclient -L &lt;HOST&gt; -U %</code></li>
-</ul>
-
-
-<p>And how did I do on the exam? Well, I would not say that the exam was difficult, however, I also didn&rsquo;t practice much before the exam. Unfortunately, I ran out of time before I could complete the last exam task. Overall, I achieved 236 points out of 300. As the passing score was 210, I did pass!</p>
-
-<p>Are you preparing for the Red Hat Gluster Storage exam? I would love to hear from you! Please, leave your comments or questions in the comment section below.</p>
-
-<p><img src="/images/posts/rhcs_gluster_storage_administration_badge.png"></p>
 ]]></content>
   </entry>
 

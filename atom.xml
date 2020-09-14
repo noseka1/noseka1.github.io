@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="http://alesnosek.com/atom.xml" rel="self"/>
   <link href="http://alesnosek.com/"/>
-  <updated>2020-07-13T19:49:17-07:00</updated>
+  <updated>2020-09-13T18:57:22-07:00</updated>
   <id>http://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,58 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[Apache Airflow Architecture on OpenShift]]></title>
+    <link href="http://alesnosek.com/blog/2020/09/13/apache-airflow-architecture-on-openshift/"/>
+    <updated>2020-09-13T18:48:20-07:00</updated>
+    <id>http://alesnosek.com/blog/2020/09/13/apache-airflow-architecture-on-openshift</id>
+    <content type="html"><![CDATA[<p>This blog will walk you through the Apache Airflow architecture on OpenShift. We are going to discuss the function of the individual Airflow components and how they can be deployed to OpenShift. This article focuses on the latest Apache Airflow version 1.10.12.</p>
+
+<!-- more -->
+
+
+<h2>Architecture overview</h2>
+
+<p>The three main components of Apache Airflow are the Webserver, Scheduler, and Workers. The Webserver provides the Web UI which is the Airflow&rsquo;s main user interface. It allows users to visualize their DAGs (Directed Acyclic Graph) and control the execution of their DAGs. In addition to the Web UI, the Webserver also provides an experimental REST API that allows controlling Airflow programatically as opposed to through the Web UI. The second component &mdash; the Airflow Scheduler &mdash; orchestrates the execution of DAGs by starting the DAG tasks at the right time and in the right order. Both Airflow Webserver and Scheduler are long-running services. On the other hand, Airflow Workers &mdash; the last of the three main components &mdash; run as ephemeral pods. They are created by the Kubernetes Executor and their sole purpose is to execute a single DAG task. After the task execution is complete, the Worker pod is deleted. The following diagram depicts the Aiflow architecture on OpenShift:</p>
+
+<p><img src="http://alesnosek.com/images/posts/apache_airflow_architecture_on_openshift.png"></p>
+
+<h2>Shared database</h2>
+
+<p>As shown in the architecture diagram above, none of the Airflow components communicate directly with each other. Instead, they all read and modify the state that is stored in the <em>shared database</em>. For instance,  the Webserver reads the current state of the DAG execution from the database and displays it in the Web UI. If you trigger a DAG in the Web UI, the Webserver will update the DAG in the database accordingly. Next comes the Scheduler that checks the DAG state in the database periodically. It finds the triggered DAG and if the time is right, it will schedule the new tasks for execution. After the execution of the specific task is complete, the Worker marks that state of the task in the database as done. Finally, the Web UI will learn the new state of the task from the database and will show it to the user.</p>
+
+<p>The shared database architecture provides Airflow components with a perfectly consistent view of the current state. On the other hand, as the number of tasks to execute grows, the database becomes a performance bottleneck as more and more Workers connect to the database. To alleviate the load on the database, a connection pool like <a href="https://www.pgbouncer.org/">PgBouncer</a> may be deployed in front of the database. The pool manages a relatively small amount of database connections which are re-used to serve requests of different Workers.</p>
+
+<p>Regarding the choice of a particular DBMS, in production deployments the database of choice is typically PostgreSQL or MySQL. You can choose to run the database directly on OpenShift. In that case, you will need to put it on an RWO (ReadWriteOnce) persistent volume provided for example by <a href="https://www.redhat.com/en/technologies/cloud-computing/openshift-container-storage">OpenShift Container Storage</a>. Or, you can use an external database. For instance, if you are hosting OpenShift on top of AWS, you can leverage a fully managed database provided by <a href="https://aws.amazon.com/rds/">Amazon RDS</a>.</p>
+
+<h2>Making DAGs accessible to Airflow components</h2>
+
+<p>All three Airflow components Webserver, Scheduler, and Workers assume that the DAG definitions can be read from the local filesystem.  The question is, how to make the DAGs available on the local filesystem in the container? There are two approaches to achieve this. In the first approach, a shared volume is created to hold all the DAGs. This volume is then attached to the Airflow pods. The second approach assumes that your DAGs are hosted in a git repository. A sidecar container is deployed along with the Airflow Server and Scheduler. This sidecar container synchronizes the latest version of your DAGs with the local filesystem periodically. For the Worker pods, the pulling of the DAGs from the git repository is done only once by the init container before the Worker is brought up.</p>
+
+<p>Note that since Airflow 1.10.10, you can use the <a href="https://airflow.apache.org/docs/1.10.10/dag-serialization.html">DAG Serialization</a> feature. With DAG Serialization, the Scheduler reads the DAGs from the local filesystem and saves them in the database. The Airflow Webserver then reads the DAGs from the database instead of the local filesystem. For the Webserver container, you can avoid the need to mount a shared volume or configure git-sync if you enable the DAG Serialization.</p>
+
+<p>To synchronize the DAGs with the local filesystem, I personally prefer using git-sync over the shared volumes approach. First, you want to keep you DAGs in the source control anyway to facilitate the development of the DAGs. Second, git-sync seems to be easier to troubleshoot and recover in the case of failure.</p>
+
+<h2>Airflow monitoring</h2>
+
+<p>As the old saying goes, &ldquo;If you are not monitoring it, it&rsquo;s not in production&rdquo;. So, how can we monitor Apache Airflow running on OpenShift? <a href="https://prometheus.io/">Prometheus</a> is a monitoring system widely used for monitoring Kubernetes workloads and I recommend that you consider it for monitoring Airflow as well. Airflow itself reports metrics using the statsd protocol, so you will need to deploy the <a href="https://github.com/prometheus/statsd_exporter">statsd_exporter</a> piece between Airflow and the Prometheus server. This exporter will aggregate the statsd metrics, convert them into Prometheus format and expose them for the Prometheus server to scrape.</p>
+
+<h2>Collecting Airflow logs</h2>
+
+<p>By default, Apache Airflow writes the logs to the local filesystem. If you have an RWX (ReadWriteMany) persistent volume available, you can attach it to the Webserver, Scheduler, and Worker pods to capture the logs. As the Worker logs are written to the shared volume, they are instantly accessible by the Webserver. This allows for viewing the logs live in the Web UI.</p>
+
+<p>An alternative approach to handling the Airflow logs is to enable remote logging.  With remote logging, the Worker logs can be pushed to the remote location like S3. The logs are then grabbed from S3 by the Webserver to display them in the Web UI. Note that when using an object store as your remote location, the Worker logs are uploaded to the object store only after the task run is complete. That means that you won&rsquo;t be able to view the logs live in the Web UI while the task is still running.</p>
+
+<p>The remote logging feature in Airflow takes care of the Worker logs. How can you handle Webserver and Scheduler logs when not using a persistent volume? You can configure Airflow to dump the logs to stdout. The OpenShift logging will collect the logs and send them to the central location.</p>
+
+<h2>Conclusion</h2>
+
+<p>In this article, we reviewed the Apache Airflow architecture on OpenShift. We discussed the role of individual Airflow components and described how they interact with each other. We discussed the Airflow&rsquo;s shared database, explained how to make DAGs accessible to the Airflow components, and talked about Ariflow monitoring and log collection.</p>
+
+<p>Apache Airflow can be deployed in several different ways. What is your favorite architecture for deploying Airflow? I would like to hear about your approach. If you have any further questions or comments, please add them to the comment section below.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[Speaking at Red Hat Summit 2020, Part II]]></title>
@@ -2475,64 +2527,6 @@
 <p>Red Hat has updated the score report emails to include the breakdown by topic areas. This could be especially helpful for those who were unsuccessful in their exam attempt and need more information about what to focus on before retaking the exam.</p>
 
 <p>The Red Hat Certified Architect certification has been divided in to two different certifications, Red Hat Certified Architect in Infrastructure and Red Hat Certified Architect in Enterprise Applications. This change is well documented <a href="https://servicesblog.redhat.com/2018/08/20/red-hat-certified-architect-program-changes/">here</a>. I would like to point out that those of you who achieved the RHCA already, can log into your Red Hat account and download your certificate with the updated title.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[How I Achieved the AWS Associate Certifications]]></title>
-    <link href="http://alesnosek.com/blog/2018/08/30/how-i-achieved-the-aws-associate-certifications/"/>
-    <updated>2018-08-30T23:20:27-07:00</updated>
-    <id>http://alesnosek.com/blog/2018/08/30/how-i-achieved-the-aws-associate-certifications</id>
-    <content type="html"><![CDATA[<p>Over the course of the last year I was working towards transitioning our company’s products to the AWS cloud. I gained a solid experience with many of the AWS services, wrote lots of lines of CloudFormation code, and embraced AWS reference architectures and best practices. To round up my AWS experience I thought that accomplishing some certifications would be a good idea. In this post, I am going to share with you how I achieved the AWS associate certifications.</p>
-
-<!-- more -->
-
-
-<p><a href="https://aws.amazon.com/certification/">AWS certifications</a> are divided into three levels of difficulty: foundational, associate, and professional. The foundational level is optional. If you worked with AWS cloud hands-on for several months, I would recommend skipping the foundational level and start your certification path at the associate level. The associate level comes with three certification options: Solutions Architect, Developer, and SysOps Administrator. In order to achieve a specific certification, you have to pass the respective multiple-choice test. As the requirements for the three tests highly overlap, I decided to study for all three certifications at the same time.</p>
-
-<p>AWS certification is rather popular these days. It&rsquo;s no wonder that there is an abundance of preparation materials available. So, which one should you choose? I started off by reading the three official study guides:</p>
-
-<ul>
-<li><a href="https://www.amazon.com/Certified-Solutions-Architect-Official-Study/dp/1119138558">AWS Certified Solutions Architect Official Study Guide: Associate Exam</a></li>
-<li><a href="https://www.amazon.com/Certified-SysOps-Administrator-Official-Study/dp/1119377420">AWS Certified SysOps Administrator Official Study Guide: Associate Exam</a></li>
-<li><a href="https://www.amazon.com/Certified-Advanced-Networking-Official-Study-ebook/dp/B079VKD1CN">AWS Certified Advanced Networking Official Study Guide: Specialty Exam</a></li>
-</ul>
-
-
-<p>The three study guides are well organized and go beyond the associate exam requirements. I would recommend reading them even when you don&rsquo;t plan to get certified as they provide a good source of information about AWS in general.</p>
-
-<p>In addition to reading the books, I made use of the AWS training courses offered by <a href="https://acloud.guru/courses?vendors=aws">A Cloud Guru</a>. I watched most of the videos from the Solutions Architect course and some of the videos from the SysOps Administrator course. I enjoyed the presentation style of Ryan Kroonenburg a lot and appreciated the practical demonstrations on AWS and the included exam tips. As I didn&rsquo;t really want to spend the time watching all the videos, I used ffmpeg to extract the audio tracks and listened to the courses while driving or being in the gym. Besides the training courses by A Cloud Guru, people also recommend the AWS courses offered by <a href="https://linuxacademy.com/amazon-web-services/courses">Linux Academy</a>.</p>
-
-<p>Another useful prep material for the exam is the Jayendra&rsquo;s <a href="http://jayendrapatil.com/aws-certification-exam-cheat-sheet/">AWS Certification Exam Cheat Sheet</a>. It includes study notes as well as sample questions.</p>
-
-<p>Before taking the real exam, I practiced using mock exams. You can find many of them freely available on the Internet. I also used several mock exam applications for Android:</p>
-
-<ul>
-<li><a href="https://play.google.com/store/apps/details?id=com.embleton.awstrainer">AWS Certification Stress-Free: RocketPrep</a></li>
-<li><a href="https://play.google.com/store/apps/details?id=com.magycbytes.aws">AWS Certified Solutions Architect Associate</a></li>
-<li><a href="https://play.google.com/store/apps/details?id=com.gent.dev.awsninja">AWS Ninja</a></li>
-<li><a href="https://play.google.com/store/apps/details?id=com.vikashiiit.aws">FREE AWS Practice Quiz - Associates</a></li>
-<li><a href="https://play.google.com/store/apps/details?id=com.ywdrtt.awssa">PREP AWS Solutions Architect</a></li>
-<li><a href="https://play.google.com/store/apps/details?id=com.magycbytes.awssys">Test prep. AWS SysOps Administrator - Associate</a></li>
-</ul>
-
-
-<p>Note that the quality of the available prep materials varies and some of the materials may contain errors.</p>
-
-<p>Finally, after I completed my studying, I took the three associate exams. Here are my results:</p>
-
-<ul>
-<li>AWS Certified Solutions Architect - Associate exam passed with 89%</li>
-<li>AWS Certified Developer - Associate exam passed with 94%</li>
-<li>AWS Certified SysOps Administrator - Associate exam passed with 95%</li>
-</ul>
-
-
-<p>If you are preparing to get your AWS certifications, I hope that sharing my experience might have been helpful for you.</p>
-
-<p><a href="https://www.certmetrics.com/amazon/public/badge.aspx?i=1&amp;t=c&amp;d=2018-08-08&amp;ci=AWS00414888"><img src="http://alesnosek.com/images/posts/aws_certified_solutions_architect_associate.png"></a>
-<a href="https://www.certmetrics.com/amazon/public/badge.aspx?i=2&amp;t=c&amp;d=2018-08-13&amp;ci=AWS00414888"><img src="http://alesnosek.com/images/posts/aws_certified_developer_associate.png"></a>
-<a href="https://www.certmetrics.com/amazon/public/badge.aspx?i=3&amp;t=c&amp;d=2018-08-28&amp;ci=AWS00414888"><img src="http://alesnosek.com/images/posts/aws_certified_sysops_administrator_associate.png"></a></p>
 ]]></content>
   </entry>
 
