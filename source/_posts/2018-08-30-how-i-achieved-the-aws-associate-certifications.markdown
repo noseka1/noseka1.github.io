@@ -43,6 +43,6 @@ Finally, after I completed my studying, I took the three associate exams. Here a
 
 If you are preparing to get your AWS certifications, I hope that sharing my experience might have been helpful for you.
 
-[{% img /images/posts/aws_certified_solutions_architect_associate.png %}](https://www.certmetrics.com/amazon/public/badge.aspx?i=1&t=c&d=2018-08-08&ci=AWS00414888)
-[{% img /images/posts/aws_certified_developer_associate.png %}](https://www.certmetrics.com/amazon/public/badge.aspx?i=2&t=c&d=2018-08-13&ci=AWS00414888)
-[{% img /images/posts/aws_certified_sysops_administrator_associate.png %}](https://www.certmetrics.com/amazon/public/badge.aspx?i=3&t=c&d=2018-08-28&ci=AWS00414888)
+[{% img /images/posts/aws_certified_solutions_architect_associate.png 220 220 %}](https://www.youracclaim.com/badges/7ca4b13c-e705-4c83-927b-2574b6a3d1c0/public_url)
+[{% img /images/posts/aws_certified_developer_associate.png 220 220 %}](https://www.youracclaim.com/badges/678684ce-5ae1-44e0-b40f-b8a48bdd7c06/public_url)
+[{% img /images/posts/aws_certified_sysops_administrator_associate.png 220 220 %}](https://www.youracclaim.com/badges/60aaf94d-6b0a-4fa8-9a09-dc8522d61400/public_url)
