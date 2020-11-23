@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: devops | Ales Nosek - The Software Practitioner]]></title>
-  <link href="http://alesnosek.com/blog/categories/devops/atom.xml" rel="self"/>
-  <link href="http://alesnosek.com/"/>
-  <updated>2020-09-28T07:34:01-07:00</updated>
-  <id>http://alesnosek.com/</id>
+  <link href="https://alesnosek.com/blog/categories/devops/atom.xml" rel="self"/>
+  <link href="https://alesnosek.com/"/>
+  <updated>2020-11-22T19:05:23-08:00</updated>
+  <id>https://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
 
@@ -15,9 +15,9 @@
 
   <entry>
     <title type="html"><![CDATA[Apache Airflow Architecture on OpenShift]]></title>
-    <link href="http://alesnosek.com/blog/2020/09/13/apache-airflow-architecture-on-openshift/"/>
+    <link href="https://alesnosek.com/blog/2020/09/13/apache-airflow-architecture-on-openshift/"/>
     <updated>2020-09-13T18:48:20-07:00</updated>
-    <id>http://alesnosek.com/blog/2020/09/13/apache-airflow-architecture-on-openshift</id>
+    <id>https://alesnosek.com/blog/2020/09/13/apache-airflow-architecture-on-openshift</id>
     <content type="html"><![CDATA[<p>This blog will walk you through the Apache Airflow architecture on OpenShift. We are going to discuss the function of the individual Airflow components and how they can be deployed to OpenShift. This article focuses on the latest Apache Airflow version 1.10.12.</p>
 
 <!-- more -->
@@ -67,9 +67,9 @@
 
   <entry>
     <title type="html"><![CDATA[CI/CD Pipeline Spanning Multiple OpenShift Clusters]]></title>
-    <link href="http://alesnosek.com/blog/2020/06/30/ci-slash-cd-pipeline-spanning-multiple-openshift-clusters/"/>
+    <link href="https://alesnosek.com/blog/2020/06/30/ci-slash-cd-pipeline-spanning-multiple-openshift-clusters/"/>
     <updated>2020-06-30T17:53:09-07:00</updated>
-    <id>http://alesnosek.com/blog/2020/06/30/ci-slash-cd-pipeline-spanning-multiple-openshift-clusters</id>
+    <id>https://alesnosek.com/blog/2020/06/30/ci-slash-cd-pipeline-spanning-multiple-openshift-clusters</id>
     <content type="html"><![CDATA[<p>This blog will cover how to create a CI/CD pipeline that spans multiple OpenShift clusters. It will show an example of a Jenkins-based pipeline, and design a pipeline that uses Tekton.</p>
 
 <!-- more -->
@@ -158,9 +158,9 @@ Waiting for logs to be available...
 
   <entry>
     <title type="html"><![CDATA[OpenShift UPI Using Static IPs]]></title>
-    <link href="http://alesnosek.com/blog/2020/04/21/openshift-upi-using-static-ips/"/>
+    <link href="https://alesnosek.com/blog/2020/04/21/openshift-upi-using-static-ips/"/>
     <updated>2020-04-21T20:29:52-07:00</updated>
-    <id>http://alesnosek.com/blog/2020/04/21/openshift-upi-using-static-ips</id>
+    <id>https://alesnosek.com/blog/2020/04/21/openshift-upi-using-static-ips</id>
     <content type="html"><![CDATA[<p>Recently, I have been working on the <a href="https://github.com/noseka1/openshift-auto-upi">openshift-auto-upi</a> project, which automates UPI deployments of OpenShift.  I was looking for a way to configure OpenShift nodes with static IP addresses. After several failed attempts, I found a working approach that can be easily automated. If you prefer using static IPs over the default DHCP provisioning, please read on as I share my approach with you.</p>
 
 <p>The blog is published at <a href="https://www.openshift.com/blog/openshift-upi-using-static-ips">openshift.com/blog</a>.</p>
@@ -169,9 +169,9 @@ Waiting for logs to be available...
 
   <entry>
     <title type="html"><![CDATA[Configuring Envoy to Auto-Discover Pods on Kubernetes]]></title>
-    <link href="http://alesnosek.com/blog/2019/08/19/configuring-envoy-to-audo-discover-pods-on-kubernetes/"/>
+    <link href="https://alesnosek.com/blog/2019/08/19/configuring-envoy-to-audo-discover-pods-on-kubernetes/"/>
     <updated>2019-08-19T11:04:51-07:00</updated>
-    <id>http://alesnosek.com/blog/2019/08/19/configuring-envoy-to-audo-discover-pods-on-kubernetes</id>
+    <id>https://alesnosek.com/blog/2019/08/19/configuring-envoy-to-audo-discover-pods-on-kubernetes</id>
     <content type="html"><![CDATA[<p>Pods on Kubernetes are ephemeral and can be created and destroyed at any time. In order for Envoy to load balance the traffic across pods, Envoy needs to be able to track the IP addresses of the pods over time. In this blog post, I am going to show you how to leverage Envoy&rsquo;s Strict DNS discovery in combination with a headless service in Kubernetes to accomplish this.</p>
 
 <!-- more -->
@@ -343,9 +343,9 @@ Waiting for logs to be available...
 
   <entry>
     <title type="html"><![CDATA[Installing OpenShift 4.1 Using Libvirt and KVM]]></title>
-    <link href="http://alesnosek.com/blog/2019/07/08/installing-openshift-4-dot-1-using-libvirt-and-kvm/"/>
+    <link href="https://alesnosek.com/blog/2019/07/08/installing-openshift-4-dot-1-using-libvirt-and-kvm/"/>
     <updated>2019-07-08T11:53:54-07:00</updated>
-    <id>http://alesnosek.com/blog/2019/07/08/installing-openshift-4-dot-1-using-libvirt-and-kvm</id>
+    <id>https://alesnosek.com/blog/2019/07/08/installing-openshift-4-dot-1-using-libvirt-and-kvm</id>
     <content type="html"><![CDATA[<p>In this blog post, I am going to talk about how I installed OpenShift 4.1 on a Fedora laptop with 16 GB of RAM. If you are interested in deploying your own OpenShift instance whether for evaluation or testing please follow along with me.</p>
 
 <!-- more -->

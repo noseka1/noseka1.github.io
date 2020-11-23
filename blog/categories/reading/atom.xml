@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: reading | Ales Nosek - The Software Practitioner]]></title>
-  <link href="http://alesnosek.com/blog/categories/reading/atom.xml" rel="self"/>
-  <link href="http://alesnosek.com/"/>
-  <updated>2020-09-28T07:34:01-07:00</updated>
-  <id>http://alesnosek.com/</id>
+  <link href="https://alesnosek.com/blog/categories/reading/atom.xml" rel="self"/>
+  <link href="https://alesnosek.com/"/>
+  <updated>2020-11-22T19:05:23-08:00</updated>
+  <id>https://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[What I learned from The Open Organization]]></title>
-    <link href="http://alesnosek.com/blog/2016/07/04/what-i-learned-from-the-open-organization/"/>
+    <link href="https://alesnosek.com/blog/2016/07/04/what-i-learned-from-the-open-organization/"/>
     <updated>2016-07-04T21:04:22-07:00</updated>
-    <id>http://alesnosek.com/blog/2016/07/04/what-i-learned-from-the-open-organization</id>
+    <id>https://alesnosek.com/blog/2016/07/04/what-i-learned-from-the-open-organization</id>
     <content type="html"><![CDATA[<p>Red Hat is one of the most successful software companies that makes billions of dollars selling open source software. The book <em>The Open Organization</em> written by Jim Whitehurst, CEO of Red Hat, provides a great insight into the company culture and how things get done at Red Hat. This blogpost lists some of the ideas I learned from this book.</p>
 
 <!-- more -->

@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: development | Ales Nosek - The Software Practitioner]]></title>
-  <link href="http://alesnosek.com/blog/categories/development/atom.xml" rel="self"/>
-  <link href="http://alesnosek.com/"/>
-  <updated>2020-09-28T07:34:01-07:00</updated>
-  <id>http://alesnosek.com/</id>
+  <link href="https://alesnosek.com/blog/categories/development/atom.xml" rel="self"/>
+  <link href="https://alesnosek.com/"/>
+  <updated>2020-11-22T19:05:23-08:00</updated>
+  <id>https://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
 
@@ -15,9 +15,9 @@
 
   <entry>
     <title type="html"><![CDATA[Local Development with OpenShift and Tilt]]></title>
-    <link href="http://alesnosek.com/blog/2020/06/08/local-development-with-openshift-and-tilt/"/>
+    <link href="https://alesnosek.com/blog/2020/06/08/local-development-with-openshift-and-tilt/"/>
     <updated>2020-06-08T20:36:36-07:00</updated>
-    <id>http://alesnosek.com/blog/2020/06/08/local-development-with-openshift-and-tilt</id>
+    <id>https://alesnosek.com/blog/2020/06/08/local-development-with-openshift-and-tilt</id>
     <content type="html"><![CDATA[<p>In this blog post, I am going to show you how to use Tilt to facilitate local OpenShift development. Tilt’s capabilities will be demonstrated in a practical example that uses buildah and CodeReady Containers. If you develop containerized applications on OpenShift, this blog post is for you.</p>
 
 <!-- more -->
@@ -143,9 +143,9 @@ $ curl localhost:8000
 
   <entry>
     <title type="html"><![CDATA[Open Policy Agent, Part III &mdash; Integrating with Your Application]]></title>
-    <link href="http://alesnosek.com/blog/2019/12/03/open-policy-agent-part-iii-integrating-with-your-application/"/>
+    <link href="https://alesnosek.com/blog/2019/12/03/open-policy-agent-part-iii-integrating-with-your-application/"/>
     <updated>2019-12-03T12:46:10-08:00</updated>
-    <id>http://alesnosek.com/blog/2019/12/03/open-policy-agent-part-iii-integrating-with-your-application</id>
+    <id>https://alesnosek.com/blog/2019/12/03/open-policy-agent-part-iii-integrating-with-your-application</id>
     <content type="html"><![CDATA[<p>In the <a href="/blog/2019/10/27/open-policy-agent-part-ii-developing-policies/">previous entry</a> to this series, we discussed developing policies with Open Policy Agent. In this final article in the series, we are going to focus on how you can integrate Open Policy Agent with your application.</p>
 
 <!-- more -->
@@ -221,9 +221,9 @@ $ curl localhost:8000
 
   <entry>
     <title type="html"><![CDATA[Open Policy Agent, Part II &mdash; Developing Policies]]></title>
-    <link href="http://alesnosek.com/blog/2019/10/27/open-policy-agent-part-ii-developing-policies/"/>
+    <link href="https://alesnosek.com/blog/2019/10/27/open-policy-agent-part-ii-developing-policies/"/>
     <updated>2019-10-27T20:37:08-07:00</updated>
-    <id>http://alesnosek.com/blog/2019/10/27/open-policy-agent-part-ii-developing-policies</id>
+    <id>https://alesnosek.com/blog/2019/10/27/open-policy-agent-part-ii-developing-policies</id>
     <content type="html"><![CDATA[<p>In the <a href="/blog/2019/10/08/open-policy-agent-part-i-the-introduction/">previous part</a> of the series, we explored Open Policy Agent and implemented an ACL-based access control for our application. In this entry, I am going to share with you some of the discoveries that I made while evaluating Open Policy Agent in regards to policy design and development.</p>
 
 <!-- more -->
@@ -265,9 +265,9 @@ $ curl localhost:8000
 
   <entry>
     <title type="html"><![CDATA[Open Policy Agent, Part I &mdash; The Introduction]]></title>
-    <link href="http://alesnosek.com/blog/2019/10/08/open-policy-agent-part-i-the-introduction/"/>
+    <link href="https://alesnosek.com/blog/2019/10/08/open-policy-agent-part-i-the-introduction/"/>
     <updated>2019-10-08T07:13:38-07:00</updated>
-    <id>http://alesnosek.com/blog/2019/10/08/open-policy-agent-part-i-the-introduction</id>
+    <id>https://alesnosek.com/blog/2019/10/08/open-policy-agent-part-i-the-introduction</id>
     <content type="html"><![CDATA[<p>Recently I was looking for a way to implement access control for microservices. I needed a solution that would allow defining complex authorization rules that could be enforced across many services. After searching the web, I discovered a very promising <a href="https://www.openpolicyagent.org/">Open Policy Agent</a> project that seems to be the right tool for the job. In this series of three blog posts, I am going to introduce Open Policy Agent to you and highlight how it can help you.</p>
 
 <!-- more -->
@@ -440,9 +440,9 @@ $ curl -X POST http://localhost:8181/v1/data/myapi/policy/allow \
 
   <entry>
     <title type="html"><![CDATA[Troubleshooting the Performance of Vert.x Applications, Part III &mdash; Troubleshooting Event Loop Delays]]></title>
-    <link href="http://alesnosek.com/blog/2019/08/05/troubleshooting-the-performance-of-vert-dot-x-applications-troubleshooting-event-loop-delays/"/>
+    <link href="https://alesnosek.com/blog/2019/08/05/troubleshooting-the-performance-of-vert-dot-x-applications-troubleshooting-event-loop-delays/"/>
     <updated>2019-08-05T13:26:34-07:00</updated>
-    <id>http://alesnosek.com/blog/2019/08/05/troubleshooting-the-performance-of-vert-dot-x-applications-troubleshooting-event-loop-delays</id>
+    <id>https://alesnosek.com/blog/2019/08/05/troubleshooting-the-performance-of-vert-dot-x-applications-troubleshooting-event-loop-delays</id>
     <content type="html"><![CDATA[<p>In the <a href="/blog/2019/07/22/troubleshooting-the-performance-of-vert-dot-x-applications-preventing-event-loop-delays/">previous entry</a> to this series, we reviewed several techniques that help you to prevent event loop delays. However, even the best programmer makes mistakes. What should you do when your Vert.x application doesn&rsquo;t perform as expected? How to find out what part of your code is blocking the event loop threads? In the final part of the series, we are going to focus on troubleshooting event loop delays.</p>
 
 <!-- more -->

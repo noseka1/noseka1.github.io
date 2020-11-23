@@ -1,4 +1,4 @@
 User-agent: *
-Disallow: 
+Disallow:
 
-Sitemap: http://alesnosek.com/sitemap.xml 
+Sitemap: https://alesnosek.com/sitemap.xml

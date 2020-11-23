@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: design | Ales Nosek - The Software Practitioner]]></title>
-  <link href="http://alesnosek.com/blog/categories/design/atom.xml" rel="self"/>
-  <link href="http://alesnosek.com/"/>
-  <updated>2020-09-28T07:34:01-07:00</updated>
-  <id>http://alesnosek.com/</id>
+  <link href="https://alesnosek.com/blog/categories/design/atom.xml" rel="self"/>
+  <link href="https://alesnosek.com/"/>
+  <updated>2020-11-22T19:05:23-08:00</updated>
+  <id>https://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Edge Security for Your Cloud Application, Part II]]></title>
-    <link href="http://alesnosek.com/blog/2018/01/12/edge-security-for-your-cloud-application-part-ii/"/>
+    <link href="https://alesnosek.com/blog/2018/01/12/edge-security-for-your-cloud-application-part-ii/"/>
     <updated>2018-01-12T21:21:19-08:00</updated>
-    <id>http://alesnosek.com/blog/2018/01/12/edge-security-for-your-cloud-application-part-ii</id>
+    <id>https://alesnosek.com/blog/2018/01/12/edge-security-for-your-cloud-application-part-ii</id>
     <content type="html"><![CDATA[<p>In this article, we&rsquo;re going to create a proof-of-concept deployment featuring a non-TLS client connecting to our cloud application. We are going to leverage the architecture approach discussed in the <a href="/blog/2018/01/10/edge-security-for-your-cloud-application-part-i">previous blog post</a>. A secure communication channel is going to be established between the client and the cloud application including mutual authentication.</p>
 
 <!-- more -->
@@ -730,9 +730,9 @@
   
   <entry>
     <title type="html"><![CDATA[Edge Security for Your Cloud Application, Part I]]></title>
-    <link href="http://alesnosek.com/blog/2018/01/10/edge-security-for-your-cloud-application-part-i/"/>
+    <link href="https://alesnosek.com/blog/2018/01/10/edge-security-for-your-cloud-application-part-i/"/>
     <updated>2018-01-10T23:09:17-08:00</updated>
-    <id>http://alesnosek.com/blog/2018/01/10/edge-security-for-your-cloud-application-part-i</id>
+    <id>https://alesnosek.com/blog/2018/01/10/edge-security-for-your-cloud-application-part-i</id>
     <content type="html"><![CDATA[<p>When designing a cloud application, one of the challenges you need to tackle is the secure communication of your clients with your servers over the public Internet. In this post, I&rsquo;m going to sketch a system architecture that allows you to authenticate the clients and exchange data between your clients and servers securely. The proposed architecture is also suitable when migrating an existing application, which didn&rsquo;t implement the secure communication, to the cloud.</p>
 
 <!-- more -->
@@ -814,9 +814,9 @@
   
   <entry>
     <title type="html"><![CDATA[Centralized Configuration Management, Our Approach]]></title>
-    <link href="http://alesnosek.com/blog/2017/08/20/centralized-configuration-management/"/>
+    <link href="https://alesnosek.com/blog/2017/08/20/centralized-configuration-management/"/>
     <updated>2017-08-20T13:09:28-07:00</updated>
-    <id>http://alesnosek.com/blog/2017/08/20/centralized-configuration-management</id>
+    <id>https://alesnosek.com/blog/2017/08/20/centralized-configuration-management</id>
     <content type="html"><![CDATA[<p>Are you migrating your existing application to the cloud? Are you missing a solution for centralized configuration management? Read on to learn, how we implemented centralized configuration management on top of our existing application and got it ready for the cloud.</p>
 
 <!-- more -->

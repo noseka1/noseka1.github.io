@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
-  <link href="http://alesnosek.com/atom.xml" rel="self"/>
-  <link href="http://alesnosek.com/"/>
-  <updated>2020-09-28T07:34:01-07:00</updated>
-  <id>http://alesnosek.com/</id>
+  <link href="https://alesnosek.com/atom.xml" rel="self"/>
+  <link href="https://alesnosek.com/"/>
+  <updated>2020-11-22T19:05:23-08:00</updated>
+  <id>https://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
 
@@ -15,9 +15,9 @@
 
   <entry>
     <title type="html"><![CDATA[Apache Airflow Architecture on OpenShift]]></title>
-    <link href="http://alesnosek.com/blog/2020/09/13/apache-airflow-architecture-on-openshift/"/>
+    <link href="https://alesnosek.com/blog/2020/09/13/apache-airflow-architecture-on-openshift/"/>
     <updated>2020-09-13T18:48:20-07:00</updated>
-    <id>http://alesnosek.com/blog/2020/09/13/apache-airflow-architecture-on-openshift</id>
+    <id>https://alesnosek.com/blog/2020/09/13/apache-airflow-architecture-on-openshift</id>
     <content type="html"><![CDATA[<p>This blog will walk you through the Apache Airflow architecture on OpenShift. We are going to discuss the function of the individual Airflow components and how they can be deployed to OpenShift. This article focuses on the latest Apache Airflow version 1.10.12.</p>
 
 <!-- more -->
@@ -27,7 +27,7 @@
 
 <p>The three main components of Apache Airflow are the Webserver, Scheduler, and Workers. The Webserver provides the Web UI which is the Airflow&rsquo;s main user interface. It allows users to visualize their DAGs (Directed Acyclic Graph) and control the execution of their DAGs. In addition to the Web UI, the Webserver also provides an experimental REST API that allows controlling Airflow programatically as opposed to through the Web UI. The second component &mdash; the Airflow Scheduler &mdash; orchestrates the execution of DAGs by starting the DAG tasks at the right time and in the right order. Both Airflow Webserver and Scheduler are long-running services. On the other hand, Airflow Workers &mdash; the last of the three main components &mdash; run as ephemeral pods. They are created by the Kubernetes Executor and their sole purpose is to execute a single DAG task. After the task execution is complete, the Worker pod is deleted. The following diagram depicts the Aiflow architecture on OpenShift:</p>
 
-<p><img src="http://alesnosek.com/images/posts/apache_airflow_architecture_on_openshift.png"></p>
+<p><img src="https://alesnosek.com/images/posts/apache_airflow_architecture_on_openshift.png"></p>
 
 <h2>Shared database</h2>
 
@@ -67,22 +67,22 @@
 
   <entry>
     <title type="html"><![CDATA[Speaking at Red Hat Summit 2020, Part II]]></title>
-    <link href="http://alesnosek.com/blog/2020/07/13/speaking-at-red-hat-summit-2020/"/>
+    <link href="https://alesnosek.com/blog/2020/07/13/speaking-at-red-hat-summit-2020/"/>
     <updated>2020-07-13T19:06:44-07:00</updated>
-    <id>http://alesnosek.com/blog/2020/07/13/speaking-at-red-hat-summit-2020</id>
+    <id>https://alesnosek.com/blog/2020/07/13/speaking-at-red-hat-summit-2020</id>
     <content type="html"><![CDATA[<p>This year&rsquo;s <a href="https://www.redhat.com/en/summit">Red Hat Summit</a> is not over yet! There is a second batch of sessions that will be released on Wednesday, July 15. I will have a joint presentation with Andrew Baumann, titled: <em>Security and access control for microservices</em>. We will be discussing OAuth 2.0, the Keycloak project, and Open Policy Agent.</p>
 
 <p>More information about the session can be found in the <a href="https://summit.redhat.com/conference/sessions?p1=eyJzcGVha2VyIjpbXSwidGltZXNsb3QiOltdLCJkYXkiOltdLCJyb29tIjpbXSwibG9jYXRpb24iOltdLCJzb3J0b3JkZXIiOiJkYXRlIiwic3RhcnQiOiIiLCJmaW5pc2giOiIiLCJwYWdlbnVtYmVyIjoxLCJzaGFyZWlkIjoiIiwiY2F0ZWdvcmllcyI6e30sImtleXdvcmQiOiJTZWN1cml0eSBhbmQgYWNjZXNzIGNvbnRyb2wifQ==">session catalog</a>.</p>
 
-<p><img class="center" src="http://alesnosek.com/images/posts/red_hat_summit_2020_part_ii.png"></p>
+<p><img class="center" src="https://alesnosek.com/images/posts/red_hat_summit_2020_part_ii.png"></p>
 ]]></content>
   </entry>
 
   <entry>
     <title type="html"><![CDATA[CI/CD Pipeline Spanning Multiple OpenShift Clusters]]></title>
-    <link href="http://alesnosek.com/blog/2020/06/30/ci-slash-cd-pipeline-spanning-multiple-openshift-clusters/"/>
+    <link href="https://alesnosek.com/blog/2020/06/30/ci-slash-cd-pipeline-spanning-multiple-openshift-clusters/"/>
     <updated>2020-06-30T17:53:09-07:00</updated>
-    <id>http://alesnosek.com/blog/2020/06/30/ci-slash-cd-pipeline-spanning-multiple-openshift-clusters</id>
+    <id>https://alesnosek.com/blog/2020/06/30/ci-slash-cd-pipeline-spanning-multiple-openshift-clusters</id>
     <content type="html"><![CDATA[<p>This blog will cover how to create a CI/CD pipeline that spans multiple OpenShift clusters. It will show an example of a Jenkins-based pipeline, and design a pipeline that uses Tekton.</p>
 
 <!-- more -->
@@ -98,7 +98,7 @@
 
 <p>Jenkins is a legend among CI/CD tools. I remember meeting Jenkins back in the day when it was called Hudson but that&rsquo;s old history. How can we build a Jenkins pipeline that spans multiple OpenShift clusters? An important design goal for the pipeline is to achieve a single dashboard that can display output of all jobs involved in the pipeline. I gave it some thought and realized that achieving a single dashboard pretty much implies using a single Jenkins master. This Jenkins master is connected with each of the OpenShift clusters. During the pipeline execution, Jenkins master can run individual tasks on any of the clusters. The job output logs are collected and sent to the master as usual. If we consider having three OpenShift clusters Dev, Test, and Prod, the following diagram depicts the approach:</p>
 
-<p><img class="center" src="http://alesnosek.com/images/posts/ci_cd_pipeline_spanning_multiple_clusters_jenkins.png"></p>
+<p><img class="center" src="https://alesnosek.com/images/posts/ci_cd_pipeline_spanning_multiple_clusters_jenkins.png"></p>
 
 <p>The Jenkins <a href="https://plugins.jenkins.io/kubernetes/">Kubernetes plugin</a> is a perfect plugin for connecting Jenkins to OpenShift. It allows the Jenkins master to create ephemeral workers on the cluster. Each cluster can be assigned a different node label. You can run each stage of your pipeline on a different cluster by specifying the label. A simple pipeline definition for our example would look like this:</p>
 
@@ -148,7 +148,7 @@
 
 <p>I came up with an idea of composing the Tekton pipelines. To compose multiple pipelines into a single pipeline, I implemented the <a href="https://github.com/noseka1/execute-remote-pipeline">execute-remote-pipeline</a> task that can execute a Tekton pipeline located on a remote OpenShift cluster. The task will tail the output of the remote pipeline while the remote pipeline is executing. With the help of this task, I can now combine Tekton pipelines across OpenShift clusters and run them as a single pipeline. For example, the diagram below shows a composition of three pipelines. Each of the pipelines is located on a different OpenShift cluster Dev, Test, and Prod:</p>
 
-<p><img class="center" src="http://alesnosek.com/images/posts/ci_cd_pipeline_spanning_multiple_clusters_tekton.png"></p>
+<p><img class="center" src="https://alesnosek.com/images/posts/ci_cd_pipeline_spanning_multiple_clusters_tekton.png"></p>
 
 <p>The execution of this pipeline is started on the Dev cluster. The Dev pipeline will trigger the Test pipeline which will in turn trigger the Prod pipeline. The combined logs can be followed on the terminal:</p>
 
@@ -206,9 +206,9 @@
 
   <entry>
     <title type="html"><![CDATA[Local Development with OpenShift and Tilt]]></title>
-    <link href="http://alesnosek.com/blog/2020/06/08/local-development-with-openshift-and-tilt/"/>
+    <link href="https://alesnosek.com/blog/2020/06/08/local-development-with-openshift-and-tilt/"/>
     <updated>2020-06-08T20:36:36-07:00</updated>
-    <id>http://alesnosek.com/blog/2020/06/08/local-development-with-openshift-and-tilt</id>
+    <id>https://alesnosek.com/blog/2020/06/08/local-development-with-openshift-and-tilt</id>
     <content type="html"><![CDATA[<p>In this blog post, I am going to show you how to use Tilt to facilitate local OpenShift development. Tilt’s capabilities will be demonstrated in a practical example that uses buildah and CodeReady Containers. If you develop containerized applications on OpenShift, this blog post is for you.</p>
 
 <!-- more -->
@@ -226,7 +226,7 @@
 </ol>
 
 
-<p><img class="center" src="http://alesnosek.com/images/posts/local_development_with_openshift_and_tilt_diagram.png"></p>
+<p><img class="center" src="https://alesnosek.com/images/posts/local_development_with_openshift_and_tilt_diagram.png"></p>
 
 <p>Tilt helps the developer automate many of the manual steps made during the development of containerized applications. It speeds up the edit-compile-run loop considerably. Interested to trying it out? Follow me to the next section, where we will implement the workflow depicted in the above diagram.</p>
 
@@ -339,7 +339,7 @@
 
 <p>After Tilt comes up, it will call buildah to pull the base image, build the application, and push the resulting image to the CRC internal registry. It will also deploy the application on Kubernetes by applying the <code>kubernetes.yaml</code> manifest referenced in the <code>Tiltfile</code>. If everything worked well, and the application pod starts up, you will see the &ldquo;Serving files on port 8000&rdquo; log message in the bottom pane:</p>
 
-<p><img class="center" src="http://alesnosek.com/images/posts/local_development_with_openshift_and_tilt.png"></p>
+<p><img class="center" src="https://alesnosek.com/images/posts/local_development_with_openshift_and_tilt.png"></p>
 
 <p>At this point, you should be able to reach the running application on <code>localhost:8000</code>:</p>
 
@@ -377,9 +377,9 @@
 
   <entry>
     <title type="html"><![CDATA[Speaking at Red Hat Summit 2020]]></title>
-    <link href="http://alesnosek.com/blog/2020/04/26/speaking-at-red-hat-summit-2020/"/>
+    <link href="https://alesnosek.com/blog/2020/04/26/speaking-at-red-hat-summit-2020/"/>
     <updated>2020-04-26T20:33:11-07:00</updated>
-    <id>http://alesnosek.com/blog/2020/04/26/speaking-at-red-hat-summit-2020</id>
+    <id>https://alesnosek.com/blog/2020/04/26/speaking-at-red-hat-summit-2020</id>
     <content type="html"><![CDATA[<p>This year&rsquo;s <a href="https://www.redhat.com/en/summit">Red Hat Summit</a> is provided as a Virtual Experience on April 28-29, 2020. I will be presenting on the topic: <em>Design considerations and patterns for event-driven microservices</em>. The presentation will be available in three different time zones, and will cover patterns like transactional outbox, CQRS, and more:</p>
 
 <ul>
@@ -391,15 +391,15 @@
 
 <p>More information about the session can be found in the <a href="https://summit.redhat.com/conference/sessions?p1=eyJzcGVha2VyIjpbXSwidGltZXNsb3QiOltdLCJkYXkiOltdLCJyb29tIjpbXSwibG9jYXRpb24iOltdLCJzb3J0b3JkZXIiOiJkYXRlIiwic3RhcnQiOiIiLCJmaW5pc2giOiIiLCJwYWdlbnVtYmVyIjoxLCJzaGFyZWlkIjoiIiwiY2F0ZWdvcmllcyI6e30sImtleXdvcmQiOiJEZXNpZ24gY29uc2lkZXJhdGlvbnMgYW5kIHBhdHRlcm5zIGZvciBldmVudC1kcml2ZW4gbWljcm9zZXJ2aWNlcyJ9">session catalog</a>.</p>
 
-<p><img class="center" src="http://alesnosek.com/images/posts/red_hat_summit_2020.png"></p>
+<p><img class="center" src="https://alesnosek.com/images/posts/red_hat_summit_2020.png"></p>
 ]]></content>
   </entry>
 
   <entry>
     <title type="html"><![CDATA[OpenShift UPI Using Static IPs]]></title>
-    <link href="http://alesnosek.com/blog/2020/04/21/openshift-upi-using-static-ips/"/>
+    <link href="https://alesnosek.com/blog/2020/04/21/openshift-upi-using-static-ips/"/>
     <updated>2020-04-21T20:29:52-07:00</updated>
-    <id>http://alesnosek.com/blog/2020/04/21/openshift-upi-using-static-ips</id>
+    <id>https://alesnosek.com/blog/2020/04/21/openshift-upi-using-static-ips</id>
     <content type="html"><![CDATA[<p>Recently, I have been working on the <a href="https://github.com/noseka1/openshift-auto-upi">openshift-auto-upi</a> project, which automates UPI deployments of OpenShift.  I was looking for a way to configure OpenShift nodes with static IP addresses. After several failed attempts, I found a working approach that can be easily automated. If you prefer using static IPs over the default DHCP provisioning, please read on as I share my approach with you.</p>
 
 <p>The blog is published at <a href="https://www.openshift.com/blog/openshift-upi-using-static-ips">openshift.com/blog</a>.</p>
@@ -408,10 +408,10 @@
 
   <entry>
     <title type="html"><![CDATA[Open Policy Agent, Part III &mdash; Integrating with Your Application]]></title>
-    <link href="http://alesnosek.com/blog/2019/12/03/open-policy-agent-part-iii-integrating-with-your-application/"/>
+    <link href="https://alesnosek.com/blog/2019/12/03/open-policy-agent-part-iii-integrating-with-your-application/"/>
     <updated>2019-12-03T12:46:10-08:00</updated>
-    <id>http://alesnosek.com/blog/2019/12/03/open-policy-agent-part-iii-integrating-with-your-application</id>
-    <content type="html"><![CDATA[<p>In the <a href="http://alesnosek.com/blog/2019/10/27/open-policy-agent-part-ii-developing-policies/">previous entry</a> to this series, we discussed developing policies with Open Policy Agent. In this final article in the series, we are going to focus on how you can integrate Open Policy Agent with your application.</p>
+    <id>https://alesnosek.com/blog/2019/12/03/open-policy-agent-part-iii-integrating-with-your-application</id>
+    <content type="html"><![CDATA[<p>In the <a href="https://alesnosek.com/blog/2019/10/27/open-policy-agent-part-ii-developing-policies/">previous entry</a> to this series, we discussed developing policies with Open Policy Agent. In this final article in the series, we are going to focus on how you can integrate Open Policy Agent with your application.</p>
 
 <!-- more -->
 
@@ -420,17 +420,17 @@
 
 <p>There are several options how you can integrate OPA with your application. If you happen to build your application using the Go language, you can link OPA as a library straight into your application. Otherwise, you will run OPA as a stand-alone service (daemon). If you deploy your application on Kubernetes, you can run OPA service as a side-car container along with your application services. This minimizes the communication latency between OPA and your application. It also avoids possible communication issues between OPA and your application due to network failures. If you are deploying on virtual machines, you can run one replica of the OPA service on each of your virtual machines to achieve the same benefits. In summary, deploying OPA as a side-car service or a host-local service is the recommended approach.</p>
 
-<p><img class="center" src="http://alesnosek.com/images/posts/open_policy_agent/opa_integration.png"></p>
+<p><img class="center" src="https://alesnosek.com/images/posts/open_policy_agent/opa_integration.png"></p>
 
 <p>Another deployment option would be running multiple OPA services behind a load balancer. Your application and OPA services would in this case talk over the network and the communication would go through the load balancer. You would incur the cost of network latency. However, I am not sure how would the overall reliability of this approach compare to the side-car approach. OPA documentation doesn&rsquo;t really mention this option of deploying multiple OPA services behind a load balancer. However, if you are building your application as a set of Lambda functions, then this might be the way to go:</p>
 
-<p><img class="center" src="http://alesnosek.com/images/posts/open_policy_agent/opa_integration_lambda.png"></p>
+<p><img class="center" src="https://alesnosek.com/images/posts/open_policy_agent/opa_integration_lambda.png"></p>
 
 <h2>Utilizing Open Policy Agent APIs</h2>
 
 <p>Open Policy Agent comes with a whole set of APIs that you can use in order to utilize OPA to its full potential. I depicted the possible API integrations in the following diagram:</p>
 
-<p><img class="center" src="http://alesnosek.com/images/posts/open_policy_agent/opa_integration_full.png"></p>
+<p><img class="center" src="https://alesnosek.com/images/posts/open_policy_agent/opa_integration_full.png"></p>
 
 <p>In the diagram above, the green box is your application invoking policy queries against OPA. The purple services are optional services that you can include in your architecture. These services have to be implemented by yourself and they must expose APIs that are specified by OPA. Two blue boxes depict the Prometheus monitoring server and Kubernetes. OPA can integrate with them right away. In the diagram, the direction of the arrows between services is significant. The arrows indicate which service from the pair initiates the TCP connection. In the following subsections, let&rsquo;s take a closer look at each of these OPA interfaces.</p>
 
@@ -486,10 +486,10 @@
 
   <entry>
     <title type="html"><![CDATA[Open Policy Agent, Part II &mdash; Developing Policies]]></title>
-    <link href="http://alesnosek.com/blog/2019/10/27/open-policy-agent-part-ii-developing-policies/"/>
+    <link href="https://alesnosek.com/blog/2019/10/27/open-policy-agent-part-ii-developing-policies/"/>
     <updated>2019-10-27T20:37:08-07:00</updated>
-    <id>http://alesnosek.com/blog/2019/10/27/open-policy-agent-part-ii-developing-policies</id>
-    <content type="html"><![CDATA[<p>In the <a href="http://alesnosek.com/blog/2019/10/08/open-policy-agent-part-i-the-introduction/">previous part</a> of the series, we explored Open Policy Agent and implemented an ACL-based access control for our application. In this entry, I am going to share with you some of the discoveries that I made while evaluating Open Policy Agent in regards to policy design and development.</p>
+    <id>https://alesnosek.com/blog/2019/10/27/open-policy-agent-part-ii-developing-policies</id>
+    <content type="html"><![CDATA[<p>In the <a href="https://alesnosek.com/blog/2019/10/08/open-policy-agent-part-i-the-introduction/">previous part</a> of the series, we explored Open Policy Agent and implemented an ACL-based access control for our application. In this entry, I am going to share with you some of the discoveries that I made while evaluating Open Policy Agent in regards to policy design and development.</p>
 
 <!-- more -->
 
@@ -522,7 +522,7 @@
 
 <h2>Conclusion</h2>
 
-<p>In this blog post, I shared with you several tips and approaches for how to design policies in Open Policy Agent. In the <a href="http://alesnosek.com/blog/2019/12/03/open-policy-agent-part-iii-integrating-with-your-application/">final article</a> in the series we will focus on how you can integrate Open Policy Agent with your application.</p>
+<p>In this blog post, I shared with you several tips and approaches for how to design policies in Open Policy Agent. In the <a href="https://alesnosek.com/blog/2019/12/03/open-policy-agent-part-iii-integrating-with-your-application/">final article</a> in the series we will focus on how you can integrate Open Policy Agent with your application.</p>
 
 <p>If you have any comments or questions, please use the comment section below. I look forward to hearing from you.</p>
 ]]></content>
@@ -530,9 +530,9 @@
 
   <entry>
     <title type="html"><![CDATA[Open Policy Agent, Part I &mdash; The Introduction]]></title>
-    <link href="http://alesnosek.com/blog/2019/10/08/open-policy-agent-part-i-the-introduction/"/>
+    <link href="https://alesnosek.com/blog/2019/10/08/open-policy-agent-part-i-the-introduction/"/>
     <updated>2019-10-08T07:13:38-07:00</updated>
-    <id>http://alesnosek.com/blog/2019/10/08/open-policy-agent-part-i-the-introduction</id>
+    <id>https://alesnosek.com/blog/2019/10/08/open-policy-agent-part-i-the-introduction</id>
     <content type="html"><![CDATA[<p>Recently I was looking for a way to implement access control for microservices. I needed a solution that would allow defining complex authorization rules that could be enforced across many services. After searching the web, I discovered a very promising <a href="https://www.openpolicyagent.org/">Open Policy Agent</a> project that seems to be the right tool for the job. In this series of three blog posts, I am going to introduce Open Policy Agent to you and highlight how it can help you.</p>
 
 <!-- more -->
@@ -544,7 +544,7 @@
 
 <p>OPA can be deployed as a standalone service along with your microservices. In order to protect your application, each request coming to a microservice must be authorized before it can be processed. To check the authorization, the microservice makes an API call to OPA to decide whether the request is authorized or not. Note that while you can offload authorization decisions from your application to OPA, your application still has to implement the enforcement of those decisions. For example, your application can ask OPA the question <em>&ldquo;Is user Alice allowed to invoke GET /protected/resource?&rdquo;</em> and if OPA answers <em>&ldquo;No&rdquo;</em>, your application has to send HTTP 403 Forbidden back to Alice.</p>
 
-<p><img class="center" src="http://alesnosek.com/images/posts/open_policy_agent/opa_basic_flow.png"></p>
+<p><img class="center" src="https://alesnosek.com/images/posts/open_policy_agent/opa_basic_flow.png"></p>
 
 <p>OPA is written in the Go language and its source code is available on <a href="https://github.com/open-policy-agent/opa">GitHub</a> under the Apache License 2.0. The Open Policy Agent project is hosted by <a href="https://www.cncf.io/">CNCF</a> as an incubating project.</p>
 
@@ -561,7 +561,7 @@
 </ol>
 
 
-<p><img class="center" src="http://alesnosek.com/images/posts/open_policy_agent/opa_policy_decision.png"></p>
+<p><img class="center" src="https://alesnosek.com/images/posts/open_policy_agent/opa_policy_decision.png"></p>
 
 <p>In order to make a policy decision, all three inputs (data, query input, and the policy) are fed into the Policy Engine. The Policy Engine interprets the rules included in the policy and based on the data and the query input makes a policy decision. The policy decision generated by the Policy Engine is a JSON document.</p>
 
@@ -673,7 +673,7 @@
 
 <p>OPA service is now up and listening on port <code>8181</code>. Next, we are going to upload the ACL file and the policy file into OPA. Note that OPA stores both the data and policies in memory and so if you restart the OPA service, you will have to reload both of the files.</p>
 
-<p><img class="center" src="http://alesnosek.com/images/posts/open_policy_agent/opa_upload_policy_and_data.png"></p>
+<p><img class="center" src="https://alesnosek.com/images/posts/open_policy_agent/opa_upload_policy_and_data.png"></p>
 
 <p>First, upload the ACL file <code>myapi-acl.json</code> into OPA using the following <code>curl</code> command:</p>
 
@@ -691,7 +691,7 @@
 
 <p>Finally, if everything went well, we are now ready to issue our first  query.</p>
 
-<p><img class="center" src="http://alesnosek.com/images/posts/open_policy_agent/opa_query_policy.png"></p>
+<p><img class="center" src="https://alesnosek.com/images/posts/open_policy_agent/opa_query_policy.png"></p>
 
 <p>Let&rsquo;s ask OPA whether the user <code>alice</code> can invoke a <code>write</code> operation on our application:</p>
 
@@ -753,7 +753,7 @@
 
 <h2>Conclusion</h2>
 
-<p>In this article, we took an initial look at Open Policy Agent. After discussing how OPA works, we went through an example of implementing an Access Control List policy. In the <a href="http://alesnosek.com/blog/2019/10/27/open-policy-agent-part-ii-developing-policies/">next entry</a> to this series, we are going to dive deeper into developing policies with OPA.</p>
+<p>In this article, we took an initial look at Open Policy Agent. After discussing how OPA works, we went through an example of implementing an Access Control List policy. In the <a href="https://alesnosek.com/blog/2019/10/27/open-policy-agent-part-ii-developing-policies/">next entry</a> to this series, we are going to dive deeper into developing policies with OPA.</p>
 
 <p>I hope that you found this article useful. If you have any questions or comments, please add them to the comment section below. I look forward to hearing from you.</p>
 ]]></content>
@@ -761,18 +761,18 @@
 
   <entry>
     <title type="html"><![CDATA[Future-Proof Monolithic Applications with Modular Design]]></title>
-    <link href="http://alesnosek.com/blog/2019/09/23/future-proof-monolithic-applications-with-modular-design/"/>
+    <link href="https://alesnosek.com/blog/2019/09/23/future-proof-monolithic-applications-with-modular-design/"/>
     <updated>2019-09-23T14:34:26-07:00</updated>
-    <id>http://alesnosek.com/blog/2019/09/23/future-proof-monolithic-applications-with-modular-design</id>
+    <id>https://alesnosek.com/blog/2019/09/23/future-proof-monolithic-applications-with-modular-design</id>
     <content type="html"><![CDATA[<p>The <a href="https://www.redhat.com/en/events/webinar/develop-deploy-deliver-continuously">Cloud Native Virtual Event</a>, presented by Red Hat, is coming up on October 10th, 2019. As part of the Development track, I will be co-presenting on the topic: <em>Future-proof monolithic applications with modular design</em>. If you are interested in hearing Eric Murphy and myself discussing the development of highly-modular applications, you can register for the event <a href="https://www.redhat.com/en/events/webinar/develop-deploy-deliver-continuously#registration">here</a>. As part of our presentation, we will be demonstrating a sample Quarkus + Vert.x application that can be deployed both as a monolith or as a set of microservices while using the same code and modular design.</p>
 ]]></content>
   </entry>
 
   <entry>
     <title type="html"><![CDATA[Configuring Envoy to Auto-Discover Pods on Kubernetes]]></title>
-    <link href="http://alesnosek.com/blog/2019/08/19/configuring-envoy-to-audo-discover-pods-on-kubernetes/"/>
+    <link href="https://alesnosek.com/blog/2019/08/19/configuring-envoy-to-audo-discover-pods-on-kubernetes/"/>
     <updated>2019-08-19T11:04:51-07:00</updated>
-    <id>http://alesnosek.com/blog/2019/08/19/configuring-envoy-to-audo-discover-pods-on-kubernetes</id>
+    <id>https://alesnosek.com/blog/2019/08/19/configuring-envoy-to-audo-discover-pods-on-kubernetes</id>
     <content type="html"><![CDATA[<p>Pods on Kubernetes are ephemeral and can be created and destroyed at any time. In order for Envoy to load balance the traffic across pods, Envoy needs to be able to track the IP addresses of the pods over time. In this blog post, I am going to show you how to leverage Envoy&rsquo;s Strict DNS discovery in combination with a headless service in Kubernetes to accomplish this.</p>
 
 <!-- more -->
@@ -786,7 +786,7 @@
 
 <p>The diagram below depicts how to configure Envoy to auto-discover pods on Kubernetes. We are combining Envoy&rsquo;s Strict DNS service discovery with a headless service in Kubernetes:</p>
 
-<p><img class="center" src="http://alesnosek.com/images/posts/envoy_auto_discovery.png"></p>
+<p><img class="center" src="https://alesnosek.com/images/posts/envoy_auto_discovery.png"></p>
 
 <h2>Practical implementation</h2>
 
@@ -948,10 +948,10 @@
 
   <entry>
     <title type="html"><![CDATA[Troubleshooting the Performance of Vert.x Applications, Part III &mdash; Troubleshooting Event Loop Delays]]></title>
-    <link href="http://alesnosek.com/blog/2019/08/05/troubleshooting-the-performance-of-vert-dot-x-applications-troubleshooting-event-loop-delays/"/>
+    <link href="https://alesnosek.com/blog/2019/08/05/troubleshooting-the-performance-of-vert-dot-x-applications-troubleshooting-event-loop-delays/"/>
     <updated>2019-08-05T13:26:34-07:00</updated>
-    <id>http://alesnosek.com/blog/2019/08/05/troubleshooting-the-performance-of-vert-dot-x-applications-troubleshooting-event-loop-delays</id>
-    <content type="html"><![CDATA[<p>In the <a href="http://alesnosek.com/blog/2019/07/22/troubleshooting-the-performance-of-vert-dot-x-applications-preventing-event-loop-delays/">previous entry</a> to this series, we reviewed several techniques that help you to prevent event loop delays. However, even the best programmer makes mistakes. What should you do when your Vert.x application doesn&rsquo;t perform as expected? How to find out what part of your code is blocking the event loop threads? In the final part of the series, we are going to focus on troubleshooting event loop delays.</p>
+    <id>https://alesnosek.com/blog/2019/08/05/troubleshooting-the-performance-of-vert-dot-x-applications-troubleshooting-event-loop-delays</id>
+    <content type="html"><![CDATA[<p>In the <a href="https://alesnosek.com/blog/2019/07/22/troubleshooting-the-performance-of-vert-dot-x-applications-preventing-event-loop-delays/">previous entry</a> to this series, we reviewed several techniques that help you to prevent event loop delays. However, even the best programmer makes mistakes. What should you do when your Vert.x application doesn&rsquo;t perform as expected? How to find out what part of your code is blocking the event loop threads? In the final part of the series, we are going to focus on troubleshooting event loop delays.</p>
 
 <!-- more -->
 
@@ -962,7 +962,7 @@
 
 <p>Vert.x comes with a built-in mechanism to detect delays on event loop and worker threads by checking the execution time of handlers that you registered with the Vert.x APIs. This mechanism operates in two steps. In the first step, Vert.x saves the timestamp of the moment when a handler starts executing. This <em>start timestamp</em> is saved to a storage attached to the thread that is executing the handler. Whenever the execution of the handler has completed the timestamp is reset. In the second step, Vert.x periodically checks the timestamps using a dedicated thread called <a href="https://github.com/eclipse-vertx/vert.x/blob/master/src/main/java/io/vertx/core/impl/BlockedThreadChecker.java"><code>vertx-blocked-thread-checker</code></a>. This thread is spawned by Vert.x during the creation of the Vert.x instance for example when you call <code>Vertx.vertx()</code>. The vertx-blocked-thread-checker thread can be seen in <a href="https://visualvm.github.io/">VisualVM</a>:</p>
 
-<p><img class="center" src="http://alesnosek.com/images/posts/vertx_blocked_thread_checker.png"></p>
+<p><img class="center" src="https://alesnosek.com/images/posts/vertx_blocked_thread_checker.png"></p>
 
 <p>The blocked thread checker serves as a watchdog that periodically checks the Vert.x threads. It iterates over all Vert.x threads and for each thread it subtracts the threads start timestamp from the current time to compute how long the thread has already been executing the handler code. If the execution time exceeds the specified threshold a warning message is dropped into the logs:</p>
 
@@ -1115,10 +1115,10 @@
 
   <entry>
     <title type="html"><![CDATA[Troubleshooting the Performance of Vert.x Applications, Part II &mdash; Preventing Event Loop Delays]]></title>
-    <link href="http://alesnosek.com/blog/2019/07/22/troubleshooting-the-performance-of-vert-dot-x-applications-preventing-event-loop-delays/"/>
+    <link href="https://alesnosek.com/blog/2019/07/22/troubleshooting-the-performance-of-vert-dot-x-applications-preventing-event-loop-delays/"/>
     <updated>2019-07-22T11:15:42-07:00</updated>
-    <id>http://alesnosek.com/blog/2019/07/22/troubleshooting-the-performance-of-vert-dot-x-applications-preventing-event-loop-delays</id>
-    <content type="html"><![CDATA[<p>In the <a href="http://alesnosek.com/blog/2019/06/30/troubleshooting-the-performance-of-vert-dot-x-applications-part-i-the-event-loop-model/">previous part</a> of the series, we took a closer look at the event loop model. In this article, we are going to discuss several techniques that help you to prevent event loop delays.</p>
+    <id>https://alesnosek.com/blog/2019/07/22/troubleshooting-the-performance-of-vert-dot-x-applications-preventing-event-loop-delays</id>
+    <content type="html"><![CDATA[<p>In the <a href="https://alesnosek.com/blog/2019/06/30/troubleshooting-the-performance-of-vert-dot-x-applications-part-i-the-event-loop-model/">previous part</a> of the series, we took a closer look at the event loop model. In this article, we are going to discuss several techniques that help you to prevent event loop delays.</p>
 
 <!-- more -->
 
@@ -1338,9 +1338,9 @@
 
   <entry>
     <title type="html"><![CDATA[Installing OpenShift 4.1 Using Libvirt and KVM]]></title>
-    <link href="http://alesnosek.com/blog/2019/07/08/installing-openshift-4-dot-1-using-libvirt-and-kvm/"/>
+    <link href="https://alesnosek.com/blog/2019/07/08/installing-openshift-4-dot-1-using-libvirt-and-kvm/"/>
     <updated>2019-07-08T11:53:54-07:00</updated>
-    <id>http://alesnosek.com/blog/2019/07/08/installing-openshift-4-dot-1-using-libvirt-and-kvm</id>
+    <id>https://alesnosek.com/blog/2019/07/08/installing-openshift-4-dot-1-using-libvirt-and-kvm</id>
     <content type="html"><![CDATA[<p>In this blog post, I am going to talk about how I installed OpenShift 4.1 on a Fedora laptop with 16 GB of RAM. If you are interested in deploying your own OpenShift instance whether for evaluation or testing please follow along with me.</p>
 
 <!-- more -->
@@ -1354,7 +1354,7 @@
 
 <p>First, let&rsquo;s take a look at the diagram showing the deployment of the OpenShift cluster on Libvirt/KVM. In addition to the OpenShift cluster nodes, the diagram also depicts supplementary pieces of the user-provisioned infrastructure that you will need to deploy:</p>
 
-<p><img class="center" src="http://alesnosek.com/images/posts/openshift_4_on_libvirt.png"></p>
+<p><img class="center" src="https://alesnosek.com/images/posts/openshift_4_on_libvirt.png"></p>
 
 <p>In the diagram, you can see that there is an HTTP server and an oc client installed directly on the host machine. The remaining boxes in the diagram are virtual machines. I outlined the purpose of the virtual machines for you in the following table:</p>
 
@@ -1855,9 +1855,9 @@
 
   <entry>
     <title type="html"><![CDATA[Troubleshooting the Performance of Vert.x Applications, Part I &mdash; The Event Loop Model]]></title>
-    <link href="http://alesnosek.com/blog/2019/06/30/troubleshooting-the-performance-of-vert-dot-x-applications-part-i-the-event-loop-model/"/>
+    <link href="https://alesnosek.com/blog/2019/06/30/troubleshooting-the-performance-of-vert-dot-x-applications-part-i-the-event-loop-model/"/>
     <updated>2019-06-30T10:16:31-07:00</updated>
-    <id>http://alesnosek.com/blog/2019/06/30/troubleshooting-the-performance-of-vert-dot-x-applications-part-i-the-event-loop-model</id>
+    <id>https://alesnosek.com/blog/2019/06/30/troubleshooting-the-performance-of-vert-dot-x-applications-part-i-the-event-loop-model</id>
     <content type="html"><![CDATA[<p>This article is the first in a series of three articles which share my experience with troubleshooting the performance of Vert.x applications. The first article provides an overview of the Vert.x event loop model, the second acticle covers techniques to prevent delays on the event loop, and the third article focuses on troubleshooting of event loop delays.</p>
 
 <!-- more -->
@@ -1914,7 +1914,7 @@
 
 <p>The whole purpose of the event loop is to react to events which are delivered to the event loop by the operating system. Event loop processes those events by executing handlers. To explain how the event loop operates, let&rsquo;s imagine a typical HTTP server application serving multiple client connections at the same time. There&rsquo;s data being sent back and forth between the server and the client on each of the connections. And here is how the event loop handles it. First, the event loop waits for any of the events like incoming data available on the connection, or connection is ready to send more data. If any of those events happens, the event loop executes handlers that were registered to handle that specific event. For example, if there is incoming data available, the event loop calls the respective handler that stores the incoming data into a buffer and passes that buffer through a chain of handlers to your handler to process it. Handlers registered with a given event loop are executed one by one because the event loop is a single thread after all. After the processing of the event is finished, event loop returns back to wait for the next event.</p>
 
-<p><img class="center" src="http://alesnosek.com/images/posts/vertx_event_loop.png"></p>
+<p><img class="center" src="https://alesnosek.com/images/posts/vertx_event_loop.png"></p>
 
 <p>I would like to highlight that the event loop is a single thread that executes the handlers sequentially. In order for this scheme to work smoothly:</p>
 
@@ -1967,7 +1967,7 @@
 
 <h2>Conclusion</h2>
 
-<p>In this article, we familiarized ourselves with the event loop model which is rather different from the thread-per-request model. The <a href="http://alesnosek.com/blog/2019/07/22/troubleshooting-the-performance-of-vert-dot-x-applications-preventing-event-loop-delays/">next part</a> in the series will cover techniques to prevent delays on the event loop.</p>
+<p>In this article, we familiarized ourselves with the event loop model which is rather different from the thread-per-request model. The <a href="https://alesnosek.com/blog/2019/07/22/troubleshooting-the-performance-of-vert-dot-x-applications-preventing-event-loop-delays/">next part</a> in the series will cover techniques to prevent delays on the event loop.</p>
 
 <p>Comment below if you found this article helpful or if you have suggestions for future blog subjects.</p>
 ]]></content>
@@ -1975,9 +1975,9 @@
 
   <entry>
     <title type="html"><![CDATA[Speaking at Red Hat Summit 2019]]></title>
-    <link href="http://alesnosek.com/blog/2019/04/21/speaking-at-red-hat-summit-2019/"/>
+    <link href="https://alesnosek.com/blog/2019/04/21/speaking-at-red-hat-summit-2019/"/>
     <updated>2019-04-21T12:41:43-07:00</updated>
-    <id>http://alesnosek.com/blog/2019/04/21/speaking-at-red-hat-summit-2019</id>
+    <id>https://alesnosek.com/blog/2019/04/21/speaking-at-red-hat-summit-2019</id>
     <content type="html"><![CDATA[<p>This year&rsquo;s <a href="https://www.redhat.com/en/summit/2019">Red Hat Summit</a> is going to be hosted in Boston on May 7-9, 2019. I will be co-presenting on the topic: <em>Using Domain-driven Design to Reimagine Monolithic Applications in a World of Microservices</em>. If you are interested in hearing about how to design monolithic applications in a practical, decomposable, and agile fashion, you can come and see Eric Murphy and myself at the Boston Convention &amp; Exhibition Center on Wednesday, May 8, 10:30 a.m.-11:15 a.m. Feel free to drop by to say hi!</p>
 
 <!-- more -->
@@ -1987,15 +1987,15 @@
 
 <p>I enjoyed having the opportunity to be a co-presenter with Eric Murphy at this week’s Red Hat Summit. Discussing DDD, event storming, and why a monolithic architecture can still be the right choice despite the current push for microservices:</p>
 
-<p><img class="center" src="http://alesnosek.com/images/posts/using_ddd.jpeg"></p>
+<p><img class="center" src="https://alesnosek.com/images/posts/using_ddd.jpeg"></p>
 ]]></content>
   </entry>
 
   <entry>
     <title type="html"><![CDATA[Remote Debugging of Java Applications on OpenShift]]></title>
-    <link href="http://alesnosek.com/blog/2019/02/26/remote-debugging-of-java-applications-on-openshift/"/>
+    <link href="https://alesnosek.com/blog/2019/02/26/remote-debugging-of-java-applications-on-openshift/"/>
     <updated>2019-02-26T13:08:30-08:00</updated>
-    <id>http://alesnosek.com/blog/2019/02/26/remote-debugging-of-java-applications-on-openshift</id>
+    <id>https://alesnosek.com/blog/2019/02/26/remote-debugging-of-java-applications-on-openshift</id>
     <content type="html"><![CDATA[<p>In this article I am going to show you how to attach a debugger and a VisualVM profiler to the Java application running on OpenShift. The approach described here doesn&rsquo;t make use of the <a href="https://jolokia.org/">Jolokia</a> bridge. Instead, we are going to leverage the port-forwarding feature of OpenShift.</p>
 
 <!-- more -->
@@ -2012,7 +2012,7 @@
 
 <p>I am going to use OpenShift v3.11 that I installed using Minishift and a test application built with Java OpenJDK 1.8. This is how the complete setup is going to look like:</p>
 
-<p><img src="http://alesnosek.com/images/posts/remote_debugging_of_java_applications_on_openshift.svg"></p>
+<p><img src="https://alesnosek.com/images/posts/remote_debugging_of_java_applications_on_openshift.svg"></p>
 
 <h2>Hello world application</h2>
 
@@ -2341,7 +2341,7 @@
 
 <p>Works like a charm, doesn&rsquo;t it?</p>
 
-<p><img src="http://alesnosek.com/images/posts/visualvm_attached.png"></p>
+<p><img src="https://alesnosek.com/images/posts/visualvm_attached.png"></p>
 
 <h2>Conclusion</h2>
 
@@ -2353,9 +2353,9 @@
 
   <entry>
     <title type="html"><![CDATA[Comparing OpenAPI with gRPC]]></title>
-    <link href="http://alesnosek.com/blog/2019/01/25/comparing-openapi-with-grpc/"/>
+    <link href="https://alesnosek.com/blog/2019/01/25/comparing-openapi-with-grpc/"/>
     <updated>2019-01-25T15:22:46-08:00</updated>
-    <id>http://alesnosek.com/blog/2019/01/25/comparing-openapi-with-grpc</id>
+    <id>https://alesnosek.com/blog/2019/01/25/comparing-openapi-with-grpc</id>
     <content type="html"><![CDATA[<p>Are you still coding your API client libraries by hand? Is your manually maintained API documentation drifting away from what was actually implemented? You may be interested in reviewing the two popular technologies that solve this problem. In this article, we are going to look at OpenAPI and gRPC side-by-side.</p>
 
 <!-- more -->
@@ -2441,7 +2441,7 @@
 
 <p>Do you have to use either OpenAPI or gRPC? If you like the awesome performance offered by gRPC but still need to provide REST interfaces to the external third-party clients there is a solution for you. You can leverage one of the proxies (<a href="https://www.envoyproxy.io/docs/envoy/latest/configuration/http_filters/grpc_json_transcoder_filter">Envoy</a>,  <a href="https://github.com/grpc-ecosystem/grpc-gateway">grpc-gateway</a>) that can transcode the REST interface into gRPC. If you design your gRPC interfaces in a <a href="https://cloud.google.com/apis/design/resources">resource-oriented</a> fashion the transcoding process is straight forward. The resulting system architecture may look like this:</p>
 
-<p><img src="http://alesnosek.com/images/posts/comparing_openapi_with_grpc.svg"></p>
+<p><img src="https://alesnosek.com/images/posts/comparing_openapi_with_grpc.svg"></p>
 
 <p>The third-party REST client talks to the proxy using HTTP/JSON. Client requests are transcoded on-the-fly into gRPC requests. After the requests are processed, the resulting responses are transcoded from gRPC back to HTTP/JSON and delivered to the client.</p>
 
@@ -2455,9 +2455,9 @@
 
   <entry>
     <title type="html"><![CDATA[Tips for Passing the Red Hat Certified Specialist in Gluster Storage Administration Exam]]></title>
-    <link href="http://alesnosek.com/blog/2018/12/28/tips-for-passing-the-red-hat-certified-specialist-in-gluster-storage-administration-exam/"/>
+    <link href="https://alesnosek.com/blog/2018/12/28/tips-for-passing-the-red-hat-certified-specialist-in-gluster-storage-administration-exam/"/>
     <updated>2018-12-28T11:24:40-08:00</updated>
-    <id>http://alesnosek.com/blog/2018/12/28/tips-for-passing-the-red-hat-certified-specialist-in-gluster-storage-administration-exam</id>
+    <id>https://alesnosek.com/blog/2018/12/28/tips-for-passing-the-red-hat-certified-specialist-in-gluster-storage-administration-exam</id>
     <content type="html"><![CDATA[<p>Recently I passed the <a href="https://www.redhat.com/en/services/training/ex236-red-hat-certified-specialist-in-gluster-storage-administration-exam">Red Hat Certified Specialist in Gluster Storage Administration</a> exam. In this blog post, I would like to share some of my experience and exam tips with you.</p>
 
 <!-- more -->
@@ -2486,15 +2486,15 @@
 
 <p>Are you preparing for the Red Hat Gluster Storage exam? I would love to hear from you! Please, leave your comments or questions in the comment section below.</p>
 
-<p><img src="http://alesnosek.com/images/posts/rhcs_gluster_storage_administration_badge.png"></p>
+<p><img src="https://alesnosek.com/images/posts/rhcs_gluster_storage_administration_badge.png"></p>
 ]]></content>
   </entry>
 
   <entry>
     <title type="html"><![CDATA[Speaking at the Red Hat Training Partner &amp; Instructor Conference]]></title>
-    <link href="http://alesnosek.com/blog/2018/09/24/speaking-at-the-red-hat-training-partner-and-instructor-conference/"/>
+    <link href="https://alesnosek.com/blog/2018/09/24/speaking-at-the-red-hat-training-partner-and-instructor-conference/"/>
     <updated>2018-09-24T08:47:00-07:00</updated>
-    <id>http://alesnosek.com/blog/2018/09/24/speaking-at-the-red-hat-training-partner-and-instructor-conference</id>
+    <id>https://alesnosek.com/blog/2018/09/24/speaking-at-the-red-hat-training-partner-and-instructor-conference</id>
     <content type="html"><![CDATA[<p>On September 21, 2018 I spoke at the <a href="https://www.redhat.com/en/events/training-partner-conference-emea">Red Hat Training Partner &amp; Instructor Conference</a> in Prague, Czech Republic. Why was I invited, and what did I learn? Read on if you want to find out.</p>
 
 <!-- more -->
@@ -2504,7 +2504,7 @@
 
 <p>In this conference, Red Hat shares updates on their learning and certification programs, as well as the current status and trends. This conference is geared towards Red Hat’s training partners, instructors, and Red Hat Academy representatives.</p>
 
-<p>To date, one of my most popular blog posts has been <a href="http://alesnosek.com/blog/2017/08/01/how-i-became-a-red-hat-certified-architect-in-one-year/">How I Became a Red Hat Certified Architect in One Year</a>. In this post I described my path through the Red Hat certification process, using the Red Hat Learning Subscription (<a href="https://www.redhat.com/en/services/training/learning-subscription">RHLS</a>), to achieve the Red Hat Certified Architect title. As a result of this, the conference organizers invited me to speak and give a customer testimonial about my experience.</p>
+<p>To date, one of my most popular blog posts has been <a href="https://alesnosek.com/blog/2017/08/01/how-i-became-a-red-hat-certified-architect-in-one-year/">How I Became a Red Hat Certified Architect in One Year</a>. In this post I described my path through the Red Hat certification process, using the Red Hat Learning Subscription (<a href="https://www.redhat.com/en/services/training/learning-subscription">RHLS</a>), to achieve the Red Hat Certified Architect title. As a result of this, the conference organizers invited me to speak and give a customer testimonial about my experience.</p>
 
 <h2>What did I talk about?</h2>
 

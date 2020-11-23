@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: cloud | Ales Nosek - The Software Practitioner]]></title>
-  <link href="http://alesnosek.com/blog/categories/cloud/atom.xml" rel="self"/>
-  <link href="http://alesnosek.com/"/>
-  <updated>2020-09-28T07:34:01-07:00</updated>
-  <id>http://alesnosek.com/</id>
+  <link href="https://alesnosek.com/blog/categories/cloud/atom.xml" rel="self"/>
+  <link href="https://alesnosek.com/"/>
+  <updated>2020-11-22T19:05:23-08:00</updated>
+  <id>https://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
 
@@ -15,9 +15,9 @@
 
   <entry>
     <title type="html"><![CDATA[Configuring Envoy to Auto-Discover Pods on Kubernetes]]></title>
-    <link href="http://alesnosek.com/blog/2019/08/19/configuring-envoy-to-audo-discover-pods-on-kubernetes/"/>
+    <link href="https://alesnosek.com/blog/2019/08/19/configuring-envoy-to-audo-discover-pods-on-kubernetes/"/>
     <updated>2019-08-19T11:04:51-07:00</updated>
-    <id>http://alesnosek.com/blog/2019/08/19/configuring-envoy-to-audo-discover-pods-on-kubernetes</id>
+    <id>https://alesnosek.com/blog/2019/08/19/configuring-envoy-to-audo-discover-pods-on-kubernetes</id>
     <content type="html"><![CDATA[<p>Pods on Kubernetes are ephemeral and can be created and destroyed at any time. In order for Envoy to load balance the traffic across pods, Envoy needs to be able to track the IP addresses of the pods over time. In this blog post, I am going to show you how to leverage Envoy&rsquo;s Strict DNS discovery in combination with a headless service in Kubernetes to accomplish this.</p>
 
 <!-- more -->
@@ -189,9 +189,9 @@
 
   <entry>
     <title type="html"><![CDATA[How I Achieved the AWS Associate Certifications]]></title>
-    <link href="http://alesnosek.com/blog/2018/08/30/how-i-achieved-the-aws-associate-certifications/"/>
+    <link href="https://alesnosek.com/blog/2018/08/30/how-i-achieved-the-aws-associate-certifications/"/>
     <updated>2018-08-30T23:20:27-07:00</updated>
-    <id>http://alesnosek.com/blog/2018/08/30/how-i-achieved-the-aws-associate-certifications</id>
+    <id>https://alesnosek.com/blog/2018/08/30/how-i-achieved-the-aws-associate-certifications</id>
     <content type="html"><![CDATA[<p>Over the course of the last year I was working towards transitioning our company’s products to the AWS cloud. I gained a solid experience with many of the AWS services, wrote lots of lines of CloudFormation code, and embraced AWS reference architectures and best practices. To round up my AWS experience I thought that accomplishing some certifications would be a good idea. In this post, I am going to share with you how I achieved the AWS associate certifications.</p>
 
 <!-- more -->
@@ -247,9 +247,9 @@
 
   <entry>
     <title type="html"><![CDATA[Booting Amazon Linux 2 on OpenStack]]></title>
-    <link href="http://alesnosek.com/blog/2018/04/21/booting-amazon-linux-2-on-openstack/"/>
+    <link href="https://alesnosek.com/blog/2018/04/21/booting-amazon-linux-2-on-openstack/"/>
     <updated>2018-04-21T22:21:04-07:00</updated>
-    <id>http://alesnosek.com/blog/2018/04/21/booting-amazon-linux-2-on-openstack</id>
+    <id>https://alesnosek.com/blog/2018/04/21/booting-amazon-linux-2-on-openstack</id>
     <content type="html"><![CDATA[<p>Amazon Linux 2 runs on OpenStack perfectly fine. There is only one glitch that you should be aware of. Amazon Linux 2 won&rsquo;t accept metadata and user data provided by OpenStack on boot. That means that you won&rsquo;t be able to SSH into the instance after it comes up. In this brief tutorial, we are going to modify the Amazon Linux 2 image to fix this problem.</p>
 
 <!-- more -->
@@ -385,9 +385,9 @@
 
   <entry>
     <title type="html"><![CDATA[18 Months with OpenStack, Our Experience, Part II]]></title>
-    <link href="http://alesnosek.com/blog/2018/03/08/18-months-with-openstack-our-experience-part-ii/"/>
+    <link href="https://alesnosek.com/blog/2018/03/08/18-months-with-openstack-our-experience-part-ii/"/>
     <updated>2018-03-08T20:51:11-08:00</updated>
-    <id>http://alesnosek.com/blog/2018/03/08/18-months-with-openstack-our-experience-part-ii</id>
+    <id>https://alesnosek.com/blog/2018/03/08/18-months-with-openstack-our-experience-part-ii</id>
     <content type="html"><![CDATA[<p>In the <a href="/blog/2018/02/19/18-months-with-openstack-our-experience-part-i/">previous post</a>, we discussed our experience with the deployment of OpenStack. In this article, we&rsquo;re going to share the lessons learned when operating it. It took effort to tame the OpenStack beast and make it work reliably. If you want to know how we accomplished that, read on.</p>
 
 <!-- more -->
@@ -484,9 +484,9 @@
 
   <entry>
     <title type="html"><![CDATA[18 Months with OpenStack, Our Experience, Part I]]></title>
-    <link href="http://alesnosek.com/blog/2018/02/19/18-months-with-openstack-our-experience-part-i/"/>
+    <link href="https://alesnosek.com/blog/2018/02/19/18-months-with-openstack-our-experience-part-i/"/>
     <updated>2018-02-19T21:06:17-08:00</updated>
-    <id>http://alesnosek.com/blog/2018/02/19/18-months-with-openstack-our-experience-part-i</id>
+    <id>https://alesnosek.com/blog/2018/02/19/18-months-with-openstack-our-experience-part-i</id>
     <content type="html"><![CDATA[<p>It has been 18 months since we deployed OpenStack cloud in our company. In this article, I would like to review our time with OpenStack and describe some of the experience we gained. Are you thinking about building an OpenStack-based cloud? This article might provide you with additional insights and tips that will help you succeed.</p>
 
 <!-- more -->
@@ -569,7 +569,7 @@
 <li><strong><a href="https://docs.openstack.org/ironic">Ironic</a>.</strong> We deployed Ironic in order to manage baremetal machines that we use for performance testing. Performance tests are more accurate when carried out in an isolated baremetal environment than on the virtual machines that share the resources of the hypervisor. To this date we didn&rsquo;t realize this our plan but we will get back to it in the future.</li>
 <li><strong><a href="https://docs.openstack.org/magnum">Magnum</a>.</strong> Magnum project simplifies the deployment of container orchestrators like Kubernetes, Swarm and Mesos on top of OpenStack. To accomplish this, Magnum leverages Heat templates behind the scenes and the actual provisioning is done by Heat. To be honest, we never really started using Magnum. When deploying Kubernetes, we preferred to use Heat templates provided by the Kubernetes project. This approach turned to be more straight forward than involving yet another service like Magnum. You can read about it <a href="/blog/2016/06/26/deploying-kubernetes-on-openstack-using-heat">here</a>.</li>
 <li><strong><a href="https://docs.openstack.org/sahara">Sahara</a>.</strong> Sahara project allows you to deploy big data frameworks like Apache Hadoop and Apache Spark on top of OpenStack. We made similar experience with Sahara as we made with Magnum. We just didn&rsquo;t start using it at all. It turned out that there were already pre-existing deployment scripts provided by Hortonworks and others that it made no sense for us to use Sahara. While Hortonworks <a href="https://github.com/hortonworks/ansible-hortonworks">scripts</a> can deploy Hadoop on any of the major clouds, Sahara would be an OpenStack-only solution.</li>
-<li><strong><a href="https://docs.openstack.org/manila">Manila</a>.</strong> While not depicted in the diagram, we also deployed OpenStack Manila. Manila is a shared file system service and we use it to provision NFS shares. Manila project started as a code copy of the Cinder project and perhaps that&rsquo;s why it was pretty stable and usable soon after its inception. I wrote an <a href="http://alesnosek.com/blog/2016/05/22/test-driving-openstack-manila/">article</a> about Manila at the time we were evaluating it.</li>
+<li><strong><a href="https://docs.openstack.org/manila">Manila</a>.</strong> While not depicted in the diagram, we also deployed OpenStack Manila. Manila is a shared file system service and we use it to provision NFS shares. Manila project started as a code copy of the Cinder project and perhaps that&rsquo;s why it was pretty stable and usable soon after its inception. I wrote an <a href="/blog/2016/05/22/test-driving-openstack-manila/">article</a> about Manila at the time we were evaluating it.</li>
 <li><strong><a href="https://docs.openstack.org/designate">Designate</a>.</strong>  Designate is a DNS as a service for OpenStack. After evaluating this project, we realized that for our simple purpose Designate was too involved. We ended up writing a Python script that dynamically registers OpenStack virtual machines with our internal DNS server. This script works reliably ever since and you can read about it in this <a href="/blog/2015/05/31/openstack-dynamic-dns-updates">blog post</a>.</li>
 </ul>
 

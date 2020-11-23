@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
 
-  <link rel="canonical" href="http://alesnosek.com/blog/2018/02/19/18-months-with-openstack-our-experience-part-i/">
+  <link rel="canonical" href="https://alesnosek.com/blog/2018/02/19/18-months-with-openstack-our-experience-part-i/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/stylesheets/data-table.css" media="screen, projection" rel="stylesheet" type="text/css" />
@@ -180,7 +180,7 @@
 <li><strong><a href="https://docs.openstack.org/ironic">Ironic</a>.</strong> We deployed Ironic in order to manage baremetal machines that we use for performance testing. Performance tests are more accurate when carried out in an isolated baremetal environment than on the virtual machines that share the resources of the hypervisor. To this date we didn&rsquo;t realize this our plan but we will get back to it in the future.</li>
 <li><strong><a href="https://docs.openstack.org/magnum">Magnum</a>.</strong> Magnum project simplifies the deployment of container orchestrators like Kubernetes, Swarm and Mesos on top of OpenStack. To accomplish this, Magnum leverages Heat templates behind the scenes and the actual provisioning is done by Heat. To be honest, we never really started using Magnum. When deploying Kubernetes, we preferred to use Heat templates provided by the Kubernetes project. This approach turned to be more straight forward than involving yet another service like Magnum. You can read about it <a href="/blog/2016/06/26/deploying-kubernetes-on-openstack-using-heat">here</a>.</li>
 <li><strong><a href="https://docs.openstack.org/sahara">Sahara</a>.</strong> Sahara project allows you to deploy big data frameworks like Apache Hadoop and Apache Spark on top of OpenStack. We made similar experience with Sahara as we made with Magnum. We just didn&rsquo;t start using it at all. It turned out that there were already pre-existing deployment scripts provided by Hortonworks and others that it made no sense for us to use Sahara. While Hortonworks <a href="https://github.com/hortonworks/ansible-hortonworks">scripts</a> can deploy Hadoop on any of the major clouds, Sahara would be an OpenStack-only solution.</li>
-<li><strong><a href="https://docs.openstack.org/manila">Manila</a>.</strong> While not depicted in the diagram, we also deployed OpenStack Manila. Manila is a shared file system service and we use it to provision NFS shares. Manila project started as a code copy of the Cinder project and perhaps that&rsquo;s why it was pretty stable and usable soon after its inception. I wrote an <a href="http://alesnosek.com/blog/2016/05/22/test-driving-openstack-manila/">article</a> about Manila at the time we were evaluating it.</li>
+<li><strong><a href="https://docs.openstack.org/manila">Manila</a>.</strong> While not depicted in the diagram, we also deployed OpenStack Manila. Manila is a shared file system service and we use it to provision NFS shares. Manila project started as a code copy of the Cinder project and perhaps that&rsquo;s why it was pretty stable and usable soon after its inception. I wrote an <a href="/blog/2016/05/22/test-driving-openstack-manila/">article</a> about Manila at the time we were evaluating it.</li>
 <li><strong><a href="https://docs.openstack.org/designate">Designate</a>.</strong>  Designate is a DNS as a service for OpenStack. After evaluating this project, we realized that for our simple purpose Designate was too involved. We ended up writing a Python script that dynamically registers OpenStack virtual machines with our internal DNS server. This script works reliably ever since and you can read about it in this <a href="/blog/2015/05/31/openstack-dynamic-dns-updates">blog post</a>.</li>
 </ul>
 
@@ -219,7 +219,7 @@
 
       <div class="sharing">
 
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://alesnosek.com/blog/2018/02/19/18-months-with-openstack-our-experience-part-i/" data-via="" data-counturl="http://alesnosek.com/blog/2018/02/19/18-months-with-openstack-our-experience-part-i/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="https://alesnosek.com/blog/2018/02/19/18-months-with-openstack-our-experience-part-i/" data-via="" data-counturl="https://alesnosek.com/blog/2018/02/19/18-months-with-openstack-our-experience-part-i/" >Tweet</a>
 
 
   <div class="g-plusone" data-size="medium"></div>
@@ -306,8 +306,8 @@
 
 
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://alesnosek.com/blog/2018/02/19/18-months-with-openstack-our-experience-part-i/';
-        var disqus_url = 'http://alesnosek.com/blog/2018/02/19/18-months-with-openstack-our-experience-part-i/';
+        var disqus_identifier = 'https://alesnosek.com/blog/2018/02/19/18-months-with-openstack-our-experience-part-i/';
+        var disqus_url = 'https://alesnosek.com/blog/2018/02/19/18-months-with-openstack-our-experience-part-i/';
         var disqus_script = 'embed.js';
 
     (function () {

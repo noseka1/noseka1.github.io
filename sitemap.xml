@@ -1,341 +1,341 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>http://alesnosek.com/blog/2020/09/13/apache-airflow-architecture-on-openshift/</loc>
+    <loc>https://alesnosek.com/blog/2020/09/13/apache-airflow-architecture-on-openshift/</loc>
     <lastmod>2020-09-13T18:48:20-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2020/07/13/speaking-at-red-hat-summit-2020/</loc>
+    <loc>https://alesnosek.com/blog/2020/07/13/speaking-at-red-hat-summit-2020/</loc>
     <lastmod>2020-07-13T19:06:44-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2020/06/30/ci-slash-cd-pipeline-spanning-multiple-openshift-clusters/</loc>
+    <loc>https://alesnosek.com/blog/2020/06/30/ci-slash-cd-pipeline-spanning-multiple-openshift-clusters/</loc>
     <lastmod>2020-06-30T17:53:09-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2020/06/08/local-development-with-openshift-and-tilt/</loc>
+    <loc>https://alesnosek.com/blog/2020/06/08/local-development-with-openshift-and-tilt/</loc>
     <lastmod>2020-06-08T20:36:36-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2020/04/26/speaking-at-red-hat-summit-2020/</loc>
+    <loc>https://alesnosek.com/blog/2020/04/26/speaking-at-red-hat-summit-2020/</loc>
     <lastmod>2020-04-26T20:33:11-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2020/04/21/openshift-upi-using-static-ips/</loc>
+    <loc>https://alesnosek.com/blog/2020/04/21/openshift-upi-using-static-ips/</loc>
     <lastmod>2020-04-21T20:29:52-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2019/12/03/open-policy-agent-part-iii-integrating-with-your-application/</loc>
+    <loc>https://alesnosek.com/blog/2019/12/03/open-policy-agent-part-iii-integrating-with-your-application/</loc>
     <lastmod>2019-12-03T12:46:10-08:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2019/10/27/open-policy-agent-part-ii-developing-policies/</loc>
+    <loc>https://alesnosek.com/blog/2019/10/27/open-policy-agent-part-ii-developing-policies/</loc>
     <lastmod>2019-10-27T20:37:08-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2019/10/08/open-policy-agent-part-i-the-introduction/</loc>
+    <loc>https://alesnosek.com/blog/2019/10/08/open-policy-agent-part-i-the-introduction/</loc>
     <lastmod>2019-10-08T07:13:38-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2019/09/23/future-proof-monolithic-applications-with-modular-design/</loc>
+    <loc>https://alesnosek.com/blog/2019/09/23/future-proof-monolithic-applications-with-modular-design/</loc>
     <lastmod>2019-09-23T14:34:26-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2019/08/19/configuring-envoy-to-audo-discover-pods-on-kubernetes/</loc>
+    <loc>https://alesnosek.com/blog/2019/08/19/configuring-envoy-to-audo-discover-pods-on-kubernetes/</loc>
     <lastmod>2019-08-19T11:04:51-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2019/08/05/troubleshooting-the-performance-of-vert-dot-x-applications-troubleshooting-event-loop-delays/</loc>
+    <loc>https://alesnosek.com/blog/2019/08/05/troubleshooting-the-performance-of-vert-dot-x-applications-troubleshooting-event-loop-delays/</loc>
     <lastmod>2019-08-05T13:26:34-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2019/07/22/troubleshooting-the-performance-of-vert-dot-x-applications-preventing-event-loop-delays/</loc>
+    <loc>https://alesnosek.com/blog/2019/07/22/troubleshooting-the-performance-of-vert-dot-x-applications-preventing-event-loop-delays/</loc>
     <lastmod>2019-07-22T11:15:42-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2019/07/08/installing-openshift-4-dot-1-using-libvirt-and-kvm/</loc>
+    <loc>https://alesnosek.com/blog/2019/07/08/installing-openshift-4-dot-1-using-libvirt-and-kvm/</loc>
     <lastmod>2019-07-08T11:53:54-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2019/06/30/troubleshooting-the-performance-of-vert-dot-x-applications-part-i-the-event-loop-model/</loc>
+    <loc>https://alesnosek.com/blog/2019/06/30/troubleshooting-the-performance-of-vert-dot-x-applications-part-i-the-event-loop-model/</loc>
     <lastmod>2019-06-30T10:16:31-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2019/04/21/speaking-at-red-hat-summit-2019/</loc>
+    <loc>https://alesnosek.com/blog/2019/04/21/speaking-at-red-hat-summit-2019/</loc>
     <lastmod>2019-04-21T12:41:43-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2019/02/26/remote-debugging-of-java-applications-on-openshift/</loc>
+    <loc>https://alesnosek.com/blog/2019/02/26/remote-debugging-of-java-applications-on-openshift/</loc>
     <lastmod>2019-02-26T13:08:30-08:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2019/01/25/comparing-openapi-with-grpc/</loc>
+    <loc>https://alesnosek.com/blog/2019/01/25/comparing-openapi-with-grpc/</loc>
     <lastmod>2019-01-25T15:22:46-08:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2018/12/28/tips-for-passing-the-red-hat-certified-specialist-in-gluster-storage-administration-exam/</loc>
+    <loc>https://alesnosek.com/blog/2018/12/28/tips-for-passing-the-red-hat-certified-specialist-in-gluster-storage-administration-exam/</loc>
     <lastmod>2018-12-28T11:24:40-08:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2018/09/24/speaking-at-the-red-hat-training-partner-and-instructor-conference/</loc>
+    <loc>https://alesnosek.com/blog/2018/09/24/speaking-at-the-red-hat-training-partner-and-instructor-conference/</loc>
     <lastmod>2018-09-24T08:47:00-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2018/08/30/how-i-achieved-the-aws-associate-certifications/</loc>
+    <loc>https://alesnosek.com/blog/2018/08/30/how-i-achieved-the-aws-associate-certifications/</loc>
     <lastmod>2018-08-30T23:20:27-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2018/06/17/four-ansible-practices-i-would-recommend/</loc>
+    <loc>https://alesnosek.com/blog/2018/06/17/four-ansible-practices-i-would-recommend/</loc>
     <lastmod>2018-06-17T11:25:59-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2018/05/14/red-hat-summit-2018/</loc>
+    <loc>https://alesnosek.com/blog/2018/05/14/red-hat-summit-2018/</loc>
     <lastmod>2018-05-14T20:07:17-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2018/05/03/designing-a-common-build-system/</loc>
+    <loc>https://alesnosek.com/blog/2018/05/03/designing-a-common-build-system/</loc>
     <lastmod>2018-05-03T21:57:40-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2018/04/21/booting-amazon-linux-2-on-openstack/</loc>
+    <loc>https://alesnosek.com/blog/2018/04/21/booting-amazon-linux-2-on-openstack/</loc>
     <lastmod>2018-04-21T22:21:04-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2018/03/08/18-months-with-openstack-our-experience-part-ii/</loc>
+    <loc>https://alesnosek.com/blog/2018/03/08/18-months-with-openstack-our-experience-part-ii/</loc>
     <lastmod>2018-03-08T20:51:11-08:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2018/02/19/18-months-with-openstack-our-experience-part-i/</loc>
+    <loc>https://alesnosek.com/blog/2018/02/19/18-months-with-openstack-our-experience-part-i/</loc>
     <lastmod>2018-02-19T21:06:17-08:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2018/01/12/edge-security-for-your-cloud-application-part-ii/</loc>
+    <loc>https://alesnosek.com/blog/2018/01/12/edge-security-for-your-cloud-application-part-ii/</loc>
     <lastmod>2018-01-12T21:21:19-08:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2018/01/10/edge-security-for-your-cloud-application-part-i/</loc>
+    <loc>https://alesnosek.com/blog/2018/01/10/edge-security-for-your-cloud-application-part-i/</loc>
     <lastmod>2018-01-10T23:09:17-08:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2017/12/10/what-i-learned-at-kubecon-plus-cloudnativecon-2017/</loc>
+    <loc>https://alesnosek.com/blog/2017/12/10/what-i-learned-at-kubecon-plus-cloudnativecon-2017/</loc>
     <lastmod>2017-12-10T16:16:25-08:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2017/10/18/aws-lambda-adapter-for-vert-dot-x-web-applications/</loc>
+    <loc>https://alesnosek.com/blog/2017/10/18/aws-lambda-adapter-for-vert-dot-x-web-applications/</loc>
     <lastmod>2017-10-18T23:09:33-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2017/09/10/evaluating-application-metrics-solutions-prometheus/</loc>
+    <loc>https://alesnosek.com/blog/2017/09/10/evaluating-application-metrics-solutions-prometheus/</loc>
     <lastmod>2017-09-10T16:17:49-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2017/09/03/ansible-certification-ex407/</loc>
+    <loc>https://alesnosek.com/blog/2017/09/03/ansible-certification-ex407/</loc>
     <lastmod>2017-09-03T22:47:06-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2017/08/27/test-driving-openshift-online/</loc>
+    <loc>https://alesnosek.com/blog/2017/08/27/test-driving-openshift-online/</loc>
     <lastmod>2017-08-27T17:29:49-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2017/08/20/centralized-configuration-management/</loc>
+    <loc>https://alesnosek.com/blog/2017/08/20/centralized-configuration-management/</loc>
     <lastmod>2017-08-20T13:09:28-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2017/08/01/how-i-became-a-red-hat-certified-architect-in-one-year/</loc>
+    <loc>https://alesnosek.com/blog/2017/08/01/how-i-became-a-red-hat-certified-architect-in-one-year/</loc>
     <lastmod>2017-08-01T22:47:14-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2017/07/29/passed-red-hat-container-certifications-ex270-and-ex276/</loc>
+    <loc>https://alesnosek.com/blog/2017/07/29/passed-red-hat-container-certifications-ex270-and-ex276/</loc>
     <lastmod>2017-07-29T22:44:56-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2017/07/25/check-and-set-operation-and-transactions-in-consul/</loc>
+    <loc>https://alesnosek.com/blog/2017/07/25/check-and-set-operation-and-transactions-in-consul/</loc>
     <lastmod>2017-07-25T23:07:07-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2017/07/15/first-look-at-the-key-value-store-in-consul/</loc>
+    <loc>https://alesnosek.com/blog/2017/07/15/first-look-at-the-key-value-store-in-consul/</loc>
     <lastmod>2017-07-15T20:38:38-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2017/06/26/acing-the-red-hat-openstack-certification-exams/</loc>
+    <loc>https://alesnosek.com/blog/2017/06/26/acing-the-red-hat-openstack-certification-exams/</loc>
     <lastmod>2017-06-26T19:54:19-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2017/05/05/what-i-learned-at-red-hat-summit-2017/</loc>
+    <loc>https://alesnosek.com/blog/2017/05/05/what-i-learned-at-red-hat-summit-2017/</loc>
     <lastmod>2017-05-05T18:46:14-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2017/04/22/two-years-of-technical-blogging/</loc>
+    <loc>https://alesnosek.com/blog/2017/04/22/two-years-of-technical-blogging/</loc>
     <lastmod>2017-04-22T15:06:57-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2017/04/04/passed-the-openshift-ex280-certification/</loc>
+    <loc>https://alesnosek.com/blog/2017/04/04/passed-the-openshift-ex280-certification/</loc>
     <lastmod>2017-04-04T23:00:22-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2017/03/19/an-introduction-to-building-on-openshift/</loc>
+    <loc>https://alesnosek.com/blog/2017/03/19/an-introduction-to-building-on-openshift/</loc>
     <lastmod>2017-03-19T10:48:32-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2017/02/14/accessing-kubernetes-pods-from-outside-of-the-cluster/</loc>
+    <loc>https://alesnosek.com/blog/2017/02/14/accessing-kubernetes-pods-from-outside-of-the-cluster/</loc>
     <lastmod>2017-02-14T23:36:37-08:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2017/01/15/tripleo-installer-production-ready/</loc>
+    <loc>https://alesnosek.com/blog/2017/01/15/tripleo-installer-production-ready/</loc>
     <lastmod>2017-01-15T23:13:32-08:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2017/01/02/git-getting-the-timing-right/</loc>
+    <loc>https://alesnosek.com/blog/2017/01/02/git-getting-the-timing-right/</loc>
     <lastmod>2017-01-02T16:50:48-08:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2016/12/04/controlling-a-multi-service-application-with-systemd/</loc>
+    <loc>https://alesnosek.com/blog/2016/12/04/controlling-a-multi-service-application-with-systemd/</loc>
     <lastmod>2016-12-04T23:15:39-08:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2016/11/07/rhcsa-slash-rhce-exam-experience/</loc>
+    <loc>https://alesnosek.com/blog/2016/11/07/rhcsa-slash-rhce-exam-experience/</loc>
     <lastmod>2016-11-07T23:45:38-08:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2016/11/01/5-linux-commands-you-didnt-know-you-needed/</loc>
+    <loc>https://alesnosek.com/blog/2016/11/01/5-linux-commands-you-didnt-know-you-needed/</loc>
     <lastmod>2016-11-01T23:11:44-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2016/09/12/first-impressions-about-ansible-container/</loc>
+    <loc>https://alesnosek.com/blog/2016/09/12/first-impressions-about-ansible-container/</loc>
     <lastmod>2016-09-12T20:06:49-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2016/07/04/what-i-learned-from-the-open-organization/</loc>
+    <loc>https://alesnosek.com/blog/2016/07/04/what-i-learned-from-the-open-organization/</loc>
     <lastmod>2016-07-04T21:04:22-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2016/07/04/red-hat-summit-2016/</loc>
+    <loc>https://alesnosek.com/blog/2016/07/04/red-hat-summit-2016/</loc>
     <lastmod>2016-07-04T20:26:12-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2016/06/26/deploying-kubernetes-on-openstack-using-heat/</loc>
+    <loc>https://alesnosek.com/blog/2016/06/26/deploying-kubernetes-on-openstack-using-heat/</loc>
     <lastmod>2016-06-26T08:28:11-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2016/05/22/test-driving-openstack-manila/</loc>
+    <loc>https://alesnosek.com/blog/2016/05/22/test-driving-openstack-manila/</loc>
     <lastmod>2016-05-22T16:59:30-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2016/03/27/tripleo-installer-the-good/</loc>
+    <loc>https://alesnosek.com/blog/2016/03/27/tripleo-installer-the-good/</loc>
     <lastmod>2016-03-27T19:39:15-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2016/01/31/bootstrapping-a-galera-cluster-on-rhel7/</loc>
+    <loc>https://alesnosek.com/blog/2016/01/31/bootstrapping-a-galera-cluster-on-rhel7/</loc>
     <lastmod>2016-01-31T15:24:55-08:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2015/11/30/monitoring-openstack-cluster-with-icinga/</loc>
+    <loc>https://alesnosek.com/blog/2015/11/30/monitoring-openstack-cluster-with-icinga/</loc>
     <lastmod>2015-11-30T21:13:33-08:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2015/11/09/assigning-roles-to-nodes-directly-in-rdo/</loc>
+    <loc>https://alesnosek.com/blog/2015/11/09/assigning-roles-to-nodes-directly-in-rdo/</loc>
     <lastmod>2015-11-09T20:49:40-08:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2015/10/19/installing-openstack-liberty-on-rhel7/</loc>
+    <loc>https://alesnosek.com/blog/2015/10/19/installing-openstack-liberty-on-rhel7/</loc>
     <lastmod>2015-10-19T22:30:48-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2015/09/28/network-configuration-with-os-net-config/</loc>
+    <loc>https://alesnosek.com/blog/2015/09/28/network-configuration-with-os-net-config/</loc>
     <lastmod>2015-09-28T20:30:11-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2015/09/07/bridging-vlan-trunk-to-the-guest/</loc>
+    <loc>https://alesnosek.com/blog/2015/09/07/bridging-vlan-trunk-to-the-guest/</loc>
     <lastmod>2015-09-07T07:12:22-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2015/08/16/multiple-rhel-mirrors-on-a-single-machine/</loc>
+    <loc>https://alesnosek.com/blog/2015/08/16/multiple-rhel-mirrors-on-a-single-machine/</loc>
     <lastmod>2015-08-16T22:23:11-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2015/08/03/improving-ansibles-ini-file-module/</loc>
+    <loc>https://alesnosek.com/blog/2015/08/03/improving-ansibles-ini-file-module/</loc>
     <lastmod>2015-08-03T20:01:30-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2015/07/19/browsing-docker-source-using-eclipse/</loc>
+    <loc>https://alesnosek.com/blog/2015/07/19/browsing-docker-source-using-eclipse/</loc>
     <lastmod>2015-07-19T20:59:12-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2015/07/04/running-wine-within-docker/</loc>
+    <loc>https://alesnosek.com/blog/2015/07/04/running-wine-within-docker/</loc>
     <lastmod>2015-07-04T22:46:55-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2015/06/28/diagrams-and-images-in-doxygen/</loc>
+    <loc>https://alesnosek.com/blog/2015/06/28/diagrams-and-images-in-doxygen/</loc>
     <lastmod>2015-06-28T21:54:54-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2015/06/21/the-structure-of-doxygen-documentation/</loc>
+    <loc>https://alesnosek.com/blog/2015/06/21/the-structure-of-doxygen-documentation/</loc>
     <lastmod>2015-06-21T17:48:59-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2015/06/14/technical-documentation-with-doxygen/</loc>
+    <loc>https://alesnosek.com/blog/2015/06/14/technical-documentation-with-doxygen/</loc>
     <lastmod>2015-06-14T22:04:36-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2015/06/06/seven-tips-for-better-code/</loc>
+    <loc>https://alesnosek.com/blog/2015/06/06/seven-tips-for-better-code/</loc>
     <lastmod>2015-06-06T21:04:36-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2015/05/31/openstack-dynamic-dns-updates/</loc>
+    <loc>https://alesnosek.com/blog/2015/05/31/openstack-dynamic-dns-updates/</loc>
     <lastmod>2015-05-31T22:49:39-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2015/05/25/openstack-nova-notifications-subscriber/</loc>
+    <loc>https://alesnosek.com/blog/2015/05/25/openstack-nova-notifications-subscriber/</loc>
     <lastmod>2015-05-25T08:42:41-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2015/05/18/five-basic-tips-for-logging-in-java/</loc>
+    <loc>https://alesnosek.com/blog/2015/05/18/five-basic-tips-for-logging-in-java/</loc>
     <lastmod>2015-05-18T01:11:47-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2015/05/11/java-logging-quick-reference/</loc>
+    <loc>https://alesnosek.com/blog/2015/05/11/java-logging-quick-reference/</loc>
     <lastmod>2015-05-11T00:13:09-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2015/05/02/dynamic-dns-with-bind-and-dhclient/</loc>
+    <loc>https://alesnosek.com/blog/2015/05/02/dynamic-dns-with-bind-and-dhclient/</loc>
     <lastmod>2015-05-02T19:21:43-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2015/04/26/using-cloud-init-outside-of-cloud/</loc>
+    <loc>https://alesnosek.com/blog/2015/04/26/using-cloud-init-outside-of-cloud/</loc>
     <lastmod>2015-04-26T13:04:25-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/2015/04/18/five-basic-tips-for-teamwork-with-git/</loc>
+    <loc>https://alesnosek.com/blog/2015/04/18/five-basic-tips-for-teamwork-with-git/</loc>
     <lastmod>2015-04-18T16:51:08-07:00</lastmod>
   </url>
   <url>
-    <loc>http://alesnosek.com/</loc>
+    <loc>https://alesnosek.com/</loc>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/archives/</loc>
+    <loc>https://alesnosek.com/blog/archives/</loc>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/categories/development/</loc>
+    <loc>https://alesnosek.com/blog/categories/development/</loc>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/categories/git/</loc>
+    <loc>https://alesnosek.com/blog/categories/git/</loc>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/categories/devops/</loc>
+    <loc>https://alesnosek.com/blog/categories/devops/</loc>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/categories/cloud/</loc>
+    <loc>https://alesnosek.com/blog/categories/cloud/</loc>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/categories/java/</loc>
+    <loc>https://alesnosek.com/blog/categories/java/</loc>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/categories/events/</loc>
+    <loc>https://alesnosek.com/blog/categories/events/</loc>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/categories/reading/</loc>
+    <loc>https://alesnosek.com/blog/categories/reading/</loc>
   </url>
   <url>
-    <loc>http://alesnosek.com/blog/categories/design/</loc>
+    <loc>https://alesnosek.com/blog/categories/design/</loc>
   </url>
 </urlset>

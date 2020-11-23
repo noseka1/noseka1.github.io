@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: java | Ales Nosek - The Software Practitioner]]></title>
-  <link href="http://alesnosek.com/blog/categories/java/atom.xml" rel="self"/>
-  <link href="http://alesnosek.com/"/>
-  <updated>2020-09-28T07:34:01-07:00</updated>
-  <id>http://alesnosek.com/</id>
+  <link href="https://alesnosek.com/blog/categories/java/atom.xml" rel="self"/>
+  <link href="https://alesnosek.com/"/>
+  <updated>2020-11-22T19:05:23-08:00</updated>
+  <id>https://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Five Basic Tips for Logging in Java]]></title>
-    <link href="http://alesnosek.com/blog/2015/05/18/five-basic-tips-for-logging-in-java/"/>
+    <link href="https://alesnosek.com/blog/2015/05/18/five-basic-tips-for-logging-in-java/"/>
     <updated>2015-05-18T01:11:47-07:00</updated>
-    <id>http://alesnosek.com/blog/2015/05/18/five-basic-tips-for-logging-in-java</id>
+    <id>https://alesnosek.com/blog/2015/05/18/five-basic-tips-for-logging-in-java</id>
     <content type="html"><![CDATA[<p>Where do you look when your server application doesn&rsquo;t work as expected? Application logs can provide invaluable information when the systems in production misbehave. That&rsquo;s why a great software practitioner desings the application logs carefully. Let&rsquo;s review a couple of basic tips for great logging in Java.</p>
 
 <!-- more -->
@@ -407,9 +407,9 @@ Now you can tell the name of the user for whom you did the processing.</p>
   
   <entry>
     <title type="html"><![CDATA[Java Logging Quick Reference]]></title>
-    <link href="http://alesnosek.com/blog/2015/05/11/java-logging-quick-reference/"/>
+    <link href="https://alesnosek.com/blog/2015/05/11/java-logging-quick-reference/"/>
     <updated>2015-05-11T00:13:09-07:00</updated>
-    <id>http://alesnosek.com/blog/2015/05/11/java-logging-quick-reference</id>
+    <id>https://alesnosek.com/blog/2015/05/11/java-logging-quick-reference</id>
     <content type="html"><![CDATA[<p>The Simple Logging Facade for Java (SLF4J) serves as a simple abstraction for various logging frameworks. Let&rsquo;s look at how to configure SLF4J to work with SLF4J Simple logger, JDK 1.4 logger, Log4j, Logback and Log4j2 framework.</p>
 
 <!-- more -->
