@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="https://alesnosek.com/atom.xml" rel="self"/>
   <link href="https://alesnosek.com/"/>
-  <updated>2020-11-22T19:05:23-08:00</updated>
+  <updated>2020-11-25T08:19:08-08:00</updated>
   <id>https://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,17 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[14 Best Practices for Developing Applications on OpenShift]]></title>
+    <link href="https://alesnosek.com/blog/2020/11/24/14-best-practices-for-developing-applications-on-openshift/"/>
+    <updated>2020-11-24T08:16:33-08:00</updated>
+    <id>https://alesnosek.com/blog/2020/11/24/14-best-practices-for-developing-applications-on-openshift</id>
+    <content type="html"><![CDATA[<p>Over the course of this year, I have been working with several development teams that started building applications on OpenShift. My goal was to provide the developers with guidance and best practices that would help them to successfully deploy their applications to production. If you are a developer that builds applications on top of OpenShift, this blog might be of interest to you.</p>
+
+<p>The blog is published at <a href="https://www.openshift.com/blog/14-best-practices-for-developing-applications-on-openshift">openshift.com/blog</a>.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[Apache Airflow Architecture on OpenShift]]></title>
@@ -2487,46 +2498,6 @@
 <p>Are you preparing for the Red Hat Gluster Storage exam? I would love to hear from you! Please, leave your comments or questions in the comment section below.</p>
 
 <p><img src="https://alesnosek.com/images/posts/rhcs_gluster_storage_administration_badge.png"></p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[Speaking at the Red Hat Training Partner &amp; Instructor Conference]]></title>
-    <link href="https://alesnosek.com/blog/2018/09/24/speaking-at-the-red-hat-training-partner-and-instructor-conference/"/>
-    <updated>2018-09-24T08:47:00-07:00</updated>
-    <id>https://alesnosek.com/blog/2018/09/24/speaking-at-the-red-hat-training-partner-and-instructor-conference</id>
-    <content type="html"><![CDATA[<p>On September 21, 2018 I spoke at the <a href="https://www.redhat.com/en/events/training-partner-conference-emea">Red Hat Training Partner &amp; Instructor Conference</a> in Prague, Czech Republic. Why was I invited, and what did I learn? Read on if you want to find out.</p>
-
-<!-- more -->
-
-
-<h2>Why was I invited to speak at this conference?</h2>
-
-<p>In this conference, Red Hat shares updates on their learning and certification programs, as well as the current status and trends. This conference is geared towards Red Hat’s training partners, instructors, and Red Hat Academy representatives.</p>
-
-<p>To date, one of my most popular blog posts has been <a href="https://alesnosek.com/blog/2017/08/01/how-i-became-a-red-hat-certified-architect-in-one-year/">How I Became a Red Hat Certified Architect in One Year</a>. In this post I described my path through the Red Hat certification process, using the Red Hat Learning Subscription (<a href="https://www.redhat.com/en/services/training/learning-subscription">RHLS</a>), to achieve the Red Hat Certified Architect title. As a result of this, the conference organizers invited me to speak and give a customer testimonial about my experience.</p>
-
-<h2>What did I talk about?</h2>
-
-<p>I shared a little bit about my background, my personal certification path using the RHLS, offered a couple of suggestions for improvement of RHLS, and also listed reasons why I would recommend the RHLS to others:</p>
-
-<ul>
-<li>Quality learning materials (concise yet complete)</li>
-<li>Access to the training lab (closely resembles the exam environment)</li>
-<li>Was able to learn at my own pace - flexibility</li>
-<li>Designed for remote access which was much more convenient for me than attending classes</li>
-<li>Cost effectiveness</li>
-<li>After becoming RHCA I used RHLS to evaluate other Red Hat products</li>
-</ul>
-
-
-<h2>What did I learn at the conference?</h2>
-
-<p>I learned that Red Hat builds their learning platform themselves. Additionally, changes have been made such that the proctoring of the exams will be handled directly by Red Hat, instead of leveraging a third party.</p>
-
-<p>Red Hat has updated the score report emails to include the breakdown by topic areas. This could be especially helpful for those who were unsuccessful in their exam attempt and need more information about what to focus on before retaking the exam.</p>
-
-<p>The Red Hat Certified Architect certification has been divided in to two different certifications, Red Hat Certified Architect in Infrastructure and Red Hat Certified Architect in Enterprise Applications. This change is well documented <a href="https://servicesblog.redhat.com/2018/08/20/red-hat-certified-architect-program-changes/">here</a>. I would like to point out that those of you who achieved the RHCA already, can log into your Red Hat account and download your certificate with the updated title.</p>
 ]]></content>
   </entry>
 

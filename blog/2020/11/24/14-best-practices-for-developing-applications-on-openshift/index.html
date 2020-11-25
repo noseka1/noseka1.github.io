@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Installing OpenStack Liberty on RHEL7 - Ales Nosek - The Software Practitioner</title>
+  <title>14 Best Practices for Developing Applications on OpenShift - Ales Nosek - The Software Practitioner</title>
   <meta name="author" content="Ales Nosek">
 
 
-  <meta name="description" content="The OpenStack Liberty was released last week. In this article I&rsquo;ll briefly describe how to deploy the OpenStack Liberty on RHEL7 using RDO &hellip;">
+  <meta name="description" content="Over the course of this year, I have been working with several development teams that started building applications on OpenShift. My goal was to &hellip;">
 
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
 
-  <link rel="canonical" href="https://alesnosek.com/blog/2015/10/19/installing-openstack-liberty-on-rhel7/">
+  <link rel="canonical" href="https://alesnosek.com/blog/2020/11/24/14-best-practices-for-developing-applications-on-openshift/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/stylesheets/data-table.css" media="screen, projection" rel="stylesheet" type="text/css" />
@@ -82,7 +82,7 @@
 
   <header>
 
-      <h1 class="entry-title">Installing OpenStack Liberty on RHEL7</h1>
+      <h1 class="entry-title">14 Best Practices for Developing Applications on OpenShift</h1>
 
 
       <p class="meta">
@@ -91,64 +91,16 @@
 
 
 
-<time class='entry-date' datetime='2015-10-19T22:30:48-07:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>10:30 pm</span></time>
+<time class='entry-date' datetime='2020-11-24T08:16:33-08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>24</span><span class='date-suffix'>th</span>, <span class='date-year'>2020</span></span> <span class='time'>8:16 am</span></time>
 
       </p>
 
   </header>
 
 
-<div class="entry-content"><p>The OpenStack Liberty was released last week. In this article I&rsquo;ll briefly describe how to deploy the OpenStack Liberty on RHEL7 using RDO Manager.</p>
+<div class="entry-content"><p>Over the course of this year, I have been working with several development teams that started building applications on OpenShift. My goal was to provide the developers with guidance and best practices that would help them to successfully deploy their applications to production. If you are a developer that builds applications on top of OpenShift, this blog might be of interest to you.</p>
 
-<!-- more -->
-
-
-<p>The <a href="https://www.rdoproject.org/" title="RDO project">RDO project</a> packages the OpenStack software for the Red Hat based platforms. Currently, there are Liberty packages in status testing/release candidate available from the project. Apart from a couple of configuration issues the installation went pretty well and I obtained a basic 2-node cluster.</p>
-
-<p>If you intalled OpenStack Kilo using RDO Manager before I have a good news for you. The installation procedure remains pretty much the same. You can follow the <a href="http://docs.openstack.org/developer/tripleo-docs/" title="TripleO Doc">great guide</a> provided by the TripleO project to get the installation going. First, add the following two repositories:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>http://trunk.rdoproject.org/centos7/current-tripleo/delorean.repo
-</span><span class='line'>http://trunk.rdoproject.org/centos7/delorean-deps.repo</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Now you can install the RDO Manager with:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>sudo yum install python-tripleoclient</span></code></pre></td></tr></table></div></figure>
-
-
-<p>In the Kilo release, the <code>python-tripleoclient</code> package was called <code>python-rdomanager-oscplugin</code>. You can continue with the guide. To build the overcloud images I issue the commands:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nb">export </span><span class="nv">NODE_DIST</span><span class="o">=</span>rhel7
-</span><span class='line'><span class="nb">export </span><span class="nv">DIB_LOCAL_IMAGE</span><span class="o">=</span>rhel-guest-image-7.1-20150224.0.x86_64.qcow2
-</span><span class='line'><span class="nb">export </span><span class="nv">REG_METHOD</span><span class="o">=</span>disable
-</span><span class='line'><span class="nb">export </span><span class="nv">DIB_DEBUG_TRACE</span><span class="o">=</span>1
-</span><span class='line'><span class="nb">export </span><span class="nv">DIB_YUM_REPO_CONF</span><span class="o">=</span>/etc/yum.repos.d/rhel7_mirror.repo
-</span><span class='line'><span class="nb">export </span><span class="nv">USE_DELOREAN_TRUNK</span><span class="o">=</span>1
-</span><span class='line'><span class="nb">export </span><span class="nv">DELOREAN_TRUNK_REPO</span><span class="o">=</span>http://trunk.rdoproject.org/centos7/current-tripleo
-</span><span class='line'><span class="nb">export </span><span class="nv">DELOREAN_REPO_FILE</span><span class="o">=</span>delorean.repo
-</span><span class='line'>openstack overcloud image build --all
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>As you can see, I&rsquo;m not really registering the OpenStack nodes with the Red Hat portal. Instead, I&rsquo;m pulling the RHEL7 packages from the local mirror.</p>
-
-<p>After the installation of the overcloud has completed I realized that some of the OpenStack processes on the overcloud nodes were segfaulting. After switching SELinux from enforcing to permissive mode everything started working as expected.</p>
-
-<h2>A final note</h2>
-
-<p>The deployment of OpenStack is rather an involved process even when leveraging the tools like RDO Manager. To truly automate the installation in my specific environment I use a set of Ansible scripts to drive the RDO manager installation. Now that Red Hat acquired Ansible I&rsquo;m wondering if we&rsquo;re going to get an even better OpenStack installation experience on Red Hat based distributions.</p>
+<p>The blog is published at <a href="https://www.openshift.com/blog/14-best-practices-for-developing-applications-on-openshift">openshift.com/blog</a>.</p>
 </div>
 
 
@@ -164,12 +116,12 @@
 
 
 
-<time class='entry-date' datetime='2015-10-19T22:30:48-07:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>10:30 pm</span></time>
+<time class='entry-date' datetime='2020-11-24T08:16:33-08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>24</span><span class='date-suffix'>th</span>, <span class='date-year'>2020</span></span> <span class='time'>8:16 am</span></time>
 
 
 <span class="categories">
 
-    <a class='category' href='/blog/categories/cloud/'>cloud</a>, <a class='category' href='/blog/categories/devops/'>devops</a>
+    <a class='category' href='/blog/categories/development/'>development</a>
 
 </span>
 
@@ -178,7 +130,7 @@
 
       <div class="sharing">
 
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="https://alesnosek.com/blog/2015/10/19/installing-openstack-liberty-on-rhel7/" data-via="" data-counturl="https://alesnosek.com/blog/2015/10/19/installing-openstack-liberty-on-rhel7/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="https://alesnosek.com/blog/2020/11/24/14-best-practices-for-developing-applications-on-openshift/" data-via="" data-counturl="https://alesnosek.com/blog/2020/11/24/14-best-practices-for-developing-applications-on-openshift/" >Tweet</a>
 
 
   <div class="g-plusone" data-size="medium"></div>
@@ -191,10 +143,8 @@
 
     <p class="meta">
 
-        <a class="basic-alignment left" href="/blog/2015/09/28/network-configuration-with-os-net-config/" title="Previous Post: Network Configuration with os-net-config">&laquo; Network Configuration with os-net-config</a>
+        <a class="basic-alignment left" href="/blog/2020/09/13/apache-airflow-architecture-on-openshift/" title="Previous Post: Apache Airflow Architecture on OpenShift">&laquo; Apache Airflow Architecture on OpenShift</a>
 
-
-        <a class="basic-alignment right" href="/blog/2015/11/09/assigning-roles-to-nodes-directly-in-rdo/" title="Next Post: Assigning Roles to Nodes Directly in RDO">Assigning Roles to Nodes Directly in RDO &raquo;</a>
 
     </p>
   </footer>
@@ -265,8 +215,8 @@
 
 
         // var disqus_developer = 1;
-        var disqus_identifier = 'https://alesnosek.com/blog/2015/10/19/installing-openstack-liberty-on-rhel7/';
-        var disqus_url = 'https://alesnosek.com/blog/2015/10/19/installing-openstack-liberty-on-rhel7/';
+        var disqus_identifier = 'https://alesnosek.com/blog/2020/11/24/14-best-practices-for-developing-applications-on-openshift/';
+        var disqus_url = 'https://alesnosek.com/blog/2020/11/24/14-best-practices-for-developing-applications-on-openshift/';
         var disqus_script = 'embed.js';
 
     (function () {

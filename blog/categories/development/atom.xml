@@ -4,7 +4,7 @@
   <title><![CDATA[Category: development | Ales Nosek - The Software Practitioner]]></title>
   <link href="https://alesnosek.com/blog/categories/development/atom.xml" rel="self"/>
   <link href="https://alesnosek.com/"/>
-  <updated>2020-11-22T19:05:23-08:00</updated>
+  <updated>2020-11-25T08:19:08-08:00</updated>
   <id>https://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,17 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[14 Best Practices for Developing Applications on OpenShift]]></title>
+    <link href="https://alesnosek.com/blog/2020/11/24/14-best-practices-for-developing-applications-on-openshift/"/>
+    <updated>2020-11-24T08:16:33-08:00</updated>
+    <id>https://alesnosek.com/blog/2020/11/24/14-best-practices-for-developing-applications-on-openshift</id>
+    <content type="html"><![CDATA[<p>Over the course of this year, I have been working with several development teams that started building applications on OpenShift. My goal was to provide the developers with guidance and best practices that would help them to successfully deploy their applications to production. If you are a developer that builds applications on top of OpenShift, this blog might be of interest to you.</p>
+
+<p>The blog is published at <a href="https://www.openshift.com/blog/14-best-practices-for-developing-applications-on-openshift">openshift.com/blog</a>.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[Local Development with OpenShift and Tilt]]></title>
@@ -435,169 +446,6 @@ $ curl -X POST http://localhost:8181/v1/data/myapi/policy/allow \
 <p>In this article, we took an initial look at Open Policy Agent. After discussing how OPA works, we went through an example of implementing an Access Control List policy. In the <a href="/blog/2019/10/27/open-policy-agent-part-ii-developing-policies/">next entry</a> to this series, we are going to dive deeper into developing policies with OPA.</p>
 
 <p>I hope that you found this article useful. If you have any questions or comments, please add them to the comment section below. I look forward to hearing from you.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[Troubleshooting the Performance of Vert.x Applications, Part III &mdash; Troubleshooting Event Loop Delays]]></title>
-    <link href="https://alesnosek.com/blog/2019/08/05/troubleshooting-the-performance-of-vert-dot-x-applications-troubleshooting-event-loop-delays/"/>
-    <updated>2019-08-05T13:26:34-07:00</updated>
-    <id>https://alesnosek.com/blog/2019/08/05/troubleshooting-the-performance-of-vert-dot-x-applications-troubleshooting-event-loop-delays</id>
-    <content type="html"><![CDATA[<p>In the <a href="/blog/2019/07/22/troubleshooting-the-performance-of-vert-dot-x-applications-preventing-event-loop-delays/">previous entry</a> to this series, we reviewed several techniques that help you to prevent event loop delays. However, even the best programmer makes mistakes. What should you do when your Vert.x application doesn&rsquo;t perform as expected? How to find out what part of your code is blocking the event loop threads? In the final part of the series, we are going to focus on troubleshooting event loop delays.</p>
-
-<!-- more -->
-
-
-<p>The event loop thread model is vastly different from the thread-per-request model employed by standard JEE or Spring frameworks. From my experience I can report that it takes developers some time to wrap their heads around it and that at the beginning they tend to make the mistake of introducing blocking calls into the event loop&rsquo;s code path. In the following sections, we will discuss several techniques of how to troubleshoot such situations.</p>
-
-<h2>Blocked thread checker</h2>
-
-<p>Vert.x comes with a built-in mechanism to detect delays on event loop and worker threads by checking the execution time of handlers that you registered with the Vert.x APIs. This mechanism operates in two steps. In the first step, Vert.x saves the timestamp of the moment when a handler starts executing. This <em>start timestamp</em> is saved to a storage attached to the thread that is executing the handler. Whenever the execution of the handler has completed the timestamp is reset. In the second step, Vert.x periodically checks the timestamps using a dedicated thread called <a href="https://github.com/eclipse-vertx/vert.x/blob/master/src/main/java/io/vertx/core/impl/BlockedThreadChecker.java"><code>vertx-blocked-thread-checker</code></a>. This thread is spawned by Vert.x during the creation of the Vert.x instance for example when you call <code>Vertx.vertx()</code>. The vertx-blocked-thread-checker thread can be seen in <a href="https://visualvm.github.io/">VisualVM</a>:</p>
-
-<p><img class="center" src="/images/posts/vertx_blocked_thread_checker.png"></p>
-
-<p>The blocked thread checker serves as a watchdog that periodically checks the Vert.x threads. It iterates over all Vert.x threads and for each thread it subtracts the threads start timestamp from the current time to compute how long the thread has already been executing the handler code. If the execution time exceeds the specified threshold a warning message is dropped into the logs:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>Mar 01, <span class="m">2019</span> 11:53:24 AM io.vertx.core.impl.BlockedThreadChecker
-</span><span class='line'>WARNING: Thread Thread<span class="o">[</span>vert.x-eventloop-thread-5,5,main<span class="o">]</span> has been blocked <span class="k">for</span> <span class="m">39</span> ms, <span class="nb">time </span>limit is <span class="m">10</span> ms
-</span><span class='line'>Mar 01, <span class="m">2019</span> 11:53:24 AM io.vertx.core.impl.BlockedThreadChecker
-</span><span class='line'>WARNING: Thread Thread<span class="o">[</span>vert.x-eventloop-thread-6,5,main<span class="o">]</span> has been blocked <span class="k">for</span> <span class="m">26</span> ms, <span class="nb">time </span>limit is <span class="m">10</span> ms
-</span><span class='line'>Mar 01, <span class="m">2019</span> 11:53:24 AM io.vertx.core.impl.BlockedThreadChecker
-</span><span class='line'>WARNING: Thread Thread<span class="o">[</span>vert.x-eventloop-thread-1,5,main<span class="o">]</span> has been blocked <span class="k">for</span> <span class="m">31</span> ms, <span class="nb">time </span>limit is <span class="m">10</span> ms
-</span><span class='line'>Mar 01, <span class="m">2019</span> 11:53:24 AM io.vertx.core.impl.BlockedThreadChecker
-</span><span class='line'>WARNING: Thread Thread<span class="o">[</span>vert.x-eventloop-thread-3,5,main<span class="o">]</span> has been blocked <span class="k">for</span> <span class="m">42</span> ms, <span class="nb">time </span>limit is <span class="m">10</span> ms
-</span><span class='line'>Mar 01, <span class="m">2019</span> 11:53:24 AM io.vertx.core.impl.BlockedThreadChecker
-</span><span class='line'>WARNING: Thread Thread<span class="o">[</span>vert.x-eventloop-thread-2,5,main<span class="o">]</span> has been blocked <span class="k">for</span> <span class="m">20</span> ms, <span class="nb">time </span>limit is <span class="m">10</span> ms
-</span><span class='line'>Mar 01, <span class="m">2019</span> 11:53:24 AM io.vertx.core.impl.BlockedThreadChecker
-</span><span class='line'>WARNING: Thread Thread<span class="o">[</span>vert.x-eventloop-thread-4,5,main<span class="o">]</span> has been blocked <span class="k">for</span> <span class="m">21</span> ms, <span class="nb">time </span>limit is <span class="m">10</span> ms
-</span><span class='line'>Mar 01, <span class="m">2019</span> 11:53:24 AM io.vertx.core.impl.BlockedThreadChecker
-</span><span class='line'>WARNING: Thread Thread<span class="o">[</span>vert.x-eventloop-thread-7,5,main<span class="o">]</span> has been blocked <span class="k">for</span> <span class="m">19</span> ms, <span class="nb">time </span>limit is <span class="m">10</span> ms
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>You can use grep to routinely search through your application logs for this message. Vert.x can also log the entire stack trace to help you pinpoint the location in your code where your handler is blocking the thread:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>Mar 24, <span class="m">2019</span> 9:34:23 AM io.vertx.core.impl.BlockedThreadChecker
-</span><span class='line'>WARNING: Thread Thread<span class="o">[</span>vert.x-eventloop-thread-6,5,main<span class="o">]</span> has been blocked <span class="k">for</span> <span class="m">24915</span> ms, <span class="nb">time </span>limit is <span class="m">10</span> ms
-</span><span class='line'>io.vertx.core.VertxException: Thread blocked
-</span><span class='line'>        at java.lang.Thread.sleep<span class="o">(</span>Native Method<span class="o">)</span>
-</span><span class='line'>        at MyComputingVerticle.start<span class="o">(</span>HelloServer.java:72<span class="o">)</span>
-</span><span class='line'>        at io.vertx.core.impl.DeploymentManager.lambda<span class="nv">$doDeploy$8</span><span class="o">(</span>DeploymentManager.java:494<span class="o">)</span>
-</span><span class='line'>        at io.vertx.core.impl.DeploymentManager<span class="nv">$$</span>Lambda<span class="nv">$8</span>/644460953.handle<span class="o">(</span>Unknown Source<span class="o">)</span>
-</span><span class='line'>        at io.vertx.core.impl.ContextImpl.executeTask<span class="o">(</span>ContextImpl.java:320<span class="o">)</span>
-</span><span class='line'>        at io.vertx.core.impl.EventLoopContext.lambda<span class="nv">$executeAsync$0</span><span class="o">(</span>EventLoopContext.java:38<span class="o">)</span>
-</span><span class='line'>        at io.vertx.core.impl.EventLoopContext<span class="nv">$$</span>Lambda<span class="nv">$9</span>/1778535015.run<span class="o">(</span>Unknown Source<span class="o">)</span>
-</span><span class='line'>        at io.netty.util.concurrent.AbstractEventExecutor.safeExecute<span class="o">(</span>AbstractEventExecutor.java:163<span class="o">)</span>
-</span><span class='line'>        at io.netty.util.concurrent.SingleThreadEventExecutor.runAllTasks<span class="o">(</span>SingleThreadEventExecutor.java:404<span class="o">)</span>
-</span><span class='line'>        at io.netty.channel.nio.NioEventLoop.run<span class="o">(</span>NioEventLoop.java:462<span class="o">)</span>
-</span><span class='line'>        at io.netty.util.concurrent.SingleThreadEventExecutor<span class="nv">$5</span>.run<span class="o">(</span>SingleThreadEventExecutor.java:897<span class="o">)</span>
-</span><span class='line'>        at io.netty.util.concurrent.FastThreadLocalRunnable.run<span class="o">(</span>FastThreadLocalRunnable.java:30<span class="o">)</span>
-</span><span class='line'>        at java.lang.Thread.run<span class="o">(</span>Thread.java:748<span class="o">)</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Note that the stack trace is generated at the moment when Vert.x detects that the threshold has been exceeded which is not necessarily the moment when the thread was actually blocking. In other words, it is probable but it is not guaranteed that the stack trace is showing the actual location where your event loop thread is blocking. You may need to examine multiple stack traces to pinpoint the right location.</p>
-
-<p>You can tweak the watchdog check period and the warning thresholds. Here is an example:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">VertxOptions</span> <span class="n">options</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">VertxOptions</span><span class="o">();&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="c1">// check for blocked threads every 5s</span>
-</span><span class='line'><span class="n">options</span><span class="o">.</span><span class="na">setBlockedThreadCheckInterval</span><span class="o">(</span><span class="mi">5</span><span class="o">);</span>
-</span><span class='line'><span class="n">options</span><span class="o">.</span><span class="na">setBlockedThreadCheckIntervalUnit</span><span class="o">(</span><span class="n">TimeUnit</span><span class="o">.</span><span class="na">SECONDS</span><span class="o">);&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="c1">// warn if an event loop thread handler took more than 100ms to execute</span>
-</span><span class='line'><span class="n">options</span><span class="o">.</span><span class="na">setMaxEventLoopExecuteTime</span><span class="o">(</span><span class="mi">100</span><span class="o">);</span>
-</span><span class='line'><span class="n">options</span><span class="o">.</span><span class="na">setMaxEventLoopExecuteTimeUnit</span><span class="o">(</span><span class="n">TimeUnit</span><span class="o">.</span><span class="na">MILLISECONDS</span><span class="o">);&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="c1">// warn if an worker thread handler took more than 10s to execute</span>
-</span><span class='line'><span class="n">options</span><span class="o">.</span><span class="na">setMaxWorkerExecuteTime</span><span class="o">(</span><span class="mi">10</span><span class="o">);</span>
-</span><span class='line'><span class="n">options</span><span class="o">.</span><span class="na">setMaxWorkerExecuteTimeUnit</span><span class="o">(</span><span class="n">TimeUnit</span><span class="o">.</span><span class="na">SECONDS</span><span class="o">);&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span> <span class="c1">// log the stack trace if an event loop or worker handler took more than 20s to execute</span>
-</span><span class='line'><span class="n">options</span><span class="o">.</span><span class="na">setWarningExceptionTime</span><span class="o">(</span><span class="mi">20</span><span class="o">);</span>
-</span><span class='line'><span class="n">options</span><span class="o">.</span><span class="na">setWarningExceptionTimeUnit</span><span class="o">(</span><span class="n">TimeUnit</span><span class="o">.</span><span class="na">SECONDS</span><span class="o">);&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">Vertx</span> <span class="n">vertx</span> <span class="o">=</span> <span class="n">Vertx</span><span class="o">.</span><span class="na">vertx</span><span class="o">(</span><span class="n">options</span><span class="o">);</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Note that the first check is not executed right at the application start but is delayed by one check period. In our example the first check is executed 5 seconds after the application start followed by checks executed every 5 seconds. The concrete thresholds shown in the example worked well for one of my projects, however, your mileage may vary.  Also, the very first execution of the handlers can be rather slow due to JVM class loading. Performance further improves when the JVM moves from interpreting the byte code to compiling it into the native code and running it directly on the CPU. Hence, you are more likely to hit the warning thresholds shortly after the application start than later on during the application run. It would be great if the threshold values could be dynamically adjusted to avoid the warnings before the JVM warms up. Unfortunately, there&rsquo;s no way how to adjust the thresholds in runtime.</p>
-
-<p>It goes without saying that Vert.x only checks the threads that were created as a result of calling Vert.x APIs. If you instantiate your own thread pool outside of Vert.x those threads won&rsquo;t be checked. If you want Vert.x to check the threads in your custom thread pool, you can ask Vert.x to instantiate a checked thread pool for you like this:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="c1">// create a thread pool with 20 threads, set blocked thread warning threshold to 10 seconds</span>
-</span><span class='line'><span class="n">WorkerExecutor</span> <span class="n">executor</span> <span class="o">=</span> <span class="n">vertx</span><span class="o">.</span><span class="na">createSharedWorkerExecutor</span><span class="o">(&amp;</span><span class="n">ldquo</span><span class="o">;</span><span class="n">mypool</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="o">;,</span> <span class="mi">20</span><span class="o">,</span> <span class="mi">10</span><span class="o">,</span> <span class="n">TimeUnit</span><span class="o">.</span><span class="na">SECONDS</span><span class="o">);</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>The good thing about the blocked thread checker is that it is able to detect thread delays regardless of whether they were caused by a call to a blocking API or by executing a compute intensive task. As such it can serve as a good indicator that there is something seriously wrong with your application.</p>
-
-<h2>Inspecting stack traces</h2>
-
-<p>Some event loop delays can be so subtle that they can go unnoticed by the blocked thread checker. Imagine a situation where you have a handler that causes a very short delay.  The blocked thread checker won&rsquo;t catch this short delay because it is not long enough to reach the threshold. However, if this handler is called very frequently, the aggregate delay caused by this handler can have a great impact on the performance of your application. How to uncover this kind of issue?</p>
-
-<p>A good option is to analyze Java thread dumps by hand. You can refer to <a href="https://dzone.com/articles/how-analyze-java-thread-dumps">this article</a> if you want to learn how to do it. Alternatively, you can use a Java profiler like <a href="[https://visualvm.github.io/](https://visualvm.github.io/">VisualVM</a> to find out in what parts of your code the most processing time is spent. Instead of writing a long prose about how to use VisualVM to troubleshoot a Vert.x application, I created a short video for you. You can watch this demo using <a href="[https://jmeter.apache.org/](https://jmeter.apache.org/">JMeter</a> and VisualVM to figure out the cause of delays of the Vert.x event loop:</p>
-
-<div style="text-align:center;">
-  <iframe width="560" height="315" src="https://www.youtube.com/embed/xxLVQMssLCk" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-</div>
-
-
-<h2>Conclusion</h2>
-
-<p>In this article, we talked about the blocked thread checker as a first indicator of the event loop delays. Next, I showed you in the video how to troubleshoot event loop delays in practice using VisualVM.</p>
-
-<p>I hope that I didn&rsquo;t scare you throughout this series by analyzing all the things that can go wrong when working with the thread model Vert.x is based on. In reality it&rsquo;s not so bad. One just has to pay attention to the event loop model while coding. The awesome performance that Vert.x applications can achieve is definitely a sufficient reward for the extra effort.</p>
-
-<p>If you got some battle scars while working with the event loop thread model in Vert.x, I would be interested in hearing your stories. Also, let me know if you found the video demonstration helpful or if you have suggestions for future videos. If you have any further questions or comments, feel free to add them to the comment section below.</p>
 ]]></content>
   </entry>
 
