@@ -4,7 +4,7 @@
   <title><![CDATA[Category: devops | Ales Nosek - The Software Practitioner]]></title>
   <link href="https://alesnosek.com/blog/categories/devops/atom.xml" rel="self"/>
   <link href="https://alesnosek.com/"/>
-  <updated>2020-11-25T08:21:25-08:00</updated>
+  <updated>2021-01-29T13:12:23-08:00</updated>
   <id>https://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,178 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[Monitoring Apache Airflow using Prometheus]]></title>
+    <link href="https://alesnosek.com/blog/2021/01/29/monitoring-apache-airflow-using-prometheus/"/>
+    <updated>2021-01-29T12:59:58-08:00</updated>
+    <id>https://alesnosek.com/blog/2021/01/29/monitoring-apache-airflow-using-prometheus</id>
+    <content type="html"><![CDATA[<p>This blog covers a proof of concept, which shows how to monitor Apache Airflow using Prometheus and Grafana.</p>
+
+<!-- more -->
+
+
+<h2>Airflow monitoring diagram</h2>
+
+<p>Let&rsquo;s discuss the big picture first. Apache Airflow can send <a href="https://airflow.apache.org/docs/1.10.12/metrics.html">metrics</a> using the statsd protocol. These metrics would normally be received by a <a href="https://github.com/statsd/statsd">statsd server</a> and stored in a backend of choice. Our goal though, is to send the metrics to <a href="https://prometheus.io/">Prometheus</a>. How can the statsd metrics be sent to Prometheus? It turns out that the Prometheus project comes with a <a href="https://github.com/prometheus/statsd_exporter">statsd_exporter</a> that functions as a bridge between statsd and Prometheus. The statsd_exporter receives statsd metrics on one side and exposes them as Prometheus metrics on the other side. The Prometheus server can then scrape the metrics exposed by the statsd_exporter. Overall, the Airflow monitoring diagram looks as follows:</p>
+
+<p><img class="center" src="/images/posts/airflow_monitoring_diagram.png"></p>
+
+<p>The diagram depicts three Airflow components: Webserver, Scheduler, and the Worker. The solid line starting at the Webserver, Scheduler, and Worker shows the metrics flowing from the Webserver, Scheduler, and the Worker to the statsd_exporter. The statsd_exporter aggregates the metrics, converts them to the Prometheus format, and exposes them as a Prometheus endpoint. This endpoint is periodically scraped by the Prometheus server, which persists the metrics in its database. Airflow metrics stored in Prometheus can then be viewed in the Grafana dashboard.</p>
+
+<p>The remaining sections of this blog will create the setup depicted in the above diagram. We are going to:</p>
+
+<ul>
+<li>configure Airflow to publish the statsd metrics</li>
+<li>convert the statsd metrics to Prometheus metrics using statsd_exporter</li>
+<li>deploy the Prometheus server to collect the metrics and make them available to Grafana</li>
+</ul>
+
+
+<p>By the end of the blog, you should be able to watch the Airflow metrics in the Grafana dashboard. Follow me to the next section, where we are going to start by installing Apache Airflow.</p>
+
+<h2>Enabling statsd metrics on Airflow</h2>
+
+<p>In this tutorial, I am using Python 3 and Apache Airflow version 1.10.12. First, create a Python virtual environment where Airflow will be installed:</p>
+
+<pre><code>$ python -m venv airflow-venv
+</code></pre>
+
+<p>Activate the virtual environment:</p>
+
+<pre><code>$ . airflow-venv/bin/activate
+</code></pre>
+
+<p>Install Apache Airflow along with the statsd client library:</p>
+
+<pre><code>$ pip install apache-airflow
+$ pip install statsd
+</code></pre>
+
+<p>Create the Airflow home directory in the default location:</p>
+
+<pre><code>$ mkdir ~/airflow
+</code></pre>
+
+<p>Create the Airflow database and the <code>airflow.cfg</code> configuration file:</p>
+
+<pre><code>$ airflow initdb
+</code></pre>
+
+<p>Open the Airflow configuration file <code>airflow.cfg</code> for editing:</p>
+
+<pre><code>$ vi ~/airflow/airflow.cfg
+</code></pre>
+
+<p>Turn on the statsd metrics by setting <code>statsd_on = True</code>. Before saving your changes, the statsd configuration should look as follows:</p>
+
+<pre><code>statsd_on = True
+statsd_host = localhost
+statsd_port = 8125
+statsd_prefix = airflow
+</code></pre>
+
+<p>Based on this configuration, Airflow is going to send the statsd metrics to the statsd server that will accept the metrics on <code>localhost:8125</code>.  We are going to start that server up in the next section.</p>
+
+<p>The last step in this section is to start the Airflow webserver and scheduler process. You may want to run these commands in two separate terminal windows. Make sure that you activate the Python virtual environment before issuing the commands:</p>
+
+<pre><code>$ airflow webserver
+$ airflow scheduler
+</code></pre>
+
+<p>At this point, the Airflow is running and sending statsd metrics to <code>localhost:8125</code>.  In the next section, we will spin up statsd_exporter, which will collect statsd metrics and export them as Prometheus metrics.</p>
+
+<h2>Converting statsd metrics to Prometheus metrics</h2>
+
+<p>Let&rsquo;s start this section by installing statsd_exporter. If you have the Golang environment properly set up on your machine, you can install statsd_exporter by simply issuing:</p>
+
+<pre><code>$ go get github.com/prometheus/statsd_exporter
+</code></pre>
+
+<p>Alternatively, you can deploy statsd_exporter using the <a href="https://registry.hub.docker.com/r/prom/statsd-exporter">prom/statsd-exporter</a> container image. The image documentation includes instructions on how to pull and run the image.</p>
+
+<p>While Airflow is running, start the statsd_exporter on the same machine:
+<code>
+$ statsd_exporter --statsd.listen-udp localhost:8125 --log.level debug
+level=info ts=2020-09-18T15:26:51.283Z caller=main.go:302 msg="Starting StatsD -&gt; Prometheus Exporter" version="(version=, branch=, revision=)"
+level=info ts=2020-09-18T15:26:51.283Z caller=main.go:303 msg="Build context" context="(go=go1.14.7, user=, date=)"
+level=info ts=2020-09-18T15:26:51.283Z caller=main.go:304 msg="Accepting StatsD Traffic" udp=localhost:8125 tcp=:9125 unixgram=
+level=info ts=2020-09-18T15:26:51.283Z caller=main.go:305 msg="Accepting Prometheus Requests" addr=:9102
+level=debug ts=2020-09-18T15:26:52.534Z caller=listener.go:69 msg="Incoming line" proto=udp line=airflow.executor.open_slots:32|g
+level=debug ts=2020-09-18T15:26:52.534Z caller=listener.go:69 msg="Incoming line" proto=udp line=airflow.executor.queued_tasks:0|g
+level=debug ts=2020-09-18T15:26:52.534Z caller=listener.go:69 msg="Incoming line" proto=udp line=airflow.executor.running_tasks:0|g
+level=debug ts=2020-09-18T15:26:52.534Z caller=listener.go:69 msg="Incoming line" proto=udp line=airflow.dag_processing.processes:1|c
+level=debug ts=2020-09-18T15:26:52.637Z caller=listener.go:69 msg="Incoming line" proto=udp line=airflow.dag_processing.processes:-1|c
+level=debug ts=2020-09-18T15:26:52.684Z caller=exporter.go:114 msg="counter must be non-negative value" metric=airflow_dag_processing_processes event_value=-1
+level=debug ts=2020-09-18T15:26:54.535Z caller=listener.go:69 msg="Incoming line" proto=udp line=airflow.executor.open_slots:32|g
+level=debug ts=2020-09-18T15:26:54.535Z caller=listener.go:69 msg="Incoming line" proto=udp line=airflow.executor.queued_tasks:0|g
+level=debug ts=2020-09-18T15:26:54.535Z caller=listener.go:69 msg="Incoming line" proto=udp line=airflow.executor.running_tasks:0|g
+level=debug ts=2020-09-18T15:26:54.535Z caller=listener.go:69 msg="Incoming line" proto=udp line=airflow.dag_processing.processes:1|c
+level=debug ts=2020-09-18T15:26:54.542Z caller=listener.go:69 msg="Incoming line" proto=udp line=airflow.dag.loading-duration.example_trigger_target_dag:0.004020|ms
+level=debug ts=2020-09-18T15:26:54.546Z caller=listener.go:69 msg="Incoming line" proto=udp line=airflow.scheduler_heartbeat:1|c
+level=debug ts=2020-09-18T15:26:54.637Z caller=listener.go:69 msg="Incoming line" proto=udp line=airflow.dag_processing.processes:-1|c
+...
+</code></p>
+
+<p>If everything went okay, you should see the Airflow metrics rolling on the screen, as in the above example. You can also verify that the statsd_exporter is doing its job and exposes the metrics in the Prometheus format. The Prometheus metrics should be reachable at <code>localhost:9102</code>. You can use curl to obtain the Prometheus metrics:</p>
+
+<pre><code>$ curl localhost:9102/metrics
+# HELP airflow_collect_dags Metric autogenerated by statsd_exporter.
+# TYPE airflow_collect_dags gauge
+airflow_collect_dags 50.056391
+# HELP airflow_dag_loading_duration_example_bash_operator Metric autogenerated by statsd_exporter.
+# TYPE airflow_dag_loading_duration_example_bash_operator summary
+airflow_dag_loading_duration_example_bash_operator{quantile="0.5"} 1.108e-06
+airflow_dag_loading_duration_example_bash_operator{quantile="0.9"} 4.942e-06
+airflow_dag_loading_duration_example_bash_operator{quantile="0.99"} 4.942e-06
+airflow_dag_loading_duration_example_bash_operator_sum 1.8886000000000002e-05
+airflow_dag_loading_duration_example_bash_operator_count 7
+# HELP airflow_dag_loading_duration_example_branch_dop_operator_v3 Metric autogenerated by statsd_exporter.
+# TYPE airflow_dag_loading_duration_example_branch_dop_operator_v3 summary
+airflow_dag_loading_duration_example_branch_dop_operator_v3{quantile="0.5"} 1.61e-06
+airflow_dag_loading_duration_example_branch_dop_operator_v3{quantile="0.9"} 5.776e-06
+airflow_dag_loading_duration_example_branch_dop_operator_v3{quantile="0.99"} 5.776e-06
+airflow_dag_loading_duration_example_branch_dop_operator_v3_sum 1.8076e-05
+airflow_dag_loading_duration_example_branch_dop_operator_v3_count 6
+...
+</code></pre>
+
+<h2>Collecting metrics using Prometheus</h2>
+
+<p>After completing the previous section, the Airflow metrics are now available in the Prometheus format. As a next step, we are going to deploy the Prometheus server that will collect these metrics. You can install the Prometheus server by running the command:</p>
+
+<pre><code>$ go get github.com/prometheus/prometheus/cmd/...
+</code></pre>
+
+<p>Note that a working Golang environment is required for the above command to succeed. Instead of installing Prometheus from the source, you can choose to use the existing <a href="https://hub.docker.com/r/prom/prometheus/">Prometheus</a> container image instead.</p>
+
+<p>The minimum Prometheus configuration that will collect the Airflow metrics looks like this:
+<code>
+scrape_configs:
+  - job_name: airflow
+    static_configs:
+      - targets: ['localhost:9102']
+</code>
+It instructs the Prometheus server to scrape the metrics from the endpoint <code>localhost:9102</code> periodically. Save the above configuration as a file named <code>prometheus.yml</code> and start the Prometheus server by issuing the command:</p>
+
+<pre><code>$ prometheus --config.file prometheus.yml
+</code></pre>
+
+<p>You can now use your browser to go to the Prometheus built-in dashboard at <a href="http://localhost:9090/graph">http://localhost:9090/graph</a> and check out the Airflow metrics.</p>
+
+<h2>Displaying metrics in Grafana</h2>
+
+<p>Finally, we are going to display the Airflow metrics using Grafana. Interestingly enough, I was not able to find any pre-existing Grafana dashboard for Airflow monitoring. So, I went ahead and created a basic dashboard that you can find on <a href="https://github.com/noseka1/monitoring-apache-airflow-using-prometheus">GitHub</a>. This dashboard may be a good start for you. If you make further improvements to the dashboard that you&rsquo;d like to share with the community, I would be happy to receive a pull request. Currently, the dashboard looks like this:</p>
+
+<p><img class="center" src="/images/posts/airflow_grafana_dashboard.png"></p>
+
+<h2>Conclusion</h2>
+
+<p>In this post, we deployed a proof of concept of Airflow monitoring using Prometheus. We deployed and configured Airflow to send metrics. We leveraged statsd_exporter to convert the metrics to the Prometheus format. We collected the metrics and saved them in Prometheus. Finally, we displayed the metrics on the Grafana dashboard. This proof of concept was spurred by my search for a way to monitor Apache Airflow, and it may be a good starting point for you. If you make further improvements to the dashboard that you’d like to share with the community, I would be happy to receive a pull request.</p>
+
+<p>I hope you enjoyed this blog. If you have any further questions or comments, please leave them in the comment section below.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[Apache Airflow Architecture on OpenShift]]></title>
@@ -338,513 +510,6 @@ Waiting for logs to be available...
 <p>This idea opens the door for you to utilize the advanced features of Envoy proxy in your microservices architecture. However, if you find yourself looking for a more complex solution down the road, I would suggest that you evaluate the <a href="https://istio.io/">Istio</a> project. Istio provides a control plane that can manage Envoy proxies for you achieving the so called service mesh.</p>
 
 <p>Hope you found this article useful. If you are using Envoy proxy on top of Kubernetes I would be happy to hear about your experiences. You can leave your comments in the comment section below.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[Installing OpenShift 4.1 Using Libvirt and KVM]]></title>
-    <link href="https://alesnosek.com/blog/2019/07/08/installing-openshift-4-dot-1-using-libvirt-and-kvm/"/>
-    <updated>2019-07-08T11:53:54-07:00</updated>
-    <id>https://alesnosek.com/blog/2019/07/08/installing-openshift-4-dot-1-using-libvirt-and-kvm</id>
-    <content type="html"><![CDATA[<p>In this blog post, I am going to talk about how I installed OpenShift 4.1 on a Fedora laptop with 16 GB of RAM. If you are interested in deploying your own OpenShift instance whether for evaluation or testing please follow along with me.</p>
-
-<!-- more -->
-
-
-<p>OpenShift 4.1 is the first GA release in the OpenShift 4 series. It is a significant leap forward in the evolution of OpenShift mainly due to the incorporation of features developed by the folks at CoreOS. In order to take a closer look at the latest and greatest version of OpenShift, I installed OpenShift 4.1 on my laptop using Libvirt and KVM. How did I accomplish this?</p>
-
-<p>I essentially followed the <a href="https://docs.openshift.com/container-platform/4.1/installing/installing_bare_metal/installing-bare-metal.html">guide</a> for installing the OpenShift cluster on bare metal and I recommend that you read this guide first. After you make yourself familiar with the bare metal installation process, read on to learn the details on how I made this process work on Libvirt and KVM.</p>
-
-<h2>Deployment overview</h2>
-
-<p>First, let&rsquo;s take a look at the diagram showing the deployment of the OpenShift cluster on Libvirt/KVM. In addition to the OpenShift cluster nodes, the diagram also depicts supplementary pieces of the user-provisioned infrastructure that you will need to deploy:</p>
-
-<p><img class="center" src="/images/posts/openshift_4_on_libvirt.png"></p>
-
-<p>In the diagram, you can see that there is an HTTP server and an oc client installed directly on the host machine. The remaining boxes in the diagram are virtual machines. I outlined the purpose of the virtual machines for you in the following table:</p>
-
-<table>
-<thead>
-<tr>
-<th> VM Name </th>
-<th> Operating System </th>
-<th> Purpose</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td> <em>dns</em> </td>
-<td> RHEL7 </td>
-<td> Custom Dnsmasq DNS server used by the load balancer, bootstrap node and OpenShift nodes. </td>
-</tr>
-<tr>
-<td> <em>loadbalancer</em> </td>
-<td> RHEL 7 </td>
-<td> HAProxy load balancer. Facilitates bootstrapping, balances the load between the master nodes and also between the ingress router pods. </td>
-</tr>
-<tr>
-<td> <em>bootstrap</em> </td>
-<td> RHCOS </td>
-<td> The bootstrap machine. Used one-time to initialize the OpenShift cluster. </td>
-</tr>
-<tr>
-<td> <em>master</em> </td>
-<td> RHCOS </td>
-<td> OpenShift master node. </td>
-</tr>
-<tr>
-<td> <em>worker-1</em> </td>
-<td> RHCOS </td>
-<td> OpenShift worker node. </td>
-</tr>
-</tbody>
-</table>
-
-
-<p>Note that the virtual machines are deployed across two Libvirt networks: <code>openshift-dns</code> and <code>openshift-cluster</code>. Using two Libvirt networks allowed me to meet the OpenShift DNS requirements and I will elaborate on this design later on in this post.</p>
-
-<p>After reviewing the big picture, let&rsquo;s roll up our sleeves and get to work. We are going to deal with the HTTP server first.</p>
-
-<h2>Setting up HTTP server</h2>
-
-<p>The OpenShift installation process assumes installation on empty virtual machines with no operating system pre-installed. There are two provisioning methods available to choose from. You can either provision OpenShift nodes by booting from an ISO image or you can leverage the PXE boot. I find the PXE boot option to take a bit more effort to configure and hence went with the ISO image method.</p>
-
-<p>Using the ISO image method, you are supposed to boot the virtual machines using the <code>rhcos-4.1.0-x86_64-installer.iso</code> CD-ROM image. During the boot from this image, the Red Hat CoreOS installer starts up and provisions an empty virtual machine in two steps:</p>
-
-<ol>
-<li>It downloads a disk image <code>rhcos-4.1.0-x86_64-metal-bios.raw.gz</code> from a URL you specify and writes it to the virtual machine&rsquo;s disk.</li>
-<li>It downloads one of the ignition files (e.g. <code>bootstrap.ign</code>, <code>master.ign</code>, or <code>worker.ign</code>) and installs it on the virtual machine&rsquo;s file system.  This ignition file contains configuration required for the bootstrap of the OpenShift cluster that is triggered on the next reboot.</li>
-</ol>
-
-
-<p>You are expected to host the aforementioned files on an HTTP server that is reachable from the OpenShift nodes during the provisioning process. To meet this requirement, I installed an Apache HTTP server on my Fedora host machine and copied the disk image and ignition files to the <code>/var/www/html</code> directory which is the default <code>DocumentRoot</code> directory on a Fedora host.</p>
-
-<h2>Addressing OpenShift DNS requirements</h2>
-
-<p>OpenShift <a href="https://docs.openshift.com/container-platform/4.1/installing/installing_bare_metal/installing-bare-metal.html#installation-dns-user-infra_installing-bare-metal">requires</a> a set of records to be configured in your DNS. In addition to simple A records, you must also configure a wildcard DNS record that points to the load balancer and an SRV DNS record for each of the etcd nodes.</p>
-
-<p>Libvirt allows you to insert custom A and SRV records into DNS. You can specify them using the <a href="https://libvirt.org/formatnetwork.html">network descriptor</a>. However, Libvirt doesn&rsquo;t support creating wildcard DNS records. The respective feature request can be found <a href="https://bugzilla.redhat.com/show_bug.cgi?id=1532856">here</a>. It would be great if it would be possible to meet the OpenShift DNS requirements by just configuring the DNS records in the Libvirt&rsquo;s network descriptor. However, as the wildcard DNS records were not supported at the time of this writing, I had to look for an alternative solution. After giving it some thought, I decided to spin up my own DNS server and instructed Libvirt to forward the DNS queries sent by the OpenShift nodes to this server. In order to achieve this, I had to define two networks in Libvirt: <code>openshift-dns</code> and <code>openshift-cluster</code>.</p>
-
-<p>Let&rsquo;s tackle the <code>openshift-dns</code> network first. A single virtual machine is connected to this network. This virtual machine hosts the custom DNS server. Here is the respective network XML descriptor:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;network&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;name&gt;</span>openshift-dns<span class="nt">&lt;/name&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;forward</span> <span class="na">mode=</span><span class="s">&#39;nat&#39;</span><span class="nt">&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;nat&gt;</span>
-</span><span class='line'>      <span class="nt">&lt;port</span> <span class="na">start=</span><span class="s">&#39;1024&#39;</span> <span class="na">end=</span><span class="s">&#39;65535&#39;</span><span class="nt">/&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;/nat&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;/forward&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;bridge</span> <span class="na">name=</span><span class="s">&#39;virbr-oshd&#39;</span> <span class="na">stp=</span><span class="s">&#39;on&#39;</span> <span class="na">delay=</span><span class="s">&#39;0&#39;</span><span class="nt">/&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;mac</span> <span class="na">address=</span><span class="s">&#39;52:54:00:2c:00:00&#39;</span><span class="nt">/&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;domain</span> <span class="na">name=</span><span class="s">&#39;mycluster.example.com&#39;</span> <span class="na">localOnly=</span><span class="s">&#39;no&#39;</span><span class="nt">/&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;ip</span> <span class="na">address=</span><span class="s">&#39;192.168.130.1&#39;</span> <span class="na">netmask=</span><span class="s">&#39;255.255.255.0&#39;</span><span class="nt">&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;dhcp&gt;</span>
-</span><span class='line'>      <span class="nt">&lt;range</span> <span class="na">start=</span><span class="s">&#39;192.168.130.10&#39;</span> <span class="na">end=</span><span class="s">&#39;192.168.130.254&#39;</span><span class="nt">/&gt;</span>
-</span><span class='line'>      <span class="nt">&lt;host</span> <span class="na">mac=</span><span class="s">&#39;52:54:00:2c:00:10&#39;</span> <span class="na">name=</span><span class="s">&#39;dns.mycluster.example.com&#39;</span> <span class="na">ip=</span><span class="s">&#39;192.168.130.10&#39;</span><span class="nt">/&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;/dhcp&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;/ip&gt;</span>
-</span><span class='line'><span class="nt">&lt;/network&gt;</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>As you can see in the descriptor, I prefer to manage virtual machine&rsquo;s MAC addresses and the associated IP addresses and host names by hand. The virtual machine <code>dns</code> that hosts my DNS server is connected to the <code>openshift-dns</code> network by including these settings in its domain configuration:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;domain</span> <span class="na">type=</span><span class="s">&#39;kvm&#39;</span><span class="nt">&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;name&gt;</span>dns.mycluster.example.com<span class="nt">&lt;/name&gt;</span>
-</span><span class='line'>  <span class="ni">&amp;hellip;</span>
-</span><span class='line'>    <span class="nt">&lt;interface</span> <span class="na">type=</span><span class="s">&#39;network&#39;</span><span class="nt">&gt;</span>
-</span><span class='line'>      <span class="nt">&lt;mac</span> <span class="na">address=</span><span class="s">&#39;52:54:00:2c:00:10&#39;</span><span class="nt">/&gt;</span>
-</span><span class='line'>      <span class="nt">&lt;source</span> <span class="na">network=</span><span class="s">&#39;openshift-dns&#39;</span><span class="nt">/&gt;</span>
-</span><span class='line'>      <span class="nt">&lt;model</span> <span class="na">type=</span><span class="s">&#39;virtio&#39;</span><span class="nt">/&gt;</span>
-</span><span class='line'>      <span class="nt">&lt;address</span> <span class="na">type=</span><span class="s">&#39;pci&#39;</span> <span class="na">domain=</span><span class="s">&#39;0x0000&#39;</span> <span class="na">bus=</span><span class="s">&#39;0x00&#39;</span> <span class="na">slot=</span><span class="s">&#39;0x03&#39;</span> <span class="na">function=</span><span class="s">&#39;0x0&#39;</span><span class="nt">/&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;/interface&gt;</span>
-</span><span class='line'>    <span class="ni">&amp;hellip;</span>
-</span><span class='line'><span class="nt">&lt;/domain&gt;</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>I installed Dnsmasq on this <code>dns</code> virtual machine and replaced the content of <code>/etc/dnsmasq.conf</code> with my own configuration:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='ini'><span class='line'><span class="na">local</span><span class="o">=</span><span class="s">/mycluster.example.com/</span>
-</span><span class='line'><span class="na">address</span><span class="o">=</span><span class="s">/apps.mycluster.example.com/192.168.131.10</span>
-</span><span class='line'><span class="na">srv-host</span><span class="o">=</span><span class="s">&lt;em&gt;etcd-server-ssl.&lt;/em&gt;tcp.mycluster.example.com,master.mycluster.example.com,2380,0,10</span>
-</span><span class='line'><span class="err">no-hosts</span>
-</span><span class='line'><span class="na">addn-hosts</span><span class="o">=</span><span class="s">/etc/dnsmasq.openshift.addnhosts</span>
-</span><span class='line'><span class="na">conf-dir</span><span class="o">=</span><span class="s">/etc/dnsmasq.d,.rpmnew,.rpmsave,.rpmorig</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>The listing of the <code>/etc/dnsmasq.openshift.addnhosts</code> file referred to in the above configuration looks as follows:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>192.168.130.10 dns.mycluster.example.com
-</span><span class='line'>192.168.131.10 loadbalancer.mycluster.example.com  api.mycluster.example.com  api-int.mycluster.example.com
-</span><span class='line'>192.168.131.11 bootstrap.mycluster.example.com
-</span><span class='line'>192.168.131.12 master.mycluster.example.com  etcd-0.mycluster.example.com
-</span><span class='line'>192.168.131.13 worker-1.mycluster.example.com
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>This configuration addresses the user-provisioned DNS requirements as specified in the <a href="https://docs.openshift.com/container-platform/4.1/installing/installing_bare_metal/installing-bare-metal.html">installation guide</a>.</p>
-
-<p>In the next step, we want to make the load balancer machine and OpenShift nodes resolve their DNS queries using our custom DNS server. In order to achieve that, we define a second Libvirt network called <code>openshift-cluster</code> and place the load balancer and OpenShift nodes onto this network. The definition of the <code>openshift-cluster</code> network looks like this:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;network&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;name&gt;</span>openshift-cluster<span class="nt">&lt;/name&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;forward</span> <span class="na">mode=</span><span class="s">&#39;nat&#39;</span><span class="nt">&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;nat&gt;</span>
-</span><span class='line'>      <span class="nt">&lt;port</span> <span class="na">start=</span><span class="s">&#39;1024&#39;</span> <span class="na">end=</span><span class="s">&#39;65535&#39;</span><span class="nt">/&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;/nat&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;/forward&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;bridge</span> <span class="na">name=</span><span class="s">&#39;virbr-osh&#39;</span> <span class="na">stp=</span><span class="s">&#39;on&#39;</span> <span class="na">delay=</span><span class="s">&#39;0&#39;</span><span class="nt">/&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;mac</span> <span class="na">address=</span><span class="s">&#39;52:54:00:2c:01:00&#39;</span><span class="nt">/&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;domain</span> <span class="na">name=</span><span class="s">&#39;mycluster.example.com&#39;</span> <span class="na">localOnly=</span><span class="s">&#39;no&#39;</span><span class="nt">/&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;dns&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;forwarder</span> <span class="na">addr=</span><span class="s">&#39;192.168.130.10&#39;</span><span class="nt">/&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;/dns&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;ip</span> <span class="na">address=</span><span class="s">&#39;192.168.131.1&#39;</span> <span class="na">netmask=</span><span class="s">&#39;255.255.255.0&#39;</span><span class="nt">&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;dhcp&gt;</span>
-</span><span class='line'>      <span class="nt">&lt;range</span> <span class="na">start=</span><span class="s">&#39;192.168.131.10&#39;</span> <span class="na">end=</span><span class="s">&#39;192.168.131.254&#39;</span><span class="nt">/&gt;</span>
-</span><span class='line'>      <span class="nt">&lt;host</span> <span class="na">mac=</span><span class="s">&#39;52:54:00:2c:01:10&#39;</span> <span class="na">name=</span><span class="s">&#39;loadbalancer.mycluster.example.com&#39;</span> <span class="na">ip=</span><span class="s">&#39;192.168.131.10&#39;</span><span class="nt">/&gt;</span>
-</span><span class='line'>      <span class="nt">&lt;host</span> <span class="na">mac=</span><span class="s">&#39;52:54:00:2c:01:11&#39;</span> <span class="na">name=</span><span class="s">&#39;bootstrap.mycluster.example.com&#39;</span> <span class="na">ip=</span><span class="s">&#39;192.168.131.11&#39;</span><span class="nt">/&gt;</span>
-</span><span class='line'>      <span class="nt">&lt;host</span> <span class="na">mac=</span><span class="s">&#39;52:54:00:2c:01:12&#39;</span> <span class="na">name=</span><span class="s">&#39;master.mycluster.example.com&#39;</span> <span class="na">ip=</span><span class="s">&#39;192.168.131.12&#39;</span><span class="nt">/&gt;</span>
-</span><span class='line'>      <span class="nt">&lt;host</span> <span class="na">mac=</span><span class="s">&#39;52:54:00:2c:01:13&#39;</span> <span class="na">name=</span><span class="s">&#39;worker-1.mycluster.example.com&#39;</span> <span class="na">ip=</span><span class="s">&#39;192.168.131.13&#39;</span><span class="nt">/&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;/dhcp&gt;</span>
-</span><span class='line'>  <span class="nt">&lt;/ip&gt;</span>
-</span><span class='line'><span class="nt">&lt;/network&gt;</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Note the <code>&lt;forwarder addr='192.168.130.10'/&gt;</code> setting which allows all DNS requests from the load balancer and OpenShift nodes deployed on this network to be forwarded to our custom DNS server. Remember that the IP address <code>192.168.130.10</code> is the address of our custom DNS server that we configured previously.</p>
-
-<p>With the DNS configuration out of the way, let&rsquo;s continue with deploying a load balancer in the next section.</p>
-
-<h2>Setting up a load balancer</h2>
-
-<p>Installing OpenShift on a user-provisioned infrastructure requires you to provision a load balancer. The details on how the load balancer should be configured can be found in the <a href="https://docs.openshift.com/container-platform/4.1/installing/installing_bare_metal/installing-bare-metal.html#installation-network-user-infra_installing-bare-metal">networking requirements</a> section of the OpenShift installation guide.</p>
-
-<p>The load balancer is used during the bootstrapping process to route the requests to the bootstrap and the master nodes. After the OpenShift installation is complete, the load balancer remains part of the deployment and balances load between the master nodes and also between the ingress router pods.</p>
-
-<p>I created a dedicated virtual machine called <code>loadbalancer</code> and installed HAProxy on top of it. The HAProxy configuration is pretty straight forward. Here is the listing of the <code>/etc/haproxy/haproxy.cfg</code> file:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-<span class='line-number'>44</span>
-<span class='line-number'>45</span>
-<span class='line-number'>46</span>
-<span class='line-number'>47</span>
-<span class='line-number'>48</span>
-<span class='line-number'>49</span>
-<span class='line-number'>50</span>
-<span class='line-number'>51</span>
-<span class='line-number'>52</span>
-<span class='line-number'>53</span>
-<span class='line-number'>54</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>global
-</span><span class='line'>    log         127.0.0.1 local2 info
-</span><span class='line'>    chroot      /var/lib/haproxy
-</span><span class='line'>    pidfile     /var/run/haproxy.pid
-</span><span class='line'>    maxconn     4000
-</span><span class='line'>    user        haproxy
-</span><span class='line'>    group       haproxy
-</span><span class='line'>    daemon&lt;/p>
-</span><span class='line'>
-</span><span class='line'>&lt;p>defaults
-</span><span class='line'>    timeout connect         5s
-</span><span class='line'>    timeout client          30s
-</span><span class='line'>    timeout server          30s
-</span><span class='line'>    log                     global&lt;/p>
-</span><span class='line'>
-</span><span class='line'>&lt;p>frontend kubernetes_api
-</span><span class='line'>    bind 0.0.0.0:6443
-</span><span class='line'>    default_backend kubernetes_api&lt;/p>
-</span><span class='line'>
-</span><span class='line'>&lt;p>backend kubernetes_api
-</span><span class='line'>    balance roundrobin
-</span><span class='line'>    option ssl-hello-chk
-</span><span class='line'>    server bootstrap bootstrap.mycluster.example.com:6443 check
-</span><span class='line'>    server master master.mycluster.example.com:6443 check&lt;/p>
-</span><span class='line'>
-</span><span class='line'>&lt;p>frontend machine_config
-</span><span class='line'>    bind 0.0.0.0:22623
-</span><span class='line'>    default_backend machine_config&lt;/p>
-</span><span class='line'>
-</span><span class='line'>&lt;p>backend machine_config
-</span><span class='line'>    balance roundrobin
-</span><span class='line'>    option ssl-hello-chk
-</span><span class='line'>    server bootstrap bootstrap.mycluster.example.com:22623 check
-</span><span class='line'>    server master master.mycluster.example.com:22623 check&lt;/p>
-</span><span class='line'>
-</span><span class='line'>&lt;p>frontend router_https
-</span><span class='line'>    bind 0.0.0.0:443
-</span><span class='line'>    default_backend router_https&lt;/p>
-</span><span class='line'>
-</span><span class='line'>&lt;p>backend router_https
-</span><span class='line'>    balance roundrobin
-</span><span class='line'>    option ssl-hello-chk
-</span><span class='line'>    server worker-1 worker-1.mycluster.example.com:443 check&lt;/p>
-</span><span class='line'>
-</span><span class='line'>&lt;p>frontend router_http
-</span><span class='line'>    mode http
-</span><span class='line'>    option httplog
-</span><span class='line'>    bind 0.0.0.0:80
-</span><span class='line'>    default_backend router_http&lt;/p>
-</span><span class='line'>
-</span><span class='line'>&lt;p>backend router_http
-</span><span class='line'>    mode http
-</span><span class='line'>    balance roundrobin
-</span><span class='line'>    server worker-1 worker-1.mycluster.example.com:80 check</span></code></pre></td></tr></table></div></figure></p>
-
-<p>With the load balancer in place, we will move on to creating OpenShift virtual machines in the next section.</p>
-
-<h2>Creating OpenShift virtual machines</h2>
-
-<p>The official installation guide <a href="https://docs.openshift.com/container-platform/4.1/installing/installing_bare_metal/installing-bare-metal.html#machine-requirements_installing-bare-metal">defines</a> minimum machine requirements for installing an OpenShift cluster as follows:</p>
-
-<ul>
-<li>One bootstrap machine</li>
-<li>Three control plane, or master, machines</li>
-<li>At least two compute, or worker, machines</li>
-</ul>
-
-
-<p>If you can meet these requirements, you will achieve the smallest <em>highly available</em> OpenShift cluster. However, do we really need high availability for our test installation?</p>
-
-<p>Internally, OpenShift uses <a href="https://etcd.io/">etcd</a> to store its state. Since etcd is a quorum-based cluster, it requires at least three nodes to achieve high availability. These etcd nodes are installed on OpenShift master machines which is the reason for the minimum requirement of three OpenShift master machines. In our limited environment, we are going to give up on high availability and instead save up two master machines. OpenShift can install with a single master machine just fine if you can accept the fact that the OpenShift control plane won&rsquo;t be highly available.</p>
-
-<p>And what about the requirement of two worker machines? The minimum requirement of two worker machines ensures that there will be at least two OpenShift routers running on the cluster. OpenShift router is an ingress point for external traffic to reach application pods running on OpenShift. Production installations require that at least two routers are installed to avoid a single point of failure. Furthermore, a highly available load balancer is deployed in front of the two routers. In a data center, a hardware load balancer is typically used, in cloud environments like AWS an Elastic Load Balancer can be utilized. As we don&rsquo;t pursue a highly available deployment, we are going to install an OpenShift cluster with a single worker machine. There will be a single router running on top of this cluster which we hereby accept.</p>
-
-<p>This discussion leads us to the minimum requirements for a <em>not highly available</em> OpenShift cluster:</p>
-
-<ul>
-<li>One bootstrap machine</li>
-<li>One control plane, or master, machine</li>
-<li>One compute, or worker, machine</li>
-</ul>
-
-
-<p>In regards to the minimum memory requirements for each of the machines, I was able to install OpenShift on virtual machines with the following memory configuration:</p>
-
-<table>
-<thead>
-<tr>
-<th> Machine        </th>
-<th> RAM  </th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td> Bootstrap      </td>
-<td> 4 GB </td>
-</tr>
-<tr>
-<td> Control plane  </td>
-<td> 6 GB </td>
-</tr>
-<tr>
-<td> Compute        </td>
-<td> 6 GB </td>
-</tr>
-</tbody>
-</table>
-
-
-<p>Note that the above memory requirements allow you to properly deploy the OpenShift cluster including the monitoring and log collection components. Furthermore, there will be enough capacity left on the worker node for you to run several hello world applications.</p>
-
-<p>This concludes the user-provisioned infrastructure setup. At this point, we have HTTP server, DNS server, load balancer and a set of empty virtual machines in place. Let&rsquo;s dive into the OpenShift installation in the next section.</p>
-
-<h2>Installing OpenShift 4.1</h2>
-
-<p>The installation of OpenShift 4 starts with crafting an installation configuration file. You can use the <code>install-config.yaml</code> configuration file that I created, just remember to replace the placeholders with your own pull secret and public SSH key:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">apiVersion</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">v1</span>
-</span><span class='line'><span class="l-Scalar-Plain">baseDomain</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">example.com</span>
-</span><span class='line'><span class="l-Scalar-Plain">compute</span><span class="p-Indicator">:</span>
-</span><span class='line'><span class="p-Indicator">-</span> <span class="l-Scalar-Plain">hyperthreading</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Enabled</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">worker</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">platform</span><span class="p-Indicator">:</span> <span class="p-Indicator">{}</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">replicas</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">0</span>
-</span><span class='line'><span class="l-Scalar-Plain">controlPlane</span><span class="p-Indicator">:</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">hyperthreading</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Enabled</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">master</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">platform</span><span class="p-Indicator">:</span> <span class="p-Indicator">{}</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">replicas</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">1</span>
-</span><span class='line'><span class="l-Scalar-Plain">metadata</span><span class="p-Indicator">:</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">creationTimestamp</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">null</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">mycluster</span>
-</span><span class='line'><span class="l-Scalar-Plain">networking</span><span class="p-Indicator">:</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">clusterNetwork</span><span class="p-Indicator">:</span>
-</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">cidr</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">10.128.0.0/14</span>
-</span><span class='line'>    <span class="l-Scalar-Plain">hostPrefix</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">23</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">networkType</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">OpenShiftSDN</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">serviceNetwork</span><span class="p-Indicator">:</span>
-</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">172.30.0.0/16</span>
-</span><span class='line'><span class="l-Scalar-Plain">platform</span><span class="p-Indicator">:</span>
-</span><span class='line'>  <span class="l-Scalar-Plain">none</span><span class="p-Indicator">:</span> <span class="p-Indicator">{}</span>
-</span><span class='line'><span class="l-Scalar-Plain">pullSecret</span><span class="p-Indicator">:</span> <span class="nl">&amp;lsquo</span><span class="l-Scalar-Plain">;&lt;INSERT_YOUR_PULL_SECRET_HERE&gt;&amp;rsquo;</span>
-</span><span class='line'><span class="l-Scalar-Plain">sshKey</span><span class="p-Indicator">:</span> <span class="nl">&amp;lsquo</span><span class="l-Scalar-Plain">;&lt;INSERT_YOUR_PUBLIC_SSH_KEY_HERE&gt;&amp;rsquo;</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>The OpenShift installation is actually driven by the ignition configuration files. You can issue this command to generate ignition configuration files out of your <code>install-config.yaml</code> file:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>./openshift-install create ignition-configs
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Beware that the above command will remove your handcrafted <code>install-config.yaml</code> from the disk. I found this behavior of the    <code>openshift-install</code> tool rather annoying. In order to not lose my configuration settings, I protect the <code>install-config.yaml</code> file from deletion by creating a hard link like this:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>ln install-config.yaml install-config.yaml.hardlink
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>And after the <code>install-config.yaml</code> file is deleted, I can simply recreate it with:</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>ln install-config.yaml.hardlink install-config.yaml
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Finally, we can use our ignition files to kick off the OpenShift installation process which deploys OpenShift cluster on our fleet of virtual machines. The whole process takes about 30 minutes and consists of several steps:</p>
-
-<ol>
-<li>Provision and reboot the bootstrap machine</li>
-<li>Provision and reboot the master machine</li>
-<li>Bootstrap the master machine</li>
-<li>Shut down the bootstrap machine</li>
-<li>Provision and reboot the worker machine</li>
-<li>Worker machine joins the OpenShift cluster</li>
-</ol>
-
-
-<p>Note that after you bootstrap the master machine, you should shut down the bootstrap machine. Only after that, you should boot up the worker machine. On startup, the worker node registers with the master node and forms an OpenShift cluster.</p>
-
-<h2>Conclusion</h2>
-
-<p>In this blog post, we discussed how to deploy OpenShift 4.1 into the Libvirt/KVM-based virtualized environment. We created and configured a bunch of user-provisioned infrastructure which was a prerequisite for the OpenShift installation. With the user-provisioned infrastructure in place, we followed the OpenShift bare metal deployment guide to create an OpenShift cluster.</p>
-
-<p>I hope that you found this article useful and you have your OpenShift 4.1 cluster running by now. If you have any questions or comments please feel free to add them to the comment section below.</p>
 ]]></content>
   </entry>
 

@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="https://alesnosek.com/atom.xml" rel="self"/>
   <link href="https://alesnosek.com/"/>
-  <updated>2020-11-25T08:21:25-08:00</updated>
+  <updated>2021-01-29T13:12:23-08:00</updated>
   <id>https://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,237 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[Monitoring Apache Airflow using Prometheus]]></title>
+    <link href="https://alesnosek.com/blog/2021/01/29/monitoring-apache-airflow-using-prometheus/"/>
+    <updated>2021-01-29T12:59:58-08:00</updated>
+    <id>https://alesnosek.com/blog/2021/01/29/monitoring-apache-airflow-using-prometheus</id>
+    <content type="html"><![CDATA[<p>This blog covers a proof of concept, which shows how to monitor Apache Airflow using Prometheus and Grafana.</p>
+
+<!-- more -->
+
+
+<h2>Airflow monitoring diagram</h2>
+
+<p>Let&rsquo;s discuss the big picture first. Apache Airflow can send <a href="https://airflow.apache.org/docs/1.10.12/metrics.html">metrics</a> using the statsd protocol. These metrics would normally be received by a <a href="https://github.com/statsd/statsd">statsd server</a> and stored in a backend of choice. Our goal though, is to send the metrics to <a href="https://prometheus.io/">Prometheus</a>. How can the statsd metrics be sent to Prometheus? It turns out that the Prometheus project comes with a <a href="https://github.com/prometheus/statsd_exporter">statsd_exporter</a> that functions as a bridge between statsd and Prometheus. The statsd_exporter receives statsd metrics on one side and exposes them as Prometheus metrics on the other side. The Prometheus server can then scrape the metrics exposed by the statsd_exporter. Overall, the Airflow monitoring diagram looks as follows:</p>
+
+<p><img class="center" src="https://alesnosek.com/images/posts/airflow_monitoring_diagram.png"></p>
+
+<p>The diagram depicts three Airflow components: Webserver, Scheduler, and the Worker. The solid line starting at the Webserver, Scheduler, and Worker shows the metrics flowing from the Webserver, Scheduler, and the Worker to the statsd_exporter. The statsd_exporter aggregates the metrics, converts them to the Prometheus format, and exposes them as a Prometheus endpoint. This endpoint is periodically scraped by the Prometheus server, which persists the metrics in its database. Airflow metrics stored in Prometheus can then be viewed in the Grafana dashboard.</p>
+
+<p>The remaining sections of this blog will create the setup depicted in the above diagram. We are going to:</p>
+
+<ul>
+<li>configure Airflow to publish the statsd metrics</li>
+<li>convert the statsd metrics to Prometheus metrics using statsd_exporter</li>
+<li>deploy the Prometheus server to collect the metrics and make them available to Grafana</li>
+</ul>
+
+
+<p>By the end of the blog, you should be able to watch the Airflow metrics in the Grafana dashboard. Follow me to the next section, where we are going to start by installing Apache Airflow.</p>
+
+<h2>Enabling statsd metrics on Airflow</h2>
+
+<p>In this tutorial, I am using Python 3 and Apache Airflow version 1.10.12. First, create a Python virtual environment where Airflow will be installed:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ python -m venv airflow-venv</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Activate the virtual environment:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ . airflow-venv/bin/activate</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Install Apache Airflow along with the statsd client library:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ pip install apache-airflow
+</span><span class='line'>$ pip install statsd</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Create the Airflow home directory in the default location:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ mkdir ~/airflow</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Create the Airflow database and the <code>airflow.cfg</code> configuration file:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ airflow initdb</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Open the Airflow configuration file <code>airflow.cfg</code> for editing:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ vi ~/airflow/airflow.cfg</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Turn on the statsd metrics by setting <code>statsd_on = True</code>. Before saving your changes, the statsd configuration should look as follows:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>statsd_on = True
+</span><span class='line'>statsd_host = localhost
+</span><span class='line'>statsd_port = 8125
+</span><span class='line'>statsd_prefix = airflow</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Based on this configuration, Airflow is going to send the statsd metrics to the statsd server that will accept the metrics on <code>localhost:8125</code>.  We are going to start that server up in the next section.</p>
+
+<p>The last step in this section is to start the Airflow webserver and scheduler process. You may want to run these commands in two separate terminal windows. Make sure that you activate the Python virtual environment before issuing the commands:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ airflow webserver
+</span><span class='line'>$ airflow scheduler</span></code></pre></td></tr></table></div></figure>
+
+
+<p>At this point, the Airflow is running and sending statsd metrics to <code>localhost:8125</code>.  In the next section, we will spin up statsd_exporter, which will collect statsd metrics and export them as Prometheus metrics.</p>
+
+<h2>Converting statsd metrics to Prometheus metrics</h2>
+
+<p>Let&rsquo;s start this section by installing statsd_exporter. If you have the Golang environment properly set up on your machine, you can install statsd_exporter by simply issuing:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ go get github.com/prometheus/statsd_exporter</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Alternatively, you can deploy statsd_exporter using the <a href="https://registry.hub.docker.com/r/prom/statsd-exporter">prom/statsd-exporter</a> container image. The image documentation includes instructions on how to pull and run the image.</p>
+
+<p>While Airflow is running, start the statsd_exporter on the same machine:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ statsd_exporter --statsd.listen-udp localhost:8125 --log.level debug
+</span><span class='line'>level=info ts=2020-09-18T15:26:51.283Z caller=main.go:302 msg="Starting StatsD -&gt; Prometheus Exporter" version="(version=, branch=, revision=)"
+</span><span class='line'>level=info ts=2020-09-18T15:26:51.283Z caller=main.go:303 msg="Build context" context="(go=go1.14.7, user=, date=)"
+</span><span class='line'>level=info ts=2020-09-18T15:26:51.283Z caller=main.go:304 msg="Accepting StatsD Traffic" udp=localhost:8125 tcp=:9125 unixgram=
+</span><span class='line'>level=info ts=2020-09-18T15:26:51.283Z caller=main.go:305 msg="Accepting Prometheus Requests" addr=:9102
+</span><span class='line'>level=debug ts=2020-09-18T15:26:52.534Z caller=listener.go:69 msg="Incoming line" proto=udp line=airflow.executor.open_slots:32|g
+</span><span class='line'>level=debug ts=2020-09-18T15:26:52.534Z caller=listener.go:69 msg="Incoming line" proto=udp line=airflow.executor.queued_tasks:0|g
+</span><span class='line'>level=debug ts=2020-09-18T15:26:52.534Z caller=listener.go:69 msg="Incoming line" proto=udp line=airflow.executor.running_tasks:0|g
+</span><span class='line'>level=debug ts=2020-09-18T15:26:52.534Z caller=listener.go:69 msg="Incoming line" proto=udp line=airflow.dag_processing.processes:1|c
+</span><span class='line'>level=debug ts=2020-09-18T15:26:52.637Z caller=listener.go:69 msg="Incoming line" proto=udp line=airflow.dag_processing.processes:-1|c
+</span><span class='line'>level=debug ts=2020-09-18T15:26:52.684Z caller=exporter.go:114 msg="counter must be non-negative value" metric=airflow_dag_processing_processes event_value=-1
+</span><span class='line'>level=debug ts=2020-09-18T15:26:54.535Z caller=listener.go:69 msg="Incoming line" proto=udp line=airflow.executor.open_slots:32|g
+</span><span class='line'>level=debug ts=2020-09-18T15:26:54.535Z caller=listener.go:69 msg="Incoming line" proto=udp line=airflow.executor.queued_tasks:0|g
+</span><span class='line'>level=debug ts=2020-09-18T15:26:54.535Z caller=listener.go:69 msg="Incoming line" proto=udp line=airflow.executor.running_tasks:0|g
+</span><span class='line'>level=debug ts=2020-09-18T15:26:54.535Z caller=listener.go:69 msg="Incoming line" proto=udp line=airflow.dag_processing.processes:1|c
+</span><span class='line'>level=debug ts=2020-09-18T15:26:54.542Z caller=listener.go:69 msg="Incoming line" proto=udp line=airflow.dag.loading-duration.example_trigger_target_dag:0.004020|ms
+</span><span class='line'>level=debug ts=2020-09-18T15:26:54.546Z caller=listener.go:69 msg="Incoming line" proto=udp line=airflow.scheduler_heartbeat:1|c
+</span><span class='line'>level=debug ts=2020-09-18T15:26:54.637Z caller=listener.go:69 msg="Incoming line" proto=udp line=airflow.dag_processing.processes:-1|c
+</span><span class='line'>...</span></code></pre></td></tr></table></div></figure>
+
+
+<p>If everything went okay, you should see the Airflow metrics rolling on the screen, as in the above example. You can also verify that the statsd_exporter is doing its job and exposes the metrics in the Prometheus format. The Prometheus metrics should be reachable at <code>localhost:9102</code>. You can use curl to obtain the Prometheus metrics:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl localhost:9102/metrics
+</span><span class='line'># HELP airflow_collect_dags Metric autogenerated by statsd_exporter.
+</span><span class='line'># TYPE airflow_collect_dags gauge
+</span><span class='line'>airflow_collect_dags 50.056391
+</span><span class='line'># HELP airflow_dag_loading_duration_example_bash_operator Metric autogenerated by statsd_exporter.
+</span><span class='line'># TYPE airflow_dag_loading_duration_example_bash_operator summary
+</span><span class='line'>airflow_dag_loading_duration_example_bash_operator{quantile="0.5"} 1.108e-06
+</span><span class='line'>airflow_dag_loading_duration_example_bash_operator{quantile="0.9"} 4.942e-06
+</span><span class='line'>airflow_dag_loading_duration_example_bash_operator{quantile="0.99"} 4.942e-06
+</span><span class='line'>airflow_dag_loading_duration_example_bash_operator_sum 1.8886000000000002e-05
+</span><span class='line'>airflow_dag_loading_duration_example_bash_operator_count 7
+</span><span class='line'># HELP airflow_dag_loading_duration_example_branch_dop_operator_v3 Metric autogenerated by statsd_exporter.
+</span><span class='line'># TYPE airflow_dag_loading_duration_example_branch_dop_operator_v3 summary
+</span><span class='line'>airflow_dag_loading_duration_example_branch_dop_operator_v3{quantile="0.5"} 1.61e-06
+</span><span class='line'>airflow_dag_loading_duration_example_branch_dop_operator_v3{quantile="0.9"} 5.776e-06
+</span><span class='line'>airflow_dag_loading_duration_example_branch_dop_operator_v3{quantile="0.99"} 5.776e-06
+</span><span class='line'>airflow_dag_loading_duration_example_branch_dop_operator_v3_sum 1.8076e-05
+</span><span class='line'>airflow_dag_loading_duration_example_branch_dop_operator_v3_count 6
+</span><span class='line'>...</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Collecting metrics using Prometheus</h2>
+
+<p>After completing the previous section, the Airflow metrics are now available in the Prometheus format. As a next step, we are going to deploy the Prometheus server that will collect these metrics. You can install the Prometheus server by running the command:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ go get github.com/prometheus/prometheus/cmd/...</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Note that a working Golang environment is required for the above command to succeed. Instead of installing Prometheus from the source, you can choose to use the existing <a href="https://hub.docker.com/r/prom/prometheus/">Prometheus</a> container image instead.</p>
+
+<p>The minimum Prometheus configuration that will collect the Airflow metrics looks like this:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>scrape_configs:
+</span><span class='line'>  - job_name: airflow
+</span><span class='line'>    static_configs:
+</span><span class='line'>      - targets: ['localhost:9102']</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It instructs the Prometheus server to scrape the metrics from the endpoint <code>localhost:9102</code> periodically. Save the above configuration as a file named <code>prometheus.yml</code> and start the Prometheus server by issuing the command:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ prometheus --config.file prometheus.yml</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You can now use your browser to go to the Prometheus built-in dashboard at <a href="http://localhost:9090/graph">http://localhost:9090/graph</a> and check out the Airflow metrics.</p>
+
+<h2>Displaying metrics in Grafana</h2>
+
+<p>Finally, we are going to display the Airflow metrics using Grafana. Interestingly enough, I was not able to find any pre-existing Grafana dashboard for Airflow monitoring. So, I went ahead and created a basic dashboard that you can find on <a href="https://github.com/noseka1/monitoring-apache-airflow-using-prometheus">GitHub</a>. This dashboard may be a good start for you. If you make further improvements to the dashboard that you&rsquo;d like to share with the community, I would be happy to receive a pull request. Currently, the dashboard looks like this:</p>
+
+<p><img class="center" src="https://alesnosek.com/images/posts/airflow_grafana_dashboard.png"></p>
+
+<h2>Conclusion</h2>
+
+<p>In this post, we deployed a proof of concept of Airflow monitoring using Prometheus. We deployed and configured Airflow to send metrics. We leveraged statsd_exporter to convert the metrics to the Prometheus format. We collected the metrics and saved them in Prometheus. Finally, we displayed the metrics on the Grafana dashboard. This proof of concept was spurred by my search for a way to monitor Apache Airflow, and it may be a good starting point for you. If you make further improvements to the dashboard that you’d like to share with the community, I would be happy to receive a pull request.</p>
+
+<p>I hope you enjoyed this blog. If you have any further questions or comments, please leave them in the comment section below.</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[14 Best Practices for Developing Applications on OpenShift]]></title>
@@ -2461,43 +2692,6 @@
 <p>In this blog post, we compared the basic characteristics of OpenAPI and gRPC. OpenAPI is a great choice due to its interoperability. On the other hand, gRPC offers a better performance. However, you don&rsquo;t have to choose one or the other. You can happily combine both technologies in a single system.</p>
 
 <p>I hope you enjoyed this article. If you are looking into OpenAPI or gRPC I would be happy to hear about your thoughts. Please, feel free to leave your comments in the comment section below.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[Tips for Passing the Red Hat Certified Specialist in Gluster Storage Administration Exam]]></title>
-    <link href="https://alesnosek.com/blog/2018/12/28/tips-for-passing-the-red-hat-certified-specialist-in-gluster-storage-administration-exam/"/>
-    <updated>2018-12-28T11:24:40-08:00</updated>
-    <id>https://alesnosek.com/blog/2018/12/28/tips-for-passing-the-red-hat-certified-specialist-in-gluster-storage-administration-exam</id>
-    <content type="html"><![CDATA[<p>Recently I passed the <a href="https://www.redhat.com/en/services/training/ex236-red-hat-certified-specialist-in-gluster-storage-administration-exam">Red Hat Certified Specialist in Gluster Storage Administration</a> exam. In this blog post, I would like to share some of my experience and exam tips with you.</p>
-
-<!-- more -->
-
-
-<p>There are two major open-source storage technologies available today: <a href="https://ceph.com/">Ceph</a> and <a href="https://www.gluster.org/">Gluster</a>. For a couple of years, I used Ceph as a provider of a block and object storage for an OpenStack cluster with great success. I was curious to learn about what Gluster has to offer. To explore Gluster, I leveraged the training materials and labs included in my <a href="https://www.redhat.com/en/services/training/learning-subscription">Red Hat Learning Subscription</a>. Also, to give myself a particular goal to achieve, I signed up for the Red Hat Certified Specialist in Gluster Storage Administration exam. The main topics included on the exam are creating different types of Gluster volumes, volume snapshotting, exporting Gluster volumes via highly-available NFS and Samba, asynchronous replication (geo-replication), tiered volumes and transport security.</p>
-
-<p>As I was working through the learning materials for the first time, I used the provided virtual machines to solve the lab exercises. I liked that after I completed the exercise I could run a grading script that would check my configuration and to see if anything was still missing. However, after I realized that setting up a Gluster cluster from scratch doesn&rsquo;t take much effort, I decided to spin up my own practice environment. I created three virtual machines (2 GB RAM, 4 vCPUs) on my laptop using libvirt/QEMU/KVM and installed CentOS 7 and Gluster 4.1. The software on the real exam is RHEL 7 and Gluster 3, however, it didn&rsquo;t make much difference to me. Switching to my custom practice environment removed the perceived latency while typing and allowed me to easily copy and paste between console windows. In addition to that, I could keep my virtual machines running all the time. Virtual machines in the lab environment provided by Red Hat shutdown automatically after two hours unless you bump up the timer.</p>
-
-<p>If you are preparing for the Gluster certification exam, here are several things that are good to know:</p>
-
-<ul>
-<li>The complete <a href="https://access.redhat.com/documentation/en-us/red_hat_gluster_storage">Red Hat Gluster Storage documentation</a> is available to you during the exam in a searchable PDF format. The Red Hat Gluster Storage Administration Guide turned out to be particularly useful. I recommend reading through the guide as a part of the preparation for the exam. You will learn where the important configuration parts are located in the guide and will be able to quickly refer to them during the exam.</li>
-<li>Preparing underlying LVM volumes for Gluster bricks takes quite a bit of time which you won&rsquo;t have plenty of in the exam. Here is my advice: at the beginning of the exam, walk through the exam tasks and create all the LVM volumes that you will need up front.</li>
-<li>Command <code>gluster volume set help</code> lists all the Gluster volume parameters along with their short descriptions. If you cannot remember the exact parameter name just grep through the output of this command.</li>
-<li>If you cannot remember the Gluster mount options, you can find them by typing <code>man mount.glusterfs</code></li>
-<li>Provisioning of LVM thin volumes is thoroughly documented in <code>man lvmthin</code></li>
-<li>To list all services that you can enable on the firewall, type <code>firewall-cmd --get-services</code></li>
-<li>To find out whether SELinux denied access, issue the command  <code>grep denied /var/log/audit/audit.log</code>. SELinux can provide a hint on how to possibly solve the access issue, use the command <code>sealert -a /var/log/audit/audit.log</code></li>
-<li>To list SELinux types related to Gluster, you can type <code>strings /sys/fs/selinux/policy | grep gluster</code></li>
-<li>And last but not least, you can list volumes exported by the NFS server with <code>showmount -e &lt;HOST&gt;</code>. To show volumes available on a Samba server, issue the command <code>smbclient -L &lt;HOST&gt; -U %</code></li>
-</ul>
-
-
-<p>And how did I do on the exam? Well, I would not say that the exam was difficult, however, I also didn&rsquo;t practice much before the exam. Unfortunately, I ran out of time before I could complete the last exam task. Overall, I achieved 236 points out of 300. As the passing score was 210, I did pass!</p>
-
-<p>Are you preparing for the Red Hat Gluster Storage exam? I would love to hear from you! Please, leave your comments or questions in the comment section below.</p>
-
-<p><img src="https://alesnosek.com/images/posts/rhcs_gluster_storage_administration_badge.png"></p>
 ]]></content>
   </entry>
 
