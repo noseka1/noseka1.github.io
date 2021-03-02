@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>https://alesnosek.com/blog/2021/02/28/deep-dive-into-codeready-containers-deployment-on-linux/</loc>
+    <lastmod>2021-02-28T16:38:46-08:00</lastmod>
+  </url>
+  <url>
     <loc>https://alesnosek.com/blog/2021/01/29/monitoring-apache-airflow-using-prometheus/</loc>
     <lastmod>2021-01-29T12:59:58-08:00</lastmod>
   </url>

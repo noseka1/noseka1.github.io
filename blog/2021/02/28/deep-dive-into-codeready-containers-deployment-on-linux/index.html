@@ -1,0 +1,641 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Deep Dive into CodeReady Containers Deployment on Linux - Ales Nosek - The Software Practitioner</title>
+  <meta name="author" content="Ales Nosek">
+
+
+  <meta name="description" content="Are you considering Red Hat CodeReady Containers (CRC) for your local OpenShift development? Are you going to install CRC on Linux? In this blog, I &hellip;">
+
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <link rel="canonical" href="https://alesnosek.com/blog/2021/02/28/deep-dive-into-codeready-containers-deployment-on-linux/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/stylesheets/data-table.css" media="screen, projection" rel="stylesheet" type="text/css" />
+  <link href="/atom.xml" rel="alternate" title="Ales Nosek - The Software Practitioner" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-61965164-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <img src="/images/computers.png" align="right">
+  <h1><a href="/">Ales Nosek - The Software Practitioner</a></h1>
+
+    <h2>Practicing to make software perfect.</h2>
+
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+
+</ul>
+
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="alesnosek.com">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+
+  <header>
+
+      <h1 class="entry-title">Deep Dive into CodeReady Containers Deployment on Linux</h1>
+
+
+      <p class="meta">
+
+
+
+
+
+<time class='entry-date' datetime='2021-02-28T16:38:46-08:00'><span class='date'><span class='date-month'>Feb</span> <span class='date-day'>28</span><span class='date-suffix'>th</span>, <span class='date-year'>2021</span></span> <span class='time'>4:38 pm</span></time>
+
+      </p>
+
+  </header>
+
+
+<div class="entry-content"><p>Are you considering <a href="https://developers.redhat.com/products/codeready-containers/overview">Red Hat CodeReady Containers</a> (CRC) for your local OpenShift development? Are you going to install CRC on Linux? In this blog, I am going to walk you through the deployment of CRC on Linux. We will take a closer look at how CRC works and review some of the configuration options. Fasten your seatbelts, the tour begins.</p>
+
+<!-- more -->
+
+
+<p>This blog uses CRC version 1.21.0, which is based on OpenShift Container Platform (OCP) version 4.6.9. I am installing CRC on Debian 10 GNU/Linux but any modern Linux distribution like Fedora or Ubuntu will do. As of version 1.21.0, CRC can be deployed on a Linux host that meets the following requirements:</p>
+
+<ul>
+<li><em>KVM</em> and <em>libvirt</em> installed</li>
+<li>Networking configuration is managed by the <em>NetworkManager</em></li>
+<li>User installing CRC has <em>sudo</em> access to the Linux host</li>
+</ul>
+
+
+<p>In addition to the Linux host, you will also need to download the CRC distribution tarball and a pull secret. The pull secret is a JSON file that includes the authentication information for accessing protected container image registries that are hosted by Red Hat. If you are not a Red Hat customer, you can join the <a href="https://developers.redhat.com/">Red Hat Developer Program</a> and download the pull secret at no cost. Through the Developer Program you can also obtain the CRC distribution tarball. Alternatively, you can download the CRC distribution tarball directly from <a href="https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/crc/latest/">here</a>.</p>
+
+<p>CRC comes with excellent documentation which is being expanded with every new release. You can find it <a href="https://code-ready.github.io/crc/">here</a>.</p>
+
+<h2>CodeReady Containers deployment overview</h2>
+
+<p>From a high-level perspective, CRC creates a virtual machine that runs a single-node OpenShift cluster. This node plays the role of a master and a worker node at the same time. No OpenShift installation takes place while deploying CRC. Instead, CRC launches OpenShift from a pre-installed virtual machine image. The diagram below depicts the CRC deployment:</p>
+
+<p><img class="center" src="/images/posts/codeready_containers_deployment_diagram.png"></p>
+
+<p>On the Linux host, CRC makes use of libvirt to create a network, storage pool, and a CRC virtual machine. The virtual machine&rsquo;s data is persisted on the libvirt volume which ensures that the objects created by the user in OpenShift will survive CRC restarts.</p>
+
+<p>The OpenShift instance comes with a fixed set of <em>PersistentVolume</em>s. Users can attach these volumes to the application pods by creating <em>PersistentVolumeClaim</em>s (PVC). All of the volume access modes are supported: <em>ReadWriteOnce</em>, <em>ReadWriteMany</em>, and <em>ReadOnlyMany</em>. The content of the persistent volumes is saved on the host and can be found in the <code>/var/mnt/pv-data</code> directory.</p>
+
+<p>How about the integrated image registry? The image registry in OpenShift is backed by a PersistentVolume and is exposed via a public route <code>default-route-openshift-image-registry.apps-crc.testing</code>. Users can use this route to push their container images to the registry before launching them on OpenShift.</p>
+
+<p>The last thing to note in the diagram is the DNS configuration. Why is this needed? CRC configures the DNS resolution on the Linux host so that the connections to the endpoints <code>api.crc.testing</code> and <code>*.apps-crc.testing</code> are routed to the OpenShift instance. NetworkManager, which is a requirement for CRC to work, is used to achieve this DNS configuration. CRC instructs the NetworkManager to spin up a dnsmasq instance, which forwards the DNS queries for the OpenShift endpoints to the second dnsmasq instance which was deployed inside the virtual machine. This second dnsmasq instance actually resolves the queries.</p>
+
+<h2>Configuring CodeReady Containers</h2>
+
+<p>In this section, we are going to review several CRC configuration options that you may want to customize. By default, the CRC virtual machine is provisioned with 4 vCPUs, 8790 MiB RAM, and 31 GiB disk space. Depending on your use case, you may want to increase these values. On my desktop, I like to bump up the number of vCPUs to 10. Using the <code>crc</code> command, it can be accomplished this way:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ./crc config set cpus 10</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The default memory size of 8790 MiB seems rather small to me. Most of the memory is used by the OpenShift components. Out of the  8790 MiB of memory, only about 2 GiB remain available for your applications. As I have plenty of memory available on my desktop computer, I increase the memory size to some 46 MiB:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ./crc config set memory 47104</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Regarding the disk space, the CRC virtual machine comes with a 31 GiB disk by default. About half of this capacity is not available as it is used by the Red Hat CoreOS operating system and OpenShift components. Around 16 GiB remains available to cover the storage needs of the integrated image registry and any other volumes (PVCs) that you create for your applications. The default 31 GiB disk provides a good amount of space, however, I like to increase the disk size to 120 GiB just to match the default disk size of OCP clusters. Note that CRC allows you to increase the disk size any time after the installation as well. To increase the disk size to 120 GiB, issue the command:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ./crc config set disk-size 120</span></code></pre></td></tr></table></div></figure>
+
+
+<p>CRC requires an OpenShift pull secret. I like to point the CRC to my OpenShift pull secret which I store in a protected location in my home directory. This pull secret is required by OpenShift regardless of which method is used to deploy OpenShift. The same pull secret used for CRC can be used for installing OpenShift via the OpenShift installer. After I downloaded the pull secret from the Red Hat site and saved it at <code>~/.mysecrets/ocp/pull-secret.json</code>, I then need to tell CRC where to find it:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ./crc config set pull-secret-file ~/.mysecrets/ocp/pull-secret.json</span></code></pre></td></tr></table></div></figure>
+
+
+<p>One final configuration option I like to set is <code>consent-telemetry</code>. Setting this option upfront prevents CRC from asking interactively: &ldquo;Would you like to contribute anonymous usage statistics [y/N]&rdquo;:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ./crc config set consent-telemetry yes</span></code></pre></td></tr></table></div></figure>
+
+
+<p>CRC saves the above settings in <code>~/.crc/crc.json</code>. If you prefer, you can also edit this JSON file directly. The full list of available configuration options can be obtained by typing:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ./crc config --help</span></code></pre></td></tr></table></div></figure>
+
+
+<p>With the CRC configuration squared away, we are ready to prepare the Linux host for launching an OpenShift cluster.</p>
+
+<h2>Setting up CodeReady Containers</h2>
+
+<p>In this section, we are going to prepare the Linux host for launching the CRC virtual machine. Note that this is a one-time setup. Go ahead and issue the following command to begin the setup process:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ./crc setup</span></code></pre></td></tr></table></div></figure>
+
+
+<p>While the setup is running, let&rsquo;s talk about the CRC binary.  Did you notice that the CRC binary is quite large? The size of the CRC binary version 1.21.0 is around 2.6 GiB. Why is that? To answer this question, check out the binary structure that is depicted in the following diagram:</p>
+
+<p><img class="center" src="/images/posts/codeready_containers_binary.png"></p>
+
+<p>The CRC binary consists of four parts. The first part is the CRC executable.  The second part is the <code>admin-helper-linux</code> utility that is used for updating the <code>/etc/hosts</code> file. After that comes the <code>crc-driver-libvirt</code> daemon executable, which implements functions specific to the libvirt virtualization and abstracts the virtualization details away from the CRC core. Finally, the so-called CRC bundle (<code>crc_libvirt_4.6.9.crcbundle</code> in the diagram) is the last part of the CRC binary. This bundle contains a virtual machine image and accounts for the majority of the size of the CRC binary.</p>
+
+<p>Now let&rsquo;s get back to the CRC setup. At the initial stage, the <code>./crc setup</code> command extracts all the components appended to the CRC executable and places them below the <code>~/.crc</code> directory. The embedded CRC bundle is a <em>tar.xz</em> archive whose contents is immediately decompressed into <code>~/.crc/cache</code>. This bundle contains the following files:</p>
+
+<ul>
+<li>The <code>crc-bundle-info.json</code> carries the bundle metadata. CRC refers to it throughout the deployment process.</li>
+<li>The virtual machine image <code>crc.qcow2</code>  contains a pre-installed OpenShift node. This image will be used as a backing image for the CRC virtual machine&rsquo;s disk image.</li>
+<li>The <code>id_rsa_crc</code> bootstrap key is used by CRC for SSHing into the virtual machine at its first start. After connecting to the virtual machine, CRC generates a new unique SSH key pair and adds it to the machine&rsquo;s <code>~core/.ssh/authorized_keys</code> file. The original bootstrap SSH key is removed from this file, and hence can no longer be used to access the virtual machine.</li>
+<li>The <code>kubeadmin-password</code> file holds the password of the <em>kubeadmin</em> user on OpenShift.</li>
+<li>The <code>kubeconfig</code> file allows logging into OpenShift as user <em>kube:admin</em>. It includes the user&rsquo;s private key that is needed for successful authentication.</li>
+<li>The <code>oc</code> executable is an oc client whose version matches the version of the bundled OpenShift cluster.</li>
+</ul>
+
+
+<p>After the extraction of the CRC components is complete, the <code>~/.crc</code> directory looks like this:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ tree --noreport .crc
+</span><span class='line'>.crc
+</span><span class='line'>├── bin
+</span><span class='line'>│   ├── admin-helper-linux
+</span><span class='line'>│   ├── crc-driver-libvirt
+</span><span class='line'>│   └── oc
+</span><span class='line'>│       └── oc -&gt; /home/anosek/.crc/cache/crc_libvirt_4.6.9/oc
+</span><span class='line'>├── cache
+</span><span class='line'>│   ├── crc_libvirt_4.6.9
+</span><span class='line'>│   │   ├── crc-bundle-info.json
+</span><span class='line'>│   │   ├── crc.qcow2
+</span><span class='line'>│   │   ├── id_ecdsa_crc
+</span><span class='line'>│   │   ├── kubeadmin-password
+</span><span class='line'>│   │   ├── kubeconfig
+</span><span class='line'>│   │   └── oc
+</span><span class='line'>│   └── crc_libvirt_4.6.9.crcbundle
+</span><span class='line'>└── crc.json</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The next notable step carried out by the CRC setup is configuring DNS on the Linux host. CRC configures DNS, so that the connections to the endpoints <code>api.crc.testing</code> and <code>*.apps-crc.testing</code> are routed to the OpenShift instance. It is known ahead of time that this OpenShift instance is going to expose its endpoints on a hard-coded IP address <code>192.168.130.11</code>. So, how does CRC ensure the proper DNS resolution of the OpenShift endpoints? To achieve that, CRC creates a <code>/etc/NetworkManager/conf.d/crc-nm-dnsmasq.conf</code> file with the following configuration:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>[main]
+</span><span class='line'>dns=dnsmasq</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This configuration instructs the NetworkManager to first, spin up a dnsqmasq instance, and second, modify the <code>/etc/resolv.conf</code> on the machine to use this instance as a default DNS server. In the next step, CRC configures the dnsmasq server by creating a <code>/etc/NetworkManager/dnsmasq.d/crc.conf</code> configuration file with the following content:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>server=/apps-crc.testing/192.168.130.11
+</span><span class='line'>server=/crc.testing/192.168.130.11</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This forwards DNS queries for the <code>crc.testing</code> and <code>apps-crc.testing</code> domains plus all their subdomains to the DNS server <code>192.168.130.11</code>. This DNS server will be deployed inside the CRC virtual machine and will be handling the resolution of the OpenShift endpoints.</p>
+
+<p>Note that the dnsmasq forwarder as described above is only created if your host doesn&rsquo;t use <em>systemd-resolved</em> for DNS resolution. If your host uses systemd-resolved, then CRC will configure the forwarding in systemd-resolved instead of spinning up the additional dnsmasq forwarder.</p>
+
+<p>The last step executed by the <code>./crc setup</code> command is creating a libvirt network. What needs to be done here? CRC creates a libvirt network called <code>crc</code> of type NAT. The only host on the network will get the IP address <code>192.168.130.11</code>:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ virsh net-dumpxml crc
+</span><span class='line'>&lt;network connections='1'&gt;
+</span><span class='line'>  &lt;name&gt;crc&lt;/name&gt;
+</span><span class='line'>  &lt;uuid&gt;49eee855-d342-46c3-9ed3-b8d1758814cd&lt;/uuid&gt;
+</span><span class='line'>  &lt;forward mode='nat'&gt;
+</span><span class='line'>    &lt;nat&gt;
+</span><span class='line'>      &lt;port start='1024' end='65535'/&gt;
+</span><span class='line'>    &lt;/nat&gt;
+</span><span class='line'>  &lt;/forward&gt;
+</span><span class='line'>  &lt;bridge name='crc' stp='on' delay='0'/&gt;
+</span><span class='line'>  &lt;mac address='52:54:00:fd:be:d0'/&gt;
+</span><span class='line'>  &lt;ip family='ipv4' address='192.168.130.1' prefix='24'&gt;
+</span><span class='line'>    &lt;dhcp&gt;
+</span><span class='line'>      &lt;host mac='52:fd:fc:07:21:82' ip='192.168.130.11'/&gt;
+</span><span class='line'>    &lt;/dhcp&gt;
+</span><span class='line'>  &lt;/ip&gt;
+</span><span class='line'>&lt;/network&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This network will be hosting the CRC virtual machine. This virtual machine will be created with the MAC address <code>52:fd:fc:07:21:82</code>. The above configuration assigns the fixed IP address <code>192.168.130.11</code> to this virtual machine. Both the MAC address <code>52:fd:fc:07:21:82</code> and the IP address <code>192.168.130.11</code> are hard-coded in CRC.</p>
+
+<p>Creating the libvirt network was the last setup step that I wanted to discuss. In the next section, we are going to create and launch the CRC virtual machine.</p>
+
+<h2>Starting CodeReady Containers</h2>
+
+<p>After the <code>./crc setup</code> completes, issue the following command to create and start the CRC virtual machine:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ./crc start</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Note that if the CRC machine already exists, the above command will just start it. In the remainder of this section, I am going to discuss some of the notable steps executed during the start process.</p>
+
+<p>First, CRC runs the pre-flight checks that were also executed previously by <code>./crc setup</code> command. This is to ensure that the environment is still in a good shape.</p>
+
+<p>Next, CRC creates a libvirt storage pool called <code>crc</code> in the directory <code>~/.crc/machines/crc</code>. In this storage pool, a new machine image is created which is called <code>crc.qcow2</code> and has the size of 120 GiB. We chose the 120 GiB size by configuring the <code>disk-size</code> parameter in the configuration section above. The image is thin-provisioned, i.e.  no disk capacity is allocated ahead of time. Instead, additional space allocation occurs on demand as data is written to the disk. Also, CRC supports resizing the image. If the user decides to change the <code>disk-size</code> parameter, CRC will resize the machine image accordingly before starting the virtual machine. The libvirt storage pool definition looks something like this:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ virsh pool-dumpxml crc
+</span><span class='line'>&lt;pool type='dir'&gt;
+</span><span class='line'>  &lt;name&gt;crc&lt;/name&gt;
+</span><span class='line'>  &lt;uuid&gt;ecfe5181-6476-43a8-9ff9-a133841df011&lt;/uuid&gt;
+</span><span class='line'>  &lt;capacity unit='bytes'&gt;1769532428288&lt;/capacity&gt;
+</span><span class='line'>  &lt;allocation unit='bytes'&gt;1119201026048&lt;/allocation&gt;
+</span><span class='line'>  &lt;available unit='bytes'&gt;650331402240&lt;/available&gt;
+</span><span class='line'>  &lt;source&gt;
+</span><span class='line'>  &lt;/source&gt;
+</span><span class='line'>  &lt;target&gt;
+</span><span class='line'>    &lt;path&gt;/home/anosek/.crc/machines/crc&lt;/path&gt;
+</span><span class='line'>    &lt;permissions&gt;
+</span><span class='line'>      &lt;mode&gt;0755&lt;/mode&gt;
+</span><span class='line'>      &lt;owner&gt;1000&lt;/owner&gt;
+</span><span class='line'>      &lt;group&gt;1000&lt;/group&gt;
+</span><span class='line'>    &lt;/permissions&gt;
+</span><span class='line'>  &lt;/target&gt;
+</span><span class='line'>&lt;/pool&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>After the virtual machine disk is ready, CRC will create a virtual machine and start it. The virtual machine is called <code>crc</code> and you can review its definition by issuing:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ virsh dumpxml crc
+</span><span class='line'>&lt;domain type='kvm' id='2'&gt;
+</span><span class='line'>  &lt;name&gt;crc&lt;/name&gt;
+</span><span class='line'>  &lt;uuid&gt;4269a53d-0fa7-465e-9190-ab33047244ee&lt;/uuid&gt;
+</span><span class='line'>  &lt;memory unit='KiB'&gt;46000128&lt;/memory&gt;
+</span><span class='line'>  &lt;currentMemory unit='KiB'&gt;46000128&lt;/currentMemory&gt;
+</span><span class='line'>  &lt;vcpu placement='static'&gt;10&lt;/vcpu&gt;
+</span><span class='line'>  &lt;resource&gt;
+</span><span class='line'>    &lt;partition&gt;/machine&lt;/partition&gt;
+</span><span class='line'>  &lt;/resource&gt;
+</span><span class='line'>
+</span><span class='line'>...
+</span><span class='line'>
+</span><span class='line'>  &lt;devices&gt;
+</span><span class='line'>    &lt;disk type='file' device='disk'&gt;
+</span><span class='line'>      &lt;driver name='qemu' type='qcow2' io='threads'/&gt;
+</span><span class='line'>      &lt;source file='/home/anosek/.crc/machines/crc/crc.qcow2' index='1'/&gt;
+</span><span class='line'>      &lt;backingStore type='file' index='2'&gt;
+</span><span class='line'>        &lt;format type='qcow2'/&gt;
+</span><span class='line'>        &lt;source file='/home/anosek/.crc/cache/crc_libvirt_4.6.9/crc.qcow2'/&gt;
+</span><span class='line'>        &lt;backingStore/&gt;
+</span><span class='line'>      &lt;/backingStore&gt;
+</span><span class='line'>...
+</span><span class='line'>
+</span><span class='line'>&lt;/domain&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The virtual machine&rsquo;s vCPU and memory are sized according to the <code>cpus</code> and <code>memory</code> configuration we made above. In the machine definition, you can see that the virtual machine runs off the image that was created at <code>~/.crc/machines/crc/crc.qcow2</code>. This image is actually an overlay image created on top of the <code>~/.crc/cache/crc_libvirt_4.6.9/crc.qcow2</code> backing image. The overlay image starts as an empty image and records changes made to the disk of the CRC virtual machine. All the changes made in the CRC virtual machine are persisted in the overlay image and will survive the virtual machine restarts. That means that your OpenShift configuration will persist across the <code>./crc stop</code> and <code>./crc start</code> commands.</p>
+
+<p>Next, CRC creates a new SSH key pair that will be used for SSHing to the virtual machine as user <code>core</code>. The public key from this key pair is added to the <code>~core/.ssh/authorized_keys</code> file in the virtual machine to enable the access. CRC uses SSH to further configure the virtual machine during the start.</p>
+
+<p>If the user changed the <code>disk-size</code> parameter, the file system needs to be enlarged to span the full disk size. This is achieved by executing the <code>xfs_growfs /</code> command inside the virtual machine. CRC comes with the default disk size of 31 GiB. At this point, the file system is expanded to the 120 GiB that we configured above.</p>
+
+<p>Next, CRC starts a DNS server &mdash; a podman container running dnsmasq &mdash; inside the virtual machine. This DNS server resolves the domain names <code>*.apps-crc.testing</code>, <code>api.crc.testing</code>, and <code>api-int.crc.testing</code> to the IP address <code>192.168.130.11</code>, which is the address of the virtual machine itself. These domain names are assigned to the well-known OpenShift endpoints: ingress router, API server, and internal API, respectively. The DNS server is used both by the virtual machine as well as by the Linux host. The Linux host reaches the DNS server through the DNS forwarder as we described before.</p>
+
+<p>During the start phase, CRC adds the following line to <code>/etc/hosts</code> on the Linux host:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>192.168.130.11 api.crc.testing console-openshift-console.apps-crc.testing default-route-openshift-image-registry.apps-crc.testing oauth-openshift.apps-crc.testing</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I am not sure why this setting is being done. The resolution of the above domains is already handled by the dnsmasq server running inside the CRC virtual machine. Anyway, it is good to know that CRC adds this line to your <code>/etc/hosts</code>.</p>
+
+<p>In the next step of the start sequence, CRC starts the kubelet service which in turn brings up OpenShift services. If the kubelet&rsquo;s client certificate expired while the CRC virtual machine was down, kubelet will issue a Certificate Signing Request (CSR) to obtain a new certificate. CRC checks for the presence of any new CSRs and automatically approves them.</p>
+
+<p>As the last step, CRC adds the user&rsquo;s pull secret to the OpenShift cluster.</p>
+
+<p>The configuration related to the particular CRC machine instance is stored in the <code>.crc/machines/crc</code> directory. You can check it out using:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ tree --noreport .crc/machines
+</span><span class='line'>.crc/machines
+</span><span class='line'>└── crc
+</span><span class='line'>    ├── config.json
+</span><span class='line'>    ├── crc.qcow2
+</span><span class='line'>    ├── id_ecdsa
+</span><span class='line'>    ├── id_ecdsa.pub
+</span><span class='line'>    └── kubeconfig</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Congratulations, your OpenShift instance is now up and running!</p>
+
+<h2>CodeReady Containers convenience commands</h2>
+
+<p>In this section, I would like to mention a couple of commands that are useful when working with CRC. First, you can open OpenShift Web Console in the default browser by issuing:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ./crc console</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You can always display the OpenShift user credentials by running:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ./crc console --credentials
+</span><span class='line'>To login as a regular user, run 'oc login -u developer -p developer https://api.crc.testing:6443'.
+</span><span class='line'>To login as an admin, run 'oc login -u kubeadmin -p HqC3I-wgtiB-q7qCf-KEsuK https://api.crc.testing:6443'</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You can SSH into the CRC virtual machine as the user <code>core</code>:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ssh -i ~/.crc/machines/crc/id_ecdsa core@api.crc.testing</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The <code>core</code> user has full administrative privileges via sudo.</p>
+
+<h2>Conclusion</h2>
+
+<p>This blog covered the deployment of CodeReady Containers to a Linux host. We began by reviewing the prerequisites that are needed to deploy CRC. In the deployment overview section, we showed how CRC interacts with libvirt to spin up  the OpenShift virtual machine. We also discussed the DNS configuration made by CRC. Before deploying CRC, we customized the CRC configuration and provided the virtual machine with additional resources beyond the factory defaults. We discussed the CRC setup and start phases in great detail. Finally, I shared some of the convenience commands I like to use.</p>
+
+<p>Hope you enjoyed the CodeReady Containers tour presented in this blog.  If you have any questions or comments, please leave them in the comment section below. I look forward to hearing from you!</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+
+
+
+<span class="byline author vcard">Posted by <span class="fn">Ales Nosek</span></span>
+
+
+
+
+
+
+<time class='entry-date' datetime='2021-02-28T16:38:46-08:00'><span class='date'><span class='date-month'>Feb</span> <span class='date-day'>28</span><span class='date-suffix'>th</span>, <span class='date-year'>2021</span></span> <span class='time'>4:38 pm</span></time>
+
+
+<span class="categories">
+
+    <a class='category' href='/blog/categories/development/'>development</a>
+
+</span>
+
+
+    </p>
+
+      <div class="sharing">
+
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="https://alesnosek.com/blog/2021/02/28/deep-dive-into-codeready-containers-deployment-on-linux/" data-via="" data-counturl="https://alesnosek.com/blog/2021/02/28/deep-dive-into-codeready-containers-deployment-on-linux/" >Tweet</a>
+
+
+  <div class="g-plusone" data-size="medium"></div>
+
+
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+
+</div>
+
+
+    <p class="meta">
+
+        <a class="basic-alignment left" href="/blog/2021/01/29/monitoring-apache-airflow-using-prometheus/" title="Previous Post: Monitoring Apache Airflow using Prometheus">&laquo; Monitoring Apache Airflow using Prometheus</a>
+
+
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+
+      <li class="post">
+        <a href="/blog/2021/02/28/deep-dive-into-codeready-containers-deployment-on-linux/">Deep Dive into CodeReady Containers Deployment on Linux</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2021/01/29/monitoring-apache-airflow-using-prometheus/">Monitoring Apache Airflow using Prometheus</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2020/11/24/14-best-practices-for-developing-applications-on-openshift/">14 Best Practices for Developing Applications on OpenShift</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2020/09/13/apache-airflow-architecture-on-openshift/">Apache Airflow Architecture on OpenShift</a>
+      </li>
+
+      <li class="post">
+        <a href="/blog/2020/07/13/speaking-at-red-hat-summit-2020/">Speaking at Red Hat Summit 2020, Part II</a>
+      </li>
+
+  </ul>
+</section>
+<section>
+  <h1>About Me</h1>
+  <script type="text/javascript" src="https://platform.linkedin.com/badges/js/profile.js" async defer></script>
+  <div class="LI-profile-badge"  data-version="v1" data-size="medium" data-locale="en_US" data-type="vertical" data-theme="light" data-vanity="alesnosek"><a class="LI-simple-link" href='https://www.linkedin.com/in/alesnosek?trk=profile-badge'>Ales Nosek</a></div>
+</section>
+
+
+
+
+
+
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2021 - Ales Nosek -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'alesnosekcom';
+
+
+        // var disqus_developer = 1;
+        var disqus_identifier = 'https://alesnosek.com/blog/2021/02/28/deep-dive-into-codeready-containers-deployment-on-linux/';
+        var disqus_url = 'https://alesnosek.com/blog/2021/02/28/deep-dive-into-codeready-containers-deployment-on-linux/';
+        var disqus_script = 'embed.js';
+
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: development | Ales Nosek - The Software Practitioner]]></title>
   <link href="https://alesnosek.com/blog/categories/development/atom.xml" rel="self"/>
   <link href="https://alesnosek.com/"/>
-  <updated>2021-01-29T13:12:23-08:00</updated>
+  <updated>2021-03-01T16:50:45-08:00</updated>
   <id>https://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,288 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[Deep Dive into CodeReady Containers Deployment on Linux]]></title>
+    <link href="https://alesnosek.com/blog/2021/02/28/deep-dive-into-codeready-containers-deployment-on-linux/"/>
+    <updated>2021-02-28T16:38:46-08:00</updated>
+    <id>https://alesnosek.com/blog/2021/02/28/deep-dive-into-codeready-containers-deployment-on-linux</id>
+    <content type="html"><![CDATA[<p>Are you considering <a href="https://developers.redhat.com/products/codeready-containers/overview">Red Hat CodeReady Containers</a> (CRC) for your local OpenShift development? Are you going to install CRC on Linux? In this blog, I am going to walk you through the deployment of CRC on Linux. We will take a closer look at how CRC works and review some of the configuration options. Fasten your seatbelts, the tour begins.</p>
+
+<!-- more -->
+
+
+<p>This blog uses CRC version 1.21.0, which is based on OpenShift Container Platform (OCP) version 4.6.9. I am installing CRC on Debian 10 GNU/Linux but any modern Linux distribution like Fedora or Ubuntu will do. As of version 1.21.0, CRC can be deployed on a Linux host that meets the following requirements:</p>
+
+<ul>
+<li><em>KVM</em> and <em>libvirt</em> installed</li>
+<li>Networking configuration is managed by the <em>NetworkManager</em></li>
+<li>User installing CRC has <em>sudo</em> access to the Linux host</li>
+</ul>
+
+
+<p>In addition to the Linux host, you will also need to download the CRC distribution tarball and a pull secret. The pull secret is a JSON file that includes the authentication information for accessing protected container image registries that are hosted by Red Hat. If you are not a Red Hat customer, you can join the <a href="https://developers.redhat.com/">Red Hat Developer Program</a> and download the pull secret at no cost. Through the Developer Program you can also obtain the CRC distribution tarball. Alternatively, you can download the CRC distribution tarball directly from <a href="https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/crc/latest/">here</a>.</p>
+
+<p>CRC comes with excellent documentation which is being expanded with every new release. You can find it <a href="https://code-ready.github.io/crc/">here</a>.</p>
+
+<h2>CodeReady Containers deployment overview</h2>
+
+<p>From a high-level perspective, CRC creates a virtual machine that runs a single-node OpenShift cluster. This node plays the role of a master and a worker node at the same time. No OpenShift installation takes place while deploying CRC. Instead, CRC launches OpenShift from a pre-installed virtual machine image. The diagram below depicts the CRC deployment:</p>
+
+<p><img class="center" src="/images/posts/codeready_containers_deployment_diagram.png"></p>
+
+<p>On the Linux host, CRC makes use of libvirt to create a network, storage pool, and a CRC virtual machine. The virtual machine&rsquo;s data is persisted on the libvirt volume which ensures that the objects created by the user in OpenShift will survive CRC restarts.</p>
+
+<p>The OpenShift instance comes with a fixed set of <em>PersistentVolume</em>s. Users can attach these volumes to the application pods by creating <em>PersistentVolumeClaim</em>s (PVC). All of the volume access modes are supported: <em>ReadWriteOnce</em>, <em>ReadWriteMany</em>, and <em>ReadOnlyMany</em>. The content of the persistent volumes is saved on the host and can be found in the <code>/var/mnt/pv-data</code> directory.</p>
+
+<p>How about the integrated image registry? The image registry in OpenShift is backed by a PersistentVolume and is exposed via a public route <code>default-route-openshift-image-registry.apps-crc.testing</code>. Users can use this route to push their container images to the registry before launching them on OpenShift.</p>
+
+<p>The last thing to note in the diagram is the DNS configuration. Why is this needed? CRC configures the DNS resolution on the Linux host so that the connections to the endpoints <code>api.crc.testing</code> and <code>*.apps-crc.testing</code> are routed to the OpenShift instance. NetworkManager, which is a requirement for CRC to work, is used to achieve this DNS configuration. CRC instructs the NetworkManager to spin up a dnsmasq instance, which forwards the DNS queries for the OpenShift endpoints to the second dnsmasq instance which was deployed inside the virtual machine. This second dnsmasq instance actually resolves the queries.</p>
+
+<h2>Configuring CodeReady Containers</h2>
+
+<p>In this section, we are going to review several CRC configuration options that you may want to customize. By default, the CRC virtual machine is provisioned with 4 vCPUs, 8790 MiB RAM, and 31 GiB disk space. Depending on your use case, you may want to increase these values. On my desktop, I like to bump up the number of vCPUs to 10. Using the <code>crc</code> command, it can be accomplished this way:</p>
+
+<pre><code>$ ./crc config set cpus 10
+</code></pre>
+
+<p>The default memory size of 8790 MiB seems rather small to me. Most of the memory is used by the OpenShift components. Out of the  8790 MiB of memory, only about 2 GiB remain available for your applications. As I have plenty of memory available on my desktop computer, I increase the memory size to some 46 MiB:</p>
+
+<pre><code>$ ./crc config set memory 47104
+</code></pre>
+
+<p>Regarding the disk space, the CRC virtual machine comes with a 31 GiB disk by default. About half of this capacity is not available as it is used by the Red Hat CoreOS operating system and OpenShift components. Around 16 GiB remains available to cover the storage needs of the integrated image registry and any other volumes (PVCs) that you create for your applications. The default 31 GiB disk provides a good amount of space, however, I like to increase the disk size to 120 GiB just to match the default disk size of OCP clusters. Note that CRC allows you to increase the disk size any time after the installation as well. To increase the disk size to 120 GiB, issue the command:</p>
+
+<pre><code>$ ./crc config set disk-size 120
+</code></pre>
+
+<p>CRC requires an OpenShift pull secret. I like to point the CRC to my OpenShift pull secret which I store in a protected location in my home directory. This pull secret is required by OpenShift regardless of which method is used to deploy OpenShift. The same pull secret used for CRC can be used for installing OpenShift via the OpenShift installer. After I downloaded the pull secret from the Red Hat site and saved it at <code>~/.mysecrets/ocp/pull-secret.json</code>, I then need to tell CRC where to find it:</p>
+
+<pre><code>$ ./crc config set pull-secret-file ~/.mysecrets/ocp/pull-secret.json
+</code></pre>
+
+<p>One final configuration option I like to set is <code>consent-telemetry</code>. Setting this option upfront prevents CRC from asking interactively: &ldquo;Would you like to contribute anonymous usage statistics [y/N]&rdquo;:</p>
+
+<pre><code>$ ./crc config set consent-telemetry yes
+</code></pre>
+
+<p>CRC saves the above settings in <code>~/.crc/crc.json</code>. If you prefer, you can also edit this JSON file directly. The full list of available configuration options can be obtained by typing:</p>
+
+<pre><code>$ ./crc config --help
+</code></pre>
+
+<p>With the CRC configuration squared away, we are ready to prepare the Linux host for launching an OpenShift cluster.</p>
+
+<h2>Setting up CodeReady Containers</h2>
+
+<p>In this section, we are going to prepare the Linux host for launching the CRC virtual machine. Note that this is a one-time setup. Go ahead and issue the following command to begin the setup process:</p>
+
+<pre><code>$ ./crc setup
+</code></pre>
+
+<p>While the setup is running, let&rsquo;s talk about the CRC binary.  Did you notice that the CRC binary is quite large? The size of the CRC binary version 1.21.0 is around 2.6 GiB. Why is that? To answer this question, check out the binary structure that is depicted in the following diagram:</p>
+
+<p><img class="center" src="/images/posts/codeready_containers_binary.png"></p>
+
+<p>The CRC binary consists of four parts. The first part is the CRC executable.  The second part is the <code>admin-helper-linux</code> utility that is used for updating the <code>/etc/hosts</code> file. After that comes the <code>crc-driver-libvirt</code> daemon executable, which implements functions specific to the libvirt virtualization and abstracts the virtualization details away from the CRC core. Finally, the so-called CRC bundle (<code>crc_libvirt_4.6.9.crcbundle</code> in the diagram) is the last part of the CRC binary. This bundle contains a virtual machine image and accounts for the majority of the size of the CRC binary.</p>
+
+<p>Now let&rsquo;s get back to the CRC setup. At the initial stage, the <code>./crc setup</code> command extracts all the components appended to the CRC executable and places them below the <code>~/.crc</code> directory. The embedded CRC bundle is a <em>tar.xz</em> archive whose contents is immediately decompressed into <code>~/.crc/cache</code>. This bundle contains the following files:</p>
+
+<ul>
+<li>The <code>crc-bundle-info.json</code> carries the bundle metadata. CRC refers to it throughout the deployment process.</li>
+<li>The virtual machine image <code>crc.qcow2</code>  contains a pre-installed OpenShift node. This image will be used as a backing image for the CRC virtual machine&rsquo;s disk image.</li>
+<li>The <code>id_rsa_crc</code> bootstrap key is used by CRC for SSHing into the virtual machine at its first start. After connecting to the virtual machine, CRC generates a new unique SSH key pair and adds it to the machine&rsquo;s <code>~core/.ssh/authorized_keys</code> file. The original bootstrap SSH key is removed from this file, and hence can no longer be used to access the virtual machine.</li>
+<li>The <code>kubeadmin-password</code> file holds the password of the <em>kubeadmin</em> user on OpenShift.</li>
+<li>The <code>kubeconfig</code> file allows logging into OpenShift as user <em>kube:admin</em>. It includes the user&rsquo;s private key that is needed for successful authentication.</li>
+<li>The <code>oc</code> executable is an oc client whose version matches the version of the bundled OpenShift cluster.</li>
+</ul>
+
+
+<p>After the extraction of the CRC components is complete, the <code>~/.crc</code> directory looks like this:</p>
+
+<pre><code>$ tree --noreport .crc
+.crc
+├── bin
+│   ├── admin-helper-linux
+│   ├── crc-driver-libvirt
+│   └── oc
+│       └── oc -&gt; /home/anosek/.crc/cache/crc_libvirt_4.6.9/oc
+├── cache
+│   ├── crc_libvirt_4.6.9
+│   │   ├── crc-bundle-info.json
+│   │   ├── crc.qcow2
+│   │   ├── id_ecdsa_crc
+│   │   ├── kubeadmin-password
+│   │   ├── kubeconfig
+│   │   └── oc
+│   └── crc_libvirt_4.6.9.crcbundle
+└── crc.json
+</code></pre>
+
+<p>The next notable step carried out by the CRC setup is configuring DNS on the Linux host. CRC configures DNS, so that the connections to the endpoints <code>api.crc.testing</code> and <code>*.apps-crc.testing</code> are routed to the OpenShift instance. It is known ahead of time that this OpenShift instance is going to expose its endpoints on a hard-coded IP address <code>192.168.130.11</code>. So, how does CRC ensure the proper DNS resolution of the OpenShift endpoints? To achieve that, CRC creates a <code>/etc/NetworkManager/conf.d/crc-nm-dnsmasq.conf</code> file with the following configuration:</p>
+
+<pre><code>[main]
+dns=dnsmasq
+</code></pre>
+
+<p>This configuration instructs the NetworkManager to first, spin up a dnsqmasq instance, and second, modify the <code>/etc/resolv.conf</code> on the machine to use this instance as a default DNS server. In the next step, CRC configures the dnsmasq server by creating a <code>/etc/NetworkManager/dnsmasq.d/crc.conf</code> configuration file with the following content:</p>
+
+<pre><code>server=/apps-crc.testing/192.168.130.11
+server=/crc.testing/192.168.130.11
+</code></pre>
+
+<p>This forwards DNS queries for the <code>crc.testing</code> and <code>apps-crc.testing</code> domains plus all their subdomains to the DNS server <code>192.168.130.11</code>. This DNS server will be deployed inside the CRC virtual machine and will be handling the resolution of the OpenShift endpoints.</p>
+
+<p>Note that the dnsmasq forwarder as described above is only created if your host doesn&rsquo;t use <em>systemd-resolved</em> for DNS resolution. If your host uses systemd-resolved, then CRC will configure the forwarding in systemd-resolved instead of spinning up the additional dnsmasq forwarder.</p>
+
+<p>The last step executed by the <code>./crc setup</code> command is creating a libvirt network. What needs to be done here? CRC creates a libvirt network called <code>crc</code> of type NAT. The only host on the network will get the IP address <code>192.168.130.11</code>:</p>
+
+<pre><code>$ virsh net-dumpxml crc
+&lt;network connections='1'&gt;
+  &lt;name&gt;crc&lt;/name&gt;
+  &lt;uuid&gt;49eee855-d342-46c3-9ed3-b8d1758814cd&lt;/uuid&gt;
+  &lt;forward mode='nat'&gt;
+    &lt;nat&gt;
+      &lt;port start='1024' end='65535'/&gt;
+    &lt;/nat&gt;
+  &lt;/forward&gt;
+  &lt;bridge name='crc' stp='on' delay='0'/&gt;
+  &lt;mac address='52:54:00:fd:be:d0'/&gt;
+  &lt;ip family='ipv4' address='192.168.130.1' prefix='24'&gt;
+    &lt;dhcp&gt;
+      &lt;host mac='52:fd:fc:07:21:82' ip='192.168.130.11'/&gt;
+    &lt;/dhcp&gt;
+  &lt;/ip&gt;
+&lt;/network&gt;
+</code></pre>
+
+<p>This network will be hosting the CRC virtual machine. This virtual machine will be created with the MAC address <code>52:fd:fc:07:21:82</code>. The above configuration assigns the fixed IP address <code>192.168.130.11</code> to this virtual machine. Both the MAC address <code>52:fd:fc:07:21:82</code> and the IP address <code>192.168.130.11</code> are hard-coded in CRC.</p>
+
+<p>Creating the libvirt network was the last setup step that I wanted to discuss. In the next section, we are going to create and launch the CRC virtual machine.</p>
+
+<h2>Starting CodeReady Containers</h2>
+
+<p>After the <code>./crc setup</code> completes, issue the following command to create and start the CRC virtual machine:</p>
+
+<pre><code>$ ./crc start
+</code></pre>
+
+<p>Note that if the CRC machine already exists, the above command will just start it. In the remainder of this section, I am going to discuss some of the notable steps executed during the start process.</p>
+
+<p>First, CRC runs the pre-flight checks that were also executed previously by <code>./crc setup</code> command. This is to ensure that the environment is still in a good shape.</p>
+
+<p>Next, CRC creates a libvirt storage pool called <code>crc</code> in the directory <code>~/.crc/machines/crc</code>. In this storage pool, a new machine image is created which is called <code>crc.qcow2</code> and has the size of 120 GiB. We chose the 120 GiB size by configuring the <code>disk-size</code> parameter in the configuration section above. The image is thin-provisioned, i.e.  no disk capacity is allocated ahead of time. Instead, additional space allocation occurs on demand as data is written to the disk. Also, CRC supports resizing the image. If the user decides to change the <code>disk-size</code> parameter, CRC will resize the machine image accordingly before starting the virtual machine. The libvirt storage pool definition looks something like this:</p>
+
+<pre><code>$ virsh pool-dumpxml crc
+&lt;pool type='dir'&gt;
+  &lt;name&gt;crc&lt;/name&gt;
+  &lt;uuid&gt;ecfe5181-6476-43a8-9ff9-a133841df011&lt;/uuid&gt;
+  &lt;capacity unit='bytes'&gt;1769532428288&lt;/capacity&gt;
+  &lt;allocation unit='bytes'&gt;1119201026048&lt;/allocation&gt;
+  &lt;available unit='bytes'&gt;650331402240&lt;/available&gt;
+  &lt;source&gt;
+  &lt;/source&gt;
+  &lt;target&gt;
+    &lt;path&gt;/home/anosek/.crc/machines/crc&lt;/path&gt;
+    &lt;permissions&gt;
+      &lt;mode&gt;0755&lt;/mode&gt;
+      &lt;owner&gt;1000&lt;/owner&gt;
+      &lt;group&gt;1000&lt;/group&gt;
+    &lt;/permissions&gt;
+  &lt;/target&gt;
+&lt;/pool&gt;
+</code></pre>
+
+<p>After the virtual machine disk is ready, CRC will create a virtual machine and start it. The virtual machine is called <code>crc</code> and you can review its definition by issuing:</p>
+
+<pre><code>$ virsh dumpxml crc
+&lt;domain type='kvm' id='2'&gt;
+  &lt;name&gt;crc&lt;/name&gt;
+  &lt;uuid&gt;4269a53d-0fa7-465e-9190-ab33047244ee&lt;/uuid&gt;
+  &lt;memory unit='KiB'&gt;46000128&lt;/memory&gt;
+  &lt;currentMemory unit='KiB'&gt;46000128&lt;/currentMemory&gt;
+  &lt;vcpu placement='static'&gt;10&lt;/vcpu&gt;
+  &lt;resource&gt;
+    &lt;partition&gt;/machine&lt;/partition&gt;
+  &lt;/resource&gt;
+
+...
+
+  &lt;devices&gt;
+    &lt;disk type='file' device='disk'&gt;
+      &lt;driver name='qemu' type='qcow2' io='threads'/&gt;
+      &lt;source file='/home/anosek/.crc/machines/crc/crc.qcow2' index='1'/&gt;
+      &lt;backingStore type='file' index='2'&gt;
+        &lt;format type='qcow2'/&gt;
+        &lt;source file='/home/anosek/.crc/cache/crc_libvirt_4.6.9/crc.qcow2'/&gt;
+        &lt;backingStore/&gt;
+      &lt;/backingStore&gt;
+...
+
+&lt;/domain&gt;
+</code></pre>
+
+<p>The virtual machine&rsquo;s vCPU and memory are sized according to the <code>cpus</code> and <code>memory</code> configuration we made above. In the machine definition, you can see that the virtual machine runs off the image that was created at <code>~/.crc/machines/crc/crc.qcow2</code>. This image is actually an overlay image created on top of the <code>~/.crc/cache/crc_libvirt_4.6.9/crc.qcow2</code> backing image. The overlay image starts as an empty image and records changes made to the disk of the CRC virtual machine. All the changes made in the CRC virtual machine are persisted in the overlay image and will survive the virtual machine restarts. That means that your OpenShift configuration will persist across the <code>./crc stop</code> and <code>./crc start</code> commands.</p>
+
+<p>Next, CRC creates a new SSH key pair that will be used for SSHing to the virtual machine as user <code>core</code>. The public key from this key pair is added to the <code>~core/.ssh/authorized_keys</code> file in the virtual machine to enable the access. CRC uses SSH to further configure the virtual machine during the start.</p>
+
+<p>If the user changed the <code>disk-size</code> parameter, the file system needs to be enlarged to span the full disk size. This is achieved by executing the <code>xfs_growfs /</code> command inside the virtual machine. CRC comes with the default disk size of 31 GiB. At this point, the file system is expanded to the 120 GiB that we configured above.</p>
+
+<p>Next, CRC starts a DNS server &mdash; a podman container running dnsmasq &mdash; inside the virtual machine. This DNS server resolves the domain names <code>*.apps-crc.testing</code>, <code>api.crc.testing</code>, and <code>api-int.crc.testing</code> to the IP address <code>192.168.130.11</code>, which is the address of the virtual machine itself. These domain names are assigned to the well-known OpenShift endpoints: ingress router, API server, and internal API, respectively. The DNS server is used both by the virtual machine as well as by the Linux host. The Linux host reaches the DNS server through the DNS forwarder as we described before.</p>
+
+<p>During the start phase, CRC adds the following line to <code>/etc/hosts</code> on the Linux host:</p>
+
+<pre><code>192.168.130.11 api.crc.testing console-openshift-console.apps-crc.testing default-route-openshift-image-registry.apps-crc.testing oauth-openshift.apps-crc.testing
+</code></pre>
+
+<p>I am not sure why this setting is being done. The resolution of the above domains is already handled by the dnsmasq server running inside the CRC virtual machine. Anyway, it is good to know that CRC adds this line to your <code>/etc/hosts</code>.</p>
+
+<p>In the next step of the start sequence, CRC starts the kubelet service which in turn brings up OpenShift services. If the kubelet&rsquo;s client certificate expired while the CRC virtual machine was down, kubelet will issue a Certificate Signing Request (CSR) to obtain a new certificate. CRC checks for the presence of any new CSRs and automatically approves them.</p>
+
+<p>As the last step, CRC adds the user&rsquo;s pull secret to the OpenShift cluster.</p>
+
+<p>The configuration related to the particular CRC machine instance is stored in the <code>.crc/machines/crc</code> directory. You can check it out using:</p>
+
+<pre><code>$ tree --noreport .crc/machines
+.crc/machines
+└── crc
+    ├── config.json
+    ├── crc.qcow2
+    ├── id_ecdsa
+    ├── id_ecdsa.pub
+    └── kubeconfig
+</code></pre>
+
+<p>Congratulations, your OpenShift instance is now up and running!</p>
+
+<h2>CodeReady Containers convenience commands</h2>
+
+<p>In this section, I would like to mention a couple of commands that are useful when working with CRC. First, you can open OpenShift Web Console in the default browser by issuing:</p>
+
+<pre><code>$ ./crc console
+</code></pre>
+
+<p>You can always display the OpenShift user credentials by running:</p>
+
+<pre><code>$ ./crc console --credentials
+To login as a regular user, run 'oc login -u developer -p developer https://api.crc.testing:6443'.
+To login as an admin, run 'oc login -u kubeadmin -p HqC3I-wgtiB-q7qCf-KEsuK https://api.crc.testing:6443'
+</code></pre>
+
+<p>You can SSH into the CRC virtual machine as the user <code>core</code>:</p>
+
+<pre><code>$ ssh -i ~/.crc/machines/crc/id_ecdsa core@api.crc.testing
+</code></pre>
+
+<p>The <code>core</code> user has full administrative privileges via sudo.</p>
+
+<h2>Conclusion</h2>
+
+<p>This blog covered the deployment of CodeReady Containers to a Linux host. We began by reviewing the prerequisites that are needed to deploy CRC. In the deployment overview section, we showed how CRC interacts with libvirt to spin up  the OpenShift virtual machine. We also discussed the DNS configuration made by CRC. Before deploying CRC, we customized the CRC configuration and provided the virtual machine with additional resources beyond the factory defaults. We discussed the CRC setup and start phases in great detail. Finally, I shared some of the convenience commands I like to use.</p>
+
+<p>Hope you enjoyed the CodeReady Containers tour presented in this blog.  If you have any questions or comments, please leave them in the comment section below. I look forward to hearing from you!</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[14 Best Practices for Developing Applications on OpenShift]]></title>
@@ -271,181 +553,6 @@ $ curl localhost:8000
 <p>In this blog post, I shared with you several tips and approaches for how to design policies in Open Policy Agent. In the <a href="/blog/2019/12/03/open-policy-agent-part-iii-integrating-with-your-application/">final article</a> in the series we will focus on how you can integrate Open Policy Agent with your application.</p>
 
 <p>If you have any comments or questions, please use the comment section below. I look forward to hearing from you.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[Open Policy Agent, Part I &mdash; The Introduction]]></title>
-    <link href="https://alesnosek.com/blog/2019/10/08/open-policy-agent-part-i-the-introduction/"/>
-    <updated>2019-10-08T07:13:38-07:00</updated>
-    <id>https://alesnosek.com/blog/2019/10/08/open-policy-agent-part-i-the-introduction</id>
-    <content type="html"><![CDATA[<p>Recently I was looking for a way to implement access control for microservices. I needed a solution that would allow defining complex authorization rules that could be enforced across many services. After searching the web, I discovered a very promising <a href="https://www.openpolicyagent.org/">Open Policy Agent</a> project that seems to be the right tool for the job. In this series of three blog posts, I am going to introduce Open Policy Agent to you and highlight how it can help you.</p>
-
-<!-- more -->
-
-
-<h2>What is Open Policy Agent?</h2>
-
-<p>Open Policy Agent (OPA) is a policy engine that can be used to implement fine-grained access control for your application. For example, you can use OPA to implement <a href="https://www.openpolicyagent.org/docs/latest/http-api-authorization/">authorization</a> across microservices. However, there is much more that can be accomplished with OPA. For your inspiration, there are several open-source projects that integrate with OPA to implement fine-grained access control like <a href="https://github.com/open-policy-agent/opa-docker-authz">Docker</a>, <a href="https://github.com/open-policy-agent/opa-istio-plugin">Istio</a> and <a href="https://github.com/open-policy-agent/contrib">others</a>. Furthermore, OPA as a general-purpose policy engine, can be leveraged in use cases beyond access control, for instance to make advanced pod placement decisions in <a href="https://github.com/open-policy-agent/opa-kube-scheduler">Kubernetes</a>.</p>
-
-<p>OPA can be deployed as a standalone service along with your microservices. In order to protect your application, each request coming to a microservice must be authorized before it can be processed. To check the authorization, the microservice makes an API call to OPA to decide whether the request is authorized or not. Note that while you can offload authorization decisions from your application to OPA, your application still has to implement the enforcement of those decisions. For example, your application can ask OPA the question <em>&ldquo;Is user Alice allowed to invoke GET /protected/resource?&rdquo;</em> and if OPA answers <em>&ldquo;No&rdquo;</em>, your application has to send HTTP 403 Forbidden back to Alice.</p>
-
-<p><img class="center" src="/images/posts/open_policy_agent/opa_basic_flow.png"></p>
-
-<p>OPA is written in the Go language and its source code is available on <a href="https://github.com/open-policy-agent/opa">GitHub</a> under the Apache License 2.0. The Open Policy Agent project is hosted by <a href="https://www.cncf.io/">CNCF</a> as an incubating project.</p>
-
-<h2>Making policy decisions</h2>
-
-<p>In this section, I am going to explain how OPA works. Don&rsquo;t worry if everything is not clear to you right away. In the following section, we are going to work through a practical example which will help clarify the details.</p>
-
-<p>What does it take for OPA to make a policy decision? In OPA, there are three inputs into the decision-making process:</p>
-
-<ol>
-<li><strong>Data</strong> is a set of facts about the outside world that OPA refers to while making a decision. For example, when controlling access based on the access control list, the data would be a list of users along with the permissions they were granted. Another example: when deciding where to place the next pod on the Kubernetes cluster, the data would be a list of Kubernetes nodes and their currently available capacity. Note that data may change over time and OPA caches its latest state in memory. The data must be provided to OPA in the JSON format.</li>
-<li><strong>Query Input</strong> triggers the decision computation. It specifies the question that OPA should decide upon. The query input must be formatted as JSON. For instance, for the question <em>&ldquo;Is user Alice allowed to invoke GET /protected/resource?&rdquo;</em> the query input would contain parameters: <em>Alice</em>, <em>GET</em>, and <em>/protected/resource</em>.</li>
-<li><strong>Policy</strong> specifies the computational logic that for the given <em>data</em> and <em>query input</em> yields a policy decision aka query result. The computational logic is described as a set of policy rules in the OPA&rsquo;s custom policy language called <a href="https://www.openpolicyagent.org/docs/latest/how-do-i-write-policies/">Rego</a>. Note that OPA doesn&rsquo;t come with any pre-defined policies. OPA is a policy engine that is able to interpret a policy, however, in order to make use of it you have to create a policy yourself and provide it to OPA.</li>
-</ol>
-
-
-<p><img class="center" src="/images/posts/open_policy_agent/opa_policy_decision.png"></p>
-
-<p>In order to make a policy decision, all three inputs (data, query input, and the policy) are fed into the Policy Engine. The Policy Engine interprets the rules included in the policy and based on the data and the query input makes a policy decision. The policy decision generated by the Policy Engine is a JSON document.</p>
-
-<p>That is how OPA works from a high-level perspective. In the next section, we will dive into a practical example.</p>
-
-<h2>Hands-on tutorial</h2>
-
-<p>This section is a hands-on tutorial where I will walk you through an example of working with OPA. Although, all sorts of access control models can be implemented using OPA, the goal of this exercise is to implement access control using an Access Control List (ACL). So, let&rsquo;s get started!</p>
-
-<h3>Creating data</h3>
-
-<p>Access control list specifies which users have access to the application as well as what operations they are allowed to invoke. For the purposes of this tutorial, I came up with a simple ACL definition:
-<code>
-{
-  "alice": [
-    "read",
-    "write"
-  ],
-  "bob": [
-    "read"
-  ]
-}
-</code>
-According to this ACL, a user named <code>alice</code> was granted <code>read</code> and <code>write</code> access to the application. In addition, a user named <code>bob</code> was given <code>read</code> access. No other users were given any access to the application. For now, you can save this ACL definition as a file called <code>myapi-acl.json</code>.</p>
-
-<p>Note that later on we are going to inject this access control list as <em>data</em> into OPA to allow it to make policy decisions based on this list. How did we know what the structure of the ACL document looks like? As a matter of fact, OPA doesn&rsquo;t prescribe how you should structure your data. It only requires the data to be in a JSON format. The recommendation is to structure your data in a way that makes it easy to write policy rules against it. I followed this recommendation and the above access control list is what I came up with.</p>
-
-<h3>Defining query input</h3>
-
-<p>Next, we are going to define a structure of the <em>query input</em>. On each access to our application, we are going to ask OPA whether the given access is authorized or not. To answer that question, OPA needs to know the name of the user that is trying to access the application and the operation that the user is trying to invoke. Here is a sample query input that conveys the two query arguments to OPA :</p>
-
-<pre><code>{
-  "input": {
-    "user": "alice",
-    "operation": "write"
-  }
-}
-</code></pre>
-
-<p>You can interpret this query input as the question: &ldquo;Is user <em>alice</em> allowed <em>write</em> access to the application?&rdquo;. Note that it&rsquo;s up to you how you structure your query input. OPA&rsquo;s only requirement is for the input to be in the JSON format.</p>
-
-<h3>Writing Rego policy</h3>
-
-<p>After we decided how our data and the query input look like, we can create a <em>policy</em> that implements the ACL semantics. Using the Rego language, let&rsquo;s create a policy with two rules <code>allow</code> and <code>whocan</code>:</p>
-
-<pre><code>package myapi.policy
-
-import data.myapi.acl
-import input
-
-default allow = false
-
-allow {
-        access = acl[input.user]
-        access[_] == input.access
-}
-
-whocan[user] {
-        access = acl[user]
-        access[_] == input.access
-}
-</code></pre>
-
-<p>The <code>allow</code>  rule checks whether the user is allowed access according to the ACL. It instructs the policy engine to first look up the user&rsquo;s record in ACL and then to check whether the operation the user is trying to invoke is included on user&rsquo;s permission list. Only if there is an ACL record for the given user and the user was granted given access permission, the allow rule results to <code>true</code>. Otherwise it results to <code>false</code>.</p>
-
-<p>The second rule in our policy is the <code>whocan</code> rule. This rule takes the operation as the input argument. For the given operation, <code>whocan</code> rule returns a list of all users that are allowed to invoke the given operation.</p>
-
-<p>You can save the above policy as a file called <code>myapi-policy.rego</code>. We are going to upload it into OPA in just a moment. At this point, both the ACL file <code>myapi-acl.json</code> we created earlier and the policy file  <code>myapi-policy.rego</code> are sitting in our working directory. It&rsquo;s now time to put OPA to work!</p>
-
-<h3>Starting up Open Policy Agent service</h3>
-
-<p>You can grab the OPA binary for your  platform (Linux, MacOS, or Windows) from <a href="https://github.com/open-policy-agent/opa/releases">GitHub</a>. After downloading the binary, start the OPA service by issuing the command:</p>
-
-<pre><code>$ opa run --server
-</code></pre>
-
-<p>OPA service is now up and listening on port <code>8181</code>. Next, we are going to upload the ACL file and the policy file into OPA. Note that OPA stores both the data and policies in memory and so if you restart the OPA service, you will have to reload both of the files.</p>
-
-<p><img class="center" src="/images/posts/open_policy_agent/opa_upload_policy_and_data.png"></p>
-
-<p>First, upload the ACL file <code>myapi-acl.json</code> into OPA using the following <code>curl</code> command:</p>
-
-<pre><code>$ curl -X PUT http://localhost:8181/v1/data/myapi/acl --data-binary @myapi-acl.json
-</code></pre>
-
-<p>Next, upload the policy file <code>myapi-policy.rego</code> into OPA by issuing:
-<code>
-$ curl -X PUT http://localhost:8181/v1/policies/myapi --data-binary @myapi-policy.rego
-</code></p>
-
-<h3>Invoking policy queries</h3>
-
-<p>Finally, if everything went well, we are now ready to issue our first  query.</p>
-
-<p><img class="center" src="/images/posts/open_policy_agent/opa_query_policy.png"></p>
-
-<p>Let&rsquo;s ask OPA whether the user <code>alice</code> can invoke a <code>write</code> operation on our application:
-<code>
-$ curl -X POST http://localhost:8181/v1/data/myapi/policy/allow \
---data-binary '{ "input": { "user": "alice", "access": "write" } }' \
-| jq
-{
-  "result": true
-}
-</code></p>
-
-<p>The query result returned by OPA says that the user <code>alice</code> is authorized for writing. Our application would now proceed with executing the write operation. And what about <code>bob</code>? Is user <code>bob</code> allowed to write?</p>
-
-<pre><code>$ curl -X POST http://localhost:8181/v1/data/myapi/policy/allow \
---data-binary '{ "input": { "user": "bob", "access": "write" } }' \
-| jq
-{
-  "result": false
-}
-</code></pre>
-
-<p>The query result says it clearly. User <code>bob</code> is denied <code>write</code> access. Our application would return HTTP 403 Forbidden to <code>bob</code> at this point.</p>
-
-<p>From what we have seen so far, a query result can be a simple <code>true</code> or <code>false</code> value. However, this is not a limitation that OPA would impose. OPA allows you to write policy rules that can yield an arbitrarily complex JSON structure. For example, the <code>whocan</code> rule that we defined in our policy, returns a JSON list.</p>
-
-<p>Let&rsquo;s give it a try and ask OPA to return a list of users that were granted the <code>read</code> permission:</p>
-
-<pre><code>$ curl -X POST http://localhost:8181/v1/data/myapi/policy/whocan \
---data-binary '{ "input": { "access": "read" } }' \
-| jq
-{
-  "result": [
-    "alice",
-    "bob"
-  ]
-}
-</code></pre>
-
-<h2>Conclusion</h2>
-
-<p>In this article, we took an initial look at Open Policy Agent. After discussing how OPA works, we went through an example of implementing an Access Control List policy. In the <a href="/blog/2019/10/27/open-policy-agent-part-ii-developing-policies/">next entry</a> to this series, we are going to dive deeper into developing policies with OPA.</p>
-
-<p>I hope that you found this article useful. If you have any questions or comments, please add them to the comment section below. I look forward to hearing from you.</p>
 ]]></content>
   </entry>
 

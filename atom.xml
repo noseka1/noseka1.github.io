@@ -4,7 +4,7 @@
   <title><![CDATA[Ales Nosek - The Software Practitioner]]></title>
   <link href="https://alesnosek.com/atom.xml" rel="self"/>
   <link href="https://alesnosek.com/"/>
-  <updated>2021-01-29T13:12:23-08:00</updated>
+  <updated>2021-03-01T16:50:45-08:00</updated>
   <id>https://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,391 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[Deep Dive into CodeReady Containers Deployment on Linux]]></title>
+    <link href="https://alesnosek.com/blog/2021/02/28/deep-dive-into-codeready-containers-deployment-on-linux/"/>
+    <updated>2021-02-28T16:38:46-08:00</updated>
+    <id>https://alesnosek.com/blog/2021/02/28/deep-dive-into-codeready-containers-deployment-on-linux</id>
+    <content type="html"><![CDATA[<p>Are you considering <a href="https://developers.redhat.com/products/codeready-containers/overview">Red Hat CodeReady Containers</a> (CRC) for your local OpenShift development? Are you going to install CRC on Linux? In this blog, I am going to walk you through the deployment of CRC on Linux. We will take a closer look at how CRC works and review some of the configuration options. Fasten your seatbelts, the tour begins.</p>
+
+<!-- more -->
+
+
+<p>This blog uses CRC version 1.21.0, which is based on OpenShift Container Platform (OCP) version 4.6.9. I am installing CRC on Debian 10 GNU/Linux but any modern Linux distribution like Fedora or Ubuntu will do. As of version 1.21.0, CRC can be deployed on a Linux host that meets the following requirements:</p>
+
+<ul>
+<li><em>KVM</em> and <em>libvirt</em> installed</li>
+<li>Networking configuration is managed by the <em>NetworkManager</em></li>
+<li>User installing CRC has <em>sudo</em> access to the Linux host</li>
+</ul>
+
+
+<p>In addition to the Linux host, you will also need to download the CRC distribution tarball and a pull secret. The pull secret is a JSON file that includes the authentication information for accessing protected container image registries that are hosted by Red Hat. If you are not a Red Hat customer, you can join the <a href="https://developers.redhat.com/">Red Hat Developer Program</a> and download the pull secret at no cost. Through the Developer Program you can also obtain the CRC distribution tarball. Alternatively, you can download the CRC distribution tarball directly from <a href="https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/crc/latest/">here</a>.</p>
+
+<p>CRC comes with excellent documentation which is being expanded with every new release. You can find it <a href="https://code-ready.github.io/crc/">here</a>.</p>
+
+<h2>CodeReady Containers deployment overview</h2>
+
+<p>From a high-level perspective, CRC creates a virtual machine that runs a single-node OpenShift cluster. This node plays the role of a master and a worker node at the same time. No OpenShift installation takes place while deploying CRC. Instead, CRC launches OpenShift from a pre-installed virtual machine image. The diagram below depicts the CRC deployment:</p>
+
+<p><img class="center" src="https://alesnosek.com/images/posts/codeready_containers_deployment_diagram.png"></p>
+
+<p>On the Linux host, CRC makes use of libvirt to create a network, storage pool, and a CRC virtual machine. The virtual machine&rsquo;s data is persisted on the libvirt volume which ensures that the objects created by the user in OpenShift will survive CRC restarts.</p>
+
+<p>The OpenShift instance comes with a fixed set of <em>PersistentVolume</em>s. Users can attach these volumes to the application pods by creating <em>PersistentVolumeClaim</em>s (PVC). All of the volume access modes are supported: <em>ReadWriteOnce</em>, <em>ReadWriteMany</em>, and <em>ReadOnlyMany</em>. The content of the persistent volumes is saved on the host and can be found in the <code>/var/mnt/pv-data</code> directory.</p>
+
+<p>How about the integrated image registry? The image registry in OpenShift is backed by a PersistentVolume and is exposed via a public route <code>default-route-openshift-image-registry.apps-crc.testing</code>. Users can use this route to push their container images to the registry before launching them on OpenShift.</p>
+
+<p>The last thing to note in the diagram is the DNS configuration. Why is this needed? CRC configures the DNS resolution on the Linux host so that the connections to the endpoints <code>api.crc.testing</code> and <code>*.apps-crc.testing</code> are routed to the OpenShift instance. NetworkManager, which is a requirement for CRC to work, is used to achieve this DNS configuration. CRC instructs the NetworkManager to spin up a dnsmasq instance, which forwards the DNS queries for the OpenShift endpoints to the second dnsmasq instance which was deployed inside the virtual machine. This second dnsmasq instance actually resolves the queries.</p>
+
+<h2>Configuring CodeReady Containers</h2>
+
+<p>In this section, we are going to review several CRC configuration options that you may want to customize. By default, the CRC virtual machine is provisioned with 4 vCPUs, 8790 MiB RAM, and 31 GiB disk space. Depending on your use case, you may want to increase these values. On my desktop, I like to bump up the number of vCPUs to 10. Using the <code>crc</code> command, it can be accomplished this way:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ./crc config set cpus 10</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The default memory size of 8790 MiB seems rather small to me. Most of the memory is used by the OpenShift components. Out of the  8790 MiB of memory, only about 2 GiB remain available for your applications. As I have plenty of memory available on my desktop computer, I increase the memory size to some 46 MiB:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ./crc config set memory 47104</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Regarding the disk space, the CRC virtual machine comes with a 31 GiB disk by default. About half of this capacity is not available as it is used by the Red Hat CoreOS operating system and OpenShift components. Around 16 GiB remains available to cover the storage needs of the integrated image registry and any other volumes (PVCs) that you create for your applications. The default 31 GiB disk provides a good amount of space, however, I like to increase the disk size to 120 GiB just to match the default disk size of OCP clusters. Note that CRC allows you to increase the disk size any time after the installation as well. To increase the disk size to 120 GiB, issue the command:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ./crc config set disk-size 120</span></code></pre></td></tr></table></div></figure>
+
+
+<p>CRC requires an OpenShift pull secret. I like to point the CRC to my OpenShift pull secret which I store in a protected location in my home directory. This pull secret is required by OpenShift regardless of which method is used to deploy OpenShift. The same pull secret used for CRC can be used for installing OpenShift via the OpenShift installer. After I downloaded the pull secret from the Red Hat site and saved it at <code>~/.mysecrets/ocp/pull-secret.json</code>, I then need to tell CRC where to find it:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ./crc config set pull-secret-file ~/.mysecrets/ocp/pull-secret.json</span></code></pre></td></tr></table></div></figure>
+
+
+<p>One final configuration option I like to set is <code>consent-telemetry</code>. Setting this option upfront prevents CRC from asking interactively: &ldquo;Would you like to contribute anonymous usage statistics [y/N]&rdquo;:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ./crc config set consent-telemetry yes</span></code></pre></td></tr></table></div></figure>
+
+
+<p>CRC saves the above settings in <code>~/.crc/crc.json</code>. If you prefer, you can also edit this JSON file directly. The full list of available configuration options can be obtained by typing:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ./crc config --help</span></code></pre></td></tr></table></div></figure>
+
+
+<p>With the CRC configuration squared away, we are ready to prepare the Linux host for launching an OpenShift cluster.</p>
+
+<h2>Setting up CodeReady Containers</h2>
+
+<p>In this section, we are going to prepare the Linux host for launching the CRC virtual machine. Note that this is a one-time setup. Go ahead and issue the following command to begin the setup process:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ./crc setup</span></code></pre></td></tr></table></div></figure>
+
+
+<p>While the setup is running, let&rsquo;s talk about the CRC binary.  Did you notice that the CRC binary is quite large? The size of the CRC binary version 1.21.0 is around 2.6 GiB. Why is that? To answer this question, check out the binary structure that is depicted in the following diagram:</p>
+
+<p><img class="center" src="https://alesnosek.com/images/posts/codeready_containers_binary.png"></p>
+
+<p>The CRC binary consists of four parts. The first part is the CRC executable.  The second part is the <code>admin-helper-linux</code> utility that is used for updating the <code>/etc/hosts</code> file. After that comes the <code>crc-driver-libvirt</code> daemon executable, which implements functions specific to the libvirt virtualization and abstracts the virtualization details away from the CRC core. Finally, the so-called CRC bundle (<code>crc_libvirt_4.6.9.crcbundle</code> in the diagram) is the last part of the CRC binary. This bundle contains a virtual machine image and accounts for the majority of the size of the CRC binary.</p>
+
+<p>Now let&rsquo;s get back to the CRC setup. At the initial stage, the <code>./crc setup</code> command extracts all the components appended to the CRC executable and places them below the <code>~/.crc</code> directory. The embedded CRC bundle is a <em>tar.xz</em> archive whose contents is immediately decompressed into <code>~/.crc/cache</code>. This bundle contains the following files:</p>
+
+<ul>
+<li>The <code>crc-bundle-info.json</code> carries the bundle metadata. CRC refers to it throughout the deployment process.</li>
+<li>The virtual machine image <code>crc.qcow2</code>  contains a pre-installed OpenShift node. This image will be used as a backing image for the CRC virtual machine&rsquo;s disk image.</li>
+<li>The <code>id_rsa_crc</code> bootstrap key is used by CRC for SSHing into the virtual machine at its first start. After connecting to the virtual machine, CRC generates a new unique SSH key pair and adds it to the machine&rsquo;s <code>~core/.ssh/authorized_keys</code> file. The original bootstrap SSH key is removed from this file, and hence can no longer be used to access the virtual machine.</li>
+<li>The <code>kubeadmin-password</code> file holds the password of the <em>kubeadmin</em> user on OpenShift.</li>
+<li>The <code>kubeconfig</code> file allows logging into OpenShift as user <em>kube:admin</em>. It includes the user&rsquo;s private key that is needed for successful authentication.</li>
+<li>The <code>oc</code> executable is an oc client whose version matches the version of the bundled OpenShift cluster.</li>
+</ul>
+
+
+<p>After the extraction of the CRC components is complete, the <code>~/.crc</code> directory looks like this:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ tree --noreport .crc
+</span><span class='line'>.crc
+</span><span class='line'>├── bin
+</span><span class='line'>│   ├── admin-helper-linux
+</span><span class='line'>│   ├── crc-driver-libvirt
+</span><span class='line'>│   └── oc
+</span><span class='line'>│       └── oc -&gt; /home/anosek/.crc/cache/crc_libvirt_4.6.9/oc
+</span><span class='line'>├── cache
+</span><span class='line'>│   ├── crc_libvirt_4.6.9
+</span><span class='line'>│   │   ├── crc-bundle-info.json
+</span><span class='line'>│   │   ├── crc.qcow2
+</span><span class='line'>│   │   ├── id_ecdsa_crc
+</span><span class='line'>│   │   ├── kubeadmin-password
+</span><span class='line'>│   │   ├── kubeconfig
+</span><span class='line'>│   │   └── oc
+</span><span class='line'>│   └── crc_libvirt_4.6.9.crcbundle
+</span><span class='line'>└── crc.json</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The next notable step carried out by the CRC setup is configuring DNS on the Linux host. CRC configures DNS, so that the connections to the endpoints <code>api.crc.testing</code> and <code>*.apps-crc.testing</code> are routed to the OpenShift instance. It is known ahead of time that this OpenShift instance is going to expose its endpoints on a hard-coded IP address <code>192.168.130.11</code>. So, how does CRC ensure the proper DNS resolution of the OpenShift endpoints? To achieve that, CRC creates a <code>/etc/NetworkManager/conf.d/crc-nm-dnsmasq.conf</code> file with the following configuration:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>[main]
+</span><span class='line'>dns=dnsmasq</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This configuration instructs the NetworkManager to first, spin up a dnsqmasq instance, and second, modify the <code>/etc/resolv.conf</code> on the machine to use this instance as a default DNS server. In the next step, CRC configures the dnsmasq server by creating a <code>/etc/NetworkManager/dnsmasq.d/crc.conf</code> configuration file with the following content:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>server=/apps-crc.testing/192.168.130.11
+</span><span class='line'>server=/crc.testing/192.168.130.11</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This forwards DNS queries for the <code>crc.testing</code> and <code>apps-crc.testing</code> domains plus all their subdomains to the DNS server <code>192.168.130.11</code>. This DNS server will be deployed inside the CRC virtual machine and will be handling the resolution of the OpenShift endpoints.</p>
+
+<p>Note that the dnsmasq forwarder as described above is only created if your host doesn&rsquo;t use <em>systemd-resolved</em> for DNS resolution. If your host uses systemd-resolved, then CRC will configure the forwarding in systemd-resolved instead of spinning up the additional dnsmasq forwarder.</p>
+
+<p>The last step executed by the <code>./crc setup</code> command is creating a libvirt network. What needs to be done here? CRC creates a libvirt network called <code>crc</code> of type NAT. The only host on the network will get the IP address <code>192.168.130.11</code>:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ virsh net-dumpxml crc
+</span><span class='line'>&lt;network connections='1'&gt;
+</span><span class='line'>  &lt;name&gt;crc&lt;/name&gt;
+</span><span class='line'>  &lt;uuid&gt;49eee855-d342-46c3-9ed3-b8d1758814cd&lt;/uuid&gt;
+</span><span class='line'>  &lt;forward mode='nat'&gt;
+</span><span class='line'>    &lt;nat&gt;
+</span><span class='line'>      &lt;port start='1024' end='65535'/&gt;
+</span><span class='line'>    &lt;/nat&gt;
+</span><span class='line'>  &lt;/forward&gt;
+</span><span class='line'>  &lt;bridge name='crc' stp='on' delay='0'/&gt;
+</span><span class='line'>  &lt;mac address='52:54:00:fd:be:d0'/&gt;
+</span><span class='line'>  &lt;ip family='ipv4' address='192.168.130.1' prefix='24'&gt;
+</span><span class='line'>    &lt;dhcp&gt;
+</span><span class='line'>      &lt;host mac='52:fd:fc:07:21:82' ip='192.168.130.11'/&gt;
+</span><span class='line'>    &lt;/dhcp&gt;
+</span><span class='line'>  &lt;/ip&gt;
+</span><span class='line'>&lt;/network&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This network will be hosting the CRC virtual machine. This virtual machine will be created with the MAC address <code>52:fd:fc:07:21:82</code>. The above configuration assigns the fixed IP address <code>192.168.130.11</code> to this virtual machine. Both the MAC address <code>52:fd:fc:07:21:82</code> and the IP address <code>192.168.130.11</code> are hard-coded in CRC.</p>
+
+<p>Creating the libvirt network was the last setup step that I wanted to discuss. In the next section, we are going to create and launch the CRC virtual machine.</p>
+
+<h2>Starting CodeReady Containers</h2>
+
+<p>After the <code>./crc setup</code> completes, issue the following command to create and start the CRC virtual machine:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ./crc start</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Note that if the CRC machine already exists, the above command will just start it. In the remainder of this section, I am going to discuss some of the notable steps executed during the start process.</p>
+
+<p>First, CRC runs the pre-flight checks that were also executed previously by <code>./crc setup</code> command. This is to ensure that the environment is still in a good shape.</p>
+
+<p>Next, CRC creates a libvirt storage pool called <code>crc</code> in the directory <code>~/.crc/machines/crc</code>. In this storage pool, a new machine image is created which is called <code>crc.qcow2</code> and has the size of 120 GiB. We chose the 120 GiB size by configuring the <code>disk-size</code> parameter in the configuration section above. The image is thin-provisioned, i.e.  no disk capacity is allocated ahead of time. Instead, additional space allocation occurs on demand as data is written to the disk. Also, CRC supports resizing the image. If the user decides to change the <code>disk-size</code> parameter, CRC will resize the machine image accordingly before starting the virtual machine. The libvirt storage pool definition looks something like this:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ virsh pool-dumpxml crc
+</span><span class='line'>&lt;pool type='dir'&gt;
+</span><span class='line'>  &lt;name&gt;crc&lt;/name&gt;
+</span><span class='line'>  &lt;uuid&gt;ecfe5181-6476-43a8-9ff9-a133841df011&lt;/uuid&gt;
+</span><span class='line'>  &lt;capacity unit='bytes'&gt;1769532428288&lt;/capacity&gt;
+</span><span class='line'>  &lt;allocation unit='bytes'&gt;1119201026048&lt;/allocation&gt;
+</span><span class='line'>  &lt;available unit='bytes'&gt;650331402240&lt;/available&gt;
+</span><span class='line'>  &lt;source&gt;
+</span><span class='line'>  &lt;/source&gt;
+</span><span class='line'>  &lt;target&gt;
+</span><span class='line'>    &lt;path&gt;/home/anosek/.crc/machines/crc&lt;/path&gt;
+</span><span class='line'>    &lt;permissions&gt;
+</span><span class='line'>      &lt;mode&gt;0755&lt;/mode&gt;
+</span><span class='line'>      &lt;owner&gt;1000&lt;/owner&gt;
+</span><span class='line'>      &lt;group&gt;1000&lt;/group&gt;
+</span><span class='line'>    &lt;/permissions&gt;
+</span><span class='line'>  &lt;/target&gt;
+</span><span class='line'>&lt;/pool&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>After the virtual machine disk is ready, CRC will create a virtual machine and start it. The virtual machine is called <code>crc</code> and you can review its definition by issuing:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ virsh dumpxml crc
+</span><span class='line'>&lt;domain type='kvm' id='2'&gt;
+</span><span class='line'>  &lt;name&gt;crc&lt;/name&gt;
+</span><span class='line'>  &lt;uuid&gt;4269a53d-0fa7-465e-9190-ab33047244ee&lt;/uuid&gt;
+</span><span class='line'>  &lt;memory unit='KiB'&gt;46000128&lt;/memory&gt;
+</span><span class='line'>  &lt;currentMemory unit='KiB'&gt;46000128&lt;/currentMemory&gt;
+</span><span class='line'>  &lt;vcpu placement='static'&gt;10&lt;/vcpu&gt;
+</span><span class='line'>  &lt;resource&gt;
+</span><span class='line'>    &lt;partition&gt;/machine&lt;/partition&gt;
+</span><span class='line'>  &lt;/resource&gt;
+</span><span class='line'>
+</span><span class='line'>...
+</span><span class='line'>
+</span><span class='line'>  &lt;devices&gt;
+</span><span class='line'>    &lt;disk type='file' device='disk'&gt;
+</span><span class='line'>      &lt;driver name='qemu' type='qcow2' io='threads'/&gt;
+</span><span class='line'>      &lt;source file='/home/anosek/.crc/machines/crc/crc.qcow2' index='1'/&gt;
+</span><span class='line'>      &lt;backingStore type='file' index='2'&gt;
+</span><span class='line'>        &lt;format type='qcow2'/&gt;
+</span><span class='line'>        &lt;source file='/home/anosek/.crc/cache/crc_libvirt_4.6.9/crc.qcow2'/&gt;
+</span><span class='line'>        &lt;backingStore/&gt;
+</span><span class='line'>      &lt;/backingStore&gt;
+</span><span class='line'>...
+</span><span class='line'>
+</span><span class='line'>&lt;/domain&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The virtual machine&rsquo;s vCPU and memory are sized according to the <code>cpus</code> and <code>memory</code> configuration we made above. In the machine definition, you can see that the virtual machine runs off the image that was created at <code>~/.crc/machines/crc/crc.qcow2</code>. This image is actually an overlay image created on top of the <code>~/.crc/cache/crc_libvirt_4.6.9/crc.qcow2</code> backing image. The overlay image starts as an empty image and records changes made to the disk of the CRC virtual machine. All the changes made in the CRC virtual machine are persisted in the overlay image and will survive the virtual machine restarts. That means that your OpenShift configuration will persist across the <code>./crc stop</code> and <code>./crc start</code> commands.</p>
+
+<p>Next, CRC creates a new SSH key pair that will be used for SSHing to the virtual machine as user <code>core</code>. The public key from this key pair is added to the <code>~core/.ssh/authorized_keys</code> file in the virtual machine to enable the access. CRC uses SSH to further configure the virtual machine during the start.</p>
+
+<p>If the user changed the <code>disk-size</code> parameter, the file system needs to be enlarged to span the full disk size. This is achieved by executing the <code>xfs_growfs /</code> command inside the virtual machine. CRC comes with the default disk size of 31 GiB. At this point, the file system is expanded to the 120 GiB that we configured above.</p>
+
+<p>Next, CRC starts a DNS server &mdash; a podman container running dnsmasq &mdash; inside the virtual machine. This DNS server resolves the domain names <code>*.apps-crc.testing</code>, <code>api.crc.testing</code>, and <code>api-int.crc.testing</code> to the IP address <code>192.168.130.11</code>, which is the address of the virtual machine itself. These domain names are assigned to the well-known OpenShift endpoints: ingress router, API server, and internal API, respectively. The DNS server is used both by the virtual machine as well as by the Linux host. The Linux host reaches the DNS server through the DNS forwarder as we described before.</p>
+
+<p>During the start phase, CRC adds the following line to <code>/etc/hosts</code> on the Linux host:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>192.168.130.11 api.crc.testing console-openshift-console.apps-crc.testing default-route-openshift-image-registry.apps-crc.testing oauth-openshift.apps-crc.testing</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I am not sure why this setting is being done. The resolution of the above domains is already handled by the dnsmasq server running inside the CRC virtual machine. Anyway, it is good to know that CRC adds this line to your <code>/etc/hosts</code>.</p>
+
+<p>In the next step of the start sequence, CRC starts the kubelet service which in turn brings up OpenShift services. If the kubelet&rsquo;s client certificate expired while the CRC virtual machine was down, kubelet will issue a Certificate Signing Request (CSR) to obtain a new certificate. CRC checks for the presence of any new CSRs and automatically approves them.</p>
+
+<p>As the last step, CRC adds the user&rsquo;s pull secret to the OpenShift cluster.</p>
+
+<p>The configuration related to the particular CRC machine instance is stored in the <code>.crc/machines/crc</code> directory. You can check it out using:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ tree --noreport .crc/machines
+</span><span class='line'>.crc/machines
+</span><span class='line'>└── crc
+</span><span class='line'>    ├── config.json
+</span><span class='line'>    ├── crc.qcow2
+</span><span class='line'>    ├── id_ecdsa
+</span><span class='line'>    ├── id_ecdsa.pub
+</span><span class='line'>    └── kubeconfig</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Congratulations, your OpenShift instance is now up and running!</p>
+
+<h2>CodeReady Containers convenience commands</h2>
+
+<p>In this section, I would like to mention a couple of commands that are useful when working with CRC. First, you can open OpenShift Web Console in the default browser by issuing:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ./crc console</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You can always display the OpenShift user credentials by running:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ./crc console --credentials
+</span><span class='line'>To login as a regular user, run 'oc login -u developer -p developer https://api.crc.testing:6443'.
+</span><span class='line'>To login as an admin, run 'oc login -u kubeadmin -p HqC3I-wgtiB-q7qCf-KEsuK https://api.crc.testing:6443'</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You can SSH into the CRC virtual machine as the user <code>core</code>:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ssh -i ~/.crc/machines/crc/id_ecdsa core@api.crc.testing</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The <code>core</code> user has full administrative privileges via sudo.</p>
+
+<h2>Conclusion</h2>
+
+<p>This blog covered the deployment of CodeReady Containers to a Linux host. We began by reviewing the prerequisites that are needed to deploy CRC. In the deployment overview section, we showed how CRC interacts with libvirt to spin up  the OpenShift virtual machine. We also discussed the DNS configuration made by CRC. Before deploying CRC, we customized the CRC configuration and provided the virtual machine with additional resources beyond the factory defaults. We discussed the CRC setup and start phases in great detail. Finally, I shared some of the convenience commands I like to use.</p>
+
+<p>Hope you enjoyed the CodeReady Containers tour presented in this blog.  If you have any questions or comments, please leave them in the comment section below. I look forward to hearing from you!</p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[Monitoring Apache Airflow using Prometheus]]></title>
@@ -2590,108 +2975,6 @@
 <p>In this blog post, we were able to attach a debugger and VisualVM to the Java application running on OpenShift. We didn&rsquo;t need to deploy Jolokia proxy or create additional Service or Route objects to make our setup work. Instead, we leveraged the port-forwarding feature already available in OpenShift. The demonstrated method has additional security benefits as we are not exposing any additional ports of the application container.</p>
 
 <p>Hope you enjoyed this article and was able to reproduce this setup for yourself. If you have any thoughts or questions feel free to add them to the comment section below.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[Comparing OpenAPI with gRPC]]></title>
-    <link href="https://alesnosek.com/blog/2019/01/25/comparing-openapi-with-grpc/"/>
-    <updated>2019-01-25T15:22:46-08:00</updated>
-    <id>https://alesnosek.com/blog/2019/01/25/comparing-openapi-with-grpc</id>
-    <content type="html"><![CDATA[<p>Are you still coding your API client libraries by hand? Is your manually maintained API documentation drifting away from what was actually implemented? You may be interested in reviewing the two popular technologies that solve this problem. In this article, we are going to look at OpenAPI and gRPC side-by-side.</p>
-
-<!-- more -->
-
-
-<p>Both OpenAPI and gRPC are communication technologies very much needed in the today&rsquo;s world of microservices applications. They allow you to describe your APIs using  a formal language. This description then serves as a source of truth from which you can generate the client and server code and API documentation. As there are two viable alternatives, the question is which one is going to work better for you? As I was trying to answer the same question I did some research on the Internet and came up with a comparison table. I didn&rsquo;t include every single detail, however, this table could perhaps be a good starting point for you:</p>
-
-<table>
-<thead>
-<tr>
-<th> Criteria </th>
-<th> OpenAPI </th>
-<th> gRPC </th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td> Origins </td>
-<td> <a href="https://www.openapis.org/">OpenAPI</a> evolved from the <a href="https://swagger.io/">Swagger</a> project. Swagger started out as a specification for documenting RESTful APIs. Later on, tools to generate client and server code and generating of test-cases were added. While the original Swagger Specification was donated to the <a href="https://linuxfoundation.org">Linux Foundation</a> and renamed the OpenAPI,  Swagger remains one of the most widely used open source tool sets for developing OpenAPIs. </td>
-<td> <a href="https://grpc.io/">gRPC</a> was originally developed at Google. Later on, it was donated to <a href="https://www.cncf.io/">Cloud Native Computing Foundation</a>. </td>
-</tr>
-<tr>
-<td> Communication Protocol </td>
-<td> OpenAPI uses HTTP/1.1 protocol for transport. For the data representation, JSON is generally assumed. </td>
-<td> gRPC uses HTTP/2 protocol for transport and <a href="https://developers.google.com/protocol-buffers/">Protocol Buffers</a> as a serialization format. </td>
-</tr>
-<tr>
-<td> API Description Format </td>
-<td> Developers describe their APIs using JSON or YAML documents that follow the <a href="https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md">OpenAPI Specification</a> schema. You can find a large archive of sample OpenAPI descriptions at <a href="https://apis.guru/openapi-directory/">apis.guru/openapi-directory</a>. </td>
-<td> APIs are described using <code>.proto</code> files written in a <a href="https://developers.google.com/protocol-buffers/docs/proto3">Protocol Buffer Language</a>. </td>
-</tr>
-<tr>
-<td> Description Style </td>
-<td> REST APIs are described using HTTP verbs and URIs. Each URI represents a resource in your system, and the HTTP verbs represent actions you take on your resources. <br/><br/> REST APIs use <a href="https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html">HTTP status codes</a> to signalize the results of the operation invocations. As the HTTP status codes were primarily meant to convey the results of the transport operations, the mapping of status codes to the results of your API functions may be a bit loose. </td>
-<td> With gRPC, you can describe your API in terms of methods or procedures. However, if a lot of methods are added over time, the end result can be a complex and confusing API due to the fact that developers must understand what each method does individually. Instead, Google suggests to use a <a href="https://cloud.google.com/apis/design/resources">resource-oriented design</a> which applies the REST design principles to gRPC. This results in more comprehensible APIs. Also, if you intend to transcode HTTP/JSON API into gRPC, you will greatly benefit from a gRPC API designed using the resource-oriented approach. <br/><br/> gRPC offers a set of <a href="https://godoc.org/google.golang.org/grpc/codes">error codes</a> that are well suited to describe the outcome of API operations. </td>
-</tr>
-<tr>
-<td> Client and Server Code Generation </td>
-<td>  There are several tools for generating code based on the OpenAPI description. The most widely used code generation project is <a href="https://swagger.io/tools/swagger-codegen/">Swagger Codegen</a>. Other projects include <a href="https://github.com/Azure/autorest">AutoRest</a> and <a href="https://github.com/capitalone/oas-nodegen">oas-nodegen</a>. </td>
-<td> gRPC comes with a modular code generator called <em>protoc</em>. Each supported language is implemented as a separate plugin. The code generator was part of the gRPC project from its inception. </td>
-</tr>
-<tr>
-<td> Interactive Documentation </td>
-<td> <a href="https://swagger.io/tools/swagger-ui/">Swagger UI</a> is a great tool to visualize your API and execute test requests against your API. </td>
-<td> <a href="https://github.com/sourcegraph/prototools">prototools</a> and <a href="https://github.com/pseudomuto/protoc-gen-doc">protoc-gen-doc</a> can generate documentation based on your <code>.proto</code> files. </td>
-</tr>
-<tr>
-<td> Tooling </td>
-<td> <a href="https://swagger.io/">Swagger Tools</a>, <a href="https://curl.haxx.se/">curl</a>, <a href="https://www.getpostman.com/">Postman</a>, web browsers, <a href="https://www.tcpdump.org/">tcpdump</a>, <a href="https://www.wireshark.org/">Wireshark</a> </td>
-<td> <a href="https://github.com/grpc-ecosystem/awesome-grpc">Awesome gRPC</a>, <a href="https://github.com/fullstorydev/grpcurl">gRPCurl</a>. At the time of this writing, Wireshark supports gRPC only partially. </td>
-</tr>
-<tr>
-<td> Performance </td>
-<td> HTTP/1.1 protocol is a request/response protocol. When sending multiple requests over a single TCP connection, the next request can only be sent after the response to the previous request was received. This would normally result in a poor performance especially on the connections with higher latency. To increase the performance, HTTP client opens multiple TCP connections to a single server and sends multiple HTTP requests in parallel. New connections are opened as they are needed. As establishing a new TCP connection is associated with a cost, clients implement <em>connection pooling</em> to reuse the existing TCP connections. Remember to tune the clients connection pool to achieve good performance. <br/><br/> Some HTTP clients/servers may support HTTP/1.1 <em>pipelining</em>. Each HTTP request over the TCP connection may be made immediately without waiting for the previous request&rsquo;s response to return. As request responses must be returned in the order requested, this is prone to head of line blocking. <br/><br/> HTTP/1.1 is a text-based protocol and JSON is a text-based serialization format which hurts the performance. </td>
-<td> By default HTTP/2 client opens a single TCP connection to the server and multiplexes multiple requests on this connection. Requests and responses are split into chunks and can be returned in an intermingled fashion. This prevents the head of line blocking that HTTP/1.1 pipelining may suffer from. In addition to that, the client can open multiple HTTP/2 connections to a single server and implement connection pooling. However, it is common to use a single TCP connection only. <br/><br/> HTTP/2 is a binary protocol. Also, according to <a href="https://medium.com/apis-and-digital-transformation/openapi-and-grpc-side-by-side-b6afb08f75ed">this</a> article by Tim Burks of Google, the Protocol Buffers binary format can be orders of magnitude faster to read than corresponding JSON serializations. <br/><br/> Overall, gRPC offers a better performance than OpenAPI. </td>
-</tr>
-<tr>
-<td> Overall Summary </td>
-<td> OpenAPI offers a great interoperability due to leveraging widely used HTTP/1.1 protocol and the JSON format. There is a great amount of tools available that will work with OpenAPI-based interfaces. </td>
-<td> If you are looking for maximum performance, gRPC is a great choice for you. Also, HTTP/2 protocol is gradually gaining market share. Why not start using it today? </td>
-</tr>
-</tbody>
-</table>
-
-
-<h2>Where to go from here?</h2>
-
-<p>The comparison table in the previous section highlights only the basic characteristics of OpenAPI and gRPC. I constructed the table based on many great articles that I found on the web. If you are interested in further details on how OpenAPI and gRPC compares I recommend to you to visit the following references:</p>
-
-<ul>
-<li><a href="https://medium.com/apis-and-digital-transformation/openapi-and-grpc-side-by-side-b6afb08f75ed">OpenAPI and gRPC Side-by-Side</a></li>
-<li><a href="https://sookocheff.com/post/api/swagger-thrift-or-grpc/">Comparing Swagger with Thrift or gRPC</a></li>
-<li><a href="https://code.tutsplus.com/tutorials/rest-vs-grpc-battle-of-the-apis--cms-30711">REST vs. gRPC: Battle of the APIs</a></li>
-<li><a href="http://www.andrewconnell.com/blog/grpc-and-protocol-buffers-an-alternative-to-rest-apis-and-json">gRPC and Protocol Buffers: an Alternative to REST APIs and JSON</a></li>
-<li><a href="https://www.sajari.com/blog/grpc-and-displacement-of-rest-apis">gRPC and the displacement of REST-based APIs</a></li>
-<li><a href="https://improbable.io/games/blog/grpc-web-moving-past-restjson-towards-type-safe-web-apis">gRPC-Web: Moving past REST+JSON towards type-safe Web APIs</a></li>
-<li><a href="https://husobee.github.io/golang/rest/grpc/2016/05/28/golang-rest-v-grpc.html">REST v. gRPC</a></li>
-<li><a href="https://blogs.dropbox.com/tech/2019/01/courier-dropbox-migration-to-grpc/">Courier: Dropbox migration to gRPC</a></li>
-</ul>
-
-
-<h2>Combining OpenAPI and gRPC</h2>
-
-<p>Do you have to use either OpenAPI or gRPC? If you like the awesome performance offered by gRPC but still need to provide REST interfaces to the external third-party clients there is a solution for you. You can leverage one of the proxies (<a href="https://www.envoyproxy.io/docs/envoy/latest/configuration/http_filters/grpc_json_transcoder_filter">Envoy</a>,  <a href="https://github.com/grpc-ecosystem/grpc-gateway">grpc-gateway</a>) that can transcode the REST interface into gRPC. If you design your gRPC interfaces in a <a href="https://cloud.google.com/apis/design/resources">resource-oriented</a> fashion the transcoding process is straight forward. The resulting system architecture may look like this:</p>
-
-<p><img src="https://alesnosek.com/images/posts/comparing_openapi_with_grpc.svg"></p>
-
-<p>The third-party REST client talks to the proxy using HTTP/JSON. Client requests are transcoded on-the-fly into gRPC requests. After the requests are processed, the resulting responses are transcoded from gRPC back to HTTP/JSON and delivered to the client.</p>
-
-<h2>Conclusion</h2>
-
-<p>In this blog post, we compared the basic characteristics of OpenAPI and gRPC. OpenAPI is a great choice due to its interoperability. On the other hand, gRPC offers a better performance. However, you don&rsquo;t have to choose one or the other. You can happily combine both technologies in a single system.</p>
-
-<p>I hope you enjoyed this article. If you are looking into OpenAPI or gRPC I would be happy to hear about your thoughts. Please, feel free to leave your comments in the comment section below.</p>
 ]]></content>
   </entry>
 
