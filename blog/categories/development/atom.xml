@@ -4,7 +4,7 @@
   <title><![CDATA[Category: development | Ales Nosek - The Software Practitioner]]></title>
   <link href="https://alesnosek.com/blog/categories/development/atom.xml" rel="self"/>
   <link href="https://alesnosek.com/"/>
-  <updated>2021-03-01T16:50:45-08:00</updated>
+  <updated>2021-03-29T17:35:17-07:00</updated>
   <id>https://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -290,6 +290,8 @@ To login as an admin, run 'oc login -u kubeadmin -p HqC3I-wgtiB-q7qCf-KEsuK http
 <h2>Conclusion</h2>
 
 <p>This blog covered the deployment of CodeReady Containers to a Linux host. We began by reviewing the prerequisites that are needed to deploy CRC. In the deployment overview section, we showed how CRC interacts with libvirt to spin up  the OpenShift virtual machine. We also discussed the DNS configuration made by CRC. Before deploying CRC, we customized the CRC configuration and provided the virtual machine with additional resources beyond the factory defaults. We discussed the CRC setup and start phases in great detail. Finally, I shared some of the convenience commands I like to use.</p>
+
+<p><strong> Update 3/29/2021: </strong> I also have a video related to this topic, it can be found <a href="https://www.youtube.com/watch?v=JrjLo_fl280">here</a>.</p>
 
 <p>Hope you enjoyed the CodeReady Containers tour presented in this blog.  If you have any questions or comments, please leave them in the comment section below. I look forward to hearing from you!</p>
 ]]></content>
