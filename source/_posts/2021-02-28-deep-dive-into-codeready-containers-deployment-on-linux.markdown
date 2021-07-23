@@ -42,7 +42,7 @@ In this section, we are going to review several CRC configuration options that y
 $ ./crc config set cpus 10
 ```
 
-The default memory size of 8790 MiB seems rather small to me. Most of the memory is used by the OpenShift components. Out of the  8790 MiB of memory, only about 2 GiB remain available for your applications. As I have plenty of memory available on my desktop computer, I increase the memory size to some 46 MiB:
+The default memory size of 8790 MiB seems rather small to me. Most of the memory is used by the OpenShift components. Out of the  8790 MiB of memory, only about 2 GiB remain available for your applications. As I have plenty of memory available on my desktop computer, I increase the memory size to some 46 GiB:
 
 ```
 $ ./crc config set memory 47104
