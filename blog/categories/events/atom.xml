@@ -4,7 +4,7 @@
   <title><![CDATA[Category: events | Ales Nosek - The Software Practitioner]]></title>
   <link href="https://alesnosek.com/blog/categories/events/atom.xml" rel="self"/>
   <link href="https://alesnosek.com/"/>
-  <updated>2021-07-23T07:00:35-07:00</updated>
+  <updated>2022-05-03T06:39:02-07:00</updated>
   <id>https://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,17 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[Speaking at Red Hat Summit 2022]]></title>
+    <link href="https://alesnosek.com/blog/2022/05/02/speaking-at-red-hat-summit-2022/"/>
+    <updated>2022-05-02T20:28:05-07:00</updated>
+    <id>https://alesnosek.com/blog/2022/05/02/speaking-at-red-hat-summit-2022</id>
+    <content type="html"><![CDATA[<p>This year&rsquo;s <a href="https://www.redhat.com/en/summit">Red Hat Summit</a> is going to be hosted in Boston on May 10-11, 2022. I will be co-presenting along with Gregory Brown and Joe Mann on the topic: <em>Extending Your Application Landscape with Red Hat OpenShift Service on AWS</em>. We will discuss how we leveraged Red Hat OpenShift Service on AWS (ROSA) to build a modern platform for applications that includes disaster recovery. The session takes place on May 11, 1:00 - 1:45 p.m at the Boston Westin, Seaport District. If you happen to be at the session, I would enjoy meeting you.</p>
+
+<p><img class="center" src="/images/posts/red_hat_summit_2022.jpeg"></p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[Announcing: The Software Practitioner YouTube Channel]]></title>
@@ -69,24 +80,6 @@
     <updated>2019-09-23T14:34:26-07:00</updated>
     <id>https://alesnosek.com/blog/2019/09/23/future-proof-monolithic-applications-with-modular-design</id>
     <content type="html"><![CDATA[<p>The <a href="https://www.redhat.com/en/events/webinar/develop-deploy-deliver-continuously">Cloud Native Virtual Event</a>, presented by Red Hat, is coming up on October 10th, 2019. As part of the Development track, I will be co-presenting on the topic: <em>Future-proof monolithic applications with modular design</em>. If you are interested in hearing Eric Murphy and myself discussing the development of highly-modular applications, you can register for the event <a href="https://www.redhat.com/en/events/webinar/develop-deploy-deliver-continuously#registration">here</a>. As part of our presentation, we will be demonstrating a sample Quarkus + Vert.x application that can be deployed both as a monolith or as a set of microservices while using the same code and modular design.</p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[Speaking at Red Hat Summit 2019]]></title>
-    <link href="https://alesnosek.com/blog/2019/04/21/speaking-at-red-hat-summit-2019/"/>
-    <updated>2019-04-21T12:41:43-07:00</updated>
-    <id>https://alesnosek.com/blog/2019/04/21/speaking-at-red-hat-summit-2019</id>
-    <content type="html"><![CDATA[<p>This year&rsquo;s <a href="https://www.redhat.com/en/summit/2019">Red Hat Summit</a> is going to be hosted in Boston on May 7-9, 2019. I will be co-presenting on the topic: <em>Using Domain-driven Design to Reimagine Monolithic Applications in a World of Microservices</em>. If you are interested in hearing about how to design monolithic applications in a practical, decomposable, and agile fashion, you can come and see Eric Murphy and myself at the Boston Convention &amp; Exhibition Center on Wednesday, May 8, 10:30 a.m.-11:15 a.m. Feel free to drop by to say hi!</p>
-
-<!-- more -->
-
-
-<p><strong> Update 05/10/2019 </strong></p>
-
-<p>I enjoyed having the opportunity to be a co-presenter with Eric Murphy at this week’s Red Hat Summit. Discussing DDD, event storming, and why a monolithic architecture can still be the right choice despite the current push for microservices:</p>
-
-<p><img class="center" src="/images/posts/using_ddd.jpeg"></p>
 ]]></content>
   </entry>
 

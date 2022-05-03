@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>RHCSA/RHCE Exam Experience - Ales Nosek - The Software Practitioner</title>
+  <title>Speaking at Red Hat Summit 2022 - Ales Nosek - The Software Practitioner</title>
   <meta name="author" content="Ales Nosek">
 
 
-  <meta name="description" content="Today was the great day when I passed the RHCE certification exam. If you&rsquo;re thinking about getting a Linux certification or you&rsquo;re &hellip;">
+  <meta name="description" content="This year&rsquo;s Red Hat Summit is going to be hosted in Boston on May 10-11, 2022. I will be co-presenting along with Gregory Brown and Joe Mann on &hellip;">
 
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
 
-  <link rel="canonical" href="https://alesnosek.com/blog/2016/11/07/rhcsa-slash-rhce-exam-experience/">
+  <link rel="canonical" href="https://alesnosek.com/blog/2022/05/02/speaking-at-red-hat-summit-2022/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/stylesheets/data-table.css" media="screen, projection" rel="stylesheet" type="text/css" />
@@ -82,7 +82,7 @@
 
   <header>
 
-      <h1 class="entry-title">RHCSA/RHCE Exam Experience</h1>
+      <h1 class="entry-title">Speaking at Red Hat Summit 2022</h1>
 
 
       <p class="meta">
@@ -91,65 +91,16 @@
 
 
 
-<time class='entry-date' datetime='2016-11-07T23:45:38-08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>7</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>11:45 pm</span></time>
+<time class='entry-date' datetime='2022-05-02T20:28:05-07:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>2</span><span class='date-suffix'>nd</span>, <span class='date-year'>2022</span></span> <span class='time'>8:28 pm</span></time>
 
       </p>
 
   </header>
 
 
-<div class="entry-content"><p>Today was the great day when I passed the RHCE certification exam. If you&rsquo;re thinking about getting a Linux certification or you&rsquo;re already working towards RHCSA/RHCE, this blog post is for you.</p>
+<div class="entry-content"><p>This year&rsquo;s <a href="https://www.redhat.com/en/summit">Red Hat Summit</a> is going to be hosted in Boston on May 10-11, 2022. I will be co-presenting along with Gregory Brown and Joe Mann on the topic: <em>Extending Your Application Landscape with Red Hat OpenShift Service on AWS</em>. We will discuss how we leveraged Red Hat OpenShift Service on AWS (ROSA) to build a modern platform for applications that includes disaster recovery. The session takes place on May 11, 1:00 - 1:45 p.m at the Boston Westin, Seaport District. If you happen to be at the session, I would enjoy meeting you.</p>
 
-<!-- more -->
-
-
-<p>The RHCSA/RHCE certification is a part of the <a href="https://en.wikipedia.org/wiki/Red_Hat_Certification_Program">Red Hat Certification Program</a>. You have to pass two practical exams, RHCSA (Red Hat Certified System Administrator) and RHCE (Red Hat Certified Engineer).</p>
-
-<h2>Modus operandi</h2>
-
-<p>Both the RHCSA and RHCE exams are hands on. You will be presented with one or more RHEL7 virtual machines and a list of Linux configuration tasks. Your goal is to set up the virtual machines as described in the tasks. After your exam is finished, the Red Hat test automation will reboot the virtual machines and run the grading scripts that will compute your score. An hour or two after the exam end you will receive your exam results in the email.</p>
-
-<p>The exam strictly tests your practical skills which makes it in my opinion very valuable. Several years ago I passed some of the exams from the Oracle Java certification path. The major part of the Java exams was based on the multiple choice questions. It was less fun for me to prepare for it and I think that a hands on exam would test the Java development skills much accurately.</p>
-
-<p>If you&rsquo;re a hiring manager searching for the Linux talent, you should know that:</p>
-
-<blockquote><p>Job candidates that passed the RHCSA/RHCE certification really demonstrated their Linux administration skills at some point.</p></blockquote>
-
-
-<h2>Tips</h2>
-
-<p>You can find a ton of tips for the RHCSA/RHCE exams on the Internet already. I&rsquo;d like to share some more advice here.</p>
-
-<p>The RHEL7 virtual machines you will be working on have manual pages installed. Before taking the exam, make sure you know where to look for the useful configuration examples. For instance, when configuring the network interfaces you can refer to:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>man <span class="m">5</span> nmcli-examples
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Full examples of commands to configure the firewall can be found at:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>man <span class="m">5</span> firewalld.richlanguage
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>When wrestling with the Apache server configuration you can leverage the Apache manual. After you installed the <code>httpd-manual</code> RPM package, you can browse the manual using the <em>elinks</em> web browser:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>yum install elinks httpd-manual
-</span><span class='line'>elinks /usr/share/httpd/manual/index.html
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>If it is feasible for you, make yourself a favor and buy the <a href="https://www.redhat.com/en/services/training/learning-subscription">Red Hat Learning Subscription</a>. You will get access to the training materials that walk you through the tasks very similar to what you&rsquo;ll see on the real exam. It includes mock exams. And you&rsquo;ll be provided with the virtual machines that you can practice on over and over again until you&rsquo;re ready to take the test.</p>
-
-<p>I found the Red Hat learning materials to be of a high quality. Besides the prep for the exam, I&rsquo;m using them to learn about further technologies from the Red Hat portfolio.</p>
-
-<h2>Is the RHCSA/RHCE for me?</h2>
-
-<p>In my opinion, the RHCSA/RHCE is one of the best Linux certifications available. If you mean it with Linux seriously - and it doesn&rsquo;t necessarily have to be the Red Hat flavor of Linux - go get certified!</p>
+<p><img class="center" src="/images/posts/red_hat_summit_2022.jpeg"></p>
 </div>
 
 
@@ -165,12 +116,12 @@
 
 
 
-<time class='entry-date' datetime='2016-11-07T23:45:38-08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>7</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>11:45 pm</span></time>
+<time class='entry-date' datetime='2022-05-02T20:28:05-07:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>2</span><span class='date-suffix'>nd</span>, <span class='date-year'>2022</span></span> <span class='time'>8:28 pm</span></time>
 
 
 <span class="categories">
 
-    <a class='category' href='/blog/categories/devops/'>devops</a>
+    <a class='category' href='/blog/categories/events/'>events</a>
 
 </span>
 
@@ -179,7 +130,7 @@
 
       <div class="sharing">
 
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="https://alesnosek.com/blog/2016/11/07/rhcsa-slash-rhce-exam-experience/" data-via="" data-counturl="https://alesnosek.com/blog/2016/11/07/rhcsa-slash-rhce-exam-experience/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="https://alesnosek.com/blog/2022/05/02/speaking-at-red-hat-summit-2022/" data-via="" data-counturl="https://alesnosek.com/blog/2022/05/02/speaking-at-red-hat-summit-2022/" >Tweet</a>
 
 
   <div class="g-plusone" data-size="medium"></div>
@@ -192,10 +143,8 @@
 
     <p class="meta">
 
-        <a class="basic-alignment left" href="/blog/2016/11/01/5-linux-commands-you-didnt-know-you-needed/" title="Previous Post: 5 Linux Commands You Didn't Know You Needed">&laquo; 5 Linux Commands You Didn&#8217;t Know You Needed</a>
+        <a class="basic-alignment left" href="/blog/2021/03/29/announcing-the-software-practitioner-youtube-channel/" title="Previous Post: Announcing: The Software Practitioner YouTube Channel">&laquo; Announcing: The Software Practitioner YouTube Channel</a>
 
-
-        <a class="basic-alignment right" href="/blog/2016/12/04/controlling-a-multi-service-application-with-systemd/" title="Next Post: Controlling a Multi-Service Application with systemd">Controlling a Multi-Service Application with systemd &raquo;</a>
 
     </p>
   </footer>
@@ -266,8 +215,8 @@
 
 
         // var disqus_developer = 1;
-        var disqus_identifier = 'https://alesnosek.com/blog/2016/11/07/rhcsa-slash-rhce-exam-experience/';
-        var disqus_url = 'https://alesnosek.com/blog/2016/11/07/rhcsa-slash-rhce-exam-experience/';
+        var disqus_identifier = 'https://alesnosek.com/blog/2022/05/02/speaking-at-red-hat-summit-2022/';
+        var disqus_url = 'https://alesnosek.com/blog/2022/05/02/speaking-at-red-hat-summit-2022/';
         var disqus_script = 'embed.js';
 
     (function () {
