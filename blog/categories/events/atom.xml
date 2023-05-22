@@ -4,7 +4,7 @@
   <title><![CDATA[Category: events | Ales Nosek - The Software Practitioner]]></title>
   <link href="https://alesnosek.com/blog/categories/events/atom.xml" rel="self"/>
   <link href="https://alesnosek.com/"/>
-  <updated>2022-09-17T10:52:24-07:00</updated>
+  <updated>2023-05-21T17:52:48-07:00</updated>
   <id>https://alesnosek.com/</id>
   <author>
     <name><![CDATA[Ales Nosek]]></name>
@@ -12,6 +12,19 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+
+  <entry>
+    <title type="html"><![CDATA[Speaking at Red Hat Summit 2023]]></title>
+    <link href="https://alesnosek.com/blog/2023/05/21/speaking-at-red-hat-summit-2023/"/>
+    <updated>2023-05-21T17:05:05-07:00</updated>
+    <id>https://alesnosek.com/blog/2023/05/21/speaking-at-red-hat-summit-2023</id>
+    <content type="html"><![CDATA[<p>This year&rsquo;s <a href="https://www.redhat.com/en/summit">Red Hat Summit</a> is going to be hosted in Boston on May 23-25, 2023. I will be presenting on the topic: <a href="https://events.experiences.redhat.com/widget/redhat/sum23/SessionCatalog2023/session/1673459763530001wa9h">How San Diego Gas &amp; Electric Successfully Migrated to Red Hat OpenShift Service on AWS</a>. In this presentation, I will share how I worked with SDG&amp;E to migrate their production workloads from on-premise to the Red Hat OpenShift Service on AWS. I will also cover the design and implementation of our disaster recovery strategy.</p>
+
+<p>The session takes place on May 24, 11:30 a.m - 12:15 p.m in the Boston Convention and Exhibition Center in Boston. If you happen to be at the session, I would enjoy meeting you.</p>
+
+<p><img class="center" src="/images/posts/red_hat_summit_2023.png"></p>
+]]></content>
+  </entry>
 
   <entry>
     <title type="html"><![CDATA[Speaking at Red Hat Summit 2022]]></title>
@@ -71,15 +84,6 @@
 <p>More information about the session can be found in the <a href="https://summit.redhat.com/conference/sessions?p1=eyJzcGVha2VyIjpbXSwidGltZXNsb3QiOltdLCJkYXkiOltdLCJyb29tIjpbXSwibG9jYXRpb24iOltdLCJzb3J0b3JkZXIiOiJkYXRlIiwic3RhcnQiOiIiLCJmaW5pc2giOiIiLCJwYWdlbnVtYmVyIjoxLCJzaGFyZWlkIjoiIiwiY2F0ZWdvcmllcyI6e30sImtleXdvcmQiOiJEZXNpZ24gY29uc2lkZXJhdGlvbnMgYW5kIHBhdHRlcm5zIGZvciBldmVudC1kcml2ZW4gbWljcm9zZXJ2aWNlcyJ9">session catalog</a>.</p>
 
 <p><img class="center" src="/images/posts/red_hat_summit_2020.png"></p>
-]]></content>
-  </entry>
-
-  <entry>
-    <title type="html"><![CDATA[Future-Proof Monolithic Applications with Modular Design]]></title>
-    <link href="https://alesnosek.com/blog/2019/09/23/future-proof-monolithic-applications-with-modular-design/"/>
-    <updated>2019-09-23T14:34:26-07:00</updated>
-    <id>https://alesnosek.com/blog/2019/09/23/future-proof-monolithic-applications-with-modular-design</id>
-    <content type="html"><![CDATA[<p>The <a href="https://www.redhat.com/en/events/webinar/develop-deploy-deliver-continuously">Cloud Native Virtual Event</a>, presented by Red Hat, is coming up on October 10th, 2019. As part of the Development track, I will be co-presenting on the topic: <em>Future-proof monolithic applications with modular design</em>. If you are interested in hearing Eric Murphy and myself discussing the development of highly-modular applications, you can register for the event <a href="https://www.redhat.com/en/events/webinar/develop-deploy-deliver-continuously#registration">here</a>. As part of our presentation, we will be demonstrating a sample Quarkus + Vert.x application that can be deployed both as a monolith or as a set of microservices while using the same code and modular design.</p>
 ]]></content>
   </entry>
 
