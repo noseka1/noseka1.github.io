@@ -2,7 +2,7 @@
 title = "Network Configuration With Os Net Config"
 date = "2015-09-28"
 slug = "2015/09/28/network-configuration-with-os-net-config"
-Categories = []
+Categories = [ "devops", "cloud" ]
 +++
 
 [Os-net-config](https://github.com/openstack/os-net-config "os-net-config") is a simple tool to configure networking of Linux hosts. Combined with Cloud-init, it's suitable for network configuration of virtual machines when booting in the cloud. Let's take a closer look at os-net-config.

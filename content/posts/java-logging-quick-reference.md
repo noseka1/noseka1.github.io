@@ -2,7 +2,7 @@
 title = "Java Logging Quick Reference"
 date = "2015-05-11"
 slug = "2015/05/11/java-logging-quick-reference"
-Categories = []
+Categories = [ "development", "java" ]
 +++
 
 The Simple Logging Facade for Java (SLF4J) serves as a simple abstraction for various logging frameworks. Let's look at how to configure SLF4J to work with SLF4J Simple logger, JDK 1.4 logger, Log4j, Logback and Log4j2 framework.

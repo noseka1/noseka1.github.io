@@ -2,7 +2,7 @@
 title = "Ci Slash Cd Pipeline Spanning Multiple Openshift Clusters"
 date = "2020-06-30"
 slug = "2020/06/30/ci-slash-cd-pipeline-spanning-multiple-openshift-clusters"
-Categories = []
+Categories = [ "devops" ]
 +++
 
 This blog will cover how to create a CI/CD pipeline that spans multiple OpenShift clusters. It will show an example of a Jenkins-based pipeline, and design a pipeline that uses Tekton.

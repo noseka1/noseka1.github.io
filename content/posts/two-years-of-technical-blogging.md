@@ -2,7 +2,7 @@
 title = "Two Years of Technical Blogging"
 date = "2017-04-22"
 slug = "2017/04/22/two-years-of-technical-blogging"
-Categories = []
+Categories = [ "" ]
 +++
 
 Wow, the time goes by so fast. It's been two years since I began writing this blog. Why did I start and am I having fun? Let's take a closer look.

@@ -2,7 +2,7 @@
 title = "First Impressions About Ansible Container"
 date = "2016-09-12"
 slug = "2016/09/12/first-impressions-about-ansible-container"
-Categories = []
+Categories = [ "devops" ]
 +++
 
 At Red Hat summit I learned about the new project [ansible-container](https://www.ansible.com/ansible-container). I was very excited and looked forward to building Docker containers with Ansible instead of the Dockerfiles. The project seemed to came just on time as in our company we're starting to Dockerize our software products. How did *ansible-container* work out for us? Read on!

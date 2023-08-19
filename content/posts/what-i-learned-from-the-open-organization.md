@@ -2,7 +2,7 @@
 title = "What I Learned From the Open Organization"
 date = "2016-07-04"
 slug = "2016/07/04/what-i-learned-from-the-open-organization"
-Categories = []
+Categories = [ "reading" ]
 +++
 
 Red Hat is one of the most successful software companies that makes billions of dollars selling open source software. The book *The Open Organization* written by Jim Whitehurst, CEO of Red Hat, provides a great insight into the company culture and how things get done at Red Hat. This blogpost lists some of the ideas I learned from this book.

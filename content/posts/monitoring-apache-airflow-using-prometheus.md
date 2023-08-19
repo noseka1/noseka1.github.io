@@ -2,7 +2,7 @@
 title = "Monitoring Apache Airflow Using Prometheus"
 date = "2021-01-29"
 slug = "2021/01/29/monitoring-apache-airflow-using-prometheus"
-Categories = []
+Categories = [ "devops", "cloud" ]
 +++
 
 This blog covers a proof of concept, which shows how to monitor Apache Airflow using Prometheus and Grafana.

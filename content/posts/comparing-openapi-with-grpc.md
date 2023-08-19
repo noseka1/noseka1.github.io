@@ -2,7 +2,7 @@
 title = "Comparing Openapi With Grpc"
 date = "2019-01-25"
 slug = "2019/01/25/comparing-openapi-with-grpc"
-Categories = []
+Categories = [ "development" ]
 +++
 
 Are you still coding your API client libraries by hand? Is your manually maintained API documentation drifting away from what was actually implemented? You may be interested in reviewing the two popular technologies that solve this problem. In this article, we are going to look at OpenAPI and gRPC side-by-side.

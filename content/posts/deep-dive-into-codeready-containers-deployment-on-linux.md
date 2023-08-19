@@ -2,7 +2,7 @@
 title = "Deep Dive Into Codeready Containers Deployment on Linux"
 date = "2021-02-28"
 slug = "2021/02/28/deep-dive-into-codeready-containers-deployment-on-linux"
-Categories = []
+Categories = [ "development" ]
 +++
 
 Are you considering [Red Hat CodeReady Containers](https://developers.redhat.com/products/codeready-containers/overview) (CRC) for your local OpenShift development? Are you going to install CRC on Linux? In this blog, I am going to walk you through the deployment of CRC on Linux. We will take a closer look at how CRC works and review some of the configuration options. Fasten your seatbelts, the tour begins.

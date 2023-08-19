@@ -2,7 +2,7 @@
 title = "Passed Red Hat Container Certifications Ex270 and Ex276"
 date = "2017-07-29"
 slug = "2017/07/29/passed-red-hat-container-certifications-ex270-and-ex276"
-Categories = []
+Categories = [ "devops" ]
 +++
 
 Recently I passed two Red Hat certification exams: [EX270 Red Hat Certificate of Expertise in Atomic Host Container Administration](https://www.redhat.com/en/services/training/ex270-red-hat-certificate-expertise-atomic-host-container-administration) and the [EX276 Red Hat Certificate of Expertise in Containerized Application Development](https://www.redhat.com/en/services/training/ex276-red-hat-certificate-expertise-containerized-application-development). I'd like to share some of my experience with you in this blog post.

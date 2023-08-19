@@ -2,7 +2,7 @@
 title = "Apache Airflow Architecture on Openshift"
 date = "2020-09-13"
 slug = "2020/09/13/apache-airflow-architecture-on-openshift"
-Categories = []
+Categories = [ "devops" ]
 +++
 
 This blog will walk you through the Apache Airflow architecture on OpenShift. We are going to discuss the function of the individual Airflow components and how they can be deployed to OpenShift. This article focuses on the latest Apache Airflow version 1.10.12.

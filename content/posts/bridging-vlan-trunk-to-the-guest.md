@@ -2,7 +2,7 @@
 title = "Bridging Vlan Trunk to the Guest"
 date = "2015-09-07"
 slug = "2015/09/07/bridging-vlan-trunk-to-the-guest"
-Categories = []
+Categories = [ "devops" ]
 +++
 
 In this article, we're going to make an entire VLAN trunk on the host accessible to the guest machine. The guest machine can then create VLAN subinterfaces in order to access a particular VLAN.

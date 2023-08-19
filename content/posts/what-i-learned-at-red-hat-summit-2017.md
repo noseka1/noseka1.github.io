@@ -2,7 +2,7 @@
 title = "What I Learned at Red Hat Summit 2017"
 date = "2017-05-05"
 slug = "2017/05/05/what-i-learned-at-red-hat-summit-2017"
-Categories = []
+Categories = [ "events" ]
 +++
 
 I had the great opportunity to visit the Red Hat Summit 2017. It was hosted in the Boston Convention and Exhibition Center in Boston in May 2-4, 2017. This blog post summarizes the interesting things I learned at the summit.

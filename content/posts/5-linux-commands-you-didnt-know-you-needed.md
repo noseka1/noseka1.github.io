@@ -2,7 +2,7 @@
 title = "5 Linux Commands You Didnt Know You Needed"
 date = "2016-11-01"
 slug = "2016/11/01/5-linux-commands-you-didnt-know-you-needed"
-Categories = []
+Categories = [ "devops" ]
 +++
 
 When preparing for the RHCSA and RHCE exams, I found several useful commands I was not really aware of. In this blog post I'll share them with you.

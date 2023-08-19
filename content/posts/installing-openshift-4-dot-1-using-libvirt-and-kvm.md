@@ -2,7 +2,7 @@
 title = "Installing Openshift 4 Dot 1 Using Libvirt and Kvm"
 date = "2019-07-08"
 slug = "2019/07/08/installing-openshift-4-dot-1-using-libvirt-and-kvm"
-Categories = []
+Categories = [ "devops" ]
 +++
 
 In this blog post, I am going to talk about how I installed OpenShift 4.1 on a Fedora laptop with 16 GB of RAM. If you are interested in deploying your own OpenShift instance whether for evaluation or testing please follow along with me.

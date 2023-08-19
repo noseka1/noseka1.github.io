@@ -2,7 +2,7 @@
 title = "Local Development With Openshift and Tilt"
 date = "2020-06-08"
 slug = "2020/06/08/local-development-with-openshift-and-tilt"
-Categories = []
+Categories = [ "development" ]
 +++
 
 In this blog post, I am going to show you how to use Tilt to facilitate local OpenShift development. Tilt’s capabilities will be demonstrated in a practical example that uses buildah and CodeReady Containers. If you develop containerized applications on OpenShift, this blog post is for you.

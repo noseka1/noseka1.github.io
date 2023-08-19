@@ -2,7 +2,7 @@
 title = "Running Wine Within Docker"
 date = "2015-07-04"
 slug = "2015/07/04/running-wine-within-docker"
-Categories = []
+Categories = [ "devops" ]
 +++
 
 After upgrading to Debian Jessie, my Windows application running under Wine stopped working. In this article we'll use Docker to restore the Wine environment from Debian Wheezy. We'll run the Windows application inside this Docker container.

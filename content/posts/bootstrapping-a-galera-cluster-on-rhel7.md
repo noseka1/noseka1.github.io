@@ -2,7 +2,7 @@
 title = "Bootstrapping a Galera Cluster on Rhel7"
 date = "2016-01-31"
 slug = "2016/01/31/bootstrapping-a-galera-cluster-on-rhel7"
-Categories = []
+Categories = [ "cloud", "devops" ]
 +++
 
 The MariaDB Galera packages provided by the RDO project in their OpenStack repositories don't seem to include a command or script to bootstrap the cluster. Let's look at an alternative way to bring the cluster up.

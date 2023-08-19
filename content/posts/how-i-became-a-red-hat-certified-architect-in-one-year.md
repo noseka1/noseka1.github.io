@@ -2,7 +2,7 @@
 title = "How I Became a Red Hat Certified Architect in One Year"
 date = "2017-08-01"
 slug = "2017/08/01/how-i-became-a-red-hat-certified-architect-in-one-year"
-Categories = []
+Categories = [ "cloud" ]
 +++
 
 Roughly a year ago, my boss offered to me a Red Hat Learning Subscription. Because continuous education belongs to the habits of a good software practitioner, I appreciated this opportunity to deepen my knowledge of Red Hat technologies. At that time I didn't have an idea about how much fun I was going to have on my journey to become a Red Hat Certified Architect. Read more, if you want to find out!

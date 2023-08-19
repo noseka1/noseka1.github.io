@@ -2,7 +2,7 @@
 title = "Deploying Kubernetes on Openstack Using Heat"
 date = "2016-06-26"
 slug = "2016/06/26/deploying-kubernetes-on-openstack-using-heat"
-Categories = []
+Categories = [ "cloud", "devops" ]
 +++
 
 **Update 6/19/2018:** The openstack-heat kube-up provider used in this tutorial was [removed](https://github.com/kubernetes/kubernetes/pull/58021) in Kubernetes version 1.10. If you want to install Kubernetes 1.10 or later on OpenStack, this tutorial won't help you.

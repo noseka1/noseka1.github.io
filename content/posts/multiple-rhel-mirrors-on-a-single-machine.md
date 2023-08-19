@@ -2,7 +2,7 @@
 title = "Multiple Rhel Mirrors on a Single Machine"
 date = "2015-08-16"
 slug = "2015/08/16/multiple-rhel-mirrors-on-a-single-machine"
-Categories = []
+Categories = [ "devops" ]
 +++
 
 *Reposync* can mirror the yum repository to which your machine is subscribed to. However, you cannot subscribe your machine to the RHEL6 and RHEL7 at the same time. Let's take a look at how Docker can help us here.

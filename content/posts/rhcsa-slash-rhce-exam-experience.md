@@ -2,7 +2,7 @@
 title = "Rhcsa Slash Rhce Exam Experience"
 date = "2016-11-07"
 slug = "2016/11/07/rhcsa-slash-rhce-exam-experience"
-Categories = []
+Categories = [ "devops" ]
 +++
 
 Today was the great day when I passed the RHCE certification exam. If you're thinking about getting a Linux certification or you're already working towards RHCSA/RHCE, this blog post is for you.

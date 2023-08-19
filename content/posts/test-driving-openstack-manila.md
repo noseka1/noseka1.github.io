@@ -2,7 +2,7 @@
 title = "Test Driving Openstack Manila"
 date = "2016-05-22"
 slug = "2016/05/22/test-driving-openstack-manila"
-Categories = []
+Categories = [ "cloud" ]
 +++
 
 Do you need to provision an NFS share for your Hadoop cluster? And what about creating a CIFS share to make your files accesible to the Windows clients? Manila is a provisioning and management service for shared file systems within OpenStack. Let's test-drive it in this blogpost.

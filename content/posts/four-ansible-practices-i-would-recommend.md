@@ -2,7 +2,7 @@
 title = "Four Ansible Practices I Would Recommend"
 date = "2018-06-17"
 slug = "2018/06/17/four-ansible-practices-i-would-recommend"
-Categories = []
+Categories = [ "devops" ]
 +++
 
 [Ansible](https://www.ansible.com/) is a popular IT automation tool. In this article, I would like to share with you some of the useful practices we have discovered while using Ansible over the past four years.

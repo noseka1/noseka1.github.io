@@ -2,7 +2,7 @@
 title = "Diagrams and Images in Doxygen"
 date = "2015-06-28"
 slug = "2015/06/28/diagrams-and-images-in-doxygen"
-Categories = []
+Categories = [ "development" ]
 +++
 
 Is your technical documentation hard to read? Diagrams and images liven up technical documentation and help the reader to better understand the subject. In the last article of the Doxygen miniseries we'll go over a couple of options how to include diagrams and images in Doxygen documentation.

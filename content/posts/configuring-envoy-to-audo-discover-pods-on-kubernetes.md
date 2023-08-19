@@ -2,7 +2,7 @@
 title = "Configuring Envoy to Audo Discover Pods on Kubernetes"
 date = "2019-08-19"
 slug = "2019/08/19/configuring-envoy-to-audo-discover-pods-on-kubernetes"
-Categories = []
+Categories = [ "cloud", "devops" ]
 +++
 
 Pods on Kubernetes are ephemeral and can be created and destroyed at any time. In order for Envoy to load balance the traffic across pods, Envoy needs to be able to track the IP addresses of the pods over time. In this blog post, I am going to show you how to leverage Envoy's Strict DNS discovery in combination with a headless service in Kubernetes to accomplish this.

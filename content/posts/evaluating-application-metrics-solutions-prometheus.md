@@ -2,7 +2,7 @@
 title = "Evaluating Application Metrics Solutions Prometheus"
 date = "2017-09-10"
 slug = "2017/09/10/evaluating-application-metrics-solutions-prometheus"
-Categories = []
+Categories = [ "cloud", "devops", "development" ]
 +++
 
 In our [SOA-based](https://en.wikipedia.org/wiki/Service-oriented_architecture) application, the problem of application metrics hasn't been solved yet. We would like to have our application services expose metrics that could be used for monitoring, auto-scaling and analytics. In this blog post, I would like to present to you one of the proposals to solve the application metrics which suggests leveraging [Prometheus](https://prometheus.io/).

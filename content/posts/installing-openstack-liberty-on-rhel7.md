@@ -2,7 +2,7 @@
 title = "Installing Openstack Liberty on Rhel7"
 date = "2015-10-19"
 slug = "2015/10/19/installing-openstack-liberty-on-rhel7"
-Categories = []
+Categories = [ "devops", "cloud" ]
 +++
 
 The OpenStack Liberty was released last week. In this article I'll briefly describe how to deploy the OpenStack Liberty on RHEL7 using RDO Manager.

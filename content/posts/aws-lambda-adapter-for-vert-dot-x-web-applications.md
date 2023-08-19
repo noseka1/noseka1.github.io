@@ -2,7 +2,7 @@
 title = "Aws Lambda Adapter for Vert Dot X Web Applications"
 date = "2017-10-18"
 slug = "2017/10/18/aws-lambda-adapter-for-vert-dot-x-web-applications"
-Categories = []
+Categories = [ "cloud", "development" ]
 +++
 
 [Vert.x](http://vertx.io/) is an awesome tool-kit for developing reactive microservices. In this article, I'm going to present an adapter that allows you to run your Vert.x web service as a Lambda function on AWS.

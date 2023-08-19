@@ -2,7 +2,7 @@
 title = "Assigning Roles to Nodes Directly in Rdo"
 date = "2015-11-09"
 slug = "2015/11/09/assigning-roles-to-nodes-directly-in-rdo"
-Categories = []
+Categories = [ "cloud", "devops" ]
 +++
 
 RDO Manager defines multiple roles that nodes can play in OpenStack deployment. For large-sized installations, RDO features automatic assignment of roles to nodes. This assignment is based on the facts that RDO obtained about each node during the introspection. However, for smaller deployments, you might prefer to assign the roles to the available nodes by hand. It was not straight forward for me to find out about this manual option even when it is described in the [TripleO documentation](http://docs.openstack.org/developer/tripleo-docs/advanced_deployment/profile_matching.html#optional-manually-add-the-profiles-to-the-nodes "TripleO documentation"). Let's review the required configuration steps in this blogpost.

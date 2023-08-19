@@ -2,7 +2,7 @@
 title = "Remote Debugging of Java Applications on Openshift"
 date = "2019-02-26"
 slug = "2019/02/26/remote-debugging-of-java-applications-on-openshift"
-Categories = []
+Categories = [ "development" ]
 +++
 
 In this article I am going to show you how to attach a debugger and a VisualVM profiler to the Java application running on OpenShift. The approach described here doesn't make use of the [Jolokia](https://jolokia.org/) bridge. Instead, we are going to leverage the port-forwarding feature of OpenShift.

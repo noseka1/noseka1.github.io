@@ -2,7 +2,7 @@
 title = "Improving Ansibles Ini File Module"
 date = "2015-08-03"
 slug = "2015/08/03/improving-ansibles-ini-file-module"
-Categories = []
+Categories = [ "devops" ]
 +++
 
 ** Update 3/31/2016: ** The implementation of the ini_file module described in this blogpost has been merged into Ansible version 2.0.

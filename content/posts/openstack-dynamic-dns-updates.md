@@ -2,7 +2,7 @@
 title = "Openstack Dynamic Dns Updates"
 date = "2015-05-31"
 slug = "2015/05/31/openstack-dynamic-dns-updates"
-Categories = []
+Categories = [ "devops", "cloud" ]
 +++
 
 Today's user story is: As a private cloud user I'd like to have virtual machines registered with internal DNS. Let's look at how a software practitioner solves this problem in a truly agile way.

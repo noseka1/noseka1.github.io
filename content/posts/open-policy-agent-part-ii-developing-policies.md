@@ -2,7 +2,7 @@
 title = "Open Policy Agent Part Ii Developing Policies"
 date = "2019-10-27"
 slug = "2019/10/27/open-policy-agent-part-ii-developing-policies"
-Categories = []
+Categories = [ "development" ]
 +++
 
 In the [previous part](/blog/2019/10/08/open-policy-agent-part-i-the-introduction/) of the series, we explored Open Policy Agent and implemented an ACL-based access control for our application. In this entry, I am going to share with you some of the discoveries that I made while evaluating Open Policy Agent in regards to policy design and development.

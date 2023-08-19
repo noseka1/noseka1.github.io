@@ -2,7 +2,7 @@
 title = "The Structure of Doxygen Documentation"
 date = "2015-06-21"
 slug = "2015/06/21/the-structure-of-doxygen-documentation"
-Categories = []
+Categories = [ "development" ]
 +++
 
 Let's review some basic means that Doxygen provides to structure your documentation. If you're a newcomer to Doxygen this blogpost might be useful for you.

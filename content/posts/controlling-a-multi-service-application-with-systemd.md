@@ -2,7 +2,7 @@
 title = "Controlling a Multi Service Application With Systemd"
 date = "2016-12-04"
 slug = "2016/12/04/controlling-a-multi-service-application-with-systemd"
-Categories = []
+Categories = [ "devops" ]
 +++
 
 Is your application delivered as a set of services running on top of Linux? Did you think about writing a custom controller service that would start your application services in the correct order and monitor their health? Please, stop thinking about it! In this blog post I would like to convince you that you can leverage the existing *systemd* service manager to control your application services to your greatest benefit.

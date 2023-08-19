@@ -2,7 +2,7 @@
 title = "Red Hat Summit 2018"
 date = "2018-05-14"
 slug = "2018/05/14/red-hat-summit-2018"
-Categories = []
+Categories = [ "events" ]
 +++
 
 Last week, I had the pleasure of attending Red Hat Summit 2018. It was hosted at the Moscone Center in San Francisco, May 8-10, 2018. I greatly enjoyed this conference and would like to share with you some of the interesting things I learned there.

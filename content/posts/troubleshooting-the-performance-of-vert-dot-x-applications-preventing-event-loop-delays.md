@@ -2,7 +2,7 @@
 title = "Troubleshooting the Performance of Vert Dot X Applications Preventing Event Loop Delays"
 date = "2019-07-22"
 slug = "2019/07/22/troubleshooting-the-performance-of-vert-dot-x-applications-preventing-event-loop-delays"
-Categories = []
+Categories = [ "development" ]
 +++
 
 In the [previous part](/blog/2019/06/30/troubleshooting-the-performance-of-vert-dot-x-applications-part-i-the-event-loop-model/) of the series, we took a closer look at the event loop model. In this article, we are going to discuss several techniques that help you to prevent event loop delays.

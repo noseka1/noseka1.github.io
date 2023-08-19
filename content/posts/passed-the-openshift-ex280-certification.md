@@ -2,7 +2,7 @@
 title = "Passed the Openshift Ex280 Certification"
 date = "2017-04-04"
 slug = "2017/04/04/passed-the-openshift-ex280-certification"
-Categories = []
+Categories = [ "cloud" ]
 +++
 
 It's been more than half a year since I started working with OpenShift. Today I successfully passed the [EX280 Red Hat Certificate of Expertise in Platform-as-a-Service exam](https://www.redhat.com/en/services/training/ex280-red-hat-certificate-expertise-platform-service-exam) and earned a certificate. I'm going to share a few details about the exam in this blog post.

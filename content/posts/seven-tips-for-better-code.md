@@ -2,7 +2,7 @@
 title = "Seven Tips for Better Code"
 date = "2015-06-06"
 slug = "2015/06/06/seven-tips-for-better-code"
-Categories = []
+Categories = [ "development" ]
 +++
 It's a pleasure to read and maintain your code, right? Software practice teaches that code is written once but read many times. Your teammates will appreciate it if you put your effort into writing a good looking and understandable code. Needless to say that when you'll read your code one year later you'll appreciate it, too. Let's discuss a couple of basic guidelines to write a better code.
 

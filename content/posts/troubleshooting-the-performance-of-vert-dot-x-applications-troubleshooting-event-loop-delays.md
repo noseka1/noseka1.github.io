@@ -2,7 +2,7 @@
 title = "Troubleshooting the Performance of Vert Dot X Applications Troubleshooting Event Loop Delays"
 date = "2019-08-05"
 slug = "2019/08/05/troubleshooting-the-performance-of-vert-dot-x-applications-troubleshooting-event-loop-delays"
-Categories = []
+Categories = [ "development" ]
 +++
 
 In the [previous entry](/blog/2019/07/22/troubleshooting-the-performance-of-vert-dot-x-applications-preventing-event-loop-delays/) to this series, we reviewed several techniques that help you to prevent event loop delays. However, even the best programmer makes mistakes. What should you do when your Vert.x application doesn't perform as expected? How to find out what part of your code is blocking the event loop threads? In the final part of the series, we are going to focus on troubleshooting event loop delays.

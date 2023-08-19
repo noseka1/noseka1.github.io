@@ -2,7 +2,7 @@
 title = "Designing a Common Build System"
 date = "2018-05-03"
 slug = "2018/05/03/designing-a-common-build-system"
-Categories = []
+Categories = [ "development" ]
 +++
 
 Code reuse belongs to the basic tenets of software development. Moreover, one should have the same principle in mind when maintaining build scripts. If you are copy-pasting Makefiles and pom.xml files from project to project, stop now and read this article! We are going to discuss how to design a common build system.

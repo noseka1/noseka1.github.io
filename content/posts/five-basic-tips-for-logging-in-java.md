@@ -2,7 +2,7 @@
 title = "Five Basic Tips for Logging in Java"
 date = "2015-05-18"
 slug = "2015/05/18/five-basic-tips-for-logging-in-java"
-Categories = []
+Categories = [ "development", "java" ]
 +++
 Where do you look when your server application doesn't work as expected? Application logs can provide invaluable information when the systems in production misbehave. That's why a great software practitioner desings the application logs carefully. Let's review a couple of basic tips for great logging in Java.
 

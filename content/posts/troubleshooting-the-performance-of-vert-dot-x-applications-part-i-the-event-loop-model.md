@@ -2,7 +2,7 @@
 title = "Troubleshooting the Performance of Vert Dot X Applications Part I the Event Loop Model"
 date = "2019-06-30"
 slug = "2019/06/30/troubleshooting-the-performance-of-vert-dot-x-applications-part-i-the-event-loop-model"
-Categories = []
+Categories = [ "development" ]
 +++
 
 This article is the first in a series of three articles which share my experience with troubleshooting the performance of Vert.x applications. The first article provides an overview of the Vert.x event loop model, the second acticle covers techniques to prevent delays on the event loop, and the third article focuses on troubleshooting of event loop delays.

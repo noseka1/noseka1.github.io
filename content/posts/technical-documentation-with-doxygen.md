@@ -2,7 +2,7 @@
 title = "Technical Documentation With Doxygen"
 date = "2015-06-14"
 slug = "2015/06/14/technical-documentation-with-doxygen"
-Categories = []
+Categories = [ "development" ]
 +++
 
 Do you create project documentation in your company's internal wiki? I did it for quite some time until I realized that a good old Doxygen combined with Git can do a much better job.

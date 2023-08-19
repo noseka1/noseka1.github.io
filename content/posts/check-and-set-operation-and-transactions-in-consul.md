@@ -2,7 +2,7 @@
 title = "Check and Set Operation and Transactions in Consul"
 date = "2017-07-25"
 slug = "2017/07/25/check-and-set-operation-and-transactions-in-consul"
-Categories = []
+Categories = [ "cloud", "devops" ]
 +++
 
 In the [previous](/blog/2017/07/15/first-look-at-the-key-value-store-in-consul/) blog post, we were checking out the basic functionality of the key-value store in Consul. In this article, we will explore two of the more advanced features of Consul's key-value store, namely: Check-and-Set operation and transactions.

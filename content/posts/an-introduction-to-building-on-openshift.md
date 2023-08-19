@@ -2,7 +2,7 @@
 title = "An Introduction to Building on Openshift"
 date = "2017-03-19"
 slug = "2017/03/19/an-introduction-to-building-on-openshift"
-Categories = []
+Categories = [ "cloud", "devops" ]
 +++
 
 For years a Jenkins server has been driving the software builds in our company. Some time ago, we deployed an OpenShift cluster. The primary purpose of our OpenShift cluster was to support the efforts of dockerizing our software products. However, as OpeShift is a complete PaaS solution we started thinking about leveraging OpenShift for software builds, too. In this blog post I'd like to share what we learned about building on OpenShift so far.

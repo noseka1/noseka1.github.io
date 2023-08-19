@@ -2,7 +2,7 @@
 title = "Speaking at the Red Hat Training Partner and Instructor Conference"
 date = "2018-09-24"
 slug = "2018/09/24/speaking-at-the-red-hat-training-partner-and-instructor-conference"
-Categories = []
+Categories = [ "events " ]
 +++
 
 On September 21, 2018 I spoke at the [Red Hat Training Partner & Instructor Conference](https://www.redhat.com/en/events/training-partner-conference-emea) in Prague, Czech Republic. Why was I invited, and what did I learn? Read on if you want to find out.

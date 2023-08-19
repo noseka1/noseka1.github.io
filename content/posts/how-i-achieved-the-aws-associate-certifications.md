@@ -2,7 +2,7 @@
 title = "How I Achieved the Aws Associate Certifications"
 date = "2018-08-30"
 slug = "2018/08/30/how-i-achieved-the-aws-associate-certifications"
-Categories = []
+Categories = [ "cloud" ]
 +++
 
 Over the course of the last year I was working towards transitioning our company’s products to the AWS cloud. I gained a solid experience with many of the AWS services, wrote lots of lines of CloudFormation code, and embraced AWS reference architectures and best practices. To round up my AWS experience I thought that accomplishing some certifications would be a good idea. In this post, I am going to share with you how I achieved the AWS associate certifications.

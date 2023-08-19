@@ -2,7 +2,7 @@
 title = "Announcing the Software Practitioner Youtube Channel"
 date = "2021-03-29"
 slug = "2021/03/29/announcing-the-software-practitioner-youtube-channel"
-Categories = []
+Categories = [ "events" ]
 +++
 
 Hey what’s up everybody? Welcome to my channel! I launched my new YouTube channel just a week ago. In addition to my blog, YouTube is another media that I am leveraging to discuss technical topics, ideas, and projects that I am working on. Both my blog and the YouTube channel will continue to focus on software that runs on Kubernetes.

@@ -2,7 +2,7 @@
 title = "Open Policy Agent Part Iii Integrating With Your Application"
 date = "2019-12-03"
 slug = "2019/12/03/open-policy-agent-part-iii-integrating-with-your-application"
-Categories = []
+Categories = [ "development" ]
 +++
 
 In the [previous entry](/blog/2019/10/27/open-policy-agent-part-ii-developing-policies/) to this series, we discussed developing policies with Open Policy Agent. In this final article in the series, we are going to focus on how you can integrate Open Policy Agent with your application.

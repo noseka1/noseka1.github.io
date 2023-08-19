@@ -2,7 +2,7 @@
 title = "Ansible Certification Ex407"
 date = "2017-09-03"
 slug = "2017/09/03/ansible-certification-ex407"
-Categories = []
+Categories = [ "devops" ]
 +++
 
 Last week I passed the Red Hat certification exam [EX407 Red Hat Certificate of Expertise in Ansible Automation](https://www.redhat.com/en/services/training/ex407-red-hat-certificate-expertise-ansible-automation). In this blog post, I'd like to share some of my experience with you.

@@ -2,7 +2,7 @@
 title = "Dynamic Dns With Bind and Dhclient"
 date = "2015-05-02"
 slug = "2015/05/02/dynamic-dns-with-bind-and-dhclient"
-Categories = []
+Categories = [ "devops" ]
 +++
 In this blogpost we're going to configure the BIND server to accept dynamic updates. Client machines themselves will send the updates to the DNS server instead of letting DHCP server update the DNS. A great setup for situations where the DHCP server is not in your control.
 

@@ -2,7 +2,7 @@
 title = "Centralized Configuration Management"
 date = "2017-08-20"
 slug = "2017/08/20/centralized-configuration-management"
-Categories = []
+Categories = [ "design", "development" ]
 +++
 
 Are you migrating your existing application to the cloud? Are you missing a solution for centralized configuration management? Read on to learn, how we implemented centralized configuration management on top of our existing application and got it ready for the cloud.

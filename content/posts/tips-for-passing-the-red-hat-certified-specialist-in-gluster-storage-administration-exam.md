@@ -2,7 +2,7 @@
 title = "Tips for Passing the Red Hat Certified Specialist in Gluster Storage Administration Exam"
 date = "2018-12-28"
 slug = "2018/12/28/tips-for-passing-the-red-hat-certified-specialist-in-gluster-storage-administration-exam"
-Categories = []
+Categories = [ "devops" ]
 +++
 
 Recently I passed the [Red Hat Certified Specialist in Gluster Storage Administration](https://www.redhat.com/en/services/training/ex236-red-hat-certified-specialist-in-gluster-storage-administration-exam) exam. In this blog post, I would like to share some of my experience and exam tips with you.

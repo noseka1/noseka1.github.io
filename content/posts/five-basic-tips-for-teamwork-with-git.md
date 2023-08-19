@@ -2,7 +2,7 @@
 title = "Five Basic Tips for Teamwork With Git"
 date = "2015-04-18"
 slug = "2015/04/18/five-basic-tips-for-teamwork-with-git"
-Categories = []
+Categories = [ "development", "git" ]
 +++
 Do you care about how your Git commits look like? A great software practitioner does, indeed. Let's review a couple of basic tips for developers that make the Git commit log look good and teamwork with Git source control more fun.
 <!--more-->

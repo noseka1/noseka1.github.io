@@ -2,7 +2,7 @@
 title = "Monitoring Openstack Cluster With Icinga"
 date = "2015-11-30"
 slug = "2015/11/30/monitoring-openstack-cluster-with-icinga"
-Categories = []
+Categories = [ "cloud", "devops" ]
 +++
 
 If you don't monitor it, it's not in production! To get an OpenStack cloud ready for production, monitoring is a must. Let's take a look at two projects providing Nagios/Icinga plugins for checking the health of OpenStack services.

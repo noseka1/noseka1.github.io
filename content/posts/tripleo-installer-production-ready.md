@@ -2,7 +2,7 @@
 title = "Tripleo Installer Production Ready"
 date = "2017-01-15"
 slug = "2017/01/15/tripleo-installer-production-ready"
-Categories = []
+Categories = [ "cloud", "devops" ]
 +++
 
 [TripleO](https://wiki.openstack.org/wiki/TripleO) is an OpenStack deployment and management tool we've been using on the production systems for a while now. As TripleO is an upstream project for the Red Hat OpenStack Platform Director one would expect a decently working tool able to manage large-scale OpenStack deployments. What is our experience with TripleO?

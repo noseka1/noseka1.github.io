@@ -2,7 +2,7 @@
 title = "Edge Security for Your Cloud Application Part I"
 date = "2018-01-10"
 slug = "2018/01/10/edge-security-for-your-cloud-application-part-i"
-Categories = []
+Categories = [ "cloud", "design", "devops" ]
 +++
 
 When designing a cloud application, one of the challenges you need to tackle is the secure communication of your clients with your servers over the public Internet. In this post, I'm going to sketch a system architecture that allows you to authenticate the clients and exchange data between your clients and servers securely. The proposed architecture is also suitable when migrating an existing application, which didn't implement the secure communication, to the cloud.

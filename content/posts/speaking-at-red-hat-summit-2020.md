@@ -2,7 +2,7 @@
 title = "Speaking at Red Hat Summit 2020"
 date = "2020-07-13"
 slug = "2020/07/13/speaking-at-red-hat-summit-2020"
-Categories = []
+Categories = [ "events" ]
 +++
 
 This year's [Red Hat Summit](https://www.redhat.com/en/summit) is not over yet! There is a second batch of sessions that will be released on Wednesday, July 15. I will have a joint presentation with Andrew Baumann, titled: *Security and access control for microservices*. We will be discussing OAuth 2.0, the Keycloak project, and Open Policy Agent.

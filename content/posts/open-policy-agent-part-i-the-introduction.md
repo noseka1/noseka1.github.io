@@ -2,7 +2,7 @@
 title = "Open Policy Agent Part I the Introduction"
 date = "2019-10-08"
 slug = "2019/10/08/open-policy-agent-part-i-the-introduction"
-Categories = []
+Categories = [ "development" ]
 +++
 
 Recently I was looking for a way to implement access control for microservices. I needed a solution that would allow defining complex authorization rules that could be enforced across many services. After searching the web, I discovered a very promising [Open Policy Agent](https://www.openpolicyagent.org/) project that seems to be the right tool for the job. In this series of three blog posts, I am going to introduce Open Policy Agent to you and highlight how it can help you.

@@ -2,7 +2,7 @@
 title = "Git Getting the Timing Right"
 date = "2017-01-02"
 slug = "2017/01/02/git-getting-the-timing-right"
-Categories = []
+Categories = [ "development" ]
 +++
 
 Do you work on a development team that is distributed across several time zones? Got confused by the dates that Git shows in the commit logs? In this blog post we're going to review some basics about how Git deals with time.

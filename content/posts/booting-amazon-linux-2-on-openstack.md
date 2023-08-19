@@ -2,7 +2,7 @@
 title = "Booting Amazon Linux 2 on Openstack"
 date = "2018-04-21"
 slug = "2018/04/21/booting-amazon-linux-2-on-openstack"
-Categories = []
+Categories = [ "cloud" ]
 +++
 
 Amazon Linux 2 runs on OpenStack perfectly fine. There is only one glitch that you should be aware of. Amazon Linux 2 won't accept metadata and user data provided by OpenStack on boot. That means that you won't be able to SSH into the instance after it comes up. In this brief tutorial, we are going to modify the Amazon Linux 2 image to fix this problem.

@@ -2,7 +2,7 @@
 title = "Red Hat Summit 2016"
 date = "2016-07-04"
 slug = "2016/07/04/red-hat-summit-2016"
-Categories = []
+Categories = [ "events" ]
 +++
 
 I had the great opportunity to visit the Red Hat Summit 2016. Enjoy the photos attached.

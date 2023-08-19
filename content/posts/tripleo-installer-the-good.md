@@ -2,7 +2,7 @@
 title = "Tripleo Installer the Good"
 date = "2016-03-27"
 slug = "2016/03/27/tripleo-installer-the-good"
-Categories = []
+Categories = [ "cloud" ]
 +++
 
 [TripleO](https://wiki.openstack.org/wiki/TripleO) is an OpenStack deployment and management tool I've been using since the Kilo release of OpenStack. It does its job pretty well, however not everything is perfect. My experience presented in this article applies more or less to the Red Hat's OpenStack director too, as the Red Hat OpenStack director is a downstream version of TripleO.

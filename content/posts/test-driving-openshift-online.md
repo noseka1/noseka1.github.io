@@ -2,7 +2,7 @@
 title = "Test Driving Openshift Online"
 date = "2017-08-27"
 slug = "2017/08/27/test-driving-openshift-online"
-Categories = []
+Categories = [ "cloud" ]
 +++
 
 Did you decide to dockerize your application? Awesome! Are you looking for a place to build and host your Docker containers? OpenShift Online is a service that allows you to build and run your Docker containers. Read on, if you want to learn more about it.
