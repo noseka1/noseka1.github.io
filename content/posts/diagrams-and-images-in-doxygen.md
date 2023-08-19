@@ -7,7 +7,7 @@ Categories = []
 
 Is your technical documentation hard to read? Diagrams and images liven up technical documentation and help the reader to better understand the subject. In the last article of the Doxygen miniseries we'll go over a couple of options how to include diagrams and images in Doxygen documentation.
 
-<!-- more -->
+<!--more-->
 
 In order to show the graphical capabilities of Doxygen I created a sample project. You can check out the project source code and the generated HTML and PDF output at:
 

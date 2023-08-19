@@ -7,7 +7,7 @@ Categories = []
 
 KubeCon + CloudNativeCon North America 2017 took place in Austin, Texas on December 6-8, 2017. I greatly enjoyed this conference. This blog post presents some of the notes I made during the conference talks. Would you like to learn about Amazon EKS, Kata Containers or the CRI-O project? Do you want to better understand Docker's Moby project and its relation to LinuxKit and InfraKit? Then read on!
 
-<!-- more -->
+<!--more-->
 
 {% img center /images/posts/kubecon_2017.png 500 200 %}
 

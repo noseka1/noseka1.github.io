@@ -7,7 +7,7 @@ Categories = []
 
 In the [previous entry](/blog/2019/07/22/troubleshooting-the-performance-of-vert-dot-x-applications-preventing-event-loop-delays/) to this series, we reviewed several techniques that help you to prevent event loop delays. However, even the best programmer makes mistakes. What should you do when your Vert.x application doesn't perform as expected? How to find out what part of your code is blocking the event loop threads? In the final part of the series, we are going to focus on troubleshooting event loop delays.
 
-<!-- more -->
+<!--more-->
 
 The event loop thread model is vastly different from the thread-per-request model employed by standard JEE or Spring frameworks. From my experience I can report that it takes developers some time to wrap their heads around it and that at the beginning they tend to make the mistake of introducing blocking calls into the event loop's code path. In the following sections, we will discuss several techniques of how to troubleshoot such situations.
 

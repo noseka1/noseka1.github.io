@@ -7,7 +7,7 @@ Categories = []
 
 In this article I am going to show you how to attach a debugger and a VisualVM profiler to the Java application running on OpenShift. The approach described here doesn't make use of the [Jolokia](https://jolokia.org/) bridge. Instead, we are going to leverage the port-forwarding feature of OpenShift.
 
-<!-- more -->
+<!--more-->
 
 The whole setup can be divided into three steps:
 

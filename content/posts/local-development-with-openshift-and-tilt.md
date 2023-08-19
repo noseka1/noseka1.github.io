@@ -7,7 +7,7 @@ Categories = []
 
 In this blog post, I am going to show you how to use Tilt to facilitate local OpenShift development. Tilt’s capabilities will be demonstrated in a practical example that uses buildah and CodeReady Containers. If you develop containerized applications on OpenShift, this blog post is for you.
 
-<!-- more -->
+<!--more-->
 
 ## How does Tilt facilitate local development?
 

@@ -7,7 +7,7 @@ Categories = []
 
 Today's user story is: As a private cloud user I'd like to have virtual machines registered with internal DNS. Let's look at how a software practitioner solves this problem in a truly agile way.
 
-<!-- more -->
+<!--more-->
 
 The OpenStack [Designate](https://wiki.openstack.org/wiki/Designate "Designate") project implements DNSaaS. After trying out Designate, I realized that for simple DNS updates DNSaaS is a little too involved.
 

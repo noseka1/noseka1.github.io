@@ -7,7 +7,7 @@ Categories = []
 
 Are you still coding your API client libraries by hand? Is your manually maintained API documentation drifting away from what was actually implemented? You may be interested in reviewing the two popular technologies that solve this problem. In this article, we are going to look at OpenAPI and gRPC side-by-side.
 
-<!-- more -->
+<!--more-->
 
 Both OpenAPI and gRPC are communication technologies very much needed in the today's world of microservices applications. They allow you to describe your APIs using  a formal language. This description then serves as a source of truth from which you can generate the client and server code and API documentation. As there are two viable alternatives, the question is which one is going to work better for you? As I was trying to answer the same question I did some research on the Internet and came up with a comparison table. I didn't include every single detail, however, this table could perhaps be a good starting point for you:
 

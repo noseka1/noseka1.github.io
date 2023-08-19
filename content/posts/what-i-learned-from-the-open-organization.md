@@ -7,7 +7,7 @@ Categories = []
 
 Red Hat is one of the most successful software companies that makes billions of dollars selling open source software. The book *The Open Organization* written by Jim Whitehurst, CEO of Red Hat, provides a great insight into the company culture and how things get done at Red Hat. This blogpost lists some of the ideas I learned from this book.
 
-<!-- more -->
+<!--more-->
 
 ## Motivating and inspiring
 

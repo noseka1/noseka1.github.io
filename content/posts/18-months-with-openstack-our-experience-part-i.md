@@ -7,7 +7,7 @@ Categories = []
 
 It has been 18 months since we deployed OpenStack cloud in our company. In this article, I would like to review our time with OpenStack and describe some of the experience we gained. Are you thinking about building an OpenStack-based cloud? This article might provide you with additional insights and tips that will help you succeed.
 
-<!-- more -->
+<!--more-->
 
 ## Introduction
 

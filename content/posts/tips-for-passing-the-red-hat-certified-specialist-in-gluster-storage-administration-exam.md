@@ -7,7 +7,7 @@ Categories = []
 
 Recently I passed the [Red Hat Certified Specialist in Gluster Storage Administration](https://www.redhat.com/en/services/training/ex236-red-hat-certified-specialist-in-gluster-storage-administration-exam) exam. In this blog post, I would like to share some of my experience and exam tips with you.
 
-<!-- more -->
+<!--more-->
 
 There are two major open-source storage technologies available today: [Ceph](https://ceph.com/) and [Gluster](https://www.gluster.org/). For a couple of years, I used Ceph as a provider of a block and object storage for an OpenStack cluster with great success. I was curious to learn about what Gluster has to offer. To explore Gluster, I leveraged the training materials and labs included in my [Red Hat Learning Subscription](https://www.redhat.com/en/services/training/learning-subscription). Also, to give myself a particular goal to achieve, I signed up for the Red Hat Certified Specialist in Gluster Storage Administration exam. The main topics included on the exam are creating different types of Gluster volumes, volume snapshotting, exporting Gluster volumes via highly-available NFS and Samba, asynchronous replication (geo-replication), tiered volumes and transport security.
 

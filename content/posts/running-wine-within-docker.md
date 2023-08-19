@@ -7,7 +7,7 @@ Categories = []
 
 After upgrading to Debian Jessie, my Windows application running under Wine stopped working. In this article we'll use Docker to restore the Wine environment from Debian Wheezy. We'll run the Windows application inside this Docker container.
 
-<!-- more -->
+<!--more-->
 
 Docker is not part of the stable Jessie distribution, however, you can install it from the [Debian Backports](http://backports.debian.org/ "Debian Backports") repositories.
 

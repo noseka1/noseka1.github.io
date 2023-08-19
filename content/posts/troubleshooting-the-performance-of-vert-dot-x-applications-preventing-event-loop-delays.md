@@ -7,7 +7,7 @@ Categories = []
 
 In the [previous part](/blog/2019/06/30/troubleshooting-the-performance-of-vert-dot-x-applications-part-i-the-event-loop-model/) of the series, we took a closer look at the event loop model. In this article, we are going to discuss several techniques that help you to prevent event loop delays.
 
-<!-- more -->
+<!--more-->
 
 The causes of event loop delays can be divided into two categories. The first category contains event loop delays caused by a handler calling a blocking API. The second category covers delays caused by a handler code taking a great amount of CPU time to complete. Let's start with the first category and talk about blocking API calls.
 

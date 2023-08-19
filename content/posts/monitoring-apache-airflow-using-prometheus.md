@@ -7,7 +7,7 @@ Categories = []
 
 This blog covers a proof of concept, which shows how to monitor Apache Airflow using Prometheus and Grafana.
 
-<!-- more -->
+<!--more-->
 
 ## Airflow monitoring diagram
 

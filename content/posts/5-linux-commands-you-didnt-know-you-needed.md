@@ -7,7 +7,7 @@ Categories = []
 
 When preparing for the RHCSA and RHCE exams, I found several useful commands I was not really aware of. In this blog post I'll share them with you.
 
-<!-- more -->
+<!--more-->
 
 ## findmnt
 

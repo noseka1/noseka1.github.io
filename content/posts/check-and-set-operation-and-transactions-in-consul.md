@@ -7,7 +7,7 @@ Categories = []
 
 In the [previous](/blog/2017/07/15/first-look-at-the-key-value-store-in-consul/) blog post, we were checking out the basic functionality of the key-value store in Consul. In this article, we will explore two of the more advanced features of Consul's key-value store, namely: Check-and-Set operation and transactions.
 
-<!-- more -->
+<!--more-->
 
 {% img right /images/posts/consul_logo.png 200 300 %}
 

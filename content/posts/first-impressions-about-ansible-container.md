@@ -7,7 +7,7 @@ Categories = []
 
 At Red Hat summit I learned about the new project [ansible-container](https://www.ansible.com/ansible-container). I was very excited and looked forward to building Docker containers with Ansible instead of the Dockerfiles. The project seemed to came just on time as in our company we're starting to Dockerize our software products. How did *ansible-container* work out for us? Read on!
 
-<!-- more -->
+<!--more-->
 
 The ansible-container is a very young project. The first release 0.1.0 came out on July 28, 2016. The project's Git repository is hosted on [GitHub](https://github.com/ansible/ansible-container). Additionaly, there's a repository with examples of how to use ansible-container available [here](https://github.com/ansible/ansible-container-examples).
 

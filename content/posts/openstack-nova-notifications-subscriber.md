@@ -7,7 +7,7 @@ Categories = []
 
 OpenStack components generate notifications that can provide useful insight into what is going on in OpenStack. Let's create a simple subcriber that dumps incoming notifications from OpenStack Nova to standard output.
 
-<!-- more -->
+<!--more-->
 
 Configure Nova to generate notifications
 ----------------------------------------

@@ -7,7 +7,7 @@ Categories = []
 
 It's been more than half a year since I started working with OpenShift. Today I successfully passed the [EX280 Red Hat Certificate of Expertise in Platform-as-a-Service exam](https://www.redhat.com/en/services/training/ex280-red-hat-certificate-expertise-platform-service-exam) and earned a certificate. I'm going to share a few details about the exam in this blog post.
 
-<!-- more -->
+<!--more-->
 
 Similar to the RHCSA/RHCE exams that I [completed](/blog/2016/11/07/rhcsa-slash-rhce-exam-experience/) some time ago, the EX280 OpenShift exam is also purely practical. You will have to install OpenShift 3.0, configure it and deploy multiple containerized applications on it.
 

@@ -7,7 +7,7 @@ Categories = []
 
 [Vert.x](http://vertx.io/) is an awesome tool-kit for developing reactive microservices. In this article, I'm going to present an adapter that allows you to run your Vert.x web service as a Lambda function on AWS.
 
-<!-- more -->
+<!--more-->
 
 {% img right /images/posts/vertx_logo.png 130 130 %}
 

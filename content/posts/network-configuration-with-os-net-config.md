@@ -7,7 +7,7 @@ Categories = []
 
 [Os-net-config](https://github.com/openstack/os-net-config "os-net-config") is a simple tool to configure networking of Linux hosts. Combined with Cloud-init, it's suitable for network configuration of virtual machines when booting in the cloud. Let's take a closer look at os-net-config.
 
-<!-- more -->
+<!--more-->
 
 Os-net-config is developed as a part of the OpenStack [TripleO](https://wiki.openstack.org/wiki/TripleO "TripleO") project. Its modus operandi is simple: based on the YAML/JSON configuration file, the os-net-config configures the network interfaces of the machine. Currently, the tool supports configuration of Debian based distributions using `/etc/network/interfaces` and configuration of distributions using scripts in `/etc/sysconfig/network` directory, e.g. Red Hat. Os-net-config allows the user to:
 

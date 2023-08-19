@@ -7,7 +7,7 @@ Categories = []
 
 Over the course of the last year I was working towards transitioning our company’s products to the AWS cloud. I gained a solid experience with many of the AWS services, wrote lots of lines of CloudFormation code, and embraced AWS reference architectures and best practices. To round up my AWS experience I thought that accomplishing some certifications would be a good idea. In this post, I am going to share with you how I achieved the AWS associate certifications.
 
-<!-- more -->
+<!--more-->
 
 [AWS certifications](https://aws.amazon.com/certification/) are divided into three levels of difficulty: foundational, associate, and professional. The foundational level is optional. If you worked with AWS cloud hands-on for several months, I would recommend skipping the foundational level and start your certification path at the associate level. The associate level comes with three certification options: Solutions Architect, Developer, and SysOps Administrator. In order to achieve a specific certification, you have to pass the respective multiple-choice test. As the requirements for the three tests highly overlap, I decided to study for all three certifications at the same time.
 

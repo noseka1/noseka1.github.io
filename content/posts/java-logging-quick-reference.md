@@ -7,7 +7,7 @@ Categories = []
 
 The Simple Logging Facade for Java (SLF4J) serves as a simple abstraction for various logging frameworks. Let's look at how to configure SLF4J to work with SLF4J Simple logger, JDK 1.4 logger, Log4j, Logback and Log4j2 framework.
 
-<!-- more -->
+<!--more-->
 
 Following is a Java code of our logging application `LogApp`. Note that it uses SLF4J API classes to do the logging. The jar file `slf4j-api-1.7.12.jar` is the only compile time dependency.
 {% codeblock lang:java LogApp.java %}

@@ -7,7 +7,7 @@ Categories = []
 
 In the [previous post](/blog/2018/02/19/18-months-with-openstack-our-experience-part-i/), we discussed our experience with the deployment of OpenStack. In this article, we're going to share the lessons learned when operating it. It took effort to tame the OpenStack beast and make it work reliably. If you want to know how we accomplished that, read on.
 
-<!-- more -->
+<!--more-->
 
 ## Monitoring OpenStack using Icinga
 

@@ -7,7 +7,7 @@ Categories = []
 
 Roughly a year ago, my boss offered to me a Red Hat Learning Subscription. Because continuous education belongs to the habits of a good software practitioner, I appreciated this opportunity to deepen my knowledge of Red Hat technologies. At that time I didn't have an idea about how much fun I was going to have on my journey to become a Red Hat Certified Architect. Read more, if you want to find out!
 
-<!-- more -->
+<!--more-->
 
 In Wikipedia, you can find a great [overview](https://en.wikipedia.org/wiki/Red_Hat_Certification_Program) of the Red Hat certification program. To achieve the Red Hat Certified Architect level, you have to pass seven exams in total. The certification path starts with the RHCSA and RHCE exams. After becoming RHCE, you will have to pass five more exams based on your choice to obtain the RHCA certificate.
 

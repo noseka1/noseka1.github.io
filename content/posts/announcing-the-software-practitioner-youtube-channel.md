@@ -14,3 +14,5 @@ The first videos are already waiting there for you to watch!
 Please, add a comment to let me know what topics you would like to see covered.
 
 {% img center /images/posts/the_software_practitioner_youtube_channel.png %}
+
+<!--more-->

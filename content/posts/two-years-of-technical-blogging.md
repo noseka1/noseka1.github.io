@@ -7,7 +7,7 @@ Categories = []
 
 Wow, the time goes by so fast. It's been two years since I began writing this blog. Why did I start and am I having fun? Let's take a closer look.
 
-<!-- more -->
+<!--more-->
 
 I think that there are two kinds of authors. The first kind are the extroverted authors, that can fill pages and pages of paper without difficulty. They love to communicate and writing is yet another way of communication for them. The second kind of authors would be the introverted authors. Communication is not necessarily second nature for them. Before creating an article, they are concerned whether they really have something interesting to share.
 

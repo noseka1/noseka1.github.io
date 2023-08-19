@@ -9,7 +9,7 @@ Categories = []
 
 For editing Windows INI files, Ansible comes with an `ini_file` module built in. Unfortunately, this module uses Python's `ConfigParser` module which reformats the entire INI file whenever you want to change a single line. It removes all the comment lines, too. For me this was not acceptable. After looking for a possible solution I decided to improve the `ini_file` module and created `ini_file2`. I realized how easy it is to create an Ansible module.
 
-<!-- more -->
+<!--more-->
 
 On Debian Linux, the Ansible's built-in `ini_file` module can be found at `/usr/share/ansible/files/ini_file`. This file is the base for our own `ini_file2`. The question was, at what location should one store the `ini_file2` module for Ansible to find it? From Ansible's [documentation](http://docs.ansible.com/ansible/developing_modules.html "Developing Modules") I learned that when looking for modules, Ansible searches the `./library` directory alongside of the top level playbooks. That sounds perfect to me.
 

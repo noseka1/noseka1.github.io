@@ -7,7 +7,7 @@ Categories = []
 
 If you are developing a distributed application that consists of multiple services, you might be thinking about how to manage the ever growing application configuration data. Instead of maintaining individual configuration files for each service, you can store all your configuration data in a key-value store. In this blog post we'll check out the key-value store in Consul.
 
-<!-- more -->
+<!--more-->
 
 {% img right /images/posts/consul_logo.png 200 300 %}
 

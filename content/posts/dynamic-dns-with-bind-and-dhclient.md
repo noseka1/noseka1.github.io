@@ -6,7 +6,7 @@ Categories = []
 +++
 In this blogpost we're going to configure the BIND server to accept dynamic updates. Client machines themselves will send the updates to the DNS server instead of letting DHCP server update the DNS. A great setup for situations where the DHCP server is not in your control.
 
-<!-- more -->
+<!--more-->
 
 Examples in this article work on RHEL6 that comes with BIND 9. You'll need to have `bind` and `bind-utils` RPM packages installed. In the following, the BIND server with host name `ns.somedomain.com` is an authoritative DNS server for the fictive zone `somedomain.com`.
 

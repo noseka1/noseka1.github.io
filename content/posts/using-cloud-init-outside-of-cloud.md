@@ -6,7 +6,7 @@ Categories = []
 +++
 In EC2 and OpenStack cloud environments *user data* can be passed to the cloud instance to customize the cloud instance on the first boot. But what if your virtual machine doesn't run in the cloud environment? In this article we're going to configure our virtual machines with user data regardless if they're running in the cloud or not.
 
-<!-- more -->
+<!--more-->
 
 Introducing Cloud-Init
 ----------------------

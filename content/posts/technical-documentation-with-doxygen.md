@@ -7,7 +7,7 @@ Categories = []
 
 Do you create project documentation in your company's internal wiki? I did it for quite some time until I realized that a good old Doxygen combined with Git can do a much better job.
 
-<!-- more -->
+<!--more-->
 
 [Doxygen](http://www.stack.nl/~dimitri/doxygen/ "Doxygen") is a well-known tool for generating documentation directly out of the annotated source code. However, it can be utilized to create technical documentation, too. In version 1.8.0, [Markdown support](http://www.stack.nl/~dimitri/doxygen/manual/markdown.html "Markdown support") was introduced to Doxygen. [Markdown](http://daringfireball.net/projects/markdown/ "Markdown") is a popular markup language. Plain text files written in Markdown format can be converted into HTML or many other formats. With Markdown support, creating technical documentation in Doxygen gets really easy.
 

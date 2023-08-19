@@ -7,7 +7,7 @@ Categories = []
 
 I had the great opportunity to visit the Red Hat Summit 2017. It was hosted in the Boston Convention and Exhibition Center in Boston in May 2-4, 2017. This blog post summarizes the interesting things I learned at the summit.
 
-<!-- more -->
+<!--more-->
 
 ## Major announcements
 

@@ -7,7 +7,7 @@ Categories = []
 
 Today was the great day when I passed the RHCE certification exam. If you're thinking about getting a Linux certification or you're already working towards RHCSA/RHCE, this blog post is for you.
 
-<!-- more -->
+<!--more-->
 
 The RHCSA/RHCE certification is a part of the [Red Hat Certification Program](https://en.wikipedia.org/wiki/Red_Hat_Certification_Program). You have to pass two practical exams, RHCSA (Red Hat Certified System Administrator) and RHCE (Red Hat Certified Engineer).
 

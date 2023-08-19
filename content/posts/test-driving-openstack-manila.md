@@ -7,7 +7,7 @@ Categories = []
 
 Do you need to provision an NFS share for your Hadoop cluster? And what about creating a CIFS share to make your files accesible to the Windows clients? Manila is a provisioning and management service for shared file systems within OpenStack. Let's test-drive it in this blogpost.
 
-<!-- more -->
+<!--more-->
 
 In this introductory article, we're going to allocate a volume in Cinder and provide that volume as an NFS share to our Nova instances. For this, I'm using the OpenStack Mitaka installed via TripleO on RHEL7. The Manila version included in the Mitaka release is version 2.0.
 

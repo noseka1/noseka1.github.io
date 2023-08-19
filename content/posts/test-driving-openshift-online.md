@@ -7,7 +7,7 @@ Categories = []
 
 Did you decide to dockerize your application? Awesome! Are you looking for a place to build and host your Docker containers? OpenShift Online is a service that allows you to build and run your Docker containers. Read on, if you want to learn more about it.
 
-<!-- more -->
+<!--more-->
 
 [OpenShift Online](https://manage.openshift.com/) is a Platform-as-a-Service cloud managed by Red Hat. It is hosted on Amazon Web Services (AWS). OpenShift Online is a multi-tenant offering. That means that containers owned by different tenants are running on the same cluster. If you're more interested in renting your own private OpenShift cluster, you shall consider the [OpenShift Dedicated](https://www.openshift.com/dedicated/index.html) offering, instead.
 

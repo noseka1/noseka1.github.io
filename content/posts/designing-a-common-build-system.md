@@ -7,7 +7,7 @@ Categories = []
 
 Code reuse belongs to the basic tenets of software development. Moreover, one should have the same principle in mind when maintaining build scripts. If you are copy-pasting Makefiles and pom.xml files from project to project, stop now and read this article! We are going to discuss how to design a common build system.
 
-<!-- more -->
+<!--more-->
 
 A good software practitioner avoids having huge chunks of Makefiles, pom.xml files, build.xml files or shell scripts copy-pasted all over the code base. Based on experience, copy-pasted build scripts lead to inconsistencies, build issues and are overall driving the maintenance cost high.
 

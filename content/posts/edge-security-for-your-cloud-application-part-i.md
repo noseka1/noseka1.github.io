@@ -7,7 +7,7 @@ Categories = []
 
 When designing a cloud application, one of the challenges you need to tackle is the secure communication of your clients with your servers over the public Internet. In this post, I'm going to sketch a system architecture that allows you to authenticate the clients and exchange data between your clients and servers securely. The proposed architecture is also suitable when migrating an existing application, which didn't implement the secure communication, to the cloud.
 
-<!-- more -->
+<!--more-->
 
 In this article, we are going to assume that we're dealing with a multi-tenant cloud application whose architecture follows the [SOA](https://en.wikipedia.org/wiki/Service-oriented_architecture) architecture principles. The application consists of several edge services that accept the incoming client requests. After validating the incoming request, the request is passed to the backend services for processing. Here is a diagram depicting such an application:
 

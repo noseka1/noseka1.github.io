@@ -7,7 +7,7 @@ Categories = []
 
 In this article, we're going to make an entire VLAN trunk on the host accessible to the guest machine. The guest machine can then create VLAN subinterfaces in order to access a particular VLAN.
 
-<!-- more -->
+<!--more-->
 
 Our host and guest machines are running RHEL7. We're using Linux bridges and [libvirt](http://libvirt.org/ "libvirt") for guest and network configuration.
 

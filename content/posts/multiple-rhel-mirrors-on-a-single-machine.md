@@ -7,7 +7,7 @@ Categories = []
 
 *Reposync* can mirror the yum repository to which your machine is subscribed to. However, you cannot subscribe your machine to the RHEL6 and RHEL7 at the same time. Let's take a look at how Docker can help us here.
 
-<!-- more -->
+<!--more-->
 
 The RHEL Docker images are available in the public registry. For example, the following command downloads a RHEL6 Docker image:
 

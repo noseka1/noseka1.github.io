@@ -7,7 +7,7 @@ Categories = []
 
 Do you work on a development team that is distributed across several time zones? Got confused by the dates that Git shows in the commit logs? In this blog post we're going to review some basics about how Git deals with time.
 
-<!-- more -->
+<!--more-->
 
 ## Pay attention to the commit timestamps
 

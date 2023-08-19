@@ -7,7 +7,7 @@ Categories = []
 
 The MariaDB Galera packages provided by the RDO project in their OpenStack repositories don't seem to include a command or script to bootstrap the cluster. Let's look at an alternative way to bring the cluster up.
 
-<!-- more -->
+<!--more-->
 
 RHEL7 comes with the init system `systemd`. Unfortunately, systemd doesn't provide a way to pass command-line arguments to the unit files. Hence, doing something like this won't work:
 {% codeblock lang:sh %}

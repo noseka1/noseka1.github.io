@@ -9,7 +9,7 @@ Categories = []
 
 Want to install Kubernetes on top of OpenStack? There are [many ways](http://kubernetes.io/docs/getting-started-guides/) how to install a Kubernetes cluster. The upcoming Kubernetes 1.3 release comes with yet another method called [OpenStack Heat](http://kubernetes.io/docs/getting-started-guides/openstack-heat/). In this article, we're going to explore this deployment method when creating a minimum Kubernetes cluster on top of OpenStack.
 
-<!-- more -->
+<!--more-->
 
 In this tutorial, there are three OpenStack virtual machines involved. The first machine, called the *Kubernetes installer* machine, is created manually and is used for compiling Kubernetes from source and running the Kubernetes installer. The other two OpenStack machines, *Kubernetes master* and *Kubernetes node*, are created during the installation process.
 

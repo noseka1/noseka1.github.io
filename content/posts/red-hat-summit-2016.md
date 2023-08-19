@@ -7,7 +7,7 @@ Categories = []
 
 I had the great opportunity to visit the Red Hat Summit 2016. Enjoy the photos attached.
 
-<!-- more -->
+<!--more-->
 
 The Red Hat summit was hosted at the Moscone Center in San Francisco in June 27-30, 2016. I greatly enjoyed the technical presentations by Red Hatters as well as the opportunity to discuss the OpenShift and Red Hat Atomic products directly with the lead engineers. At my company, we're looking at OpenShift+Atomic as the possible next platform to base our product upon. The frank opinions provided by the Red Hat engineers were very useful for our research. Next, take a look at the pics below.
 

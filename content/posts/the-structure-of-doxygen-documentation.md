@@ -7,7 +7,7 @@ Categories = []
 
 Let's review some basic means that Doxygen provides to structure your documentation. If you're a newcomer to Doxygen this blogpost might be useful for you.
 
-<!-- more -->
+<!--more-->
 
 In order to demonstrate Doxygen features I created a sample project. You can check out the project source code and the generated HTML ouput at:
 

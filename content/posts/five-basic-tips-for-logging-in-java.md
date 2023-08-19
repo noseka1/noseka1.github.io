@@ -6,7 +6,7 @@ Categories = []
 +++
 Where do you look when your server application doesn't work as expected? Application logs can provide invaluable information when the systems in production misbehave. That's why a great software practitioner desings the application logs carefully. Let's review a couple of basic tips for great logging in Java.
 
-<!-- more -->
+<!--more-->
 
 1) Use SLF4J logging facade
 ---------------------------

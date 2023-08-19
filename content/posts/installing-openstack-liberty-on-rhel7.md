@@ -7,7 +7,7 @@ Categories = []
 
 The OpenStack Liberty was released last week. In this article I'll briefly describe how to deploy the OpenStack Liberty on RHEL7 using RDO Manager.
 
-<!-- more -->
+<!--more-->
 
 The [RDO project](https://www.rdoproject.org/ "RDO project") packages the OpenStack software for the Red Hat based platforms. Currently, there are Liberty packages in status testing/release candidate available from the project. Apart from a couple of configuration issues the installation went pretty well and I obtained a basic 2-node cluster.
 

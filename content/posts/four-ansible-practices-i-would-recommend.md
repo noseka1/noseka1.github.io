@@ -7,7 +7,7 @@ Categories = []
 
 [Ansible](https://www.ansible.com/) is a popular IT automation tool. In this article, I would like to share with you some of the useful practices we have discovered while using Ansible over the past four years.
 
-<!-- more -->
+<!--more-->
 
 ## Create a separate account for Ansible
 

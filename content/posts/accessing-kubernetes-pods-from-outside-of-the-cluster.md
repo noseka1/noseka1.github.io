@@ -7,7 +7,7 @@ Categories = []
 
 There are several ways how to expose your application running on the Kubernetes cluster to the outside world. When reading the [Kubernetes documentation](https://kubernetes.io/docs/) I had a hard time ordering the different approaches in my head. I created this blog post for my future reference but will be happy if it can be of any use to you. Without further ado let's discuss the *hostNetwork*, *hostPort*, *NodePort*, *LoadBalancer* and *Ingress* features of Kubernetes.
 
-<!-- more -->
+<!--more-->
 
 ## hostNetwork: true
 

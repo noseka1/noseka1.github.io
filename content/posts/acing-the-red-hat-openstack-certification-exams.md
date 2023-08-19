@@ -7,7 +7,7 @@ Categories = []
 
 Recently I passed two OpenStack certification exams from Red Hat: [EX210 Red Hat Certified System Administrator in Red Hat OpenStack exam](https://www.redhat.com/en/services/training/ex210-red-hat-certified-system-administrator-red-hat-openstack-exam) and the consecutive [EX310 Red Hat Certified Engineer in Red Hat OpenStack exam](https://www.redhat.com/en/services/training/ex310-red-hat-certified-engineer-red-hat-openstack-exam). In this blog post, I'm going to share how I - as a software practitioner - got the job done.
 
-<!-- more -->
+<!--more-->
 
 {% img right /images/posts/redhat_openstack.jpg 250 300 %}
 

@@ -7,7 +7,7 @@ Categories = []
 
 This blog will cover how to create a CI/CD pipeline that spans multiple OpenShift clusters. It will show an example of a Jenkins-based pipeline, and design a pipeline that uses Tekton.
 
-<!-- more -->
+<!--more-->
 
 Traditionally, CI/CD pipelines were implemented on top of bare metal servers and virtual machines. Container platforms like Kubernetes and OpenShift appeared on the scene only later on. As more and more workloads are migrating to OpenShift, CI/CD pipelines are headed in the same direction. Pipeline jobs are executed in containers in the cluster.
 

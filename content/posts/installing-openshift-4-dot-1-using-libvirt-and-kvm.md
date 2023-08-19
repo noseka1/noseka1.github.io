@@ -7,7 +7,7 @@ Categories = []
 
 In this blog post, I am going to talk about how I installed OpenShift 4.1 on a Fedora laptop with 16 GB of RAM. If you are interested in deploying your own OpenShift instance whether for evaluation or testing please follow along with me.
 
-<!-- more -->
+<!--more-->
 
 OpenShift 4.1 is the first GA release in the OpenShift 4 series. It is a significant leap forward in the evolution of OpenShift mainly due to the incorporation of features developed by the folks at CoreOS. In order to take a closer look at the latest and greatest version of OpenShift, I installed OpenShift 4.1 on my laptop using Libvirt and KVM. How did I accomplish this?
 

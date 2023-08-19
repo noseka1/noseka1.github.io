@@ -7,7 +7,7 @@ Categories = []
 
 In the [previous part](/blog/2019/10/08/open-policy-agent-part-i-the-introduction/) of the series, we explored Open Policy Agent and implemented an ACL-based access control for our application. In this entry, I am going to share with you some of the discoveries that I made while evaluating Open Policy Agent in regards to policy design and development.
 
-<!-- more -->
+<!--more-->
 
 ## Notes on Policy Design
 

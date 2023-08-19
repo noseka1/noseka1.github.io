@@ -7,7 +7,7 @@ Categories = []
 
 Do you like Docker technology and want to learn more about it? There's no better way to learn than reading the source code. In this article, we'll install the Go programming language, download the latest Docker source code and navigate through it in Eclipse.
 
-<!-- more -->
+<!--more-->
 
 ## Installing the Go programming language
 

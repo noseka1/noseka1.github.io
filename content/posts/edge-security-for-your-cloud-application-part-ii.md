@@ -7,7 +7,7 @@ Categories = []
 
 In this article, we're going to create a proof-of-concept deployment featuring a non-TLS client connecting to our cloud application. We are going to leverage the architecture approach discussed in the [previous blog post](/blog/2018/01/10/edge-security-for-your-cloud-application-part-i). A secure communication channel is going to be established between the client and the cloud application including mutual authentication.
 
-<!-- more -->
+<!--more-->
 
 ## Deployment overview
 

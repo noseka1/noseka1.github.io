@@ -7,7 +7,7 @@ Categories = []
 
 This article is the first in a series of three articles which share my experience with troubleshooting the performance of Vert.x applications. The first article provides an overview of the Vert.x event loop model, the second acticle covers techniques to prevent delays on the event loop, and the third article focuses on troubleshooting of event loop delays.
 
-<!-- more -->
+<!--more-->
 
 Programming with Vert.x requires a good understanding of its event loop model. From what I saw in practice, delayed or blocked event loop threads are the number one contributor to performance problems with Vert.x applications. But don't worry. In this article, we are going to review the event loop model.
 

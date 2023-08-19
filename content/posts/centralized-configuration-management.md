@@ -7,7 +7,7 @@ Categories = []
 
 Are you migrating your existing application to the cloud? Are you missing a solution for centralized configuration management? Read on to learn, how we implemented centralized configuration management on top of our existing application and got it ready for the cloud.
 
-<!-- more -->
+<!--more-->
 
 Our existing application is a [SOA-based](https://en.wikipedia.org/wiki/Service-oriented_architecture) application, i.e an application consisting of multiple services that communicate with each other and that are deployed across multiple nodes. Services are configured using configuration files located on the local filesystem. Currently, the operator has to edit multiple configuration files across multiple nodes by hand. In addition to that, for the sake of performance and redundancy, there are multiple instances of each service deployed behind a load balancer. This increases the configuration burden even further as the operator has to keep the configuration files consistent across several instances of the same service.
 

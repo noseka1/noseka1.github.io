@@ -7,7 +7,7 @@ Categories = []
 
 This blog will walk you through the Apache Airflow architecture on OpenShift. We are going to discuss the function of the individual Airflow components and how they can be deployed to OpenShift. This article focuses on the latest Apache Airflow version 1.10.12.
 
-<!-- more -->
+<!--more-->
 
 ## Architecture overview
 
