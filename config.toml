@@ -7,7 +7,7 @@ disqusShortname = "alesnosekcom"
 
 [permalinks]
 # change the post URL to look like the old ones
-posts = "/blog/:year/:month/:day/:filename/"
+post = "/blog/:year/:month/:day/:filename/"
 
 [params]
 sidebarRecentLimit = 5
