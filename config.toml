@@ -1,7 +1,50 @@
-baseURL = 'http://example.org/'
+baseURL = 'https://alesnosek.com/'
 languageCode = 'en-us'
-title = 'My New Hugo Site'
+title = 'Ales Nosek - The Software Practitioner'
 theme = "Hugo-Octopress"
 
+disqusShortname = "alesnosekcom"
+
 [permalinks]
-post = "/blog/:year/:month/:day/:filename/"
+# change the post URL to look like the old ones
+posts = "/blog/:year/:month/:day/:filename/"
+
+[params]
+sidebarRecentLimit = 5
+
+# Sidebar links
+linkedin = "https://www.linkedin.com/in/alesnosek"
+youtube = "https://www.youtube.com/channel/UCE6HZJ5aQc_TcXgD3kPENkQ"
+github = "https://github.com/noseka1"
+twitter = "https://twitter.com/AlesNosekTSP"
+
+# Author's name (appears in meta tags and under posts)
+author = "Ales Nosek"
+
+subtitle = 'Helping you navigate the world of Kubernetes.'
+
+# Search engine URL
+searchEngineURL = "https://www.google.com/search"
+
+# Switch to true to enable RSS icon link
+rss = true
+
+# Set to true to hide ReadingTime on posts
+disableReadingTime = true
+
+# Generate taxonomy pages
+generateTaxonomyList = true
+
+# Google analytics code - remove if you do not have/want Google
+# Analytics - needs JavaScript.
+googleAnalytics = "G-5XPEZRJSM2"
+
+[[menu.main]]
+  Name = "Blog"
+  URL = "/"
+  weight = -5
+
+[[menu.main]]
+  Name = "Archives"
+  URL = "/posts"
+  weight = 0
