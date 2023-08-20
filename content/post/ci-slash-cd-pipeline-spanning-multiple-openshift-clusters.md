@@ -1,5 +1,5 @@
 +++
-title = "Ci Slash Cd Pipeline Spanning Multiple Openshift Clusters"
+title = "CI/CD Pipeline Spanning Multiple Openshift Clusters"
 date = "2020-06-30"
 slug = "2020/06/30/ci-slash-cd-pipeline-spanning-multiple-openshift-clusters"
 Categories = [ "devops" ]
