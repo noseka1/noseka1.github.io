@@ -48,5 +48,5 @@ favicon = "images/the_software_practitioner_logo/the_software_practitioner_logo_
 
 [[menu.main]]
   Name = "Archives"
-  URL = "/posts"
+  URL = "/post"
   weight = 0
