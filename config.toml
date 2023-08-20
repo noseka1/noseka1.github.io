@@ -10,7 +10,7 @@ disqusShortname = "alesnosekcom"
 post = "/blog/:year/:month/:day/:filename/"
 
 [params]
-sidebarRecentLimit = 5
+sidebarRecentLimit = 6
 
 # Sidebar links
 linkedin = "https://www.linkedin.com/in/alesnosek"
