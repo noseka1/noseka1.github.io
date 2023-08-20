@@ -29,7 +29,7 @@
                 <span class="categories"> <!-- show categories and tags -->
                   {{ $.Scratch.Set "cats" .Params.categories }}
                   {{ with .Params.categories }}
-                  posted in:
+                  posted in
                   {{ range ($.Scratch.Get "cats") }} <a class="category" href="{{ "/categories/" | absURL }}{{ . | urlize | lower }}">{{ . }}</a>{{ end }}
                 </br>
                   {{ end }}
