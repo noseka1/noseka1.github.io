@@ -39,6 +39,8 @@ generateTaxonomyList = true
 # Analytics - needs JavaScript.
 googleAnalytics = "G-5XPEZRJSM2"
 
+favicon = "images/the_software_practitioner_logo/the_software_practitioner_logo_small.png"
+
 [[menu.main]]
   Name = "Blog"
   URL = "/"
