@@ -1,5 +1,5 @@
 +++
-title = "Comparing Openapi With Grpc"
+title = "Comparing Openapi With gRPC"
 date = "2019-01-25"
 slug = "2019/01/25/comparing-openapi-with-grpc"
 Categories = [ "development" ]
