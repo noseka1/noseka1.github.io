@@ -47,16 +47,16 @@ Both major announcements go along with the Red Hat's vision of the future being 
 
 ## Some photos from the event
 
-{% img center /images/posts/redhatsummit2018/keynote.jpeg %}
+{{< figure src="/images/posts/redhatsummit2018/keynote.jpeg" class="center" >}}
 
 Opening keynote session.
 
-{% img center /images/posts/redhatsummit2018/cruise.jpeg %}
+{{< figure src="/images/posts/redhatsummit2018/cruise.jpeg" class="center" >}}
 
 Harbor cruise for Red Hat Certified Professionals, including myself ;-)
 
-{% img center /images/posts/redhatsummit2018/sf1.jpeg %}
+{{< figure src="/images/posts/redhatsummit2018/sf1.jpeg" class="center" >}}
 
-{% img center /images/posts/redhatsummit2018/sf2.jpeg %}
+{{< figure src="/images/posts/redhatsummit2018/sf2.jpeg" class="center" >}}
 
 San Francisco skyline as viewed from the cruise.

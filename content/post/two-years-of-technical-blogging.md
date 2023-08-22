@@ -13,7 +13,7 @@ I think that there are two kinds of authors. The first kind are the extroverted 
 
 It seems to me that in the developer community the introverted authors prevail and I personally count myself in this category, too. Only after a decade of software development, and now heading towards software architecture, I finally decided to start my own technical blog.
 
-{% img right /images/posts/octopress_github.png 200 200 %}
+{{< figure src="/images/posts/octopress_github.png" height="200" width="200" class="right" >}}
 
 ## Getting my blog started
 

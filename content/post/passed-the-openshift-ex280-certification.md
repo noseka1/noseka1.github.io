@@ -13,7 +13,7 @@ Similar to the RHCSA/RHCE exams that I [completed](/blog/2016/11/07/rhcsa-slash-
 
 For preparation I used the [DO280 OpenShift Enterprise Administration](https://www.redhat.com/en/services/training/do280-openshift-enterprise-administration) materials that were included in my [Red Hat Learning Subscription](https://www.redhat.com/en/services/training/learning-subscription). I practiced the provided lab exercices over and over again until I gained a good confidence.
 
-{% img right /images/posts/openshift_container_platform.png 250 300 %}
+{{< figure src="/images/posts/openshift_container_platform.png" height="250" width="300" class="right" >}}
 
 The exam took three hours and I have to say that I was very busy typing the whole time. Despite of my best effort I ran out of time with three tasks left untouched. How happy I was when I received my exam results. Passing score for the exam was 210 points. I made it through with 225 points.
 

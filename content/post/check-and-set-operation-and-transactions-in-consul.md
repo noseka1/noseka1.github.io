@@ -1,5 +1,5 @@
 +++
-title = "Check and Set Operation and Transactions in Consul"
+title = "Check-and-Set Operation and Transactions in Consul"
 date = "2017-07-25"
 slug = "2017/07/25/check-and-set-operation-and-transactions-in-consul"
 Categories = [ "cloud", "devops" ]
@@ -9,7 +9,7 @@ In the [previous](/blog/2017/07/15/first-look-at-the-key-value-store-in-consul/)
 
 <!--more-->
 
-{% img right /images/posts/consul_logo.png 200 300 %}
+{{< figure src="/images/posts/consul_logo.png" height="200" width="300" class="right" >}}
 
 For our experimenting, let's start a one-node Consul cluster. The meaning of the individual command-line parameters was described in the [previous](/blog/2017/07/15/first-look-at-the-key-value-store-in-consul/) article:
 

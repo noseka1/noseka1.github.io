@@ -17,7 +17,7 @@ The whole setup can be divided into three steps:
 
 I am going to use OpenShift v3.11 that I installed using Minishift and a test application built with Java OpenJDK 1.8. This is how the complete setup is going to look like:
 
-{% img /images/posts/remote_debugging_of_java_applications_on_openshift.svg %}
+{{< figure src="/images/posts/remote_debugging_of_java_applications_on_openshift.svg" class="center" >}}
 
 ## Hello world application
 
@@ -236,7 +236,7 @@ $ visualvm --openjmx localhost:3000
 
 Works like a charm, doesn't it?
 
-{% img /images/posts/visualvm_attached.png %}
+{{< figure src="/images/posts/visualvm_attached.png" class="center" >}}
 
 ## Conclusion
 

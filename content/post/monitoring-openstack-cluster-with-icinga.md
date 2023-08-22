@@ -40,4 +40,4 @@ Some of the plugins didn't work for me due to incompatibilities with the Liberty
 
 And this is how the OpenStack APIs service group looks in Icinga Web 2. Happy monitoring!
 
-{% img center /images/posts/osmon.png %}
+{{< figure src="/images/posts/osmon.png" class="center" >}}

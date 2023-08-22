@@ -13,18 +13,18 @@ The Red Hat summit was hosted at the Moscone Center in San Francisco in June 27-
 
 General sessions and the Red Hat party at the end of the summit took place at Moscone Center North:
 
-{% img center /images/posts/redhatsummit2016/20160629_135631.jpg %}
-{% img center /images/posts/redhatsummit2016/20160628_134625.jpg %}
+{{< figure src="/images/posts/redhatsummit2016/20160629_135631.jpg" class="center" >}}
+{{< figure src="/images/posts/redhatsummit2016/20160628_134625.jpg" class="center" >}}
 
 Breakout sessions were hosted at the Moscone Center West:
 
-{% img center /images/posts/redhatsummit2016/20160630_152426.jpg %}
-{% img center /images/posts/redhatsummit2016/20160629_151110.jpg %}
+{{< figure src="/images/posts/redhatsummit2016/20160630_152426.jpg" class="center" >}}
+{{< figure src="/images/posts/redhatsummit2016/20160629_151110.jpg" class="center" >}}
 
 The big Red Hat logo at the entrance hall. The red and black colors really catch your eyes:
 
-{% img center /images/posts/redhatsummit2016/20160628_195533.jpg %}
+{{< figure src="/images/posts/redhatsummit2016/20160628_195533.jpg" class="center" >}}
 
 Jim Whitehurst, president and CEO of Red Hat, and myself. Check out my [next post](/blog/2016/07/04/what-i-learned-from-the-open-organization) to find out, what I learned from the book I'm holding in the picture.
 
-{% img center /images/posts/redhatsummit2016/20160629_132338.jpg %}
+{{< figure src="/images/posts/redhatsummit2016/20160629_132338.jpg" class="center" >}}

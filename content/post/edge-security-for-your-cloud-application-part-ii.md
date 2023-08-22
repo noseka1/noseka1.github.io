@@ -39,7 +39,7 @@ Make sure that you run the above command on both instances, too.
 
 We are going to leverage the TLS protocol to establish a secure, mutually authenticated connection between the two proxies. TLS relies on PKI keys and certificates that we'll need to generate. The PKI setup for our company consists of a root CA, a layer of subordinate CAs and three end-entity certificates.
 
-{% img /images/posts/edge_security_for_your_cloud_application_pki.svg 500 600 PKI %}
+{{< figure src="/images/posts/edge_security_for_your_cloud_application_pki.svg" height="500" width="600" class="center" alt="PKI" >}}
 
 It is a common practice to sign the end-entity certificates by one or more subordinate CAs as it prevents the necessity of revoking a root certificate in the case that an end-entity certificate is incorrectly issued or compromised.
 

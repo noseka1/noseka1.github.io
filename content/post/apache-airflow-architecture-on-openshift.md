@@ -13,7 +13,7 @@ This blog will walk you through the Apache Airflow architecture on OpenShift. We
 
 The three main components of Apache Airflow are the Webserver, Scheduler, and Workers. The Webserver provides the Web UI which is the Airflow's main user interface. It allows users to visualize their DAGs (Directed Acyclic Graph) and control the execution of their DAGs. In addition to the Web UI, the Webserver also provides an experimental REST API that allows controlling Airflow programatically as opposed to through the Web UI. The second component --- the Airflow Scheduler --- orchestrates the execution of DAGs by starting the DAG tasks at the right time and in the right order. Both Airflow Webserver and Scheduler are long-running services. On the other hand, Airflow Workers --- the last of the three main components --- run as ephemeral pods. They are created by the Kubernetes Executor and their sole purpose is to execute a single DAG task. After the task execution is complete, the Worker pod is deleted. The following diagram depicts the Aiflow architecture on OpenShift:
 
-{% img /images/posts/apache_airflow_architecture_on_openshift.png %}
+{{< figure src="/images/posts/apache_airflow_architecture_on_openshift.png" class="center" >}}
 
 ## Shared database
 

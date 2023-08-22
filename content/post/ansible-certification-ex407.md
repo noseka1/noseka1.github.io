@@ -9,9 +9,9 @@ Last week I passed the Red Hat certification exam [EX407 Red Hat Certificate of 
 
 <!--more-->
 
-{% img right /images/posts/ansible_logo.png 80 80 %}
+{{< figure src="/images/posts/ansible_logo.png" height="80" width="80" class="right" >}}
 
-{% img right /images/posts/redhat_logo.png 130 130 %}
+{{< figure src="/images/posts/redhat_logo.png" height="130" width="130" class="right" >}}
 
 In addition to the Ansible certification, Red Hat offers a certification for Puppet as well, [EX405 Red Hat Certificate of Expertise in Configuration Management with Puppet](https://www.redhat.com/en/services/training/ex405-red-hat-certificate-expertise-configuration-management-puppet). I was using Puppet in the years 2008/2009. Back then, Puppet was a state of the art configuration management tool that did a great job for us. However, later on Ansible showed up and I quickly realized that the problems that we were solving with Puppet could have been more easily solved with Ansible. In our company, we switched from Puppet to Ansible in 2014 and have never looked back. As I gained much more experience using Ansible, I decided to go for the Ansible certification. For you, perhaps the Puppet certification would be more interesting.
 

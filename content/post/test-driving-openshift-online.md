@@ -1,5 +1,5 @@
 +++
-title = "Test Driving Openshift Online"
+title = "Test-Driving Openshift Online"
 date = "2017-08-27"
 slug = "2017/08/27/test-driving-openshift-online"
 Categories = [ "cloud" ]
@@ -17,17 +17,17 @@ The information about the plans and pricing of the OpenShift Online service can 
 
 You can login into OpenShift Online [here](https://manage.openshift.com/). If you don't have an OpenShift account, the sign up and creation of the OpenShift account doesn't take you long. After you login into your OpenShift account, find a small question mark icon in the top right corner of the welcome page. From the drop down menu choose the "Command Line Tools" option.
 
-{% img left /images/posts/openshift_online/openshift_online_welcome.png %}
+{{< figure src="/images/posts/openshift_online/openshift_online_welcome.png" class="left" >}}
 
 Download the `oc` client tool using one of the provided download links. We're going to use the `oc` tool throughout this tutorial. After downloading the distribution archive, extract the `oc` tool from it and place it somewhere on your PATH. The `oc` tool is a single statically linked binary which makes the installation straight forward. On the same page, notice the instructions on how to login into the CLI. We'll be logging into it in a moment.
 
-{% img left /images/posts/openshift_online/openshift_online_command_line_tools.png %}
+{{< figure src="/images/posts/openshift_online/openshift_online_command_line_tools.png" class="left" >}}
 
 Go back to the welcome page and this time choose the "About" option from the drop down menu in the top right corner. On the "About" page, you can learn that OpenShift Online is built upon a fairly recent version of OpenShift. That's great to know, as each new version of OpenShift comes with a ton of new features. As the OpenShift Online user you would not like to be left behind with an older version of OpenShift.
 
 On the same "About" page, you can find the address of the integrated Docker registry. You can push ready images to this registry in order to make them available for deployment on OpenShift. If you build images on OpenShift, the finished images will be pushed into this registry at the end of the build process. In addition to deploying images from the integrated Docker registry, you can, of course, deploy images directly from the Docker Hub as well.
 
-{% img left /images/posts/openshift_online/openshift_online_about.png %}
+{{< figure src="/images/posts/openshift_online/openshift_online_about.png" class="left" >}}
 
 ## Getting our hands dirty
 

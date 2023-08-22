@@ -15,7 +15,7 @@ The event loop thread model is vastly different from the thread-per-request mode
 
 Vert.x comes with a built-in mechanism to detect delays on event loop and worker threads by checking the execution time of handlers that you registered with the Vert.x APIs. This mechanism operates in two steps. In the first step, Vert.x saves the timestamp of the moment when a handler starts executing. This *start timestamp* is saved to a storage attached to the thread that is executing the handler. Whenever the execution of the handler has completed the timestamp is reset. In the second step, Vert.x periodically checks the timestamps using a dedicated thread called [`vertx-blocked-thread-checker`](https://github.com/eclipse-vertx/vert.x/blob/master/src/main/java/io/vertx/core/impl/BlockedThreadChecker.java). This thread is spawned by Vert.x during the creation of the Vert.x instance for example when you call `Vertx.vertx()`. The vertx-blocked-thread-checker thread can be seen in [VisualVM](https://visualvm.github.io/):
 
-{% img center /images/posts/vertx_blocked_thread_checker.png %}
+{{< figure src="/images/posts/vertx_blocked_thread_checker.png" class="center" >}}
 
 The blocked thread checker serves as a watchdog that periodically checks the Vert.x threads. It iterates over all Vert.x threads and for each thread it subtracts the threads start timestamp from the current time to compute how long the thread has already been executing the handler code. If the execution time exceeds the specified threshold a warning message is dropped into the logs:
 

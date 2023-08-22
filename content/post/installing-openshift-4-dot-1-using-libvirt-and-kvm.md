@@ -17,7 +17,7 @@ I essentially followed the [guide](https://docs.openshift.com/container-platform
 
 First, let's take a look at the diagram showing the deployment of the OpenShift cluster on Libvirt/KVM. In addition to the OpenShift cluster nodes, the diagram also depicts supplementary pieces of the user-provisioned infrastructure that you will need to deploy:
 
-{% img center /images/posts/openshift_4_on_libvirt.png %}
+{{< figure src="/images/posts/openshift_4_on_libvirt.png" class="center" >}}
 
 In the diagram, you can see that there is an HTTP server and an oc client installed directly on the host machine. The remaining boxes in the diagram are virtual machines. I outlined the purpose of the virtual machines for you in the following table:
 

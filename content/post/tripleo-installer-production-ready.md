@@ -1,5 +1,5 @@
 +++
-title = "Tripleo Installer Production Ready"
+title = "Tripleo Installer, Production Ready?"
 date = "2017-01-15"
 slug = "2017/01/15/tripleo-installer-production-ready"
 Categories = [ "cloud", "devops" ]
@@ -25,7 +25,7 @@ Because fixing the TripleO scripts would require additional effort and the overc
 
 In summary, we can depict our OpenStack maintenance process like this:
 
-{% img /images/posts/openstack_maintenance_process.svg 500 700 OpenStack Maintenance Process %}
+{{< figure src="/images/posts/openstack_maintenance_process.svg" height="500" width="700" class="center" alt="OpenStack Maintenance Process" >}}
 
 ## TripleO installer and the resulting downtime
 

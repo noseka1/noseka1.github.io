@@ -18,7 +18,7 @@ The diagram below depicts a development workflow orchestrated by Tilt. After you
 3. Tilt watches Kubernetes manifests on the local machine and keeps them in sync with CodeReady Containers. Any changes made to the manifests are instantly applied to CodeReady Containers.
 4. Tilt forwards local ports to the application pod running in CodeReady Containers. This allows the developer to conveniently access the application on localhost.
 
-{% img center /images/posts/local_development_with_openshift_and_tilt_diagram.png %}
+{{< figure src="/images/posts/local_development_with_openshift_and_tilt_diagram.png" class="center" >}}
 
 Tilt helps the developer automate many of the manual steps made during the development of containerized applications. It speeds up the edit-compile-run loop considerably. Interested to trying it out? Follow me to the next section, where we will implement the workflow depicted in the above diagram.
 
@@ -103,7 +103,7 @@ $ tilt up
 
 After Tilt comes up, it will call buildah to pull the base image, build the application, and push the resulting image to the CRC internal registry. It will also deploy the application on Kubernetes by applying the `kubernetes.yaml` manifest referenced in the `Tiltfile`. If everything worked well, and the application pod starts up, you will see the "Serving files on port 8000" log message in the bottom pane:
 
-{% img center /images/posts/local_development_with_openshift_and_tilt.png %}
+{{< figure src="/images/posts/local_development_with_openshift_and_tilt.png" class="center" >}}
 
 At this point, you should be able to reach the running application on `localhost:8000`:
 

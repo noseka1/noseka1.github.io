@@ -17,7 +17,7 @@ How to configure a DNS server to return multiple IP addresses to Envoy? Kubernet
 
 The diagram below depicts how to configure Envoy to auto-discover pods on Kubernetes. We are combining Envoy's Strict DNS service discovery with a headless service in Kubernetes:
 
-{% img center /images/posts/envoy_auto_discovery.png %}
+{{< figure src="/images/posts/envoy_auto_discovery.png" class="center" >}}
 
 ## Practical implementation
 

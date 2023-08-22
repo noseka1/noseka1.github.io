@@ -9,7 +9,7 @@ KubeCon + CloudNativeCon North America 2017 took place in Austin, Texas on Decem
 
 <!--more-->
 
-{% img center /images/posts/kubecon_2017.png 500 200 %}
+{{< figure src="/images/posts/kubecon_2017.png" height="500" width="200" class="center" >}}
 
 ## Keynotes
 

@@ -1,5 +1,5 @@
 +++
-title = "Comparing Openapi With gRPC"
+title = "Comparing Openapi with gRPC"
 date = "2019-01-25"
 slug = "2019/01/25/comparing-openapi-with-grpc"
 Categories = [ "development" ]
@@ -40,7 +40,7 @@ The comparison table in the previous section highlights only the basic character
 
 Do you have to use either OpenAPI or gRPC? If you like the awesome performance offered by gRPC but still need to provide REST interfaces to the external third-party clients there is a solution for you. You can leverage one of the proxies ([Envoy](https://www.envoyproxy.io/docs/envoy/latest/configuration/http_filters/grpc_json_transcoder_filter),  [grpc-gateway](https://github.com/grpc-ecosystem/grpc-gateway)) that can transcode the REST interface into gRPC. If you design your gRPC interfaces in a [resource-oriented](https://cloud.google.com/apis/design/resources) fashion the transcoding process is straight forward. The resulting system architecture may look like this:
 
-{% img /images/posts/comparing_openapi_with_grpc.svg %}
+{{< figure src="/images/posts/comparing_openapi_with_grpc.svg" class="center" >}}
 
 The third-party REST client talks to the proxy using HTTP/JSON. Client requests are transcoded on-the-fly into gRPC requests. After the requests are processed, the resulting responses are transcoded from gRPC back to HTTP/JSON and delivered to the client.
 

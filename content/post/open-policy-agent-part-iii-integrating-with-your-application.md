@@ -13,17 +13,17 @@ In the [previous entry](/blog/2019/10/27/open-policy-agent-part-ii-developing-po
 
 There are several options how you can integrate OPA with your application. If you happen to build your application using the Go language, you can link OPA as a library straight into your application. Otherwise, you will run OPA as a stand-alone service (daemon). If you deploy your application on Kubernetes, you can run OPA service as a side-car container along with your application services. This minimizes the communication latency between OPA and your application. It also avoids possible communication issues between OPA and your application due to network failures. If you are deploying on virtual machines, you can run one replica of the OPA service on each of your virtual machines to achieve the same benefits. In summary, deploying OPA as a side-car service or a host-local service is the recommended approach.
 
-{% img center /images/posts/open_policy_agent/opa_integration.png %}
+{{< figure src="/images/posts/open_policy_agent/opa_integration.png" class="center" >}}
 
 Another deployment option would be running multiple OPA services behind a load balancer. Your application and OPA services would in this case talk over the network and the communication would go through the load balancer. You would incur the cost of network latency. However, I am not sure how would the overall reliability of this approach compare to the side-car approach. OPA documentation doesn't really mention this option of deploying multiple OPA services behind a load balancer. However, if you are building your application as a set of Lambda functions, then this might be the way to go:
 
-{% img center /images/posts/open_policy_agent/opa_integration_lambda.png %}
+{{< figure src="/images/posts/open_policy_agent/opa_integration_lambda.png" class="center" >}}
 
 ## Utilizing Open Policy Agent APIs
 
 Open Policy Agent comes with a whole set of APIs that you can use in order to utilize OPA to its full potential. I depicted the possible API integrations in the following diagram:
 
-{% img center /images/posts/open_policy_agent/opa_integration_full.png %}
+{{< figure src="/images/posts/open_policy_agent/opa_integration_full.png" class="center" >}}
 
 In the diagram above, the green box is your application invoking policy queries against OPA. The purple services are optional services that you can include in your architecture. These services have to be implemented by yourself and they must expose APIs that are specified by OPA. Two blue boxes depict the Prometheus monitoring server and Kubernetes. OPA can integrate with them right away. In the diagram, the direction of the arrows between services is significant. The arrows indicate which service from the pair initiates the TCP connection. In the following subsections, let's take a closer look at each of these OPA interfaces.
 

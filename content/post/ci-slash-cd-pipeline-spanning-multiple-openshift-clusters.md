@@ -19,7 +19,7 @@ As there are plenty of reasons to use multiple OpenShift clusters, there is a ne
 
 Jenkins is a legend among CI/CD tools. I remember meeting Jenkins back in the day when it was called Hudson but that's old history. How can we build a Jenkins pipeline that spans multiple OpenShift clusters? An important design goal for the pipeline is to achieve a single dashboard that can display output of all jobs involved in the pipeline. I gave it some thought and realized that achieving a single dashboard pretty much implies using a single Jenkins master. This Jenkins master is connected with each of the OpenShift clusters. During the pipeline execution, Jenkins master can run individual tasks on any of the clusters. The job output logs are collected and sent to the master as usual. If we consider having three OpenShift clusters Dev, Test, and Prod, the following diagram depicts the approach:
 
-{% img center /images/posts/ci_cd_pipeline_spanning_multiple_clusters_jenkins.png %}
+{{< figure src="/images/posts/ci_cd_pipeline_spanning_multiple_clusters_jenkins.png" class="center" >}}
 
 The Jenkins [Kubernetes plugin](https://plugins.jenkins.io/kubernetes/) is a perfect plugin for connecting Jenkins to OpenShift. It allows the Jenkins master to create ephemeral workers on the cluster. Each cluster can be assigned a different node label. You can run each stage of your pipeline on a different cluster by specifying the label. A simple pipeline definition for our example would look like this:
 
@@ -53,7 +53,7 @@ In this section, we are going to use Tekton to implement the CI/CD pipeline. In 
 
 I came up with an idea of composing the Tekton pipelines. To compose multiple pipelines into a single pipeline, I implemented the [execute-remote-pipeline](https://github.com/noseka1/execute-remote-pipeline) task that can execute a Tekton pipeline located on a remote OpenShift cluster. The task will tail the output of the remote pipeline while the remote pipeline is executing. With the help of this task, I can now combine Tekton pipelines across OpenShift clusters and run them as a single pipeline. For example, the diagram below shows a composition of three pipelines. Each of the pipelines is located on a different OpenShift cluster Dev, Test, and Prod:
 
-{% img center /images/posts/ci_cd_pipeline_spanning_multiple_clusters_tekton.png %}
+{{< figure src="/images/posts/ci_cd_pipeline_spanning_multiple_clusters_tekton.png" class="center" >}}
 
 The execution of this pipeline is started on the Dev cluster. The Dev pipeline will trigger the Test pipeline which will in turn trigger the Prod pipeline. The combined logs can be followed on the terminal:
 

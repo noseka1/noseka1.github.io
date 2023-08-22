@@ -23,7 +23,7 @@ When searching for a solution, we came across the [confd](https://github.com/kel
 
 Our centralized configuration management consists of two components: *CCS* (Centralized Configuration Store) which is a Consul cluster holding the configuration data, and *CCT* (Centralized Configuration Tool) which is a command-line client. CCT implements two functions. First, it allows the operator to query and modify the configuration values persisted in CCS. Second, it syncs up the configuration files on the local filesystem with their state in CCS. The following diagram depicts the components involved in the centralized configuration management:
 
-{% img left /images/posts/centralized_configuration_management.png %}
+{{< figure src="/images/posts/centralized_configuration_management.png" class="left" >}}
 
 In addition to the configuration values, the CCS component also stores all the additional data that is needed to completely recreate a given configuration file on the local filesystem. For instance, in the case of an ini file, CCS stores the absolute file path, file owner, file group, file mode, sections of the ini file, ini options with their values and all comment lines. Each ini option is also assigned a type or a set of allowed values and any configuration changes made by the operator are checked against the type information before they are accepted.
 

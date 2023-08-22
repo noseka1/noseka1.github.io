@@ -72,7 +72,7 @@ From our experience, each of the compute nodes can run up to 40-50 virtual machi
 
 Finally, we are going to take a look at the high-level overview of our OpenStack deployment. In the diagram below you can see the OpenStack projects that we chose for the deployment:
 
-{% img /images/posts/18_months_with_openstack_components.png 800 1000 OpenStack Components %}
+{{< figure src="/images/posts/18_months_with_openstack_components.png" height="800" width="1000" class="center" alt="OpenStack Components" >}}
 
 Let me comment on some of the projects we deployed:
 

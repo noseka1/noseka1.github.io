@@ -167,7 +167,7 @@ $ ./cluster/kubectl.sh get pods --namespace kube-system
 
 All pods should be running. The network topology of the Kubernetes cluster as displayed by Horizon:
 
-{% img center /images/posts/kube.png %}
+{{< figure src="/images/posts/kube.png" class="center" >}}
 
 ## Accessing the Kubernetes cluster
 

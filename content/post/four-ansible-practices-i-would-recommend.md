@@ -11,7 +11,7 @@ Categories = [ "devops" ]
 
 ## Create a separate account for Ansible
 
-{% img right /images/posts/ansible_logo.png 150 150 %}
+{{< figure src="/images/posts/ansible_logo.png" height="150" width="150" class="right" >}}
 
 In order to apply configuration changes, Ansible connects to the target machine via SSH. We prefer to create a dedicated `ansible` account on each machine managed by Ansible. This account is set up with the required `sudo` privileges. Password authentication to the `ansible` account is disabled. Instead, access is managed by adding or removing person's SSH public key to the `ansible` user's `authorized_keys` file.
 

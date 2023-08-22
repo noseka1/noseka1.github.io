@@ -13,7 +13,7 @@ Before we begin talking about OpenShift, let's briefly discuss our current build
 
 ## Building the OpenShift way
 
-{% img right /images/posts/openshift_logo.gif 200 200 %}
+{{< figure src="/images/posts/openshift_logo.gif" height="200" width="200" class="right" >}}
 
 In OpenShift, one has to create a *BuildConfig* resource to describe the [build process](https://docs.openshift.org/latest/dev_guide/builds/index.html). The BuildConfig resource in OpenShift is roughly equivalent to a job definition in Jenkins. When creating a BuildConfig resource, a build strategy has to be chosen. The build strategy resembles a job type in Jenkins. Currently, there are four build strategies available in OpenShift:
 
@@ -31,7 +31,7 @@ As I didn't really work with the OpenShift strategies much I'm not going to elab
 
 ## Builds on Openshift driven by Jenkins
 
-{% img right /images/posts/jenkins_logo.png 200 200 %}
+{{< figure src="/images/posts/jenkins_logo.png" height="200" width="200" class="right" >}}
 
 There are two Jenkins plugins that can leverage OpenShift containers as build slaves:
 

@@ -76,11 +76,11 @@ In this section, we're going to install a Go language plug-in into Eclipse IDE a
 
 After the successful plug-in installation and restart of Eclipse select `File -> New -> Project ...`. Choose `Go Project` in the dialog box. You'll be presented with a window similar to:
 
-{% img center /images/posts/eclipse_go1.png %}
+{{< figure src="/images/posts/eclipse_go1.png" class="center" >}}
 
 Instead of using the default location, let Eclipse create the project in your Go workspace. After your Go project has been created, go to `Window -> Preferences` and find the tab with the Go configuration. You want to set the location of your Go language installation to the standard `/usr/local/go` directory. Make sure you set the `GOOS` and `GOARCH` fields, too. You'll also have to add the path to the Docker's `vendor` directory into the `GOPATH` field.
 
-{% img center /images/posts/eclipse_go2.png %}
+{{< figure src="/images/posts/eclipse_go2.png" class="center" >}}
 
 ## Code navigation and auto-completion
 
@@ -112,6 +112,6 @@ $ gocode --help
 
 Eclipse provides a configuration dialog for Go tools under `Window -> Preferences`. There are even buttons to click and install the `oracle` and `gocode` tools from within Eclipse. We did this installation on the command-line.
 
-{% img center /images/posts/eclipse_go3.png %}
+{{< figure src="/images/posts/eclipse_go3.png" class="center" >}}
 
 Now that you're all set I wish you happy browsing through the Docker source code!

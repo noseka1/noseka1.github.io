@@ -15,7 +15,7 @@ As of now, we deploy [Icinga](https://www.icinga.com/) along with our applicatio
 
 ## Getting to know Prometheus
 
-{% img right /images/posts/prometheus_logo.png 130 130 %}
+{{< figure src="/images/posts/prometheus_logo.png" height="130" width="130" class="right" >}}
 
 Before jumping in and implementing our own solution for metrics collection and perhaps reinventing the wheel we started shopping around. It seemed to us, that Prometheus monitoring solution was gaining a lot of momentum in recent times. So, we took a closer look at Prometheus and this is what we found:
 

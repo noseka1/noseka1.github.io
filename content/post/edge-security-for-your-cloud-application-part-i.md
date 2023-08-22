@@ -11,7 +11,7 @@ When designing a cloud application, one of the challenges you need to tackle is 
 
 In this article, we are going to assume that we're dealing with a multi-tenant cloud application whose architecture follows the [SOA](https://en.wikipedia.org/wiki/Service-oriented_architecture) architecture principles. The application consists of several edge services that accept the incoming client requests. After validating the incoming request, the request is passed to the backend services for processing. Here is a diagram depicting such an application:
 
-{% img /images/posts/edge_security_for_your_cloud_application_soa.svg 800 1000 SOA architecture %}
+{{< figure src="/images/posts/edge_security_for_your_cloud_application_soa.svg" height="800" width="1000" class="center" alt="SOA architecture" >}}
 
 ## Requirements
 
@@ -29,7 +29,7 @@ Before we start walking through the design, let's take a look at the set of requ
 
 SSL/TLS is a family of security protocols that many VPNs rely upon. Currently, the TLS protocol is considered to be one of the strongest and most mature security protocols available. It was a clear choice for us to leverage the TLS protocol for communication between the clients and servers including the mutual authentication using PKI certificates. Finally, here is a diagram showing the edge layer of our cloud application in detail:
 
-{% img /images/posts/edge_security_for_your_cloud_application_server.svg 800 1000 The edge layer %}
+{{< figure src="/images/posts/edge_security_for_your_cloud_application_server.svg" height="800" width="1000" class="center" alt="The edge layer" >}}
 
 
 ## Internet-facing ELB
@@ -64,7 +64,7 @@ After discussing the server-side design, let's talk about the client-side part o
 
 There is nothing special to do for the clients with native TLS mutual authentication support. They can directly connect to the application servers. To ensure the secure communication for the remaining two client types, we're going to deploy a proxy on the client machines. This proxy will enforce the TLS mutually authenticated connection over the Internet. A diagram depicting the three client types looks as follows:
 
-{% img /images/posts/edge_security_for_your_cloud_application_client.svg 600 800 The client side %}
+{{< figure src="/images/posts/edge_security_for_your_cloud_application_client.svg" height="600" width="800" class="center" alt="The client side" >}}
 
 In the case number two, the proxy is configured in the SSL/TLS encryption mode. It accepts an unencrypted connection from the client and forwards the communication over a TLS encrypted channel to the server.  For the case number three, the proxy must be configured using the SSL/TLS bridging aka re-encryption mode. The proxy accepts an encrypted connection from the client, creates a separate encrypted connection to the server and passes the data between the two connections. Both HAProxy and Nginx support these configuration modes. You can also refer to the TLS layouts described in the HAProxy [documentation](https://www.haproxy.com/documentation/aloha/7-0/deployment-guides/tls-layouts/).
 

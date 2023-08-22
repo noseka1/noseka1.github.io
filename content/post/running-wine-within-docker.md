@@ -63,7 +63,7 @@ $ docker run --rm --volume /tmp/.X11-unix/X0:/tmp/.X11-unix/X0 wine1.4 wine "C:\
 
 When we run the above command, Wine starts up successfully and the notepad application opens up. Inside the Docker container Wine runs as user root and starts from scratch with no existing configuration:
 
-{% img center /images/posts/wine.png %}
+{{< figure src="/images/posts/wine.png" class="center" >}}
 
 We would like Wine running inside the Docker container to use the existing Wine configuration stored on the Docker host. Let's copy the existing Wine configuration on the host to a new directory which we'll in turn expose inside the Docker container:
 

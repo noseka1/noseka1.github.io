@@ -23,7 +23,7 @@ CRC comes with excellent documentation which is being expanded with every new re
 
 From a high-level perspective, CRC creates a virtual machine that runs a single-node OpenShift cluster. This node plays the role of a master and a worker node at the same time. No OpenShift installation takes place while deploying CRC. Instead, CRC launches OpenShift from a pre-installed virtual machine image. The diagram below depicts the CRC deployment:
 
-{% img center /images/posts/codeready_containers_deployment_diagram.png %}
+{{< figure src="/images/posts/codeready_containers_deployment_diagram.png" class="center" >}}
 
 On the Linux host, CRC makes use of libvirt to create a network, storage pool, and a CRC virtual machine. The virtual machine's data is persisted on the libvirt volume which ensures that the objects created by the user in OpenShift will survive CRC restarts.
 
@@ -83,7 +83,7 @@ $ ./crc setup
 
 While the setup is running, let's talk about the CRC binary.  Did you notice that the CRC binary is quite large? The size of the CRC binary version 1.21.0 is around 2.6 GiB. Why is that? To answer this question, check out the binary structure that is depicted in the following diagram:
 
-{% img center /images/posts/codeready_containers_binary.png %}
+{{< figure src="/images/posts/codeready_containers_binary.png" class="center" >}}
 
 The CRC binary consists of four parts. The first part is the CRC executable.  The second part is the `admin-helper-linux` utility that is used for updating the `/etc/hosts` file. After that comes the `crc-driver-libvirt` daemon executable, which implements functions specific to the libvirt virtualization and abstracts the virtualization details away from the CRC core. Finally, the so-called CRC bundle (`crc_libvirt_4.6.9.crcbundle` in the diagram) is the last part of the CRC binary. This bundle contains a virtual machine image and accounts for the majority of the size of the CRC binary.
 

@@ -24,7 +24,7 @@ Our build system supports Java, C++ and C development. The core of the build sys
 
 The following diagram illustrates the organization of our code base:
 
-{% img /images/posts/common_build_system.svg 600 600 %}
+{{< figure src="/images/posts/common_build_system.svg" height="600" width="600" class="center" >}}
 
 Our code base is divided up into modules. A module contains either Java or C/C++ source code required to build a library or executable. The `build-common` module is special in that it doesn't contain any source code to compile. Instead, it acts as a container in which we store all our reusable build scripts. The build scripts of other modules import the definitions from the `build-common` module. Due to high code reuse, the build scripts of individual modules are rather concise. The Ant statement to import the common definitions from the `build-common` module looks as follows:
 

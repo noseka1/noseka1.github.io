@@ -9,7 +9,7 @@ If you are developing a distributed application that consists of multiple servic
 
 <!--more-->
 
-{% img right /images/posts/consul_logo.png 200 300 %}
+{{< figure src="/images/posts/consul_logo.png" height="200" width="300" class="right" >}}
 
 Consul is an open-source product developed by [HashiCorp](https://www.hashicorp.com/) and licensed under the [MPL 2.0](https://github.com/hashicorp/consul/blob/master/LICENSE). While Consul uses an open core business model, it comes with a great deal of functionality in its free edition. The top two features of Consul would be the service discovery combined with health checking and the key-value store functionality that we are going to review in this article. They both come handy when building distributed applications.
 
@@ -231,7 +231,7 @@ To import the JSON-formatted data back to the Consul key-value store, you can us
 
 Besides the commmand-line client, you can access Consul through its beautiful Web interface. Point your web browser to [http://localhost:8500](http://localhost:8500).
 
-{% img right /images/posts/consul_ui.png %}
+{{< figure src="/images/posts/consul_ui.png" class="right" >}}
 
 ## Conclusion
 

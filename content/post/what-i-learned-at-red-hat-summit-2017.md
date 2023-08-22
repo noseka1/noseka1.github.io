@@ -11,7 +11,7 @@ I had the great opportunity to visit the Red Hat Summit 2017. It was hosted in t
 
 ## Major announcements
 
-{% img right /images/posts/rh_summit.png 200 200 %}
+{{< figure src="/images/posts/rh_summit.png" height="200" width="200" class="right" >}}
 
 **[Red Hat OpenShift & Amazon Web Services](https://www.redhat.com/en/about/press-releases/red-hat-and-aws-extend-strategic-alliance-package-access-aws-services-within-red-hat-openshift).** Red Hat will make AWS services accessible directly from the OpenShift web console. From within the OpenShift web console developers will be able to provision and configure AWS services such as CloudFront, ElastiCache, ELB, RDS, EMR, RedShift, S3 and Lambda.
 

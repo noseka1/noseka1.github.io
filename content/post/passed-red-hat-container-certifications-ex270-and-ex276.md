@@ -9,12 +9,12 @@ Recently I passed two Red Hat certification exams: [EX270 Red Hat Certificate of
 
 <!--more-->
 
-{% img right /images/posts/redhat_logo.png 110 110 %}
+{{< figure src="/images/posts/redhat_logo.png" height="110" width="110" class="right" >}}
 
 
 As you might already know, all the Red hat certification exams are purely practical. You'll have to configure the provided virtual machines based on the list of instructions given to you in the exam.
 
-{% img right /images/posts/docker_logo.png 100 100 %}
+{{< figure src="/images/posts/docker_logo.png" height="100" width="100" class="right" >}}
 
 From my experience, I can say that the scope of exams EX270 and EX276 is highly overlapping. Both exams are focused on working with Docker, concretely: creating Docker images using Dockerfiles, pulling and pushing images into Docker registries, running Docker containers, linking Docker containers, creating and sharing volumes between containers, exposing network ports. This pretty much covers the content of the EX276 exam and the major part of the EX270 exam. In addition, the exam EX270 includes several tasks related to Red Hat Atomic Host.
 

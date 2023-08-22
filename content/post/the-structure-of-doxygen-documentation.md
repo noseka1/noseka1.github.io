@@ -16,7 +16,7 @@ In order to demonstrate Doxygen features I created a sample project. You can che
 
 The tree view in the generated HTML output looks as follows:
 
-{% img center /images/posts/doxygen_treeview.png %}
+{{< figure src="/images/posts/doxygen_treeview.png" class="center" >}}
 
 ## Doxygen pages
 

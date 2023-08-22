@@ -1,5 +1,5 @@
 +++
-title = "Controlling a Multi Service Application With Systemd"
+title = "Controlling a Multi Service Application with Systemd"
 date = "2016-12-04"
 slug = "2016/12/04/controlling-a-multi-service-application-with-systemd"
 Categories = [ "devops" ]
@@ -11,7 +11,7 @@ Is your application delivered as a set of services running on top of Linux? Did 
 
 [systemd](https://www.freedesktop.org/wiki/Software/systemd/) is the default service manager on all major Linux distributions. We're going to demonstrate how it can be used to control a custom multi-service application.
 
-{% img right /images/posts/systemd-logo.png 200 300 %}
+{{< figure src="/images/posts/systemd-logo.png" height="200" width="300" class="right" >}}
 
 Our application consists of three services: Service 1, Service 2 and Service 3. The following set of requirements should be met when controlling the services using systemd:
 
@@ -25,7 +25,7 @@ Our application consists of three services: Service 1, Service 2 and Service 3. 
 
 Required service startup order:
 
-{% img /images/posts/systemd_startup_dependencies.svg 300 400 Service startup order %}
+{{< figure src="/images/posts/systemd_startup_dependencies.svg" height="300" width="400" class="center" alt="Service startup order" >}}
 
 ## Creating the systemd unit files
 

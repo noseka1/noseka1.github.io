@@ -9,7 +9,7 @@ Recently I passed two OpenStack certification exams from Red Hat: [EX210 Red Hat
 
 <!--more-->
 
-{% img right /images/posts/redhat_openstack.jpg 250 300 %}
+{{< figure src="/images/posts/redhat_openstack.jpg" height="250" width="300" class="right" >}}
 
 All exams in the Red Hat certification program are purely practical. The first exam EX210 focuses on deployment and administration of OpenStack which includes installation of OpenStack using the Red Hat OpenStack Platform Director, creating OpenStack users, projects, managing user roles, uploading images into Glance, creating Cinder volumes, adding Neutron networks and launching stacks using Heat. The second EX310 exam includes deploying the Ceph storage on multiple nodes, integrating Ceph with OpenStack Nova, Glance and Cinder and configuring various Neutron resources like networks, load balancers and routers.
 

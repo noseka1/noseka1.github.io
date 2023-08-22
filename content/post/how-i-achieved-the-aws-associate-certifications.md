@@ -1,5 +1,5 @@
 +++
-title = "How I Achieved the Aws Associate Certifications"
+title = "How I Achieved the AWS Associate Certifications"
 date = "2018-08-30"
 slug = "2018/08/30/how-i-achieved-the-aws-associate-certifications"
 Categories = [ "cloud" ]
@@ -42,6 +42,6 @@ Finally, after I completed my studying, I took the three associate exams. Here a
 
 If you are preparing to get your AWS certifications, I hope that sharing my experience might have been helpful for you.
 
-[{% img /images/posts/aws_certified_solutions_architect_associate.png 220 220 %}](https://www.youracclaim.com/badges/7ca4b13c-e705-4c83-927b-2574b6a3d1c0/public_url)
-[{% img /images/posts/aws_certified_developer_associate.png 220 220 %}](https://www.youracclaim.com/badges/678684ce-5ae1-44e0-b40f-b8a48bdd7c06/public_url)
-[{% img /images/posts/aws_certified_sysops_administrator_associate.png 220 220 %}](https://www.youracclaim.com/badges/60aaf94d-6b0a-4fa8-9a09-dc8522d61400/public_url)
+{{< figure src="/images/posts/aws_certified_solutions_architect_associate.png" height="220" width="220" class="left" link="https://www.youracclaim.com/badges/7ca4b13c-e705-4c83-927b-2574b6a3d1c0/public_url" >}}
+{{< figure src="/images/posts/aws_certified_developer_associate.png" height="220" width="220" class="left" link="https://www.youracclaim.com/badges/678684ce-5ae1-44e0-b40f-b8a48bdd7c06/public_url)" >}}
+{{< figure src="/images/posts/aws_certified_sysops_administrator_associate.png" height="220" width="220" class="left" link="https://www.youracclaim.com/badges/60aaf94d-6b0a-4fa8-9a09-dc8522d61400/public_url)" >}}
