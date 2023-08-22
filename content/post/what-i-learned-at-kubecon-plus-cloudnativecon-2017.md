@@ -1,5 +1,5 @@
 +++
-title = "What I Learned at Kubecon Plus Cloudnativecon 2017"
+title = "What I Learned at KubeCon + CloudNativeCon 2017"
 date = "2017-12-10"
 slug = "2017/12/10/what-i-learned-at-kubecon-plus-cloudnativecon-2017"
 Categories = [ "events" ]
