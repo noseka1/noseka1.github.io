@@ -1,5 +1,5 @@
 +++
-title = "Future Proof Monolithic Applications With Modular Design"
+title = "Future Proof Monolithic Applications with Modular Design"
 date = "2019-09-23"
 slug = "2019/09/23/future-proof-monolithic-applications-with-modular-design"
 Categories = [ "events" ]

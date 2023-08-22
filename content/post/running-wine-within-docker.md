@@ -1,5 +1,5 @@
 +++
-title = "Running Wine Within Docker"
+title = "Running Wine with Docker"
 date = "2015-07-04"
 slug = "2015/07/04/running-wine-within-docker"
 Categories = [ "devops" ]

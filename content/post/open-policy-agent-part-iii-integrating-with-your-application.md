@@ -1,5 +1,5 @@
 +++
-title = "Open Policy Agent, Part III — Integrating With Your Application"
+title = "Open Policy Agent, Part III — Integrating with Your Application"
 date = "2019-12-03"
 slug = "2019/12/03/open-policy-agent-part-iii-integrating-with-your-application"
 Categories = [ "development" ]

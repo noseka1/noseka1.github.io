@@ -1,5 +1,5 @@
 +++
-title = "Monitoring Openstack Cluster With Icinga"
+title = "Monitoring Openstack Cluster with Icinga"
 date = "2015-11-30"
 slug = "2015/11/30/monitoring-openstack-cluster-with-icinga"
 Categories = [ "cloud", "devops" ]

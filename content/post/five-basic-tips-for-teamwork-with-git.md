@@ -1,5 +1,5 @@
 +++
-title = "Five Basic Tips for Teamwork With Git"
+title = "Five Basic Tips for Teamwork with Git"
 date = "2015-04-18"
 slug = "2015/04/18/five-basic-tips-for-teamwork-with-git"
 Categories = [ "development", "git" ]

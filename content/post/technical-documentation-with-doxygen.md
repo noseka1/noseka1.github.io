@@ -1,5 +1,5 @@
 +++
-title = "Technical Documentation With Doxygen"
+title = "Technical Documentation with Doxygen"
 date = "2015-06-14"
 slug = "2015/06/14/technical-documentation-with-doxygen"
 Categories = [ "development" ]

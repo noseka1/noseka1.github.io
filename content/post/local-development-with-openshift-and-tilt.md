@@ -1,5 +1,5 @@
 +++
-title = "Local Development With Openshift and Tilt"
+title = "Local Development with Openshift and Tilt"
 date = "2020-06-08"
 slug = "2020/06/08/local-development-with-openshift-and-tilt"
 Categories = [ "development" ]
