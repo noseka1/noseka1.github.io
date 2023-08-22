@@ -1,5 +1,5 @@
 +++
-title = "Dynamic Dns with Bind and Dhclient"
+title = "Dynamic DNS with Bind and Dhclient"
 date = "2015-05-02"
 slug = "2015/05/02/dynamic-dns-with-bind-and-dhclient"
 Categories = [ "devops" ]

@@ -1,5 +1,5 @@
 +++
-title = "Installing Openshift 4.1 Using Libvirt and Kvm"
+title = "Installing Openshift 4.1 using Libvirt and KVM"
 date = "2019-07-08"
 slug = "2019/07/08/installing-openshift-4-dot-1-using-libvirt-and-kvm"
 Categories = [ "devops" ]

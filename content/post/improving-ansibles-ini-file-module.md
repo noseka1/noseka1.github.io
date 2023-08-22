@@ -1,5 +1,5 @@
 +++
-title = "Improving Ansibles Ini File Module"
+title = "Improving Ansible's ini_file Module"
 date = "2015-08-03"
 slug = "2015/08/03/improving-ansibles-ini-file-module"
 Categories = [ "devops" ]

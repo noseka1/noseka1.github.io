@@ -1,5 +1,5 @@
 +++
-title = "Openstack Dynamic Dns Updates"
+title = "Openstack Dynamic DNS Updates"
 date = "2015-05-31"
 slug = "2015/05/31/openstack-dynamic-dns-updates"
 Categories = [ "devops", "cloud" ]

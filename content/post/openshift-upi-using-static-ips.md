@@ -1,5 +1,5 @@
 +++
-title = "Openshift Upi Using Static Ips"
+title = "Openshift UPI using Static IPs"
 date = "2020-04-21"
 slug = "2020/04/21/openshift-upi-using-static-ips"
 Categories = [ "devops" ]

@@ -1,5 +1,5 @@
 +++
-title = "Deep Dive Into Codeready Containers Deployment on Linux"
+title = "Deep Dive into CodeReady Containers Deployment on Linux"
 date = "2021-02-28"
 slug = "2021/02/28/deep-dive-into-codeready-containers-deployment-on-linux"
 Categories = [ "development" ]

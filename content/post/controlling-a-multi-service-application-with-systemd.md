@@ -1,5 +1,5 @@
 +++
-title = "Controlling a Multi Service Application with Systemd"
+title = "Controlling a Multi-Service Application with Systemd"
 date = "2016-12-04"
 slug = "2016/12/04/controlling-a-multi-service-application-with-systemd"
 Categories = [ "devops" ]
