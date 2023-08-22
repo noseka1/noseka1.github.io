@@ -1,5 +1,5 @@
 +++
-title = "Rhcsa Slash Rhce Exam Experience"
+title = "RHCSA/RHCE Exam Experience"
 date = "2016-11-07"
 slug = "2016/11/07/rhcsa-slash-rhce-exam-experience"
 Categories = [ "devops" ]
@@ -19,9 +19,7 @@ The exam strictly tests your practical skills which makes it in my opinion very 
 
 If you're a hiring manager searching for the Linux talent, you should know that:
 
-{% blockquote %}
-Job candidates that passed the RHCSA/RHCE certification really demonstrated their Linux administration skills at some point.
-{% endblockquote %}
+>Job candidates that passed the RHCSA/RHCE certification really demonstrated their Linux administration skills at some point.
 
 ## Tips
 

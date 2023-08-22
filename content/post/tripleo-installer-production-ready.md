@@ -35,9 +35,7 @@ It happened to us that on two of our compute nodes one physical network interfac
 
 We were able to fix the networking issue on the first compute node quickly. However, the physical network interfaces on the second compute node were seriously falling apart. Unfortunately:
 
-{% blockquote %}
-The TripleO installer requires that all the overcloud nodes are reachable during the overcloud update.
-{% endblockquote %}
+>The TripleO installer requires that all the overcloud nodes are reachable during the overcloud update.
 
 In the opposite case the update just stays hanging. It turned out that it was not possible to bring all the network interfaces on the second compute node up but eventually we were able to get at least the management interface working. This allowed us to re-run the overcloud update during which we fooled the TripleO installer to believe that the configuration of the problematic compute node was applied sucessfully. After exceeding the two-hour maintanance window by several hours we were finally done.
 

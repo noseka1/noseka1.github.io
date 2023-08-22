@@ -29,9 +29,7 @@ TripleO installer consists of a bunch of Heat templates to orchestrate the overc
 
 Furthermore, the current way to modify OpenStack configuration properties is less straight forward. To configure a property, I have to first grep through the Puppet scripts to find out whether the desired property is managed by Puppet or not. Afterwards, I grep through the TripleO Heat templates to find out whether TripleO provides a direct template parameter to set the Puppet variable or not. Afterwards, I can either pass the parameter to the TripleO template or I set the Puppet variable in the extra config section or I'm on my own.
 
-{% blockquote %}
-I'd like to be able to easily modify any property in any configuration file on any OpenStack node.
-{% endblockquote %}
+> I'd like to be able to easily modify any property in any configuration file on any OpenStack node.
 
 OpenStack comes with tons of configuration properties and I think it would be great to have a more straight forward way to configure them.
 
@@ -39,9 +37,7 @@ OpenStack comes with tons of configuration properties and I think it would be gr
 
 TripleO uses Heat to deploy and configure the overcloud OpenStack. Heat orchestrates the infrastracture based on the description provided by the user in the Heat templates. In the Heat templates, we tell Heat what our deployment should look like, but we have no control over the steps Heat will take to get to the desired state. I find this lack of control rather problematic.
 
-{% blockquote %}
-A fine-grained deployment control would be desirable.
-{% endblockquote %}
+> A fine-grained deployment control would be desirable.
 
 Let's say I have an overcloud consisting of 100 nodes. After changing the configuration in my Heat templates, I can only re-run the entire Heat configuration process and hope that I won't end up with a broken cloud. Instead, I'd like to apply the configuration changes to a couple of nodes to make sure that everything works before I continue with the rest of the cloud. The ability to apply only part of the configuration would be useful as well.
 
@@ -53,9 +49,7 @@ One day I uploaded an updated node image into the undercloud OpenStack. I was ab
 
 I learned that when you update the disk image in the undercloud, Heat will find out what nodes have to be updated and will simply replace their disk content with the new image. If you are orchestrating cloud deployments where your machines are cattle, this is what you want, however:
 
-{% blockquote %}
-The overcloud baremetal nodes are pets and should not be handled as cattle.
-{% endblockquote %}
+>The overcloud baremetal nodes are pets and should not be handled as cattle.
 
 To protect the overcloud nodes from deletion, I run the following command for each node against the undercloud Nova database:
 {{< highlight sql "linenos=table" >}}
