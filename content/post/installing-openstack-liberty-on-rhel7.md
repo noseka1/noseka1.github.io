@@ -1,5 +1,5 @@
 +++
-title = "Installing Openstack Liberty on Rhel7"
+title = "Installing Openstack Liberty on RHEL7"
 date = "2015-10-19"
 slug = "2015/10/19/installing-openstack-liberty-on-rhel7"
 Categories = [ "devops", "cloud" ]

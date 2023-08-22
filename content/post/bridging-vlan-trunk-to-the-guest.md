@@ -1,5 +1,5 @@
 +++
-title = "Bridging Vlan Trunk to the Guest"
+title = "Bridging VLAN Trunk to the Guest"
 date = "2015-09-07"
 slug = "2015/09/07/bridging-vlan-trunk-to-the-guest"
 Categories = [ "devops" ]

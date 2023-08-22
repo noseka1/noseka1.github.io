@@ -1,5 +1,5 @@
 +++
-title = "Assigning Roles to Nodes Directly in Rdo"
+title = "Assigning Roles to Nodes Directly in RDO"
 date = "2015-11-09"
 slug = "2015/11/09/assigning-roles-to-nodes-directly-in-rdo"
 Categories = [ "cloud", "devops" ]

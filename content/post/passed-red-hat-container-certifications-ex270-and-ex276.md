@@ -1,5 +1,5 @@
 +++
-title = "Passed Red Hat Container Certifications Ex270 and Ex276"
+title = "Passed Red Hat Container Certifications EX270 and EX276"
 date = "2017-07-29"
 slug = "2017/07/29/passed-red-hat-container-certifications-ex270-and-ex276"
 Categories = [ "devops" ]

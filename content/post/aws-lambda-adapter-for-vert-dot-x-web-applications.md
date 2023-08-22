@@ -1,5 +1,5 @@
 +++
-title = "Aws Lambda Adapter for Vert Dot X Web Applications"
+title = "Aws Lambda Adapter for Vert.x Web Applications"
 date = "2017-10-18"
 slug = "2017/10/18/aws-lambda-adapter-for-vert-dot-x-web-applications"
 Categories = [ "cloud", "development" ]

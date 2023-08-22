@@ -1,5 +1,5 @@
 +++
-title = "Open Policy Agent Part I the Introduction"
+title = "Open Policy Agent, Part I — The Introduction"
 date = "2019-10-08"
 slug = "2019/10/08/open-policy-agent-part-i-the-introduction"
 Categories = [ "development" ]

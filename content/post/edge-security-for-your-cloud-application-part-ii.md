@@ -1,5 +1,5 @@
 +++
-title = "Edge Security for Your Cloud Application Part Ii"
+title = "Edge Security for Your Cloud Application, Part II"
 date = "2018-01-12"
 slug = "2018/01/12/edge-security-for-your-cloud-application-part-ii"
 Categories = [ "cloud", "design", "devops" ]

@@ -1,5 +1,5 @@
 +++
-title = "Multiple Rhel Mirrors on a Single Machine"
+title = "Multiple RHEL Mirrors on a Single Machine"
 date = "2015-08-16"
 slug = "2015/08/16/multiple-rhel-mirrors-on-a-single-machine"
 Categories = [ "devops" ]

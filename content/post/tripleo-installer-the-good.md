@@ -1,5 +1,5 @@
 +++
-title = "Tripleo Installer the Good"
+title = "Tripleo Installer — The Good, the Bad and the Ugly"
 date = "2016-03-27"
 slug = "2016/03/27/tripleo-installer-the-good"
 Categories = [ "cloud" ]

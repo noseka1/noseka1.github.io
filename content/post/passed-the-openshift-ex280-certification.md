@@ -1,5 +1,5 @@
 +++
-title = "Passed the Openshift Ex280 Certification"
+title = "Passed the Openshift EX280 Certification"
 date = "2017-04-04"
 slug = "2017/04/04/passed-the-openshift-ex280-certification"
 Categories = [ "cloud" ]

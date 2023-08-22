@@ -1,5 +1,5 @@
 +++
-title = "18 Months With Openstack Our Experience Part I"
+title = "18 Months With Openstack, Our Experience, Part I"
 date = "2018-02-19"
 slug = "2018/02/19/18-months-with-openstack-our-experience-part-i"
 Categories = [ "cloud", "devops" ]

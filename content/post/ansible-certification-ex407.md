@@ -1,5 +1,5 @@
 +++
-title = "Ansible Certification Ex407"
+title = "Ansible Certification EX407"
 date = "2017-09-03"
 slug = "2017/09/03/ansible-certification-ex407"
 Categories = [ "devops" ]

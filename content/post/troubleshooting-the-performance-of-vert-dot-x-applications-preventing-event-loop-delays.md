@@ -1,5 +1,5 @@
 +++
-title = "Troubleshooting the Performance of Vert Dot X Applications Preventing Event Loop Delays"
+title = "Troubleshooting the Performance of Vert.x Applications, Part II — Preventing Event Loop Delays"
 date = "2019-07-22"
 slug = "2019/07/22/troubleshooting-the-performance-of-vert-dot-x-applications-preventing-event-loop-delays"
 Categories = [ "development" ]

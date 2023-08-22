@@ -1,5 +1,5 @@
 +++
-title = "Bootstrapping a Galera Cluster on Rhel7"
+title = "Bootstrapping a Galera Cluster on RHEL7"
 date = "2016-01-31"
 slug = "2016/01/31/bootstrapping-a-galera-cluster-on-rhel7"
 Categories = [ "cloud", "devops" ]

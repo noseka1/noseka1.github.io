@@ -1,5 +1,5 @@
 +++
-title = "Network Configuration With Os Net Config"
+title = "Network Configuration With os-net-config"
 date = "2015-09-28"
 slug = "2015/09/28/network-configuration-with-os-net-config"
 Categories = [ "devops", "cloud" ]

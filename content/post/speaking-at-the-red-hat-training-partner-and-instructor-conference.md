@@ -1,5 +1,5 @@
 +++
-title = "Speaking at the Red Hat Training Partner and Instructor Conference"
+title = "Speaking at the Red Hat Training Partner & Instructor Conference"
 date = "2018-09-24"
 slug = "2018/09/24/speaking-at-the-red-hat-training-partner-and-instructor-conference"
 Categories = [ "events " ]
