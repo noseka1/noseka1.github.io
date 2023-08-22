@@ -9,7 +9,7 @@ This year's [Red Hat Summit](https://www.redhat.com/en/summit/2019) is going to 
 
 <!--more-->
 
-** Update 05/10/2019 **
+**Update 05/10/2019:**
 
 I enjoyed having the opportunity to be a co-presenter with Eric Murphy at this week’s Red Hat Summit. Discussing DDD, event storming, and why a monolithic architecture can still be the right choice despite the current push for microservices:
 

@@ -288,7 +288,7 @@ The `core` user has full administrative privileges via sudo.
 
 This blog covered the deployment of CodeReady Containers to a Linux host. We began by reviewing the prerequisites that are needed to deploy CRC. In the deployment overview section, we showed how CRC interacts with libvirt to spin up  the OpenShift virtual machine. We also discussed the DNS configuration made by CRC. Before deploying CRC, we customized the CRC configuration and provided the virtual machine with additional resources beyond the factory defaults. We discussed the CRC setup and start phases in great detail. Finally, I shared some of the convenience commands I like to use.
 
-** Update 3/29/2021: ** I also have a video related to this topic, it can be found [here](https://www.youtube.com/watch?v=JrjLo_fl280).
+**Update 3/29/2021:** I also have a video related to this topic, it can be found [here](https://www.youtube.com/watch?v=JrjLo_fl280).
 
 Hope you enjoyed the CodeReady Containers tour presented in this blog.  If you have any questions or comments, please leave them in the comment section below. I look forward to hearing from you!
 
