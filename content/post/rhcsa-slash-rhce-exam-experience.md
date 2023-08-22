@@ -29,22 +29,22 @@ You can find a ton of tips for the RHCSA/RHCE exams on the Internet already. I'd
 
 The RHEL7 virtual machines you will be working on have manual pages installed. Before taking the exam, make sure you know where to look for the useful configuration examples. For instance, when configuring the network interfaces you can refer to:
 
-{% codeblock lang:sh %}
-man 5 nmcli-examples
-{% endcodeblock %}
+{{< highlight shell "linenos=table" >}}
+$ man 5 nmcli-examples
+{{< / highlight >}}
 
 Full examples of commands to configure the firewall can be found at:
 
-{% codeblock lang:sh %}
-man 5 firewalld.richlanguage
-{% endcodeblock %}
+{{< highlight shell "linenos=table" >}}
+$ man 5 firewalld.richlanguage
+{{< / highlight >}}
 
 When wrestling with the Apache server configuration you can leverage the Apache manual. After you installed the `httpd-manual` RPM package, you can browse the manual using the *elinks* web browser:
 
-{% codeblock lang:sh %}
-yum install elinks httpd-manual
-elinks /usr/share/httpd/manual/index.html
-{% endcodeblock %}
+{{< highlight shell "linenos=table" >}}
+$ yum install elinks httpd-manual
+$ elinks /usr/share/httpd/manual/index.html
+{{< / highlight >}}
 
 If it is feasible for you, make yourself a favor and buy the [Red Hat Learning Subscription](https://www.redhat.com/en/services/training/learning-subscription). You will get access to the training materials that walk you through the tasks very similar to what you'll see on the real exam. It includes mock exams. And you'll be provided with the virtual machines that you can practice on over and over again until you're ready to take the test.
 

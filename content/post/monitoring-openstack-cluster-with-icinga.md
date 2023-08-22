@@ -20,9 +20,9 @@ I found two very useful projects for monitoring the OpenStack APIs both hosted o
 
 [OpenStack Nagios Plugins](https://github.com/cirrax/openstack-nagios-plugins) provides a collection of checks for the OpenStack services Nova, Neutron, Cinder, Keystone and Ceilometer. Available plugins worked right away with my OpenStack Liberty cluster. The Nova Hypervisor check monitors the "virtual" CPU and memory usage across your compute nodes. The name virtual CPU is a little misleading here. In reality, the number of physical cores is monitored as the Nova API actually reports the number of physical cores. I stick to the OpenStack default settings that overcommit the CPUs by factor of 16 and the memory by factor of 1.5. To accommodate this fact, I changed the warning and critical ranges for the check_nova-hypervisors plugin as follows:
 
-{% codeblock lang:sh %}
+{{< highlight plaintext "linenos=table" >}}
 check_nova-hypervisors --warn_memory_percent 0:135 --critical_memory_percent 0:142 --warn_vcpus_percent 0:1440 --critical_vcpus_percent 0:1520
-{% endcodeblock %}
+{{< / highlight >}}
 
 ## Monitoring for OpenStack
 

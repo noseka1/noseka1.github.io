@@ -37,7 +37,7 @@ If you prefer drawing your diagrams directly instead of defining them as a plain
 
 Last thing that our sample project illustrates is inserting images into Doxygen documentation. You'll need to have your images ready in several graphical formats (`.svg`, `.eps`, ...) depending on which Doxygen ouput you're willing to generate. For example, for *Latex* output the images must be provided in Encapsulated PostScript (`.eps`). Example of including the same image in multiple formats for *HTML* and *Latex* outputs:
 
-{% codeblock %}
+{{< highlight plaintext "linenos=table" >}}
 @image html people.svg
 @image latex people.eps "People image" width=\textwidth
-{% endcodeblock %}
+{{< / highlight >}}

@@ -52,7 +52,7 @@ Libvirt allows you to insert custom A and SRV records into DNS. You can specify 
 
 Let's tackle the `openshift-dns` network first. A single virtual machine is connected to this network. This virtual machine hosts the custom DNS server. Here is the respective network XML descriptor:
 
-{% codeblock lang:xml %}
+{{< highlight xml "linenos=table" >}}
 <network>
   <name>openshift-dns</name>
   <forward mode='nat'>
@@ -70,11 +70,11 @@ Let's tackle the `openshift-dns` network first. A single virtual machine is conn
     </dhcp>
   </ip>
 </network>
-{% endcodeblock %}
+{{< / highlight >}}
 
 As you can see in the descriptor, I prefer to manage virtual machine's MAC addresses and the associated IP addresses and host names by hand. The virtual machine `dns` that hosts my DNS server is connected to the `openshift-dns` network by including these settings in its domain configuration:
 
-{% codeblock lang:xml %}
+{{< highlight xml "linenos=table" >}}
 <domain type='kvm'>
   <name>dns.mycluster.example.com</name>
   ...
@@ -86,34 +86,34 @@ As you can see in the descriptor, I prefer to manage virtual machine's MAC addre
     </interface>
     ...
 </domain>
-{% endcodeblock %}
+{{< / highlight >}}
 
 I installed Dnsmasq on this `dns` virtual machine and replaced the content of `/etc/dnsmasq.conf` with my own configuration:
 
-{% codeblock lang:ini %}
+{{< highlight ini "linenos=table" >}}
 local=/mycluster.example.com/
 address=/apps.mycluster.example.com/192.168.131.10
 srv-host=_etcd-server-ssl._tcp.mycluster.example.com,master.mycluster.example.com,2380,0,10
 no-hosts
 addn-hosts=/etc/dnsmasq.openshift.addnhosts
 conf-dir=/etc/dnsmasq.d,.rpmnew,.rpmsave,.rpmorig
-{% endcodeblock %}
+{{< / highlight >}}
 
 The listing of the `/etc/dnsmasq.openshift.addnhosts` file referred to in the above configuration looks as follows:
 
-{% codeblock lang:sh %}
+{{< highlight plaintext "linenos=table" >}}
 192.168.130.10 dns.mycluster.example.com
 192.168.131.10 loadbalancer.mycluster.example.com  api.mycluster.example.com  api-int.mycluster.example.com
 192.168.131.11 bootstrap.mycluster.example.com
 192.168.131.12 master.mycluster.example.com  etcd-0.mycluster.example.com
 192.168.131.13 worker-1.mycluster.example.com
-{% endcodeblock %}
+{{< / highlight >}}
 
 This configuration addresses the user-provisioned DNS requirements as specified in the [installation guide](https://docs.openshift.com/container-platform/4.1/installing/installing_bare_metal/installing-bare-metal.html).
 
 In the next step, we want to make the load balancer machine and OpenShift nodes resolve their DNS queries using our custom DNS server. In order to achieve that, we define a second Libvirt network called `openshift-cluster` and place the load balancer and OpenShift nodes onto this network. The definition of the `openshift-cluster` network looks like this:
 
-{% codeblock lang:xml %}
+{{< highlight xml "linenos=table" >}}
 <network>
   <name>openshift-cluster</name>
   <forward mode='nat'>
@@ -137,7 +137,7 @@ In the next step, we want to make the load balancer machine and OpenShift nodes 
     </dhcp>
   </ip>
 </network>
-{% endcodeblock %}
+{{< / highlight >}}
 
 Note the `<forwarder addr='192.168.130.10'/>` setting which allows all DNS requests from the load balancer and OpenShift nodes deployed on this network to be forwarded to our custom DNS server. Remember that the IP address `192.168.130.10` is the address of our custom DNS server that we configured previously.
 
@@ -151,7 +151,7 @@ The load balancer is used during the bootstrapping process to route the requests
 
 I created a dedicated virtual machine called `loadbalancer` and installed HAProxy on top of it. The HAProxy configuration is pretty straight forward. Here is the listing of the `/etc/haproxy/haproxy.cfg` file:
 
-{% codeblock %}
+{{< highlight plaintext "linenos=table" >}}
 global
     log         127.0.0.1 local2 info
     chroot      /var/lib/haproxy
@@ -206,7 +206,7 @@ backend router_http
     mode http
     balance roundrobin
     server worker-1 worker-1.mycluster.example.com:80 check
-{% endcodeblock %}
+{{< / highlight >}}
 
 With the load balancer in place, we will move on to creating OpenShift virtual machines in the next section.
 
@@ -246,7 +246,7 @@ This concludes the user-provisioned infrastructure setup. At this point, we have
 
 The installation of OpenShift 4 starts with crafting an installation configuration file. You can use the `install-config.yaml` configuration file that I created, just remember to replace the placeholders with your own pull secret and public SSH key:
 
-{% codeblock lang:yaml %}
+{{< highlight yaml "linenos=table" >}}
 apiVersion: v1
 baseDomain: example.com
 compute:
@@ -273,25 +273,25 @@ platform:
   none: {}
 pullSecret: '<INSERT_YOUR_PULL_SECRET_HERE>'
 sshKey: '<INSERT_YOUR_PUBLIC_SSH_KEY_HERE>'
-{% endcodeblock %}
+{{< / highlight >}}
 
 The OpenShift installation is actually driven by the ignition configuration files. You can issue this command to generate ignition configuration files out of your `install-config.yaml` file:
 
-{% codeblock lang:sh %}
-./openshift-install create ignition-configs
-{% endcodeblock %}
+{{< highlight shell "linenos=table" >}}
+$ ./openshift-install create ignition-configs
+{{< / highlight >}}
 
 Beware that the above command will remove your handcrafted `install-config.yaml` from the disk. I found this behavior of the 	`openshift-install` tool rather annoying. In order to not lose my configuration settings, I protect the `install-config.yaml` file from deletion by creating a hard link like this:
 
-{% codeblock lang:sh %}
-ln install-config.yaml install-config.yaml.hardlink
-{% endcodeblock %}
+{{< highlight shell "linenos=table" >}}
+$ ln install-config.yaml install-config.yaml.hardlink
+{{< / highlight >}}
 
 And after the `install-config.yaml` file is deleted, I can simply recreate it with:
 
-{% codeblock lang:sh %}
-ln install-config.yaml.hardlink install-config.yaml
-{% endcodeblock %}
+{{< highlight shell "linenos=table" >}}
+$ ln install-config.yaml.hardlink install-config.yaml
+{{< / highlight >}}
 
 Finally, we can use our ignition files to kick off the OpenShift installation process which deploys OpenShift cluster on our fleet of virtual machines. The whole process takes about 30 minutes and consists of several steps:
 

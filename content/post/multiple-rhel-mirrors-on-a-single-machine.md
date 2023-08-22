@@ -11,9 +11,9 @@ Categories = [ "devops" ]
 
 The RHEL Docker images are available in the public registry. For example, the following command downloads a RHEL6 Docker image:
 
-{% codeblock lang:sh %}
-docker pull rhel6
-{% endcodeblock %}
+{{< highlight shell "linenos=table" >}}
+$ docker pull rhel6
+{{< / highlight >}}
 
 The downloaded image is not registered with [Red Hat Customer Portal](https://access.redhat.com/ "Red Hat Customer Portal") and hence cannot receive any software updates. To register the Docker image, you'll need the *username* and *password* you use to log in to the Red Hat Customer Portal.
 
@@ -33,9 +33,9 @@ The following approach worked for me:
 
 You can find the `rhel_reposync` Ansible role at [GitHub](https://github.com/noseka1/rhel_reposync "rhel_reposync"). You want to run this role on your Docker host. It will download the RHEL6 and RHEL7 images, and register them with the Red Hat Customer Portal. You have to supply your Red Hat credentials on the command-line. For example:
 
-{% codeblock lang:sh %}
-ansible-playbook -i hosts playbook.yml -e redhat_portal_username=username@company.com -e redhat_portal_password=secretpassword
-{% endcodeblock %}
+{{< highlight shell "linenos=table" >}}
+$ ansible-playbook -i hosts playbook.yml -e redhat_portal_username=username@company.com -e redhat_portal_password=secretpassword
+{{< / highlight >}}
 
 After the Ansible run is finished you'll find two images in your local Docker repository: `rhel6_reposync_registered` and `rhel7_reposync_registered`.
 
@@ -43,9 +43,9 @@ After the Ansible run is finished you'll find two images in your local Docker re
 
 To begin the RHEL repository mirroring you just start a container based on the registered image. The container expects a volume to be mounted at `/repodir`. It will save the downloaded RPM packages at this location.
 
-{% codeblock lang:sh %}
-docker run --rm -v /var/www/html/RHEL6:/repodir rhel6_reposync_registered
-{% endcodeblock %}
+{{< highlight shell "linenos=table" >}}
+$ docker run --rm -v /var/www/html/RHEL6:/repodir rhel6_reposync_registered
+{{< / highlight >}}
 
 ## Alternative solution
 

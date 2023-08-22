@@ -28,9 +28,9 @@ The following diagram illustrates the organization of our code base:
 
 Our code base is divided up into modules. A module contains either Java or C/C++ source code required to build a library or executable. The `build-common` module is special in that it doesn't contain any source code to compile. Instead, it acts as a container in which we store all our reusable build scripts. The build scripts of other modules import the definitions from the `build-common` module. Due to high code reuse, the build scripts of individual modules are rather concise. The Ant statement to import the common definitions from the `build-common` module looks as follows:
 
-{% codeblock lang:sh %}
+{{< highlight xml "linenos=table" >}}
 <import file="../../Build/build-common/module.xml" />
-{% endcodeblock %}
+{{< / highlight >}}
 
 Modules are organized into Git repositories according to the functionality they implement. For instance, modules of a specific product reside in its own Git repository. Furthermore, the `Platform` repository groups together modules that implement common libraries shared across several products.
 
@@ -72,10 +72,10 @@ We maintain a set of common Ant build targets which every module must implement:
 
 These build targets constitute a well-known interface which allows developers to clean and build any module using the same Ant command. Furthermore, each module defines the `ci-default` target which is called by the Jenkins CI server when building the module. This allows us to have Jenkins build any of our modules by issuing these two commands:
 
-{% codeblock lang:sh %}
-ant clean-all
-ant ci-default
-{% endcodeblock %}
+{{< highlight shell "linenos=table" >}}
+$ ant clean-all
+$ ant ci-default
+{{< / highlight >}}
 
 This two-command interface establishes a contract between modules and Jenkins and allows us to keep the Jenkins job definition fairly static. On the other hand, developers have full power to define what should happen during the build by implementing the module's  `ci-default` target.
 

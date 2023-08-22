@@ -15,7 +15,7 @@ Programming with Vert.x requires a good understanding of its event loop model. F
 
 Depending on how you register your handler with Vert.x APIs, Vert.x will either execute your handler using an event loop thread or a worker thread. There are only these two options in Vert.x. The determination whether the handler is going to be executed on an event loop thread or a worker thread is made at the time you register the handler and doesn't change throughout the lifetime of your application. Take a look at this example:
 
-{% codeblock lang:java %}
+{{< highlight java "linenos=table" >}}
 class MyVerticle extends AbstractVerticle {
 	@Override
 	public void start() {
@@ -31,7 +31,7 @@ class MyVerticle extends AbstractVerticle {
 		vertx.executeBlocking(blockingCodeHandler, resultHandler);
 	}
 }
-{% endcodeblock %}
+{{< / highlight >}}
 
 The API call `vertx.executeBlocking()` registered two handlers. Vert.x will call the `blockingCodeHandler()` using a worker thread and the `resultHandler()` using an event loop thread. Because there are restrictions on what code can be executed on event loop threads, you want to structure your code so that it's clear to a casual reader whether a specific piece of code executes on a worker thread or an event loop thread.
 
@@ -57,7 +57,7 @@ On the other hand, if the application is idle and there are no events to process
 
 On my Linux machine, if I dump a stack trace of an idle event loop thread I will get this:
 
-{% codeblock lang:java %}
+{{< highlight java "linenos=table" >}}
 "vert.x-eventloop-thread-0" #13 prio=5 os_prio=0 tid=0x00007f89e0523800 nid=0x1d67 runnable [0x00007f89cc4e0000]
    java.lang.Thread.State: RUNNABLE
         at sun.nio.ch.EPollArrayWrapper.epollWait(Native Method)
@@ -74,7 +74,7 @@ On my Linux machine, if I dump a stack trace of an idle event loop thread I will
         at io.netty.util.concurrent.SingleThreadEventExecutor$5.run(SingleThreadEventExecutor.java:897)
         at io.netty.util.concurrent.FastThreadLocalRunnable.run(FastThreadLocalRunnable.java:30)
         at java.lang.Thread.run(Thread.java:748)
-{% endcodeblock %}
+{{< / highlight >}}
 
 Vert.x tool-kit is built on top of [Netty](https://netty.io/) framework and the event loop implementation is actually part of Netty. In the stack trace you can see that the Java thread is executing the Netty's event loop code which calls the Java NIO APIs which somewhere in the native code invokes the `epoll_wait` system call. This system call puts the event loop thread to sleep until the next event arrives.
 

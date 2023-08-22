@@ -58,9 +58,9 @@ The overcloud baremetal nodes are pets and should not be handled as cattle.
 {% endblockquote %}
 
 To protect the overcloud nodes from deletion, I run the following command for each node against the undercloud Nova database:
-{% codeblock lang:sql %}
+{{< highlight sql "linenos=table" >}}
 UPDATE instances SET disable_terminate = 1 WHERE uuid = '<uuid of the overcloud instance>';
-{% endcodeblock %}
+{{< / highlight >}}
 
 So far, I haven't found a better way how to do it. This effectively prevents deleting the node whether by issuing a `nova delete` command or by Heat when updating the stack.
 

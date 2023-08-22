@@ -33,18 +33,18 @@ On the same "About" page, you can find the address of the integrated Docker regi
 
 In this section, we're going to use the CLI tool to exercise the OpenShift Online functionality. From the "Command Line Tools" page that we visited previously, copy the command to login into the CLI tool:
 
-{% codeblock lang:sh %}
+{{< highlight shell "linenos=table" >}}
 $ oc login https://api.starter-us-west-1.openshift.com --token=6BoQ7DQ8nUeEE3FOWzvDCgcUD0T6LdBBZEuUiPlD7Tc
 Logged into "https://api.starter-us-west-1.openshift.com:443" as "anosek@example.com" using the token provided.
 
 You don't have any projects. You can try to create a new project, by running
 
     oc new-project <projectname>
-{% endcodeblock %}
+{{< / highlight >}}
 
 Note that the value of your login token will differ. Next, let's create a new OpenShift project called `php-hello`:
 
-{% codeblock lang:sh %}
+{{< highlight shell "linenos=table" >}}
 $ oc new-project php-hello
 Now using project "php-hello" on server "https://api.starter-us-west-1.openshift.com:443".
 
@@ -53,11 +53,11 @@ You can add applications to this project with the 'new-app' command. For example
     oc new-app centos/ruby-22-centos7~https://github.com/openshift/ruby-ex.git
 
 to build a new example application in Ruby.
-{% endcodeblock %}
+{{< / highlight >}}
 
 The Starter plan allows you to create only a single project. Next, we're going to build our PHP application. The source code of the application can be found at [GitHub](https://github.com/noseka1/openshift-php-hello). The whole purpose of the application is to return a Hello message containing the name of the host that the application is running on. You can build the application using the `oc new-build` command:
 
-{% codeblock lang:sh %}
+{{< highlight shell "linenos=table" >}}
 $ oc new-build https://github.com/noseka1/openshift-php-hello.git
 --> Found image 0d2f8fa (4 weeks old) in image stream "openshift/php" under tag "7.0" for "php"
 
@@ -78,11 +78,11 @@ $ oc new-build https://github.com/noseka1/openshift-php-hello.git
 --> Success
     Build configuration "openshift-php-hello" created and build triggered.
     Run 'oc logs -f bc/openshift-php-hello' to stream the build progress.
-{% endcodeblock %}
+{{< / highlight >}}
 
 OpenShift automatically detects, that we're building a PHP application and will use an appropriate build image. The build image contains a pre-installed Apache server with mod_php. During the build, the `index.php` file from the source code repository is copied into the document root of the Apache server. The build process takes a minute or two to complete. You can follow the progress of your build using the `oc logs` command:
 
-{% codeblock lang:sh %}
+{{< highlight shell "linenos=table" >}}
 $ oc logs -f bc/openshift-php-hello
 Cloning "https://github.com/noseka1/openshift-php-hello.git" ...
         Commit: 35d7f33ca8180b9a331d9bd5ce4735c941da9d03 (Add index.php)
@@ -100,11 +100,11 @@ Pushed 4/6 layers, 79% complete
 Pushed 5/6 layers, 99% complete
 Pushed 6/6 layers, 100% complete
 Push successful
-{% endcodeblock %}
+{{< / highlight >}}
 
 The output of the build is a new `openshift-php-hello` Docker image. This image is automatically pushed into the integrated Docker registry by OpenShift. In the next step, we're going to create a DeploymentConfig file which describes how to deploy our brand new `openshift-php-hello` image on OpenShift. Create a file named `php-hello.yml` with the following content:
 
-{% codeblock php-hello.yml %}
+{{< highlight-caption lang="yaml" linenos="table" title="php-hello.yml" >}}
 kind: "DeploymentConfig"
 apiVersion: "v1"
 metadata:
@@ -136,81 +136,81 @@ spec:
           name: "openshift-php-hello:latest"
   strategy:
     type: "Rolling"
-{% endcodeblock %}
+{{< / highlight-caption >}}
 
 Submit this file to OpenShift in order to launch the deployment:
 
-{% codeblock lang:sh %}
-oc create -f php-hello.yml
+{{< highlight shell "linenos=table" >}}
+$ oc create -f php-hello.yml
 deploymentconfig "php-hello" created
-{% endcodeblock %}
+{{< / highlight >}}
 
 Based on the DeploymentConfig descriptor, OpenShift will start one container `php-hello-1-XXXXX`. You can check whether the container is running with:
 
-{% codeblock lang:sh %}
+{{< highlight shell "linenos=table" >}}
 $ oc get pod
 NAME                          READY     STATUS      RESTARTS   AGE
 openshift-php-hello-1-build   0/1       Completed   0          2h
 php-hello-1-zw48t             1/1       Running     0          2m
-{% endcodeblock %}
+{{< / highlight >}}
 
 Verify that the `READY` column for your `php-hello` container eventually reads `1/1`. This indicates, that the deployment was successful and your container is running. In the following steps, we're going to configure OpenShift routing to allow the external network traffic to reach our container. For further information about the traffic routing on OpenShift, you can refer to my older blog post [Accessing Kubernetes Pods from Outside of the Cluster](/blog/2017/02/14/accessing-kubernetes-pods-from-outside-of-the-cluster/). First, let's create a service for our `php-hello` container:
 
-{% codeblock lang:sh %}
+{{< highlight shell "linenos=table" >}}
 $ oc expose dc php-hello --port 8080
 service "php-hello" exposed
-{% endcodeblock %}
+{{< / highlight >}}
 
 The created service functions as a internal load balancer. It forwards the traffic to the `php-hello` container on port 8080. The internal IP address of this load balancer is `172.30.80.50`, as we can learn when listing the existing services:
 
-{% codeblock lang:sh %}
+{{< highlight shell "linenos=table" >}}
 $ oc get svc
 NAME        CLUSTER-IP     EXTERNAL-IP   PORT(S)    AGE
 php-hello   172.30.80.50   <none>        8080/TCP   4s
-{% endcodeblock %}
+{{< / highlight >}}
 
 Finally, we're going to create a route which will forward the external traffic to our service and hence to our `php-hello` container:
 
-{% codeblock lang:sh %}
+{{< highlight shell "linenos=table" >}}
 $ oc expose svc php-hello
 route "php-hello" exposed
-{% endcodeblock %}
+{{< / highlight >}}
 
 The route is assigned a public FQDN `php-hello-php-hello.a3c1.starter-us-west-1.openshiftapps.com`. As we haven't configured the route to use the TLS protocol, our application will be reachable on the standard HTTP port 80. The assigned FQDN can be found in the output of the `oc get route` command:
 
-{% codeblock lang:sh %}
+{{< highlight shell "linenos=table" >}}
 $ oc get route
 NAME        HOST/PORT                                                      PATH      SERVICES    PORT      TERMINATION   WILDCARD
 php-hello   php-hello-php-hello.a3c1.starter-us-west-1.openshiftapps.com             php-hello   8080                    None
-{% endcodeblock %}
+{{< / highlight >}}
 
 At this moment, our application should be reachable over the public Internet. Let's send an HTTP request to our application:
 
-{% codeblock lang:sh %}
+{{< highlight shell "linenos=table" >}}
 $ curl php-hello-php-hello.a3c1.starter-us-west-1.openshiftapps.com
 Hello from php-hello-1-zw48t!
-{% endcodeblock %}
+{{< / highlight >}}
 
 Excellent, the application responded with the Hello message as expected. In the last exercise of our tutorial, we're going to scale our application. Let's ask OpenShift to create one more `php-hello` container:
 
-{% codeblock lang:sh %}
+{{< highlight shell "linenos=table" >}}
 $ oc scale dc php-hello --replicas 2
 deploymentconfig "php-hello" scaled
-{% endcodeblock %}
+{{< / highlight >}}
 
 The deployment of the second container will complete shortly. You can check the status of running containers using the `oc get pod` commmand:
 
-{% codeblock lang:sh %}
+{{< highlight shell "linenos=table" >}}
 $ oc get pod
 NAME                          READY     STATUS      RESTARTS   AGE
 openshift-php-hello-1-build   0/1       Completed   0          2h
 php-hello-1-cl5nw             1/1       Running     0          30s
 php-hello-1-zw48t             1/1       Running     0          21m
-{% endcodeblock %}
+{{< / highlight >}}
 
 At this point, we're having two Docker containers ready to serve our HTTP requests. Let's generate some traffic and observe how OpenShift load balances the incoming requests between the two containers:
 
-{% codeblock lang:sh %}
+{{< highlight shell "linenos=table" >}}
 $ curl php-hello-php-hello.a3c1.starter-us-west-1.openshiftapps.com
 Hello from php-hello-1-zw48t!
 $ curl php-hello-php-hello.a3c1.starter-us-west-1.openshiftapps.com
@@ -219,7 +219,7 @@ $ curl php-hello-php-hello.a3c1.starter-us-west-1.openshiftapps.com
 Hello from php-hello-1-zw48t!
 $ curl php-hello-php-hello.a3c1.starter-us-west-1.openshiftapps.com
 Hello from php-hello-1-cl5nw!
-{% endcodeblock %}
+{{< / highlight >}}
 
 ## Conclusion
 

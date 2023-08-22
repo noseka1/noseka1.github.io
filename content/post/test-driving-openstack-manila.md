@@ -21,7 +21,7 @@ After installing Manila, the following Manila services are running on the contro
 
 In order for Manila to allocate shares on Cinder volumes, we'll have to configure Manila to use the *generic* share driver. For that we'll add a new Manila backend `generic_backend` into `/etc/manila/manila.conf`:
 
-{% codeblock lang:ini %}
+{{< highlight ini "linenos=table" >}}
 [DEFAULT]
 enabled_share_backends = generic_backend
 default_share_type = generic
@@ -37,7 +37,7 @@ service_instance_user = manila
 path_to_public_key = /etc/manila/id_rsa.pub
 path_to_private_key = /etc/manila/id_rsa
 manila_service_keypair_name = manila-service
-{% endcodeblock %}
+{{< / highlight >}}
 
 Before explaining the configuration settings, I'll briefly describe how the *generic* driver actually works. Behind the scenes, the generic driver creates a so called *service instance*. The service instance is a Nova instance owned by the Manila service. It's not even visible to the tenant users. Manila allocates a Cinder volume and asks Nova to attach that volume to the service instance. Afterwards, Manila connects to the service instance using SSH in order to create the filesytem on the attached Cinder volume and mount it and export that as a NFS/CIFS share to the tenant instances.
 
@@ -59,10 +59,10 @@ The *share type* has a similar purpose as the *volume type* in Cinder. It define
 
 To create a `generic` share type that maps to our `generic` backend you can run the following commands as an OpenStack administrator:
 
-{% codeblock lang:sh %}
-manila type-create generic True
-manila type-key generic set share_backend_name=generic_backend
-{% endcodeblock %}
+{{< highlight shell "linenos=table" >}}
+$ manila type-create generic True
+$ manila type-key generic set share_backend_name=generic_backend
+{{< / highlight >}}
 
 ## Creating a share and mounting it
 
@@ -70,26 +70,26 @@ Finally, we're done with all the configuration and can start enjoying our share 
 
 At first, we'd like to create a share network and map it to one of our tenant networks:
 
-{% codeblock lang:sh %}
-manila share-network-create --neutron-net-id 4f179a8c-7068-4f0b-9be4-9cb11451b401 --neutron-subnet-id c7d753b0-039b-4f8c-9e0f-012651ff4ada --name management
-{% endcodeblock %}
+{{< highlight shell "linenos=table" >}}
+$ manila share-network-create --neutron-net-id 4f179a8c-7068-4f0b-9be4-9cb11451b401 --neutron-subnet-id c7d753b0-039b-4f8c-9e0f-012651ff4ada --name management
+{{< / highlight >}}
 
 Now we can create our first NFS share called `myshare` with the size 1 GB:
 
-{% codeblock lang:sh %}
-manila create --name myshare --share-network management NFS 1
-{% endcodeblock %}
+{{< highlight shell "linenos=table" >}}
+$ manila create --name myshare --share-network management NFS 1
+{{< / highlight >}}
 
 Creating the first share on a given tenant network takes longer as Manila has to spin up a new service instance in the background.
 
 Eventually, the status of the share turns into `available` which means that the share is ready. The `manila show myshare` command will display the location from where we can mount the share. In our case, it is `10.13.243.173:/shares/share-b87367aa-3ef3-4282-a6b5-e45cab991b6c`. Before we can mount the share we have to allow access to it by modifying the access list:
 
-{% codeblock lang:sh %}
-manila access-allow --access_level rw myshare ip 10.13.244.12
-{% endcodeblock %}
+{{< highlight shell "linenos=table" >}}
+$ manila access-allow --access_level rw myshare ip 10.13.244.12
+{{< / highlight >}}
 
 The above command provides an instance having the IP address 10.13.244.12 with a read-write access to the share. Note that the IP addresses 10.13.243.173 and 10.13.244.12 belong to the same network. Finally, we can SSH into the instance and mount the share with:
 
-{% codeblock lang:sh %}
-sudo mount -t nfs 10.13.243.173:/shares/share-b87367aa-3ef3-4282-a6b5-e45cab991b6c /mnt
-{% endcodeblock %}
+{{< highlight shell "linenos=table" >}}
+$ sudo mount -t nfs 10.13.243.173:/shares/share-b87367aa-3ef3-4282-a6b5-e45cab991b6c /mnt
+{{< / highlight >}}

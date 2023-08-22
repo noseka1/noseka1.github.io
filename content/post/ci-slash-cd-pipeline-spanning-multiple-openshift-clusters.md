@@ -23,7 +23,7 @@ Jenkins is a legend among CI/CD tools. I remember meeting Jenkins back in the da
 
 The Jenkins [Kubernetes plugin](https://plugins.jenkins.io/kubernetes/) is a perfect plugin for connecting Jenkins to OpenShift. It allows the Jenkins master to create ephemeral workers on the cluster. Each cluster can be assigned a different node label. You can run each stage of your pipeline on a different cluster by specifying the label. A simple pipeline definition for our example would look like this:
 
-```
+{{< highlight groovy "linenos=table" >}}
 stage ('Build') {
   node ("dev") {
     // running on dev cluster
@@ -41,7 +41,7 @@ stage ('Prod') {
     // running on prod cluster
   }
 }
-```
+{{< / highlight >}}
 
 OpenShift comes with a Jenkins template which can be found in the `openshift` project. This template allows you to create a Jenkins master that is pre-configured to spin up worker pods on the same cluster. Further effort will be needed to connect this master to additional OpenShift clusters. A tricky part of this set up is networking. Jenkins worker pod, after it starts up, connects back to the Jenkins master. This requires the master to be reachable from the worker running on any of the OpenShift clusters.
 
@@ -57,7 +57,7 @@ I came up with an idea of composing the Tekton pipelines. To compose multiple pi
 
 The execution of this pipeline is started on the Dev cluster. The Dev pipeline will trigger the Test pipeline which will in turn trigger the Prod pipeline. The combined logs can be followed on the terminal:
 
-```
+{{< highlight shell "linenos=table" >}}
 $ tkn pipeline start dev --showlog
 Pipelinerun started: dev-run-bd5fs
 Waiting for logs to be available...
@@ -76,7 +76,7 @@ Waiting for logs to be available...
 [execute-remote-pipeline : execute-remote-pipeline-step] [execute-remote-pipeline : execute-remote-pipeline-step] [prod : prod-step] Running on prod cluster
 [execute-remote-pipeline : execute-remote-pipeline-step] [execute-remote-pipeline : execute-remote-pipeline-step]
 [execute-remote-pipeline : execute-remote-pipeline-step]
-```
+{{< / highlight >}}
 
 Note that this example is showing a cascading execution of Tekton pipelines. Another way of composing pipelines would be executing multiple remote pipelines in sequence.
 

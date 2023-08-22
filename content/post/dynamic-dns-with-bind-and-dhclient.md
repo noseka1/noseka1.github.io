@@ -16,30 +16,35 @@ Dynamic DNS with BIND
 date = "our"
 slug = "our/dynamic-dns-with-bind-and-dhclient"
 
-{% codeblock %}
+{{< highlight dns "linenos=table" >}}
 zone "somedomain.com" in {
         type master;
         file "db.somedomain.com";
         allow-update { 0/0; };
 };
-{% endcodeblock %}
+{{< / highlight >}}
 
 After restarting the DNS server with `sudo /etc/init.d/named restart` we can test that the DNS updates are working. Let's ask the DNS server `ns.somedomain.com` to register a host `somehost.somedomain.com` with IP address `192.168.100.200`:
-{% codeblock lang:sh %}
-nsupdate -d << EOF
+
+{{< highlight shell "linenos=table" >}}
+$ nsupdate -d << EOF
 server ns.somedomain.com
 update add somehost.somedomain.com 300 A 192.168.100.200
 send
 EOF
-{% endcodeblock %}
+{{< / highlight >}}
+
 If everything worked fine you should see `status: NOERROR` in the reply from update query. The DNS server created a new record in its database pairing the `somehost.somedomain.com` host name with the IP address `192.168.100.200`. Let's check that the host name resolution works by issuing:
-{% codeblock lang:sh %}
-host somehost.somedomain.com ns.somedomain.com
-{% endcodeblock %}
+
+{{< highlight shell "linenos=table" >}}
+$ host somehost.somedomain.com ns.somedomain.com
+{{< / highlight >}}
+
 You should see the IP address `192.168.100.200` in the command output. When on the DNS server you can dump the zone data into `/var/named/data/cache_dump.db` file for inspection:
-{% codeblock lang:sh %}
-rndc dumpdb -all
-{% endcodeblock %}
+
+{{< highlight shell "linenos=table" >}}
+$ rndc dumpdb -all
+{{< / highlight >}}
 
 Updating DNS after IP acquisition
 -------------------------------
@@ -49,7 +54,7 @@ The IP address acquisition is managed by the DHCP client `dhclient` running on t
 
 To install the update hook on the virtual machine let's make use of Cloud-Init tool that I talked about in the [previous blogpost](/blog/2015/04/26/using-cloud-init-outside-of-cloud/ "Using Cloud-Init Outside of Cloud"). The cloud-config script to be consumed by Cloud-Init looks as follows:
 
-{% codeblock lang:yaml %}
+{{< highlight yaml "linenos=table" >}}
 #cloud-config
 fqdn: somehost.somedomain.com
 write_files:
@@ -79,7 +84,7 @@ write_files:
 runcmd:
   - hostname somehost.somedomain.com # fix the hostname incorrectly set up by cloud-init
   - reason=BOUND /etc/dhcp/dhclient-eth0-up-hooks # DNS registration on first boot
-{% endcodeblock %}
+{{< / highlight >}}
 
 Upon the very first execution of the hook the machine's network setup is not complete yet. There's no `/etc/resolv.conf` file written yet and the default route is not configured. The condition `if host $NAMESERVER; then ...` skips the DNS update in this case. Later in the initialization process the `runcmd` part of the cloud-config script gets executed. At this time the network configuration is complete and so we execute the update hook manually. This is the first time that the virtual machine registers itself with DNS. Cloud-Init executes the `runcmd` section only on the very first boot. Subsequent boots won't execute the `runcmd` code.
 

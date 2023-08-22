@@ -42,7 +42,8 @@ This section is a hands-on tutorial where I will walk you through an example of 
 ### Creating data
 
 Access control list specifies which users have access to the application as well as what operations they are allowed to invoke. For the purposes of this tutorial, I came up with a simple ACL definition:
-```
+
+{{< highlight json "linenos=table" >}}
 {
   "alice": [
     "read",
@@ -52,7 +53,8 @@ Access control list specifies which users have access to the application as well
     "read"
   ]
 }
-```
+{{< / highlight >}}
+
 According to this ACL, a user named `alice` was granted `read` and `write` access to the application. In addition, a user named `bob` was given `read` access. No other users were given any access to the application. For now, you can save this ACL definition as a file called `myapi-acl.json`.
 
 Note that later on we are going to inject this access control list as *data* into OPA to allow it to make policy decisions based on this list. How did we know what the structure of the ACL document looks like? As a matter of fact, OPA doesn't prescribe how you should structure your data. It only requires the data to be in a JSON format. The recommendation is to structure your data in a way that makes it easy to write policy rules against it. I followed this recommendation and the above access control list is what I came up with.
@@ -61,14 +63,14 @@ Note that later on we are going to inject this access control list as *data* int
 
 Next, we are going to define a structure of the *query input*. On each access to our application, we are going to ask OPA whether the given access is authorized or not. To answer that question, OPA needs to know the name of the user that is trying to access the application and the operation that the user is trying to invoke. Here is a sample query input that conveys the two query arguments to OPA :
 
-```
+{{< highlight json "linenos=table" >}}
 {
   "input": {
     "user": "alice",
     "operation": "write"
   }
 }
-```
+{{< / highlight >}}
 
 You can interpret this query input as the question: "Is user *alice* allowed *write* access to the application?". Note that it's up to you how you structure your query input. OPA's only requirement is for the input to be in the JSON format.
 
@@ -76,7 +78,7 @@ You can interpret this query input as the question: "Is user *alice* allowed *wr
 
 After we decided how our data and the query input look like, we can create a *policy* that implements the ACL semantics. Using the Rego language, let's create a policy with two rules `allow` and `whocan`:
 
-```
+{{< highlight prolog "linenos=table" >}}
 package myapi.policy
 
 import data.myapi.acl
@@ -93,7 +95,7 @@ whocan[user] {
         access = acl[user]
         access[_] == input.access
 }
-```
+{{< / highlight >}}
 
 The `allow`  rule checks whether the user is allowed access according to the ACL. It instructs the policy engine to first look up the user's record in ACL and then to check whether the operation the user is trying to invoke is included on user's permission list. Only if there is an ACL record for the given user and the user was granted given access permission, the allow rule results to `true`. Otherwise it results to `false`.
 
@@ -105,23 +107,25 @@ You can save the above policy as a file called `myapi-policy.rego`. We are going
 
 You can grab the OPA binary for your  platform (Linux, MacOS, or Windows) from [GitHub](https://github.com/open-policy-agent/opa/releases). After downloading the binary, start the OPA service by issuing the command:
 
-```
+{{< highlight shell "linenos=table" >}}
 $ opa run --server
-```
+{{< / highlight >}}
+
 OPA service is now up and listening on port `8181`. Next, we are going to upload the ACL file and the policy file into OPA. Note that OPA stores both the data and policies in memory and so if you restart the OPA service, you will have to reload both of the files.
 
 {% img center /images/posts/open_policy_agent/opa_upload_policy_and_data.png %}
 
 First, upload the ACL file `myapi-acl.json` into OPA using the following `curl` command:
 
-```
+{{< highlight shell "linenos=table" >}}
 $ curl -X PUT http://localhost:8181/v1/data/myapi/acl --data-binary @myapi-acl.json
-```
+{{< / highlight >}}
 
 Next, upload the policy file `myapi-policy.rego` into OPA by issuing:
-```
+
+{{< highlight shell "linenos=table" >}}
 $ curl -X PUT http://localhost:8181/v1/policies/myapi --data-binary @myapi-policy.rego
-```
+{{< / highlight >}}
 
 ### Invoking policy queries
 
@@ -130,25 +134,26 @@ Finally, if everything went well, we are now ready to issue our first  query.
 {% img center /images/posts/open_policy_agent/opa_query_policy.png %}
 
 Let's ask OPA whether the user `alice` can invoke a `write` operation on our application:
-```
+
+{{< highlight shell "linenos=table" >}}
 $ curl -X POST http://localhost:8181/v1/data/myapi/policy/allow \
 --data-binary '{ "input": { "user": "alice", "access": "write" } }' \
 | jq
 {
   "result": true
 }
-```
+{{< / highlight >}}
 
 The query result returned by OPA says that the user `alice` is authorized for writing. Our application would now proceed with executing the write operation. And what about `bob`? Is user `bob` allowed to write?
 
-```
+{{< highlight shell "linenos=table" >}}
 $ curl -X POST http://localhost:8181/v1/data/myapi/policy/allow \
 --data-binary '{ "input": { "user": "bob", "access": "write" } }' \
 | jq
 {
   "result": false
 }
-```
+{{< / highlight >}}
 
 The query result says it clearly. User `bob` is denied `write` access. Our application would return HTTP 403 Forbidden to `bob` at this point.
 
@@ -156,7 +161,7 @@ From what we have seen so far, a query result can be a simple `true` or `false` 
 
 Let's give it a try and ask OPA to return a list of users that were granted the `read` permission:
 
-```
+{{< highlight shell "linenos=table" >}}
 $ curl -X POST http://localhost:8181/v1/data/myapi/policy/whocan \
 --data-binary '{ "input": { "access": "read" } }' \
 | jq
@@ -166,7 +171,7 @@ $ curl -X POST http://localhost:8181/v1/data/myapi/policy/whocan \
     "bob"
   ]
 }
-```
+{{< / highlight >}}
 
 ## Conclusion
 

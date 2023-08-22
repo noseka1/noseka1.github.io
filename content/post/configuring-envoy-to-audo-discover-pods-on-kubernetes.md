@@ -23,7 +23,7 @@ The diagram below depicts how to configure Envoy to auto-discover pods on Kubern
 
 To put this configuration into practice, I used [Minishift](https://www.okd.io/minishift/) 3.11 which is a variant of Minikube developed by Red Hat. First, I deployed two replicas of the httpd server on Kubernetes to play the role of back-end services. Next, I created a headless service using the following definition:
 
-{% codeblock lang:yaml %}
+{{< highlight yaml "linenos=table" >}}
 apiVersion: v1
 kind: Service
 metadata:
@@ -36,27 +36,27 @@ spec:
   selector:
     app: httpd
   type: ClusterIP
-{% endcodeblock %}
+{{< / highlight >}}
 
 Note that we are explicitly specifying "None" for the cluster IP in the service definition. As a result, Kubernetes creates the respective Endpoints object containing the IP addresses of the discovered httpd pods:
 
-{% codeblock lang:sh %}
+{{< highlight shell "linenos=table" >}}
 $ oc get endpoints
 NAME              ENDPOINTS                                                        AGE
 httpd-discovery   172.17.0.21:8080,172.17.0.22:8080                                30s
-{% endcodeblock %}
+{{< / highlight >}}
 
  If you ssh to one of the cluster nodes or rsh to any of the pods running on the cluster, you can verify that the DNS discovery is working:
 
-{% codeblock lang:sh %}
+{{< highlight shell "linenos=table" >}}
 $ host httpd-discovery
 httpd-discovery.mynamespace.svc.cluster.local has address 172.17.0.21
 httpd-discovery.mynamespace.svc.cluster.local has address 172.17.0.22
-{% endcodeblock %}
+{{< / highlight >}}
 
 Next, I used the container image `docker.io/envoyproxy/envoy:v1.7.0` to create an Envoy proxy. I deployed the proxy into the same Kubernetes namespace called `mynamespace` where I created the headless service before. A minimum Envoy configuration that can accomplish our goal looks as follows:
 
-{% codeblock lang:yaml %}
+{{< highlight yaml "linenos=table" >}}
 static_resources:
   listeners:
   - name: listener_0
@@ -100,7 +100,7 @@ admin:
       protocol: TCP
       address: 127.0.0.1
       port_value: 9901
-{% endcodeblock %}
+{{< / highlight >}}
 
 Note that in the above configuration,  I instructed Envoy to use the Strict DNS discovery and pointed it to the DNS name `httpd-discovery` that is managed by Kubernetes.
 

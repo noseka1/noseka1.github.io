@@ -23,7 +23,7 @@ Is it better to use tabs or spaces to indent your code? Well, pick one but stick
 
 It's a good practice to break down a complicated program logic into multiple methods. By doing so, you make it easier for the reader to understand the purpose of your code. Look at the following code example. Can you explain what the code is doing?
 
-{% codeblock lang:java %}
+{{< highlight java "linenos=table" >}}
     // Bloated program logic, don't do this!
     String retrieveData(String key) {
         String data = cache.get(key);
@@ -47,11 +47,11 @@ It's a good practice to break down a complicated program logic into multiple met
         }
         return data;
     }
-{% endcodeblock %}
+{{< / highlight >}}
 
 The aim of the code is pretty simple. When retrieving data, look if the requested data is in the cache first and if not fetch it from the file. If the data was read from the file, put it into the cache to speed up the succeeding lookups. Let's rewrite the code example to make this logic apparent to the reader:
 
-{% codeblock lang:java %}
+{{< highlight java "linenos=table" >}}
     String retrieveData(String key) {
         String data = cache.get(key);
         if (data == null) {
@@ -80,7 +80,7 @@ The aim of the code is pretty simple. When retrieving data, look if the requeste
         }
         return data;
     }
-{% endcodeblock %}
+{{< / highlight >}}
 
 The caching logic is now separate from the details of how to read the data from the file. Splitting the logic up into two methods greatly increased readability.
 
@@ -89,7 +89,7 @@ The caching logic is now separate from the details of how to read the data from 
 
 Object-oriented programming introduced a *class* abstraction. Class groups the data with the code that can modify the data. Instead of using global variables that are accessible from any part of your program you can encapsulate your data with the code into a class. The scope where your data is accessible is now limited to the class members. However, your data is accessible by *any* class member. Assuming a very large class definition with a lot of members the data members can start feeling as a new form of global variables. I'd like to suggest to you avoiding excessive access to your data members. Look at the following example:
 
-{% codeblock lang:java %}
+{{< highlight java "linenos=table" >}}
 class Number {
 
     private int number = 0;
@@ -105,12 +105,12 @@ class Number {
         number = number + increment;
     }
 }
-{% endcodeblock %}
+{{< / highlight >}}
 In the code above the instance variable `number` is accessed from within two methods: `increment` and `incrementNumber`. Should it happen that the instance variable `number` is not set to the value you expected you'll need to review both methods because they're both accessing the problematic variable `number`.
 
 The following version of the same code accesses the instance variable `number` only from within the method `increment`. The method `incrementNumber` is working only with a copy of the `number` variable created on the stack. When searching for a problem you'll start reviewing the `increment` method and possibly follow the data flow into the `incrementNumber` method when needed. Also, if you'd like to reuse the code of the method `incrementNumber` it's easier to do now. The method `incrementNumber` doesn't access any instance variables and so you can separate it out into a *class* method right away.
 
-{% codeblock lang:java %}
+{{< highlight java "linenos=table" >}}
 class Number {
 
     private int number = 0;
@@ -126,35 +126,35 @@ class Number {
         return num + inc;
     }
 }
-{% endcodeblock %}
+{{< / highlight >}}
 
 5) Prevent maintenance issues
 -----------------------------
 Look at the following code. Can you see a problem?
 
-{% codeblock lang:java %}
+{{< highlight java "linenos=table" >}}
     if (value + 1 <= 10)
         value++;
     else
         value = 0;
         log.error("Value overflow");
-{% endcodeblock %}
+{{< / highlight >}}
 
 The intention of the maintainer was to add an error message for the case that the value overflowed number 10. However, the code as it is written will log the error message in any case. When coding think about the future maintenance and use parenthesis to make very clear what the `if` and `else` parts are:
-{% codeblock lang:java %}
+{{< highlight java "linenos=table" >}}
     if (value + 1 <= 10) {
         value++;
     } else {
         value = 0;
     }
-{% endcodeblock %}
+{{< / highlight >}}
 When the maintainer tries to add an error message to this code he cannot introduce the bug illustrated in the previous code example. Out of curiosity, the Linux kernel project advocates no parenthesis around the if-else statement if not necessary. As always, the existing coding conventions take precedence.
 
 6) Use braces to make expressions more readable
 -----------------------------------------------
 Programming languages define operator precedence and it's great that you're aware of it. Not every programmer has mastered the operator precedence and associativity table, though. Be kind and code your expressions very clearly. Braces can help you:
 
-{% codeblock lang:java %}
+{{< highlight java "linenos=table" >}}
 // relying on operator precedence
 if (a && b || a && c) {
     // ...
@@ -164,7 +164,7 @@ if (a && b || a && c) {
 if ((a && b) || (a && c)) {
     // ...
 }
-{% endcodeblock %}
+{{< / highlight >}}
 
 7) Learn your programming language idioms
 -----------------------------------------

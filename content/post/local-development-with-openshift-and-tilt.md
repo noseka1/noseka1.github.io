@@ -36,39 +36,44 @@ The overall setup consists of a Fedora 32 development machine where I installed 
 
 Having the required tools in place, let's start by logging in into CRC and creating a new project:
 
-```
+{{< highlight shell "linenos=table" >}}
 $ oc login
 $ oc new-project tilt-example
-```
+{{< / highlight >}}
+
 Let's now focus  on configuring buildah to be able the pull and push images from the container registries. As you can see in the [Dockerfile](https://github.com/noseka1/local-development-with-openshift-and-tilt/blob/master/Dockerfile), our application uses the `registry.redhat.io/ubi8/ubi` container image as the base image. In order for buildah to be able to pull this image from the registry, we need to log in to this registry using the Red Hat Customer Portal credentials:
 
-```
+{{< highlight shell "linenos=table" >}}
 $ buildah login registry.redhat.io
-```
+{{< / highlight >}}
 
 Next, let's configure buildah to be able to push images into the CRC internal registry. The CRC registry endpoint uses a self-signed certificate. Buildah will refuse to communicate with the internal registry as the certificate is signed by an unknown authority. In order for buildah to be able to push images into the internal registry, you will need to add this registry to the list of insecure registries. On your development machine, edit `/etc/containers/registries.conf` and add the CRC internal registry to the list of insecure registries.
 
-```
+{{< highlight toml "linenos=table" >}}
 [registries.insecure]
 registries = [ 'default-route-openshift-image-registry.apps-crc.testing' ]
-```
+{{< / highlight >}}
+
 In order for buildah to be able to push images into the CRC registry, we need to log in to this registry. For that, use the `oc` command to grab a token used for authentication against the registry:
-```
+
+{{< highlight shell "linenos=table" >}}
 $ oc whoami --show-token
 7geTDzA6Mqa-NeXweTXtOFUJtEHocVShKl5yxtxqeB0
-```
+{{< / highlight >}}
+
 Log in to the registry using the authentication token:
-```
+
+{{< highlight shell "linenos=table" >}}
 $ buildah login \
     --username unused \
     --password 7geTDzA6Mqa-NeXweTXtOFUJtEHocVShKl5yxtxqeB0 \
     default-route-openshift-image-registry.apps-crc.testing
 Login Succeeded!
-```
+{{< / highlight >}}
 
 After successfully logging into the CRC internal registry, the buildah configuration is now complete. Finally, we can turn our attention to Tilt. First, let's review the `Tiltfile` which describes how Tilt will orchestrate our development workflow:
 
-```
+{{< highlight plaintext "linenos=table" >}}
 # push the container image to the CRC internal registry, project tilt-example
 default_registry(
   'default-route-openshift-image-registry.apps-crc.testing/tilt-example',
@@ -86,22 +91,23 @@ k8s_yaml('kubernetes.yaml')
 
 # make the application available on localhost:8000
 k8s_resource('example-html', port_forwards=8000)
-```
+{{< / highlight >}}
 
 I annotated the `Tiltfile` with comments that explain the meaning of individual Tilt instructions. Ready to give it a shot? Just clone the git repository and run Tilt:
 
-```
+{{< highlight shell "linenos=table" >}}
 $ git clone https://github.com/noseka1/local-development-with-openshift-and-tilt
 $ cd local-development-with-openshift-and-tilt/
 $ tilt up
-```
+{{< / highlight >}}
 
 After Tilt comes up, it will call buildah to pull the base image, build the application, and push the resulting image to the CRC internal registry. It will also deploy the application on Kubernetes by applying the `kubernetes.yaml` manifest referenced in the `Tiltfile`. If everything worked well, and the application pod starts up, you will see the "Serving files on port 8000" log message in the bottom pane:
 
 {% img center /images/posts/local_development_with_openshift_and_tilt.png %}
 
 At this point, you should be able to reach the running application on `localhost:8000`:
-```
+
+{{< highlight shell "linenos=table" >}}
 $ curl localhost:8000
 <!doctype html>
 <html>
@@ -112,7 +118,7 @@ $ curl localhost:8000
     </div>
   </body>
 </html>
-```
+{{< / highlight >}}
 
 To experience how Tilt facilitates the local development, change the content of the `index.html` file. After you save your changes, Tilt will instantly re-run the loop and deploy the updated application.
 

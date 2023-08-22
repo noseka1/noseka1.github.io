@@ -29,7 +29,7 @@ There are situations where you cannot avoid using blocking APIs. A typical examp
 
 The first technique is straight forward. It leverages the `executeBlocking` method provided by Vert.x. In the following example, the event loop thread schedules a `blockingCodeHandler` to run on a worker thread by calling the `vertx.executeBlocking()` method. After the execution of the `blockingCodeHandler` is complete, the `resultHandler` will be executed  on the event loop thread that made the original `vertx.executeBlocking()` call:
 
-{% codeblock lang:java %}
+{{< highlight java "linenos=table" >}}
 class ExecuteBlockingExample extends AbstractVerticle {
 
 	@Override
@@ -51,19 +51,19 @@ class ExecuteBlockingExample extends AbstractVerticle {
 		vertx.executeBlocking(blockingCodeHandler, resultHandler);
 	}
 }
-{% endcodeblock %}
+{{< / highlight >}}
 
 After running the example code, you will see the following output:
 
-{% codeblock lang:java %}
+{{< highlight java "linenos=table" >}}
 Calling from vert.x-eventloop-thread-0
 Work executed on vert.x-worker-thread-0
 Result 'OK' received on vert.x-eventloop-thread-0
-{% endcodeblock %}
+{{< / highlight >}}
 
 The second technique for offloading the blocking API calls to a worker thread is a bit more involved. We are going to deploy a worker verticle and send it the work as a message using the event bus. After the worker thread completes the work it will reply sending the result back to us.
 
-{% codeblock lang:java %}
+{{< highlight java "linenos=table" >}}
 vertx.deployVerticle(new AbstractVerticle() {
 	@Override
 	public void start(Future<Void> startFuture) {
@@ -99,15 +99,15 @@ vertx.deployVerticle(new AbstractVerticle() {
 		vertx.eventBus().send("worker", "request", replyHandler);
 	}
 });
-{% endcodeblock %}
+{{< / highlight >}}
 
 After running the above code  you will receive the following output:
 
-{% codeblock lang:sh %}
+{{< highlight plaintext "linenos=table" >}}
 Received message on vert.x-worker-thread-1
 Working ...
 Received reply 'OK' on vert.x-eventloop-thread-0
-{% endcodeblock %}
+{{< / highlight >}}
 
 ## Executing compute intensive tasks
 
@@ -115,15 +115,15 @@ What is a compute intensive task? It is a task that makes heavy use of CPU and m
 
 Let's assume that you are able to chunk up the compute intensive task into several chunks. Then instead of running the entire compute intensive task at once:
 
-{% codeblock lang:java %}
+{{< highlight java "linenos=table" >}}
 workChunk1();
 workChunk2();
 workChunk3();
-{% endcodeblock %}
+{{< / highlight >}}
 
 You can distribute the execution of individual chunks in time allowing the event loop to process other handlers in between. In the following example, we are creating pauses of 100 milliseconds between the work chunks to allow the event loop to interleave other handlers:
 
-{% codeblock lang:java %}
+{{< highlight java "linenos=table" >}}
 long delay = 100;
 
 workChunk1();
@@ -133,7 +133,7 @@ vertx.setTimer(delay, timerId -> {
 		workChunk3();
 	});
 });
-{% endcodeblock %}
+{{< / highlight >}}
 
 You may encounter scenarios where you won't be able to chunk up the compute intensive task. For example, the compute intensive task's code is contained within a third-party library and executes all at once. In this case, you will have to defer to running this task on a worker thread and incur the cost of context switching. The operating system scheduler will periodically preempt the compute intensive task to prevent it from hogging the CPU and giving your event loop threads a chance to run.
 

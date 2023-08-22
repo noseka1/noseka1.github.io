@@ -17,34 +17,34 @@ The relationship between roles and nodes is organized via flavors. A flavor is a
 
 The creation of flavors with the associated `capabilities:profile` property looks like this:
 
-{% codeblock lang:sh %}
-openstack flavor create --id auto --ram 4096 --disk 40 --vcpus 1 ceph
-openstack flavor create --id auto --ram 4096 --disk 40 --vcpus 1 cinder
-openstack flavor create --id auto --ram 4096 --disk 40 --vcpus 1 compute
-openstack flavor create --id auto --ram 4096 --disk 40 --vcpus 1 controller
-openstack flavor create --id auto --ram 4096 --disk 40 --vcpus 1 swift
+{{< highlight shell "linenos=table" >}}
+$ openstack flavor create --id auto --ram 4096 --disk 40 --vcpus 1 ceph
+$ openstack flavor create --id auto --ram 4096 --disk 40 --vcpus 1 cinder
+$ openstack flavor create --id auto --ram 4096 --disk 40 --vcpus 1 compute
+$ openstack flavor create --id auto --ram 4096 --disk 40 --vcpus 1 controller
+$ openstack flavor create --id auto --ram 4096 --disk 40 --vcpus 1 swift
 
-openstack flavor set --property "cpu_arch"="x86_64" --property "capabilities:boot_option"="local" --property "capabilities:profile"="ceph" ceph
-openstack flavor set --property "cpu_arch"="x86_64" --property "capabilities:boot_option"="local" --property "capabilities:profile"="cinder" cinder
-openstack flavor set --property "cpu_arch"="x86_64" --property "capabilities:boot_option"="local" --property "capabilities:profile"="compute" compute
-openstack flavor set --property "cpu_arch"="x86_64" --property "capabilities:boot_option"="local" --property "capabilities:profile"="controller" controller
-openstack flavor set --property "cpu_arch"="x86_64" --property "capabilities:boot_option"="local" --property "capabilities:profile"="swift" swift
-{% endcodeblock %}
+$ openstack flavor set --property "cpu_arch"="x86_64" --property "capabilities:boot_option"="local" --property "capabilities:profile"="ceph" ceph
+$ openstack flavor set --property "cpu_arch"="x86_64" --property "capabilities:boot_option"="local" --property "capabilities:profile"="cinder" cinder
+$ openstack flavor set --property "cpu_arch"="x86_64" --property "capabilities:boot_option"="local" --property "capabilities:profile"="compute" compute
+$ openstack flavor set --property "cpu_arch"="x86_64" --property "capabilities:boot_option"="local" --property "capabilities:profile"="controller" controller
+$ openstack flavor set --property "cpu_arch"="x86_64" --property "capabilities:boot_option"="local" --property "capabilities:profile"="swift" swift
+{{< / highlight >}}
 
 Now we need to add the profiles to the capabilities list of the respective nodes:
 
-{% codeblock lang:sh %}
-ironic node-update <node1 UUID here> replace properties/capabilities='profile:ceph,boot_option:local'
-ironic node-update <node2 UUID here> replace properties/capabilities='profile:cinder,boot_option:local'
-ironic node-update <node3 UUID here> replace properties/capabilities='profile:compute,boot_option:local'
-ironic node-update <node4 UUID here> replace properties/capabilities='profile:controller,boot_option:local'
-ironic node-update <node5 UUID here> replace properties/capabilities='profile:swift,boot_option:local'
-{% endcodeblock %}
+{{< highlight shell "linenos=table" >}}
+$ ironic node-update <node1 UUID here> replace properties/capabilities='profile:ceph,boot_option:local'
+$ ironic node-update <node2 UUID here> replace properties/capabilities='profile:cinder,boot_option:local'
+$ ironic node-update <node3 UUID here> replace properties/capabilities='profile:compute,boot_option:local'
+$ ironic node-update <node4 UUID here> replace properties/capabilities='profile:controller,boot_option:local'
+$ ironic node-update <node5 UUID here> replace properties/capabilities='profile:swift,boot_option:local'
+{{< / highlight >}}
 
 When deploying the OpenStack cloud, we need to tell the RDO manager what flavor to use for each specific role:
 
-{% codeblock lang:sh %}
-openstack overcloud deploy \
+{{< highlight shell "linenos=table" >}}
+$ openstack overcloud deploy \
 --templates /usr/share/openstack-tripleo-heat-templates \
 --ceph-storage-scale 1 \
 --block-storage-scale 1 \
@@ -56,6 +56,6 @@ openstack overcloud deploy \
 --compute-flavor compute \
 --control-flavor controller \
 --swift-storage-flavor swift
-{% endcodeblock %}
+{{< / highlight >}}
 
 And that's all for today. Hope you're enjoying the full control over your OpenStack cloud deployment.

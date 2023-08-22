@@ -19,7 +19,7 @@ Vert.x comes with a built-in mechanism to detect delays on event loop and worker
 
 The blocked thread checker serves as a watchdog that periodically checks the Vert.x threads. It iterates over all Vert.x threads and for each thread it subtracts the threads start timestamp from the current time to compute how long the thread has already been executing the handler code. If the execution time exceeds the specified threshold a warning message is dropped into the logs:
 
-{% codeblock lang:sh %}
+{{< highlight plaintext "linenos=table" >}}
 Mar 01, 2019 11:53:24 AM io.vertx.core.impl.BlockedThreadChecker
 WARNING: Thread Thread[vert.x-eventloop-thread-5,5,main] has been blocked for 39 ms, time limit is 10 ms
 Mar 01, 2019 11:53:24 AM io.vertx.core.impl.BlockedThreadChecker
@@ -34,11 +34,11 @@ Mar 01, 2019 11:53:24 AM io.vertx.core.impl.BlockedThreadChecker
 WARNING: Thread Thread[vert.x-eventloop-thread-4,5,main] has been blocked for 21 ms, time limit is 10 ms
 Mar 01, 2019 11:53:24 AM io.vertx.core.impl.BlockedThreadChecker
 WARNING: Thread Thread[vert.x-eventloop-thread-7,5,main] has been blocked for 19 ms, time limit is 10 ms
-{% endcodeblock %}
+{{< / highlight >}}
 
 You can use grep to routinely search through your application logs for this message. Vert.x can also log the entire stack trace to help you pinpoint the location in your code where your handler is blocking the thread:
 
-{% codeblock lang:sh %}
+{{< highlight plaintext "linenos=table" >}}
 Mar 24, 2019 9:34:23 AM io.vertx.core.impl.BlockedThreadChecker
 WARNING: Thread Thread[vert.x-eventloop-thread-6,5,main] has been blocked for 24915 ms, time limit is 10 ms
 io.vertx.core.VertxException: Thread blocked
@@ -55,13 +55,13 @@ io.vertx.core.VertxException: Thread blocked
         at io.netty.util.concurrent.SingleThreadEventExecutor$5.run(SingleThreadEventExecutor.java:897)
         at io.netty.util.concurrent.FastThreadLocalRunnable.run(FastThreadLocalRunnable.java:30)
         at java.lang.Thread.run(Thread.java:748)
-{% endcodeblock %}
+{{< / highlight >}}
 
 Note that the stack trace is generated at the moment when Vert.x detects that the threshold has been exceeded which is not necessarily the moment when the thread was actually blocking. In other words, it is probable but it is not guaranteed that the stack trace is showing the actual location where your event loop thread is blocking. You may need to examine multiple stack traces to pinpoint the right location.
 
 You can tweak the watchdog check period and the warning thresholds. Here is an example:
 
-{% codeblock lang:java %}
+{{< highlight java "linenos=table" >}}
 VertxOptions options = new VertxOptions();
 
 // check for blocked threads every 5s
@@ -81,16 +81,16 @@ options.setWarningExceptionTime(20);
 options.setWarningExceptionTimeUnit(TimeUnit.SECONDS);
 
 Vertx vertx = Vertx.vertx(options);
-{% endcodeblock %}
+{{< / highlight >}}
 
 Note that the first check is not executed right at the application start but is delayed by one check period. In our example the first check is executed 5 seconds after the application start followed by checks executed every 5 seconds. The concrete thresholds shown in the example worked well for one of my projects, however, your mileage may vary.  Also, the very first execution of the handlers can be rather slow due to JVM class loading. Performance further improves when the JVM moves from interpreting the byte code to compiling it into the native code and running it directly on the CPU. Hence, you are more likely to hit the warning thresholds shortly after the application start than later on during the application run. It would be great if the threshold values could be dynamically adjusted to avoid the warnings before the JVM warms up. Unfortunately, there's no way how to adjust the thresholds in runtime.
 
 It goes without saying that Vert.x only checks the threads that were created as a result of calling Vert.x APIs. If you instantiate your own thread pool outside of Vert.x those threads won't be checked. If you want Vert.x to check the threads in your custom thread pool, you can ask Vert.x to instantiate a checked thread pool for you like this:
 
-{% codeblock lang:java %}
+{{< highlight java "linenos=table" >}}
 // create a thread pool with 20 threads, set blocked thread warning threshold to 10 seconds
 WorkerExecutor executor = vertx.createSharedWorkerExecutor("mypool", 20, 10, TimeUnit.SECONDS);
-{% endcodeblock %}
+{{< / highlight >}}
 
 The good thing about the blocked thread checker is that it is able to detect thread delays regardless of whether they were caused by a call to a blocking API or by executing a compute intensive task. As such it can serve as a good indicator that there is something seriously wrong with your application.
 

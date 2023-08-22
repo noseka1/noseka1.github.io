@@ -23,43 +23,43 @@ Config drive assembly
 ---------------------
 First, we're going to prepare the following file structure for our config drive:
 
-{% codeblock %}
+{{< highlight shell "linenos=table" >}}
 config_drive
 config_drive/openstack
 config_drive/openstack/latest
 config_drive/openstack/2012-08-10
 config_drive/openstack/2012-08-10/meta_data.json
 config_drive/openstack/2012-08-10/user_data
-{% endcodeblock %}
+{{< / highlight >}}
 
 Start by creating directories and the `latest` symbolic link like this:
 
-{% codeblock %}
-mkdir config_drive
-mkdir -p config_drive/openstack/2012-08-10
-ln -s 2012-08-10 config_drive/openstack/latest
-{% endcodeblock %}
+{{< highlight shell "linenos=table" >}}
+$ mkdir config_drive
+$ mkdir -p config_drive/openstack/2012-08-10
+$ ln -s 2012-08-10 config_drive/openstack/latest
+{{< / highlight >}}
 
 Next create a minimum metadata file required by Cloud-Init. I'm using a fully qualified domain name of the virtual machine as its UUID:
 
-{% codeblock lang:sh %}
-cat > config_drive/openstack/latest/meta_data.json << EOF
+{{< highlight shell "linenos=table" >}}
+$ cat > config_drive/openstack/latest/meta_data.json << EOF
 {
     "uuid": "myinstance.mydomain.com"
 }
 EOF
-{% endcodeblock %}
+{{< / highlight >}}
 
 Cloud-Init supports many [formats](https://cloudinit.readthedocs.org/en/latest/topics/format.html "Cloud-Init user data formats") for scripts within user data. One of the most popular formats is the *cloud-config* file format. Let's create a cloud-config script that adds our SSH public key to the authorized keys for the user `root` on the virtual machine. We can then login into the virtual machine as user root without using a password. If you don't have a public-private SSH key pair you can quickly generate it using `ssh-keygen` command:
 
-{% codeblock lang:sh %}
-ssh-keygen -f mykey
-{% endcodeblock %}
+{{< highlight shell "linenos=table" >}}
+$ ssh-keygen -f mykey
+{{< / highlight >}}
 
 Now create a `user_data` file with the configuration instructions for Cloud-Init. In the following code block replace the value of the `ssh-authorized-keys` field with the content of your generated `mykey.pub` file:
 
-{% codeblock lang:sh %}
-cat > config_drive/openstack/latest/user_data << EOF
+{{< highlight shell "linenos=table" >}}
+$ cat > config_drive/openstack/latest/user_data << EOF
 #cloud-config
 fqdn: myinstance.mydomain.com
 users:
@@ -67,18 +67,19 @@ users:
     ssh-authorized-keys:
       - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDNH8Qwn4raGR1f9fvjbZe/GXM2N9Mh+eWlsFoYpcU4H5qf5YxT5CUo7BaTOgeE5geHyzxJQmCQlvoxcW3qkcjBJvVgEsTrrnX7KYS8BszvT4AMIuG2Za8f7myubXd6zYfj74XYhutUsPz7x2TEp9ZqbVkWcaElrQFxF2AzF7dV1RGntpPKyISqem70En8RYpGY514OLZ9TQDBYjbw8tfPuDd9mznXnWOZ34fPtP7+QDvOMFuA4tXsBpHj99/cbC0ViwzZtvb1QtY7dv9OFDgCRadw81+SKtzXctQ2rCYkb0huc0BCE7kLzinzlO62Znd+N1d+tpLAwP6i8Z5ZMXIJj user@machine
 EOF
-{% endcodeblock %}
+{{< / highlight >}}
 
 The file structure for our config drive is ready. Let's generate an ext2 filesystem and copy the files to it. The `virt-make-fs` utility from the `libguestfs-tools` package can help us with that:
 
-{% codeblock lang:sh %}
-virt-make-fs config_drive disk.config
-{% endcodeblock %}
+{{< highlight shell "linenos=table" >}}
+$ virt-make-fs config_drive disk.config
+{{< / highlight >}}
 
 In order for Cloud-Init to detect the attached drive as config drive the filesystem on the config drive needs to be labeled `config-2`. You can use `e2label` command from the `e2fsprogs` package to label your config drive:
-{% codeblock lang:sh %}
-e2label disk.config config-2
-{% endcodeblock %}
+
+{{< highlight shell "linenos=table" >}}
+$ e2label disk.config config-2
+{{< / highlight >}}
 
 Cloud-Init in action
 --------------------
@@ -86,7 +87,7 @@ On my Linux host I'm running [libvirt](http://libvirt.org/ "Libvirt - The virtua
 
 Let's create a virtual machine with the config drive attached. As a virtual machine boot image I'm using a CentOS-6 image from [cloud.centos.org](http://cloud.centos.org/centos/6/images/ "CentOS-6 cloud images") which comes with Cloud-Init built in. Make sure that your virtual machine boot image has Cloud-Init installed. Following is a virtual machine definition file for the CentoOS-6 virtual machine. You might need to change the location of the disk image files and save it as `CentOS-6.xml`:
 
-{% codeblock lang:xml %}
+{{< highlight xml "linenos=table" >}}
 <domain type='kvm'>
   <name>CentOS-6</name>
   <memory unit='KiB'>2097152</memory>
@@ -112,15 +113,19 @@ Let's create a virtual machine with the config drive attached. As a virtual mach
     </serial>
   </devices>
 </domain>
-{% endcodeblock %}
+{{< / highlight >}}
 
 Okay, everything is ready, let's launch our Cloud-Init enabled CentOS-6 virtual machine:
-{% codeblock lang:sh %}
-sudo virsh define CentOS-6.xml
-sudo virsh start CentOS-6
-{% endcodeblock %}
+
+{{< highlight shell "linenos=table" >}}
+$ sudo virsh define CentOS-6.xml
+$ sudo virsh start CentOS-6
+{{< / highlight >}}
+
 If everything went fine you can watch the console output of the booting virtual machine at `/tmp/CentOS-6.log`. Cloud-Init will print out the IP address obtained by the virtual machine (192.168.122.165 in my case) where we can login as root using the generated private key:
-{% codeblock lang:sh %}
-ssh -i testkey root@192.168.122.165
-{% endcodeblock %}
+
+{{< highlight shell "linenos=table" >}}
+$ ssh -i testkey root@192.168.122.165
+{{< / highlight >}}
+
 Congratulations, your virtual machine has just been configured by Cloud-Init the same way as any other virtual machine running in the cloud environment.

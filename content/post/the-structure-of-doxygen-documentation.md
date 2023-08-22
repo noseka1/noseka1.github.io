@@ -25,13 +25,13 @@ Pages in Doxygen are used for documentation that is not directly attached to the
 There's always a project main page created by the Doxygen tag `@mainpage`. In our example, the title of the main page is `My Project`. All other pages listed under the main page are created using the Doxygen tag `@page`. In our example, we're using Markdown files where the `@page` tag is assumed and you're not required to write it. Doxygen automatically generates a page for every file with the `.markdown` extension. We talked about Markdown support in Doxygen in my [previous blogpost](/blog/2015/06/14/technical-documentation-with-doxygen/ "Technical Documentation with Doxygen").
 The page hierarchy is created by the repetitive use of the Doxygen tag `@subpage`. The `@subpage` tag creates a parent-child relationship between two pages. It generates a reference (link) to the subpage at the same time. Example:
 
-{% codeblock %}
+{{< highlight plaintext "linenos=table" >}}
 # The List of subpages:
 
 * Page @subpage subpage_1
 * Page @subpage subpage_2
 * Page @subpage subpage_3
-{% endcodeblock %}
+{{< / highlight >}}
 
 ## Doxygen modules
 
@@ -39,7 +39,7 @@ A larger software project typically consists of multiple modules. A module imple
 
 You can start with a definition of your modules and their parent-child relationship in a separate Doxygen file. A module is defined using `@defgroup` Doxygen tag. In our example, we're defining a parent module `My Project Modules` with two submodules `Math library` and `Misc library`:
 
-{% codeblock lang:c doxygen/group_defs.dox %}
+{{< highlight-caption lang="c" linenos="table" title="doxygen/group_defs.dox" >}}
 /**
  * @defgroup group_main My Project Modules
  * @brief All project modules
@@ -51,11 +51,11 @@ You can start with a definition of your modules and their parent-child relations
 /** @defgroup group_misc Misc library */
 
 /** @} */
-{% endcodeblock %}
+{{< / highlight-caption >}}
 
 Later in the source code, you can associate a class, file or a namespace with a module by using a Doxygen tag `@ingroup`:
 
-{% codeblock lang:c src/math/factorial.h %}
+{{< highlight-caption lang="c" linenos="table" title="src/math/factorial.h" >}}
 #ifndef MYPROJECT_MATH_FACTORIAL_H
 #define MYPROJECT_MATH_FACTORIAL_H
 
@@ -68,7 +68,7 @@ namespace myproject {
     }
 }
 #endif
-{% endcodeblock %}
+{{< / highlight-caption >}}
 
 ## Namespaces, classes and files
 

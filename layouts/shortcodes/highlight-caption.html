@@ -1,0 +1,14 @@
+<!--
+  Add caption to the highlighted code. Based on:
+  * https://github.com/parsiya/Hugo-Octopress/blob/be22e9c1e61a228441c5eeeaf1861f10a714f10c/layouts/shortcodes/codecaption.html
+  * https://discourse.gohugo.io/t/filenames-for-code-blocks/32466/2
+-->
+
+<figure class="code">
+  <figcaption>
+    <span>{{ .Get "title" }}</span>
+  </figcaption>
+  <div class="codewrapper">
+    {{ highlight (trim .Inner "\n\r") (.Get "lang") (.Get "options") }}
+  </div>
+</figure>

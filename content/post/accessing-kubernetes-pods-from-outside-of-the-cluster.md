@@ -13,7 +13,7 @@ There are several ways how to expose your application running on the Kubernetes 
 
 The `hostNetwork` setting applies to the Kubernetes pods. When a pod is configured with `hostNetwork: true`, the applications running in such a pod can directly see the network interfaces of the host machine where the pod was started. An application that is configured to listen on all network interfaces will in turn be accessible on all network interfaces of the host machine. Here is an example definition of a pod that uses host networking:
 
-{% codeblock lang:yaml influxdb-hostnetwork.yml %}
+{{< highlight-caption lang="yaml" linenos="table" title="influxdb-hostnetwork.yml" >}}
 apiVersion: v1
 kind: Pod
 metadata:
@@ -23,19 +23,19 @@ spec:
   containers:
     - name: influxdb
       image: influxdb
-{% endcodeblock %}
+{{< / highlight-caption >}}
 
 You can start the pod with the following command:
 
-{% codeblock lang:sh %}
+{{< highlight shell "linenos=table" >}}
 $ kubectl create -f influxdb-hostnetwork.yml
-{% endcodeblock %}
+{{< / highlight >}}
 
 You can check that the InfluxDB application is running with:
 
-{% codeblock lang:sh %}
+{{< highlight shell "linenos=table" >}}
 $ curl -v http://kubenode01.example.com:8086/ping
-{% endcodeblock %}
+{{< / highlight >}}
 
 Remember to replace the host name in the above URL with the host name or IP address of the Kubernetes node where your pod has been scheduled to run. InfluxDB will respond with HTTP 204 No Content when working properly.
 
@@ -47,7 +47,7 @@ What is the host networking good for? For cases where a direct access to the hos
 
 The `hostPort` setting applies to the Kubernetes containers. The container port will be exposed to the external network at *<hostIP\>:<hostPort\>*, where the *hostIP* is the IP address of the Kubernetes node where the container is running and the *hostPort* is the port requested by the user. Here comes a sample pod definition:
 
-{% codeblock lang:yaml influxdb-hostport.yml %}
+{{< highlight-caption lang="yaml" linenos="table" title="influxdb-hostport.yml" >}}
 apiVersion: v1
 kind: Pod
 metadata:
@@ -59,7 +59,7 @@ spec:
       ports:
         - containerPort: 8086
           hostPort: 8086
-{% endcodeblock %}
+{{< / highlight-caption >}}
 
 The hostPort feature allows to expose a single container port on the host IP. Using the hostPort to expose an application to the outside of the Kubernetes cluster has the same drawbacks as the hostNetwork approach discussed in the previous section. The host IP can change when the container is restarted, two containers using the same hostPort cannot be scheduled on the same node and the usage of the hostPort is considered a privileged operation on OpenShift.
 
@@ -69,7 +69,7 @@ What is the hostPort used for? For example, the nginx based [Ingress controller]
 
 The `NodePort` setting applies to the Kubernetes services. By default Kubernetes services are accessible at the ClusterIP which is an internal IP address reachable from inside of the Kubernetes cluster only. The ClusterIP enables the applications running within the pods to access the service. To make the service accessible from outside of the cluster a user can create a service of type NodePort. At first, let's review the definition of the pod that we'll expose using a NodePort service:
 
-{% codeblock lang:yaml influxdb-pod.yml %}
+{{< highlight-caption lang="yaml" linenos="table" title="influxdb-pod.yml" >}}
 apiVersion: v1
 kind: Pod
 metadata:
@@ -82,11 +82,11 @@ spec:
       image: influxdb
       ports:
         - containerPort: 8086
-{% endcodeblock %}
+{{< / highlight-caption >}}
 
 When creating a NodePort service, the user can specify a port from the range 30000-32767, and each Kubernetes node will proxy that port to the pods selected by the service. A sample definition of a NodePort service looks as follows:
 
-{% codeblock lang:yaml influxdb-nodeport.yml %}
+{{< highlight-caption lang="yaml" linenos="table" title="influxdb-nodeport.yml" >}}
 kind: Service
 apiVersion: v1
 metadata:
@@ -98,13 +98,13 @@ spec:
       nodePort: 30000
   selector:
     name: influxdb
-{% endcodeblock %}
+{{< / highlight-caption >}}
 
 Note that on OpenShift more privileges are required to create a NodePort service. After the service has been created, the kube-proxy component that runs on each node of the Kubernetes cluster and listens on all network interfaces is instructed to accept connections on port 30000. The incoming traffic is forwarded by the kube-proxy to the selected pods in a round-robin fashion. You should be able to access the InfluxDB application from outside of the cluster using the command:
 
-{% codeblock lang:sh %}
+{{< highlight shell "linenos=table" >}}
 $ curl -v http://kubenode01.example.com:30000/ping
-{% endcodeblock %}
+{{< / highlight >}}
 
 The NodePort service represents a static endpoint through which the selected pods can be reached. If you prefer serving your application on a different port than the 30000-32767 range, you can deploy an external load balancer in front of the Kubernetes nodes and forward the traffic to the NodePort on each of the Kubernetes nodes. This gives you an extra resiliency for the case that some of the Kubernetes nodes becomes unavailable, too. If you're hosting your Kubernetes cluster on one of the supported cloud providers like AWS, Azure or GCE, Kubernetes can provision an external load balancer for you. We'll take a look at how to do it in the next section.
 
@@ -112,7 +112,7 @@ The NodePort service represents a static endpoint through which the selected pod
 
 The `LoadBalancer` setting applies to the Kubernetes service. In order to be able to create a service of type LoadBalancer, a cloud provider has to be enabled in the configuration of the Kubernetes cluster. As of version 1.6, Kubernetes can provision load balancers on AWS, Azure, CloudStack, GCE and OpenStack. Here is an example definition of the LoadBalancer service:
 
-{% codeblock lang:yaml influxdb-loadbalancer.yml %}
+{{< highlight-caption lang="yaml" linenos="table" title="influxdb-loadbalancer.yml" >}}
 kind: Service
 apiVersion: v1
 metadata:
@@ -123,31 +123,31 @@ spec:
     - port: 8086
   selector:
     name: influxdb
-{% endcodeblock %}
+{{< / highlight-caption >}}
 
 Let's take a look at what Kubernetes created for us:
 
-{% codeblock lang:sh %}
+{{< highlight shell "linenos=table" >}}
 $ kubectl get svc influxdb
 NAME       CLUSTER-IP     EXTERNAL-IP     PORT(S)          AGE
 influxdb   10.97.121.42   10.13.242.236   8086:30051/TCP   39s
-{% endcodeblock %}
+{{< / highlight >}}
 
 In the command output we can read that the influxdb service is internally reachable at the ClusterIP 10.97.121.42. Next, Kubernetes allocated a NodePort 30051. Because we didn't specify a desired NodePort number, Kubernetes picked one for us. We can check the reachability of the InfluxDB application through the NodePort with the command:
 
-{% codeblock lang:sh %}
+{{< highlight shell "linenos=table" >}}
 $ curl -v http://kubenode01.example.com:30051/ping
-{% endcodeblock %}
+{{< / highlight >}}
 
 Finally, Kubernetes reached out to the cloud provider to provision a load balancer. The VIP of the load balancer is 10.13.242.236 as it is shown in the command output. Now we can access the InfluxDB application through the load balancer like this:
 
-{% codeblock lang:sh %}
+{{< highlight shell "linenos=table" >}}
 $ curl -v http://10.13.242.236:8086/ping
-{% endcodeblock %}
+{{< / highlight >}}
 
 My cloud provider is OpenStack. Let's examine how the provisioned load balancer on OpenStack looks like:
 
-{% codeblock lang:sh %}
+{{< highlight shell "linenos=table" >}}
 $ neutron lb-vip-show 9bf2a580-2ba4-4494-93fd-9b6969c55ac3
 +---------------------+--------------------------------------------------------------+
 | Field               | Value                                                        |
@@ -198,7 +198,7 @@ $ neutron lb-member-list
 | 3f73d3bb-bc40-478d-8d0e-df05cdfb9734 | 10.13.241.89 |         30051 |      1 | True           | ACTIVE |
 | d0825cc2-46a3-43bd-af82-e9d8f1f85299 | 10.13.241.10 |         30051 |      1 | True           | ACTIVE |
 +--------------------------------------+--------------+---------------+--------+----------------+--------+
-{% endcodeblock %}
+{{< / highlight >}}
 
 Kubernetes created a TCP load balancer with the VIP 10.13.242.236 and port 8086. There are two pool members associated with the load balancer: 10.13.241.89 and 10.13.241.10. These are the IP addresses of the nodes in my two-node Kubernetes cluster. The traffic is forwarded to the NodePort 30051 of these two nodes.
 
@@ -212,7 +212,7 @@ The Kubernetes Ingress provides features typical for a load balancer: HTTP routi
 
 Let's expose our InfluxDB application to the outside world via Ingress. An example Ingress definition looks like this:
 
-{% codeblock lang:yaml influxdb-ingress.yml %}
+{{< highlight-caption lang="yaml" linenos="table" title="influxdb-ingress.yml" >}}
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
@@ -225,13 +225,13 @@ spec:
           - backend:
               serviceName: influxdb
               servicePort: 8086
-{% endcodeblock %}
+{{< / highlight-caption >}}
 
 Our DNS is setup to resolve \*.kube.example.com to the IP address 10.13.241.10. This is the IP address of the Kubernetes node where the Ingress controller is running. As we already mentioned when discussing the hostPort, the Ingress listens for the incoming connections on two hostPorts 80 and 443 for the HTTP and HTTPS requests, respectively. Let's check that we can reach the InfluxDB application via Ingress:
 
-{% codeblock lang:sh %}
+{{< highlight shell "linenos=table" >}}
 $ curl -v http://influxdb.kube.example.com/ping
-{% endcodeblock %}
+{{< / highlight >}}
 
 When everything is setup correctly, the InfluxDB will respond with HTTP 204 No Content.
 

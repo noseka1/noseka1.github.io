@@ -15,31 +15,31 @@ Docker is not part of the stable Jessie distribution, however, you can install i
 
 We start off with creating a Docker image based on the `debian:wheezy` image from the official Docker repositories. We'll install the 32-bit Wine package on it. The Wine application is a graphical application and hence requires access to the X server. Setting the environmet variable `DISPLAY=:0` instructs the application to access the local X server. The complete `Dockerfile` to build our Wine image looks as follows:
 
-{% codeblock lang:sh Dockerfile %}
+{{< highlight-caption lang="docker" linenos="table" title="Dockerfile" >}}
 FROM debian:wheezy
 RUN dpkg --add-architecture i386
 RUN apt-get update
 RUN apt-get install --no-install-recommends --assume-yes wine
 ENV DISPLAY :0
-{% endcodeblock %}
+{{< / highlight-caption >}}
 
 You can kick off the build of the `wine1.4` image with:
 
-{% codeblock lang:sh %}
+{{< highlight shell "linenos=table" >}}
 $ docker build --rm -t wine1.4 .
-{% endcodeblock %}
+{{< / highlight >}}
 
 After a minute or two the build is complete and the resulting image is stored locally on your Docker host. You can take a look using the `docker images` command:
-{% codeblock lang:sh %}
+{{< highlight shell "linenos=table" >}}
 $ docker images | grep wine1.4
 wine1.4                   latest              b300b8573303        About a minute ago   271.3 MB
-{% endcodeblock %}
+{{< / highlight >}}
 
 ## Running Wine within a Docker container
 
 To test our `wine1.4` Docker image, we'll run the `notepad` application which comes with Wine:
 
-{% codeblock lang:sh %}
+{{< highlight shell "linenos=table" >}}
 $ docker run --rm wine1.4 wine "C:\windows\system32\notepad.exe"
 wine: created the configuration directory '/root/.wine'
 Application tried to create a window, but no driver could be loaded.
@@ -53,13 +53,13 @@ Application tried to create a window, but no driver could be loaded.
 Make sure that your X server is running and that $DISPLAY is set correctly.
 
 ....
-{% endcodeblock %}
+{{< / highlight >}}
 
 The `notepad` application doesn't really start. From the generated error output we can see that our application is unable to access the X server. Well, there's no X server running inside the container. In order to allow the application running inside the container to access the X server running on the Docker host, we'll expose the host's X server UNIX domain socket inside the container. We can ask Docker to bind mount the `/tmp/.X11-unix/X0` UNIX socket to the same location inside the container using the `--volume` parameter:
 
-{% codeblock lang:sh %}
+{{< highlight shell "linenos=table" >}}
 $ docker run --rm --volume /tmp/.X11-unix/X0:/tmp/.X11-unix/X0 wine1.4 wine "C:\windows\system32\notepad.exe"
-{% endcodeblock %}
+{{< / highlight >}}
 
 When we run the above command, Wine starts up successfully and the notepad application opens up. Inside the Docker container Wine runs as user root and starts from scratch with no existing configuration:
 
@@ -67,17 +67,18 @@ When we run the above command, Wine starts up successfully and the notepad appli
 
 We would like Wine running inside the Docker container to use the existing Wine configuration stored on the Docker host. Let's copy the existing Wine configuration on the host to a new directory which we'll in turn expose inside the Docker container:
 
-{% codeblock lang:sh %}
+{{< highlight shell "linenos=table" >}}
 $ cd ~
 $ cp -a .wine .wine.docker
-{% endcodeblock %}
+{{< / highlight >}}
 
 The `.wine.docker` directory can be exposed inside the Docker container  with the command-line parameter `--volume /home/anosek/.wine.docker:/home/anosek/.wine`. The Wine configuration in `.wine.docker` is in my case owned by the user `anosek`. We want Docker to run as user `anosek` instead of the default `root` user. In order to accomplish this, two additional parameters to the Docker `run` command are needed: `--volume /etc/passwd:/etc/passwd` and `--user anosek`. We're bind mounting the `/etc/passwd` file including the definition of user `anosek` inside the Docker container and asking Docker to run as user `anosek`.
 
 The complete command to run Wine inside the Docker container as user `anosek` and using the existing Wine configuration found in the `/home/anosek/.wine.docker` directory on the host looks as follows:
-{% codeblock lang:sh %}
+
+{{< highlight shell "linenos=table" >}}
 $ docker run --rm --volume /tmp/.X11-unix/X0:/tmp/.X11-unix/X0 --volume /home/anosek/.wine.docker:/home/anosek/.wine --volume /etc/passwd:/etc/passwd --user anosek wine1.4 wine "C:\windows\system32\notepad.exe"
-{% endcodeblock %}
+{{< / highlight >}}
 
 ## Conclusion
 

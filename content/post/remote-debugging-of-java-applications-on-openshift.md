@@ -27,17 +27,17 @@ Let's deploy a Hello world application that I found on [GitHub](https://github.c
 
 First, issue this command to build an S2I builder image for Vert.x applications:
 
-{% codeblock lang:sh %}
+{{< highlight shell "linenos=table" >}}
 $ oc create -f https://raw.githubusercontent.com/vert-x3/vertx-openshift-s2i/master/vertx-s2i-all.json
 buildconfig.build.openshift.io/vertx-s2i created
 imagestream.image.openshift.io/vertx-centos created
 imagestream.image.openshift.io/vertx-s2i created
 template.template.openshift.io/vertx-helloworld-maven created
-{% endcodeblock %}
+{{< / highlight >}}
 
 OpenShift started the build of the builder image and you can follow the progress with:
 
-{% codeblock lang:sh %}
+{{< highlight shell "linenos=table" >}}
 $ oc log -f bc/vertx-s2i
 
 ...
@@ -54,11 +54,11 @@ Pushed 6/8 layers, 97% complete
 Pushed 7/8 layers, 99% complete
 Pushed 8/8 layers, 100% complete
 Push successful
-{% endcodeblock %}
+{{< / highlight >}}
 
 At the end of the build process OpenShift pushed the new image into the integrated Docker registry. Next, we are going to use the builder image to build and run a sample Vert.x application:
 
-{% codeblock lang:sh %}
+{{< highlight shell "linenos=table" >}}
 $ oc new-app vertx-helloworld-maven
 --> Deploying template "myproject/vertx-helloworld-maven" to project myproject
 
@@ -86,11 +86,11 @@ $ oc new-app vertx-helloworld-maven
     Build scheduled, use 'oc logs -f bc/hello-world' to track its progress.
     Access your application via route 'hello-world-myproject.192.168.42.115.nip.io'
     Run 'oc status' to view your app.
-{% endcodeblock %}
+{{< / highlight >}}
 
 You can follow the build logs by issuing the command:
 
-{% codeblock lang:sh %}
+{{< highlight shell "linenos=table" >}}
 $ oc log -f bc/hello-world
 
 ...
@@ -113,15 +113,15 @@ Pushing image 172.30.1.1:5000/myproject2/hello-world:latest ...
 Pushed 0/9 layers, 2% complete
 Pushed 1/9 layers, 11% complete
 Push successful
-{% endcodeblock %}
+{{< / highlight >}}
 
 If everything went fine, you should be able to see the Hello world application running:
 
-{% codeblock lang:sh %}
+{{< highlight shell "linenos=table" >}}
 $ oc get pod | grep hello-world
 hello-world-1-build   0/1       Completed    0          6m
 hello-world-1-dw5lf   1/1       Running      0          42s
-{% endcodeblock %}
+{{< / highlight >}}
 
 ## Enabling Debug and JMX ports on JVM
 
@@ -129,20 +129,20 @@ In the following, I am going to use OpenJDK 1.8. Note that the available JVM opt
 
 To enable a remote debug port on JVM, one has to pass the following option to the JVM:
 
-{% codeblock %}
+{{< highlight plaintext "linenos=table" >}}
 -agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=n
-{% endcodeblock %}
+{{< / highlight >}}
 
 In order to enable JMX, the following JVM options are needed:
 
-{% codeblock %}
+{{< highlight plaintext "linenos=table" >}}
 -Dcom.sun.management.jmxremote=true
 -Dcom.sun.management.jmxremote.port=3000
 -Dcom.sun.management.jmxremote.rmi.port=3001
 -Djava.rmi.server.hostname=127.0.0.1
 -Dcom.sun.management.jmxremote.authenticate=false
 -Dcom.sun.management.jmxremote.ssl=false
-{% endcodeblock %}
+{{< / highlight >}}
 
 This set of options deserves a bit more explanation. By default, JMX utilizes RMI as the underlying technology for the communication between the JMX client and the remote JVM. And as a matter of fact, there are two RMI ports needed for this communication:
 * RMI registry port
@@ -152,13 +152,13 @@ At the beginning, the client connects to the RMI registry on port 3000 and looks
 
 Next, we need to convey our configuration options to the JVM running inside the OpenShift pod. It turns out that there exists an environment variable `JAVA_TOOL_OPTIONS` that is interpreted directly by the JVM and where you can put your JVM configuration options. I recommend using this variable as there is a great chance that this variable will work no matter how deep in your wrapper scripts you are launching the JVM. Go ahead and modify the DeploymentConfig or Pod descriptor of your application in OpenShift to add the `JAVA_TOOL_OPTIONS` variable. For example, you can open the DeloymentConfig for editing like this:
 
-{% codeblock lang:sh %}
+{{< highlight shell "linenos=table" >}}
 $ oc edit dc hello-world
-{% endcodeblock %}
+{{< / highlight >}}
 
 ... and add the `JAVA_TOOL_OPTIONS` environment variable to the container section of the specification:
 
-{% codeblock %}
+{{< highlight yaml "linenos=table" >}}
 ...
 
     spec:
@@ -171,15 +171,15 @@ $ oc edit dc hello-world
             -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false
 
 ...
-{% endcodeblock %}
+{{< / highlight >}}
 
 After applying the above changes, OpenShift will redeploy the application pod. At startup, JVM will print out the following line to the stderr which will show up in the container logs:
 
 
-{% codeblock lang:sh %}
+{{< highlight shell "linenos=table" >}}
 $ oc logs dc/hello-world | grep JAVA_TOOL_OPTIONS
 Picked up JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=n -Dcom.sun.management.jmxremote=true -Dcom.sun.management.jmxremote.port=3000 -Dcom.sun.management.jmxremote.rmi.port=3001 -Djava.rmi.server.hostname=127.0.0.1 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false
-{% endcodeblock %}
+{{< / highlight >}}
 
 This verifies that our JVM options are in effect and the debug port and JMX ports are open. How are we going to connect to these ports? Let's set up port forwarding on the local machine next.
 
@@ -187,18 +187,18 @@ This verifies that our JVM options are in effect and the debug port and JMX port
 
 OpenShift features [port forwarding](https://docs.okd.io/latest/dev_guide/port_forwarding.html) that allows you to connect to an arbitrary port of a pod running on OpenShift. Port forwarding doesn't require you to define any additional objects like Service or Route to enable it. What you need though is to start a port forwarding proxy on your local machine. Issue the following command on your local machine to start the proxy and forward the three ports 8000, 3000, and 3001 to the remote pod running on OpenShift:
 
-{% codeblock lang:sh %}
+{{< highlight shell "linenos=table" >}}
 $ oc port-forward <POD> 8000 3000 3001
-{% endcodeblock %}
+{{< / highlight >}}
 
 In the above command, remember to replace `<POD>` with the name of your application pod. If everything worked well, you should see the following output :
 
-{% codeblock lang:sh %}
+{{< highlight shell "linenos=table" >}}
 $ oc port-forward hello-world-2-55zlq 8000 3000 3001
 Forwarding from 127.0.0.1:8000 -> 8000
 Forwarding from 127.0.0.1:3000 -> 3000
 Forwarding from 127.0.0.1:3001 -> 3001
-{% endcodeblock %}
+{{< / highlight >}}
 
 Note that the proxy keeps running on the foreground.
 
@@ -206,13 +206,13 @@ Note that the proxy keeps running on the foreground.
 
 Having our port-forwarding proxy all set, let's fire up a debugger and attach it to our application. Note that we instruct the debugger to connect to the localhost on port 8000. This port is in turn forwarded to the port 8000 on the JVM:
 
-{% codeblock lang:sh %}
+{{< highlight shell "linenos=table" >}}
 $ jdb -connect com.sun.jdi.SocketAttach:hostname=localhost,port=8000
-{% endcodeblock %}
+{{< / highlight >}}
 
 After the debugger attaches, you can list existing JVM threads using the `threads` command:
 
-{% codeblock %}
+{{< highlight plaintext "linenos=table" >}}
 > threads
 Group system:
   (java.lang.ref.Reference$ReferenceHandler)0x133a                                             Reference Handler                                   cond. waiting
@@ -226,13 +226,13 @@ Group main:
   (io.vertx.core.impl.VertxThread)0x1343                                                       vert.x-worker-thread-0                              cond. waiting
 
 ...
-{% endcodeblock %}
+{{< / highlight >}}
 
 Next, let's check out if we can attach [VisualVM](https://visualvm.github.io/) to our application as well:
 
-{% codeblock lang:sh %}
+{{< highlight shell "linenos=table" >}}
 $ visualvm --openjmx localhost:3000
-{% endcodeblock %}
+{{< / highlight >}}
 
 Works like a charm, doesn't it?
 

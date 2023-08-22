@@ -19,7 +19,7 @@ After a while working with the Python code, I created the `ini_file2` module. Th
 
 Let's compare the `ini_file` and `ini_file2` on a practical example. Our input INI file looks as follows:
 
-{% codeblock lang:ini %}
+{{< highlight ini "linenos=table" >}}
 # This is the main configuration section
 # There are some important options to configure
 [main]
@@ -33,11 +33,11 @@ option1 = orig_value
 # This is the last option
 # If not set, the default value is def_value
 option3 = some_value
-{% endcodeblock %}
+{{< / highlight >}}
 
 The Ansible test script will set the `option1` and `option2` to `new_value` and it will remove the `option3` from the INI file:
 
-{% codeblock %}
+{{< highlight yaml "linenos=table" >}}
 - name: Set option1 to new_value
   ini_file: dest=settings.ini section=main option=option1 value=new_value
 
@@ -46,20 +46,20 @@ The Ansible test script will set the `option1` and `option2` to `new_value` and 
 
 - name: Remove option3
   ini_file: dest=settings.ini section=main option=option3 state=absent
-{% endcodeblock %}
+{{< / highlight >}}
 
 When using the original `ini_file` module, the resulting INI file looks like this:
 
-{% codeblock lang:ini %}
+{{< highlight ini "linenos=table" >}}
 [main]
 option1 = new_value
 option2 = new_value
 
-{% endcodeblock %}
+{{< / highlight >}}
 
 You can see that there's not much left from the input file. All comments are gone. In contrast, the `ini_file2` module does the editing operations with more precision:
 
-{% codeblock lang:ini %}
+{{< highlight ini "linenos=table" >}}
 # This is the main configuration section
 # There are some important options to configure
 [main]
@@ -73,7 +73,7 @@ option2 = new_value
 # This is the last option
 # If not set, the default value is def_value
 #option3 = some_value
-{% endcodeblock %}
+{{< / highlight >}}
 
 ## References
 
