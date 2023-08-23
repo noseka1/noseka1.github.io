@@ -15,7 +15,7 @@ On Debian Linux, the Ansible's built-in `ini_file` module can be found at `/usr/
 
 After a while working with the Python code, I created the `ini_file2` module. This module provides an equivalent functionality to the original `ini_file` module, however, it does only the minimum changes when editing the INI file. It typically modifies only one line. When removing options, it doesn't delete the lines but comment them out instead. If there was a commented out option it comments it in when required.
 
-## The ini_file and ini_file2 comparison
+# The ini_file and ini_file2 comparison
 
 Let's compare the `ini_file` and `ini_file2` on a practical example. Our input INI file looks as follows:
 
@@ -75,6 +75,6 @@ option2 = new_value
 #option3 = some_value
 {{< / highlight >}}
 
-## References
+# References
 
 The `ini_file2` source code as well as test scripts can be found at [GitHub](https://github.com/noseka1/ini_file2 "ini_file2").

@@ -11,7 +11,7 @@ This article is the first in a series of three articles which share my experienc
 
 Programming with Vert.x requires a good understanding of its event loop model. From what I saw in practice, delayed or blocked event loop threads are the number one contributor to performance problems with Vert.x applications. But don't worry. In this article, we are going to review the event loop model.
 
-## Event loop theads and worker threads
+# Event loop theads and worker threads
 
 Depending on how you register your handler with Vert.x APIs, Vert.x will either execute your handler using an event loop thread or a worker thread. There are only these two options in Vert.x. The determination whether the handler is going to be executed on an event loop thread or a worker thread is made at the time you register the handler and doesn't change throughout the lifetime of your application. Take a look at this example:
 
@@ -41,7 +41,7 @@ Event loop frameworks like Vert.x employ a small amount of event loop threads at
 
 The increased utilization of computing resources resulting in increased performance is a great benefit that event loop frameworks bring to the table. However, there are situations where employing worker threads is inevitable. We are going to show you some examples of such situations in the second article of this series. Just keep in mind that an excessive use of worker threads results in frequent context switching which will impact the overall performance of your application. This context switching negates the benefit of employing event loop frameworks like Vert.x in the first place.
 
-## Taking the event loop for a spin
+# Taking the event loop for a spin
 
 The whole purpose of the event loop is to react to events which are delivered to the event loop by the operating system. Event loop processes those events by executing handlers. To explain how the event loop operates, let's imagine a typical HTTP server application serving multiple client connections at the same time. There's data being sent back and forth between the server and the client on each of the connections. And here is how the event loop handles it. First, the event loop waits for any of the events like incoming data available on the connection, or connection is ready to send more data. If any of those events happens, the event loop executes handlers that were registered to handle that specific event. For example, if there is incoming data available, the event loop calls the respective handler that stores the incoming data into a buffer and passes that buffer through a chain of handlers to your handler to process it. Handlers registered with a given event loop are executed one by one because the event loop is a single thread after all. After the processing of the event is finished, event loop returns back to wait for the next event.
 
@@ -80,7 +80,7 @@ Vert.x tool-kit is built on top of [Netty](https://netty.io/) framework and the 
 
 Interestingly, while blocking in the `epoll_wait` system call, from the Java standpoint the thread is in a `RUNNABLE` state and not for example in the state `BLOCKED` which I would intuitively expect. JVM as an abstraction on top of the operating system has its own [definition of thread states](https://docs.oracle.com/javase/8/docs/api/java/lang/Thread.State.html). According to this definition the thread is indeed in the `RUNNABLE` state even when from the stand point of the operating system it is in the state *interruptible sleep* and hence blocked.
 
-## Conclusion
+# Conclusion
 
 In this article, we familiarized ourselves with the event loop model which is rather different from the thread-per-request model. The [next part](/blog/2019/07/22/troubleshooting-the-performance-of-vert-dot-x-applications-preventing-event-loop-delays/) in the series will cover techniques to prevent delays on the event loop.
 

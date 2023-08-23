@@ -11,7 +11,7 @@ Last week, I had the pleasure of attending Red Hat Summit 2018. It was hosted at
 
 You can view video recordings of the general sessions as well as a selection of the breakout sessions on [YouTube](https://www.youtube.com/user/redhatsummit).
 
-## Major announcements
+# Major announcements
 
 [Red Hat OpenShift on Azure](https://www.redhat.com/en/about/press-releases/red-hat-and-microsoft-co-develop-first-red-hat-openshift-jointly-managed-service-public-cloud). Red Hat and Microsoft are introducing OpenShift as a fully managed service on Azure. This brings customers the possibility to freely move workloads between their on-premise OpenShift clusters and Azure. Many of the Azure services will be accessible from within OpenShift via the Service Catalog. In the future, Windows containers will be supported alongside Linux containers. Support for Red Hat OpenShift on Azure will be provided by both Red Hat and Microsoft.
 
@@ -21,7 +21,7 @@ Both major announcements go along with the Red Hat's vision of the future being 
 
 > Hybrid cloud is the only practical way forward.
 
-## Sessions attended
+# Sessions attended
 
 - **CoreOS and Red Hat**
   - After Red Hat [acquired](https://www.redhat.com/en/about/press-releases/red-hat-acquire-coreos-expanding-its-kubernetes-and-containers-leadership) CoreOS in January this year, developers from both companies are busy with merging features of CoreOS Tectonic into Red Hat OpenShift. While CoreOS Tectonic was focused on operators, Red Hat OpenShift was more oriented toward developers. After the merge is completed, Red Hat OpenShift should become a product with a strong appeal to both operators and developers.
@@ -45,7 +45,7 @@ Both major announcements go along with the Red Hat's vision of the future being 
 - **Intelligent applications on OpenShift from prototype to production**
   - OpenShift is entering the big data arena. This was an introductory talk about running Spark on OpenShift for machine learning. If you are interested to run data analysis on OpenShift, check out the [rad analytics](https://radanalytics.io/) project.
 
-## Some photos from the event
+# Some photos from the event
 
 {{< figure src="/images/posts/redhatsummit2018/keynote.jpeg" class="center" >}}
 

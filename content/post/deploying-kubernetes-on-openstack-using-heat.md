@@ -15,7 +15,7 @@ In this tutorial, there are three OpenStack virtual machines involved. The first
 
 The Kubernetes installer machine and both of the Kubernetes machines run on the CentOS-7-x86_64-GenericCloud-1605 image. You can download this image from the [CentOS image repository](http://cloud.centos.org/centos/7/images/). After I uploaded the CentOS 7 image into OpenStack, it has been assigned ID `17e4e783-321c-48c1-9308-6f99d67c5fa6` for me.
 
-## Building Kubernetes from source
+# Building Kubernetes from source
 
 First off, let's spin up a Kubernetes installer machine in OpenStack. I recommend using the `m1.large` flavor that comes with 8 GB of RAM. The compilation of Kubernetes is rather memory intensive.
 
@@ -59,7 +59,7 @@ $ make quick-release
 
 After about 15 minutes when the build was successful, you'll find the distribution tarballs `kubernetes.tar.gz` and `kubernetes-salt.tar.gz` in the `_output/release-tars` directory.
 
-## Setting up the OpenStack CLI tools
+# Setting up the OpenStack CLI tools
 
 The Kubernetes installer uses the OpenStack CLI tools to talk to OpenStack in order to create a Kubernetes cluster. Before you can install the OpenStack CLI tools on CentOS 7, you have to enable the OpenStack Mitaka RPM repository:
 
@@ -84,7 +84,7 @@ You should be able to talk to OpenStack now. For example, check if you can list 
 $ openstack network list
 {{< / highlight >}}
 
-## Configuring the Kubernetes installer
+# Configuring the Kubernetes installer
 
 In this section, we're going to more or less follow the instructions found in the chapter [OpenStack Heat](http://kubernetes.io/docs/getting-started-guides/openstack-heat/) of the Kubernetes documentation.
 
@@ -151,7 +151,7 @@ subnet-id=73f8eb91-90cf-42f4-85d0-dcff44077313
 
 Besides adding the `LoadBalancer` section, I also appended the `domain-name` option to the end of the `Global` section, as in my OpenStack environment I want to authenticate against a non-default Keystone V3 domain.
 
-## Installing the Kubernetes cluster
+# Installing the Kubernetes cluster
 
 After you've sourced both the `openrc.sh` and `openstack-heat.sh` environment settings, you can kick off the installation of the Kubernetes cluster with:
 
@@ -169,7 +169,7 @@ All pods should be running. The network topology of the Kubernetes cluster as di
 
 {{< figure src="/images/posts/kube.png" class="center" >}}
 
-## Accessing the Kubernetes cluster
+# Accessing the Kubernetes cluster
 
 **Update 9/5/2016:**
 

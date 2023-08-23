@@ -11,7 +11,7 @@ In this article, we're going to make an entire VLAN trunk on the host accessible
 
 Our host and guest machines are running RHEL7. We're using Linux bridges and [libvirt](http://libvirt.org/ "libvirt") for guest and network configuration.
 
-## Bridge configuration on the host
+# Bridge configuration on the host
 
 On the host, the physical interface `enp3s0f0` is a trunk interface including VLANs with tags 408, 410 and 412. We'll create a new Linux bridge and add the `enp3s0f0` to this bridge. The virtual machines created by libvirt will also be connected to this bridge. The configuration of the `enp3s0f0` physical interface looks as follows:
 
@@ -39,7 +39,7 @@ After the `enp3s0f0` and `br-enp3s0f0` configuration is in place you might want 
 $ sudo systemctl restart network
 {{< / highlight >}}
 
-## Creating a bridged network in libvirt
+# Creating a bridged network in libvirt
 
 Next, we're going to tell libvirt that there's an existing bridge `br-enp3s0f0` we'd like our virtual machines be connected to. First, let's create a libvirt network definition file named just `bridge.xml`:
 
@@ -77,7 +77,7 @@ $ virsh net-list
  br-enp3s0f0          active     yes           yes
 {{< / highlight >}}
 
-## Attaching a guest to the network
+# Attaching a guest to the network
 
 When creating a new guest (domain) in libvirt, you will need to attach the domain to the `br-enp3s0f0` network. I'm not going to present the complete domain XML configuration here. You should include the following snippet in your domain definition in order to connect the domain to the `br-enp3s0f0` network:
 
@@ -89,7 +89,7 @@ When creating a new guest (domain) in libvirt, you will need to attach the domai
 </interface>
 {{< / highlight >}}
 
-## Guest network configuration
+# Guest network configuration
 
 After the guest machine boots up successfully, you can create VLAN subinterfaces in order to obtain access to the individual VLANs within the guest. First, let's check the configuration of the VLAN trunk interface `eth0` inside the guest:
 
@@ -115,7 +115,7 @@ When you restart the networking service, your guest should successfully obtain a
 $ sudo systemctl restart network
 {{< / highlight >}}
 
-## Caveat
+# Caveat
 
 When experimenting with the Linux bridge configuration I made this observation: *If there's a VLAN subinterface defined for a specific VLAN on the host machine, this specific VLAN won't be accessible inside the guest.* For example, when I created the following VLAN 408 subinterface on the host:
 
@@ -134,6 +134,6 @@ $ sudo ifup enp3s0f0.408
 
 the `eth0.408` VLAN subinterface in the guest stopped working.
 
-## References
+# References
 
 When writing this blogpost I referred to the very useful article [KVM & BRCTL in Linux – bringing VLANs to the guests](http://blog.davidvassallo.me/2012/05/05/kvm-brctl-in-linux-bringing-vlans-to-the-guests/) describing the issues of VLAN bridging in a great detail.

@@ -40,7 +40,7 @@ $ curl http://localhost:8500/v1/catalog/nodes?pretty
 
 The response from Consul contains information about the single node which is what we expected.
 
-## Check-and-Set operation
+# Check-and-Set operation
 
 The purpose of the Check-and-Set operation is to avoid lost updates when multiple clients are simultaneously trying to update a value of the same key. Check-and-Set operation allows the update to happen only if the value has not been changed since the client last read it. If the current value does not match what the client previously read, the client will receive a conflicting update error message and will have to retry the read-update cycle.
 
@@ -110,7 +110,7 @@ true
 
 There are two more comments to add. First, the lock we implemented is purely advisory. All the clients working with the lock have to follow the same rules for the lock to function properly. Each client has to check that the lock was not acquired by somebody else before trying to acquire it. A misbehaved client can easily break the lock. Second, if the client holding the lock fails to release it (e.g. client crashes before releasing the lock), the lock will remain locked and no other client will be able to acquire it. More robust locks that are automatically released in the case of client failure can be implemented using the Consul's [sessions](https://www.consul.io/docs/internals/sessions.html) along with the acquire and release operations.
 
-## Leveraging the parameter cas=0
+# Leveraging the parameter cas=0
 
 In our lock implementation, we created an opened lock first and the lock acquisition comprised of two steps. In the first step, the client read the current `ModifyIndex` of the lock. In the second step, the client tried to update the lock while passing the `ModifyIndex` as a `cas` query parameter. When implementing the lock, we could have alternatively leveraged the fact that if the `cas` parameter is set to `0`, Consul will only create the key in the key-value store if it does not already exist. The state of our lock would then correspond to the existence or non-existence of the respective key in the key-value store. In order to acquire the lock, the client would send a request to create the key:
 
@@ -126,7 +126,7 @@ $ curl --request DELETE localhost:8500/v1/kv/mykey2
 true
 {{< / highlight >}}
 
-## Transactions
+# Transactions
 
 [Transactions](https://www.consul.io/api/txn.html) in Consul manage updates or selects of multiple keys within a single, atomic transaction. A list of operations that will be executed in the transaction is specified in the body of the HTTP request. First, let's create a list of operations and save it as a file `transaction1.txt`:
 
@@ -231,7 +231,7 @@ $ ./consul kv get bar
 
 As expected, due to the failed udpate the entire transaction has been rolled back. Keys `foo` and `bar` retained their original values `1` and `2`.
 
-## Conclusion
+# Conclusion
 
 In this blog post, we explored the Check-and-Set operation supported by Consul and used it to implement a simple distributed lock. In the second part of the article, we poked into the transaction capabilities of Consul.
 

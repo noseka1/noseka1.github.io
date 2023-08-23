@@ -13,7 +13,7 @@ If you are developing a distributed application that consists of multiple servic
 
 Consul is an open-source product developed by [HashiCorp](https://www.hashicorp.com/) and licensed under the [MPL 2.0](https://github.com/hashicorp/consul/blob/master/LICENSE). While Consul uses an open core business model, it comes with a great deal of functionality in its free edition. The top two features of Consul would be the service discovery combined with health checking and the key-value store functionality that we are going to review in this article. They both come handy when building distributed applications.
 
-## Getting started
+# Getting started
 
 HashiCorp products are known for its thorough documentation and the Consul's [documenation](https://www.consul.io/docs/index.html) is not an exception.
 
@@ -73,7 +73,7 @@ Node     Address         Status  Type    Build  Protocol  DC
 zihadlo  127.0.0.1:8301  alive   server  0.8.5  2         dc1
 {{< / highlight >}}
 
-## Basic CRUD with Consul
+# Basic CRUD with Consul
 
 In this section, we're going to exercise the basic Create, Read, Update and Delete functionality of the Consul key-store. First, let's store the value `12345` under the key `foo`:
 
@@ -119,7 +119,7 @@ $ ./consul kv get foo
 Error! No key exists at: foo
 {{< / highlight >}}
 
-## Hierarchical keys and prefix matching
+# Hierarchical keys and prefix matching
 
 Keys in Consul can be organized in a hierarchy where different levels of the hierarchy are separated by the slash character (`/`). For example, you can create a database that holds the population numbers in different continents and countries (in millions of inhabitants) like this:
 
@@ -165,7 +165,7 @@ $ ./consul kv get -recurse europe/g
 europe/germany:82.67
 {{< / highlight >}}
 
-## Export/import of key-value pairs
+# Export/import of key-value pairs
 
 Another useful feaure of the Consul's key-value store is the bulk export and import of key-value pairs. To export the entire key-value store database, you can type:
 
@@ -227,13 +227,13 @@ $ ./consul kv export europe
 
 To import the JSON-formatted data back to the Consul key-value store, you can use the command `./consul kv import`.
 
-## Web UI
+# Web UI
 
 Besides the commmand-line client, you can access Consul through its beautiful Web interface. Point your web browser to [http://localhost:8500](http://localhost:8500).
 
 {{< figure src="/images/posts/consul_ui.png" class="right" >}}
 
-## Conclusion
+# Conclusion
 
 In this blog post, we reviewed the basics of the key-value store in Consul. There are many other cool features of the key-value store that we didn't cover like atomic key updates using Check-and-Set operations, [transactions](https://www.consul.io/api/txn.html), [locks](https://www.consul.io/docs/commands/lock.html) or [watches](https://www.consul.io/docs/commands/watch.html). Also, I recommend to you to take a look at the Consul's great [RESTful API](https://www.consul.io/api/index.html) that allows you to interact with Consul programatically.
 

@@ -13,7 +13,7 @@ In this article, we are going to assume that we're dealing with a multi-tenant c
 
 {{< figure src="/images/posts/edge_security_for_your_cloud_application_soa.svg" height="800" width="1000" class="center" alt="SOA architecture" >}}
 
-## Requirements
+# Requirements
 
 Before we start walking through the design, let's take a look at the set of requirements that drove the design decisions:
 
@@ -25,14 +25,14 @@ Before we start walking through the design, let's take a look at the set of requ
 
 4. And last but not least, we would like to avoid the need to establish a VPN connection between the client machine and the cloud. In practice, setting up a VPN connection requires quite invasive configuration of the client operating system. For our application tenants (our customers) this would impose a barrier that would hurt the adoption of our cloud application. Something we definitely don't want.
 
-## The edge layer
+# The edge layer
 
 SSL/TLS is a family of security protocols that many VPNs rely upon. Currently, the TLS protocol is considered to be one of the strongest and most mature security protocols available. It was a clear choice for us to leverage the TLS protocol for communication between the clients and servers including the mutual authentication using PKI certificates. Finally, here is a diagram showing the edge layer of our cloud application in detail:
 
 {{< figure src="/images/posts/edge_security_for_your_cloud_application_server.svg" height="800" width="1000" class="center" alt="The edge layer" >}}
 
 
-## Internet-facing ELB
+# Internet-facing ELB
 
 Interestingly, AWS Elastic load balancers don't support client certificate authentication. Both, Classic load balancer and Application load balancer, support TLS offloading where they can terminate the TLS connection for you. However, they are not able to authenticate the client certificate and they also don't allow forwarding the certificate details to the backend application which could carry out the authentication by itself. In order to implement the client certificate authentication, you are pretty much left with two options: you can either use the Classic load balancer in the TCP mode, or you can employ the Network load balancer which operates on the TCP level. In both cases, the Elastic load balancer just passes the TLS connection through to your EC2 instances where you have to terminate and authenticate the TLS connection yourself. As the connection between ELB and the EC2 instances remains encrypted, you are gaining a plus from the security standpoint, too.
 
@@ -40,7 +40,7 @@ While ELB doesn't authenticate clients, it plays an important role in our archit
 
 Btw., Amazon API Gateway doesn't support client certificate authentication either and so is less helpful for our scenario.
 
-## Reverse proxy on edge instances
+# Reverse proxy on edge instances
 
 Depending on your architecture, your edge services may or may not have a support for accepting TLS connections built in. I personally see the connection security to be a job for the infrastructure and would vote against implementing the TLS support in your application services. Here are some concrete arguments why to terminate the TLS connection outside of your application services:
 
@@ -54,7 +54,7 @@ Instead of handling TLS in your application services, I would recommend deployin
 
 You should deploy the reverse proxy on the same instance with your edge service. This way, the decrypted communication between the proxy and your service will never leave the instance. In order to capture the decrypted traffic, one would need to have a root access on the instance. The possibility to capture the communication in the clear will come handy when troubleshooting, though.
 
-## The client side
+# The client side
 
 After discussing the server-side design, let's talk about the client-side part of the picture. As we mentioned in the requirements section above, our architecture has to also support clients that don't have the TLS functionality built in. In turns out that there are actually three different client types:
 
@@ -74,6 +74,6 @@ Recently, a modern [Envoy](https://www.envoyproxy.io/) proxy emerged and I would
 
 Whichever proxy you choose on the client-side, remember to deploy it in a highly available fashion. You don't want to introduce a single point of failure into your system, do you?
 
-## Conclusion
+# Conclusion
 
 In this post, we walked through the secure edge design explaining the reasoning behind the individual design decisions. In the [second blog post](/blog/2018/01/12/edge-security-for-your-cloud-application-part-ii) of this miniseries, we're going to demonstrate a practical implementation of our approach using HAProxy.

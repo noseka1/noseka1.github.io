@@ -9,7 +9,7 @@ In the [previous part](/blog/2019/10/08/open-policy-agent-part-i-the-introductio
 
 <!--more-->
 
-## Notes on Policy Design
+# Notes on Policy Design
 
 After evaluating policy rules, OPA returns a result of the policy decision to your application. This result is a JSON structure. Based on your requirements, this JSON structure can contain a single member holding a *true* or *false* (authorized/not authorized) value. However, you can create policies whose evaluation results in an arbitrarily complex JSON document. For example, OPA can return a list of nodes on which Kubernetes should schedule a workload.
 
@@ -23,7 +23,7 @@ RBAC (Role-Based Access Control) and ABAC (Attribute-Based Access Control) are t
 
 Hierarchical group permissions are commonly found in practice, e.g. parent group permissions are a superset of child group permissions. These models can be elegantly described using recursive rules. However, at the time of this writing, OPA doesn’t support [recursion in policies](https://github.com/open-policy-agent/opa/issues/947).
 
-## Developing policies
+# Developing policies
 
 While learning the OPA’s Rego language, I appreciated the built-in interactive shell (REPL) that I could use to write and test my policies instantly. Just type `opa run` and you are good to go. Alternatively, you can go on-line and utilize the [Rego Playground](https://play.openpolicyagent.org/), too.
 
@@ -35,7 +35,7 @@ OPA comes with a formatting tool `opa fmt` to format Rego policy files. You don�
 
 OPA is a relatively new project, however, additional tooling and integrations with OPA are showing up quickly. If you like to use Visual Studio Code, there is a feature-rich [VS Code plugin](https://marketplace.visualstudio.com/items?itemName=tsandall.opa) available for you. Rego syntax highlighting is available for several other editors like VIM, [Atom](https://github.com/open-policy-agent/opa/tree/master/misc/syntax/atom), and [TextMate](https://github.com/open-policy-agent/opa/tree/master/misc/syntax/textmate).
 
-## Conclusion
+# Conclusion
 
 In this blog post, I shared with you several tips and approaches for how to design policies in Open Policy Agent. In the [final article](/blog/2019/12/03/open-policy-agent-part-iii-integrating-with-your-application/) in the series we will focus on how you can integrate Open Policy Agent with your application.
 

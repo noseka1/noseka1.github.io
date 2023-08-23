@@ -9,7 +9,7 @@ Pods on Kubernetes are ephemeral and can be created and destroyed at any time. I
 
 <!--more-->
 
-## Overview
+# Overview
 
 Envoy provides several [options](https://www.envoyproxy.io/docs/envoy/v1.10.0/intro/arch_overview/service_discovery) on how to discover back-end servers. When using the [Strict DNS](https://www.envoyproxy.io/docs/envoy/v1.10.0/intro/arch_overview/service_discovery#strict-dns) option,  Envoy will periodically query a specified DNS name. If there are multiple IP addresses included in the response to Envoy's query, each returned IP address will be considered a back-end server. Envoy will load balance the inbound traffic across all of them.
 
@@ -19,7 +19,7 @@ The diagram below depicts how to configure Envoy to auto-discover pods on Kubern
 
 {{< figure src="/images/posts/envoy_auto_discovery.png" class="center" >}}
 
-## Practical implementation
+# Practical implementation
 
 To put this configuration into practice, I used [Minishift](https://www.okd.io/minishift/) 3.11 which is a variant of Minikube developed by Red Hat. First, I deployed two replicas of the httpd server on Kubernetes to play the role of back-end services. Next, I created a headless service using the following definition:
 
@@ -106,7 +106,7 @@ Note that in the above configuration,  I instructed Envoy to use the Strict DNS 
 
 That's all that was needed to be done! Envoy is load balancing the inbound traffic across the two httpd pods now. And if you create a third pod replica, Envoy is going to route the traffic to this replica as well.
 
-## Conclusion
+# Conclusion
 
 In this article, I shared with you the idea of using Envoy's Strict DNS service discovery in combination with the headless service in Kubernetes to allow Envoy to auto-discover the back-end pods. While writing this article, I discovered this [blog post](https://blog.markvincze.com/how-to-use-envoy-as-a-load-balancer-in-kubernetes/) by Mark Vincze that describes the same idea and you should take a look at it as well.
 

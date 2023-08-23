@@ -17,7 +17,7 @@ Os-net-config is developed as a part of the OpenStack [TripleO](https://wiki.ope
 4. Create OVS bridges
 5. Create OVS bonds (not implemented on Debian)
 
-## Using os-net-config on Red Hat
+# Using os-net-config on Red Hat
 
 In the following examples we'll use RHEL7 and os-net-config version 0.1.4. By default, os-net-config reads the configuration file at `/etc/os-net-config/config.yaml`. However, you can specify a different location using the `-c` parameter. The first example shows a configuration of machine with two network interfaces. The first interface is dynamically configured using DHCP. The second interface has been assigned an IP address and netmask statically:
 
@@ -126,7 +126,7 @@ OVSBOOTPROTO=dhcp
 OVSDHCPINTERFACES="bond1"
 {{< / highlight-caption >}}
 
-## Activating the network configuration
+# Activating the network configuration
 
 When activating the network configuration, os-net-config executes several steps in the following order:
 
@@ -139,9 +139,9 @@ When activating the network configuration, os-net-config executes several steps 
 Os-net-config executes the aforementioned steps only on interfaces/bridges whose configuration has been updated. If the interface/bridge configuration hasn't changed os-net-config will not touch the respective configuration files in the `/etc/sysconfig/network-scripts` directory and will not restart the respective interface/bridge. This way, os-net-config minimizes the number of changes done to your system.
 
 
-## Network interface names
+# Network interface names
 
 The names of the network interfaces are platform dependent. In the os-net-config configuration file, you can refer to your interfaces using symbolic names `nic1`, `nic2`, `nic3`, ... Os-net-config will automatically associate these symbolic names with the real network interfaces like `em`, `eth`, `eno`.
 
-## Conclusion
+# Conclusion
 Os-net-config is a useful configuration tool you might want to include on your virtual machine images.

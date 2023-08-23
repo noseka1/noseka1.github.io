@@ -13,7 +13,7 @@ A good software practitioner avoids having huge chunks of Makefiles, pom.xml fil
 
 In 2010, we invested heavily in the improvements of our build infrastructure. We introduced a continuous integration server Hudson (remember the project that was later renamed to Jenkins?), added source code analysis tool Sonar (nowadays called SonarQube), embraced RPM packaging and created a set of highly reusable build scripts which we called a common build system. In the next section, I'm going to discuss a high-level design and ideas behind the common build system.
 
-## High-level overview
+# High-level overview
 
 Our build system supports Java, C++ and C development. The core of the build system comprises of:
 
@@ -36,7 +36,7 @@ Modules are organized into Git repositories according to the functionality they 
 
 All artifacts exported by the individual modules (jars, shared libraries, header files) are shared between the modules via the artifact repository. If additional information needs to be shared between modules, modules can publish Java properties files into the artifact repository which other modules can fetch and import. It was important to us to avoid any direct references between modules on the file system with the exception of the reference to the `build-common` module. These direct references between modules would be less obvious than passing artifacts and extra information via the artifact repository. We like to keep a good track of the dependencies between our software modules.
 
-## Module directory structure
+# Module directory structure
 
 Apache Ant does not propose any particular directory structure. However, it is easier to work with modules which have a common structure. Ant Script Library embraces the [Standard Directory Layout](https://maven.apache.org/guides/introduction/introduction-to-the-standard-directory-layout.html) from Maven project and so we derive our directory structure from this standard. Here is our module directory structure in greater detail:
 
@@ -55,7 +55,7 @@ Apache Ant does not propose any particular directory structure. However, it is e
 | README.md          | Module's README file             |
 | target             | Build output directory           |
 
-## Common build targets
+# Common build targets
 
 We maintain a set of common Ant build targets which every module must implement:
 
@@ -81,7 +81,7 @@ This two-command interface establishes a contract between modules and Jenkins an
 
 Target `report-sonar` runs the SonarQube source code analysis tool, and sends the collected data to the SonarQube server. As the source code analysis takes some time to complete, we don't run it on every push to the Git repository. Instead, we scheduled a nightly Jenkins job that analyzes all the modules and uploads the collected data at once.
 
-## Final remarks
+# Final remarks
 
 It has been several years since we created the common build system and we have been improving it ever since. We added many features to support our development process. We have already discussed some of them. Here is a summary of the most important capabilities we implemented so far:
 

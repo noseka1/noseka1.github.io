@@ -23,7 +23,7 @@ Both OpenAPI and gRPC are communication technologies very much needed in the tod
 | Performance | HTTP/1.1 protocol is a request/response protocol. When sending multiple requests over a single TCP connection, the next request can only be sent after the response to the previous request was received. This would normally result in a poor performance especially on the connections with higher latency. To increase the performance, HTTP client opens multiple TCP connections to a single server and sends multiple HTTP requests in parallel. New connections are opened as they are needed. As establishing a new TCP connection is associated with a cost, clients implement *connection pooling* to reuse the existing TCP connections. Remember to tune the clients connection pool to achieve good performance. <br/><br/> Some HTTP clients/servers may support HTTP/1.1 *pipelining*. Each HTTP request over the TCP connection may be made immediately without waiting for the previous request's response to return. As request responses must be returned in the order requested, this is prone to head of line blocking. <br/><br/> HTTP/1.1 is a text-based protocol and JSON is a text-based serialization format which hurts the performance. | By default HTTP/2 client opens a single TCP connection to the server and multiplexes multiple requests on this connection. Requests and responses are split into chunks and can be returned in an intermingled fashion. This prevents the head of line blocking that HTTP/1.1 pipelining may suffer from. In addition to that, the client can open multiple HTTP/2 connections to a single server and implement connection pooling. However, it is common to use a single TCP connection only. <br/><br/> HTTP/2 is a binary protocol. Also, according to [this](https://medium.com/apis-and-digital-transformation/openapi-and-grpc-side-by-side-b6afb08f75ed) article by Tim Burks of Google, the Protocol Buffers binary format can be orders of magnitude faster to read than corresponding JSON serializations. <br/><br/> Overall, gRPC offers a better performance than OpenAPI. |
 | Overall Summary | OpenAPI offers a great interoperability due to leveraging widely used HTTP/1.1 protocol and the JSON format. There is a great amount of tools available that will work with OpenAPI-based interfaces. | If you are looking for maximum performance, gRPC is a great choice for you. Also, HTTP/2 protocol is gradually gaining market share. Why not start using it today? |
 
-## Where to go from here?
+# Where to go from here?
 
 The comparison table in the previous section highlights only the basic characteristics of OpenAPI and gRPC. I constructed the table based on many great articles that I found on the web. If you are interested in further details on how OpenAPI and gRPC compares I recommend to you to visit the following references:
 
@@ -36,7 +36,7 @@ The comparison table in the previous section highlights only the basic character
 * [REST v. gRPC](https://husobee.github.io/golang/rest/grpc/2016/05/28/golang-rest-v-grpc.html)
 * [Courier: Dropbox migration to gRPC](https://blogs.dropbox.com/tech/2019/01/courier-dropbox-migration-to-grpc/)
 
-## Combining OpenAPI and gRPC
+# Combining OpenAPI and gRPC
 
 Do you have to use either OpenAPI or gRPC? If you like the awesome performance offered by gRPC but still need to provide REST interfaces to the external third-party clients there is a solution for you. You can leverage one of the proxies ([Envoy](https://www.envoyproxy.io/docs/envoy/latest/configuration/http_filters/grpc_json_transcoder_filter),  [grpc-gateway](https://github.com/grpc-ecosystem/grpc-gateway)) that can transcode the REST interface into gRPC. If you design your gRPC interfaces in a [resource-oriented](https://cloud.google.com/apis/design/resources) fashion the transcoding process is straight forward. The resulting system architecture may look like this:
 
@@ -44,7 +44,7 @@ Do you have to use either OpenAPI or gRPC? If you like the awesome performance o
 
 The third-party REST client talks to the proxy using HTTP/JSON. Client requests are transcoded on-the-fly into gRPC requests. After the requests are processed, the resulting responses are transcoded from gRPC back to HTTP/JSON and delivered to the client.
 
-## Conclusion
+# Conclusion
 
 In this blog post, we compared the basic characteristics of OpenAPI and gRPC. OpenAPI is a great choice due to its interoperability. On the other hand, gRPC offers a better performance. However, you don't have to choose one or the other. You can happily combine both technologies in a single system.
 

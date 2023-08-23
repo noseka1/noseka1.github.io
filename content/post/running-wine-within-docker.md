@@ -11,7 +11,7 @@ After upgrading to Debian Jessie, my Windows application running under Wine stop
 
 Docker is not part of the stable Jessie distribution, however, you can install it from the [Debian Backports](http://backports.debian.org/ "Debian Backports") repositories.
 
-## Creating a Docker image
+# Creating a Docker image
 
 We start off with creating a Docker image based on the `debian:wheezy` image from the official Docker repositories. We'll install the 32-bit Wine package on it. The Wine application is a graphical application and hence requires access to the X server. Setting the environmet variable `DISPLAY=:0` instructs the application to access the local X server. The complete `Dockerfile` to build our Wine image looks as follows:
 
@@ -35,7 +35,7 @@ $ docker images | grep wine1.4
 wine1.4                   latest              b300b8573303        About a minute ago   271.3 MB
 {{< / highlight >}}
 
-## Running Wine within a Docker container
+# Running Wine within a Docker container
 
 To test our `wine1.4` Docker image, we'll run the `notepad` application which comes with Wine:
 
@@ -80,6 +80,6 @@ The complete command to run Wine inside the Docker container as user `anosek` an
 $ docker run --rm --volume /tmp/.X11-unix/X0:/tmp/.X11-unix/X0 --volume /home/anosek/.wine.docker:/home/anosek/.wine --volume /etc/passwd:/etc/passwd --user anosek wine1.4 wine "C:\windows\system32\notepad.exe"
 {{< / highlight >}}
 
-## Conclusion
+# Conclusion
 
 One can leverage the modern Docker technology to create a specific Wine environment on any Linux system. To achieve this a little bit of configuration is required, though. In case of Wine you might be better off using some of the specialized tools for Wine management. For instance, [PlayOnLinux](https://www.playonlinux.com/ "PlayOnLinux") can manage different versions of Wine as well as different prefixes (`WINEPREFIX` environment variable).

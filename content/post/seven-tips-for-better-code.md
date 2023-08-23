@@ -8,17 +8,17 @@ It's a pleasure to read and maintain your code, right? Software practice teaches
 
 <!--more-->
 
-## 1) Respect the pre-existing coding style
+# 1) Respect the pre-existing coding style
 
 You've just joined a software project that run for a while. The coding conventions used on the project are weird and you really don't like them. Perhaps, they force you to put parenthesis on a new line or let you write variable names with the first letter in capital while you'd prefer a small letter. They even violate the existing Java or C# language conventions. And the [Hungarian notation](http://en.wikipedia.org/wiki/Hungarian_notation "Hungarian notation") looks just awful!
 
 As a professional software developer, you'll find yourself in this situation many times. Unless you can reformat the code of the entire project it's better to stick with the coding style that's already in place. In other words, you should follow the already established coding style regardless whether  you like it or not. Perhaps, you can propose a change of coding style to your teammates when you're starting to work on a new project.
 
-## 2) Tabs versus spaces
+# 2) Tabs versus spaces
 
 Is it better to use tabs or spaces to indent your code? Well, pick one but stick with it throughout your entire project. I prefer spaces because they let my code look the same in all editors. My editor is configured to convert tabs into spaces so that I don't have to tap on the space bar too much when indenting.
 
-## 3) Break your code down into methods
+# 3) Break your code down into methods
 
 It's a good practice to break down a complicated program logic into multiple methods. By doing so, you make it easier for the reader to understand the purpose of your code. Look at the following code example. Can you explain what the code is doing?
 
@@ -83,7 +83,7 @@ The aim of the code is pretty simple. When retrieving data, look if the requeste
 
 The caching logic is now separate from the details of how to read the data from the file. Splitting the logic up into two methods greatly increased readability.
 
-## 4) Avoid excessive access to your instance variables
+# 4) Avoid excessive access to your instance variables
 
 Object-oriented programming introduced a *class* abstraction. Class groups the data with the code that can modify the data. Instead of using global variables that are accessible from any part of your program you can encapsulate your data with the code into a class. The scope where your data is accessible is now limited to the class members. However, your data is accessible by *any* class member. Assuming a very large class definition with a lot of members the data members can start feeling as a new form of global variables. I'd like to suggest to you avoiding excessive access to your data members. Look at the following example:
 
@@ -126,7 +126,7 @@ class Number {
 }
 {{< / highlight >}}
 
-## 5) Prevent maintenance issues
+# 5) Prevent maintenance issues
 
 Look at the following code. Can you see a problem?
 
@@ -148,7 +148,7 @@ The intention of the maintainer was to add an error message for the case that th
 {{< / highlight >}}
 When the maintainer tries to add an error message to this code he cannot introduce the bug illustrated in the previous code example. Out of curiosity, the Linux kernel project advocates no parenthesis around the if-else statement if not necessary. As always, the existing coding conventions take precedence.
 
-## 6) Use braces to make expressions more readable
+# 6) Use braces to make expressions more readable
 
 Programming languages define operator precedence and it's great that you're aware of it. Not every programmer has mastered the operator precedence and associativity table, though. Be kind and code your expressions very clearly. Braces can help you:
 
@@ -164,6 +164,6 @@ if ((a && b) || (a && c)) {
 }
 {{< / highlight >}}
 
-## 7) Learn your programming language idioms
+# 7) Learn your programming language idioms
 
 There's no perfect programming language. Idioms get invented to work around the quirks of a specific programming language. Using idioms improves the maintanability of the code. You should learn and use them wherever possible. For Java idioms you can refer to [Java Idioms](http://c2.com/ppr/wiki/JavaIdioms/JavaIdioms.html "Java Idioms") and [Good Java Idioms](http://www.nayuki.io/page/good-java-idioms "Good Java Idioms").

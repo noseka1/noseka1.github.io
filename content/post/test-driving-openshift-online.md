@@ -13,7 +13,7 @@ Did you decide to dockerize your application? Awesome! Are you looking for a pla
 
 The information about the plans and pricing of the OpenShift Online service can be found [here](https://www.openshift.com/pricing/index.html). In this blog post, we're going to utilize the free of charge *Starter* plan. With this plan, you get 1GiB of memory for your containers, another 1GiB of memory for running builds, deployments and jobs, and finally 1GiB of persistent storage. The real limitation of the free *Starter* plan is the resource hibernation. Your containers will be forced to sleep 18 hours in a 72 hour period.
 
-## Welcome to OpenShift Online
+# Welcome to OpenShift Online
 
 You can login into OpenShift Online [here](https://manage.openshift.com/). If you don't have an OpenShift account, the sign up and creation of the OpenShift account doesn't take you long. After you login into your OpenShift account, find a small question mark icon in the top right corner of the welcome page. From the drop down menu choose the "Command Line Tools" option.
 
@@ -29,7 +29,7 @@ On the same "About" page, you can find the address of the integrated Docker regi
 
 {{< figure src="/images/posts/openshift_online/openshift_online_about.png" class="left" >}}
 
-## Getting our hands dirty
+# Getting our hands dirty
 
 In this section, we're going to use the CLI tool to exercise the OpenShift Online functionality. From the "Command Line Tools" page that we visited previously, copy the command to login into the CLI tool:
 
@@ -221,7 +221,7 @@ $ curl php-hello-php-hello.a3c1.starter-us-west-1.openshiftapps.com
 Hello from php-hello-1-cl5nw!
 {{< / highlight >}}
 
-## Conclusion
+# Conclusion
 
 OpenShift is a feature-rich container platform. In this blog post, we were only able to scratch the surface.
 

@@ -9,7 +9,7 @@ In the [previous entry](/blog/2019/10/27/open-policy-agent-part-ii-developing-po
 
 <!--more-->
 
-## Integrating OPA with your application
+# Integrating OPA with your application
 
 There are several options how you can integrate OPA with your application. If you happen to build your application using the Go language, you can link OPA as a library straight into your application. Otherwise, you will run OPA as a stand-alone service (daemon). If you deploy your application on Kubernetes, you can run OPA service as a side-car container along with your application services. This minimizes the communication latency between OPA and your application. It also avoids possible communication issues between OPA and your application due to network failures. If you are deploying on virtual machines, you can run one replica of the OPA service on each of your virtual machines to achieve the same benefits. In summary, deploying OPA as a side-car service or a host-local service is the recommended approach.
 
@@ -19,7 +19,7 @@ Another deployment option would be running multiple OPA services behind a load b
 
 {{< figure src="/images/posts/open_policy_agent/opa_integration_lambda.png" class="center" >}}
 
-## Utilizing Open Policy Agent APIs
+# Utilizing Open Policy Agent APIs
 
 Open Policy Agent comes with a whole set of APIs that you can use in order to utilize OPA to its full potential. I depicted the possible API integrations in the following diagram:
 
@@ -27,7 +27,7 @@ Open Policy Agent comes with a whole set of APIs that you can use in order to ut
 
 In the diagram above, the green box is your application invoking policy queries against OPA. The purple services are optional services that you can include in your architecture. These services have to be implemented by yourself and they must expose APIs that are specified by OPA. Two blue boxes depict the Prometheus monitoring server and Kubernetes. OPA can integrate with them right away. In the diagram, the direction of the arrows between services is significant. The arrows indicate which service from the pair initiates the TCP connection. In the following subsections, let's take a closer look at each of these OPA interfaces.
 
-###  Open Policy Agent REST API
+## Open Policy Agent REST API
 
 This is the main API provided by OPA that your application uses to manage data and policies, and to execute queries. It is well described in the OPA's [REST API documentation](https://www.openpolicyagent.org/docs/latest/rest-api/). I would like to highlight two things that I learned about the OPA REST APIs:
 
@@ -35,7 +35,7 @@ First, OPA allows you to set watches on policy queries in order for you to be no
 
 Second, the communication between the client (i.e. your application) and the OPA service can be protected using TLS. OPA authenticates itself to the client by presenting a valid TLS certificate. Client can authenticate itself to OPA either by presenting a client TLS certificate or by presenting a security token. And guess how OPA handles API authorization? Of course, by evaluating a Rego policy that you supply. For further details on OPA's security settings, refer to the [Security](https://www.openpolicyagent.org/docs/latest/security/) section of OPA's documentation.
 
-### Optional APIs
+## Optional APIs
 
 These APIs are specified by OPA  and you can opt to implement them in order to gain additional functionality and better integrate OPA into your system.
 
@@ -47,11 +47,11 @@ OPA can send [status](https://www.openpolicyagent.org/docs/latest/status/) updat
 
 OPA can periodically report [decision logs](https://www.openpolicyagent.org/docs/latest/decision-logs/) to remote HTTP servers that implement a [Decision Log Service API](https://www.openpolicyagent.org/docs/latest/decision-logs/#decision-log-service-api). The reported decision logs record all the policy decisions made by OPA. How could you make use of it? You could implement a simple Decision Log Service that would run co-located with the OPA service and that would store the decision logs into a durable storage like Kafka. And here you go, an awesome audit log was born!
 
-### Health and Monitoring APIs
+## Health and Monitoring APIs
 
 OPA exposes a [Health API](https://www.openpolicyagent.org/docs/latest/rest-api/#health-api) for you to periodically verify that the OPA service is operational. If you are deploying OPA on top of Kubernetes,  you can leverage the Health API to define the [liveness and readiness probes](https://www.openpolicyagent.org/docs/latest/deployments/#readiness-and-liveness-probes). OPA also exposes Prometheus metrics to [monitor](https://www.openpolicyagent.org/docs/latest/monitoring/) the performance of OPA API calls. Both health and monitoring APIs can be secured the same way as the OPA REST API which we discussed before.
 
-## Where to go from here?
+# Where to go from here?
 
 In addition to the written sources that you can find on the web, I would like to point you to a couple of excellent presentations about Open Policy Agent hosted on YouTube:
 
@@ -60,7 +60,7 @@ In addition to the written sources that you can find on the web, I would like to
 
 If you are evaluating Open Policy Agent from the security perspective, this [audit report](https://github.com/open-policy-agent/opa/blob/master/SECURITY_AUDIT.pdf) might be of interest to you as well.
 
-## Conclusion
+# Conclusion
 
 In this article, we discussed several ways for how you can integrate Open Policy Agent with your application. We also described the set of APIs defined by OPA that you can utilize to take full advantage of Open Policy Agent.
 

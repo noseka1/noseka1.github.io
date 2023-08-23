@@ -9,13 +9,13 @@ Categories = [ "cloud", "devops" ]
 
 <!--more-->
 
-## Introduction
+# Introduction
 
 Six months have passed since we deployed a private cloud in our company. Our cloud is based on the RDO distribution of OpenStack Mitaka running on top of RHEL 7. I have to say that we're very happy with our cloud-based environment. OpenStack simplified the management of virtual machines and boosted the productivity of our engineering team which enjoys the self-service provided by the OpenStack APIs. Our test automation creates and destroys many virtual machines a day making sure that our software product is tested in a clean and well-defined environment. OpenStack quickly became a critical part of our infrastructure.
 
 Hence we were less pleased when the last week a routine maintenance of the OpenStack cluster turned into an unplanned downtime of two compute nodes. But before we get to the problem itself let me introduce you to the specifics of how we manage the OpenStack cluster.
 
-## Overcloud maintenance is a challenge
+# Overcloud maintenance is a challenge
 
 A cloud life-cycle management tool of choice in the RDO distribution is TripleO. I published an article about my initial experience with TripleO a while ago: [TripleO Installer - the Good, the Bad and the Ugly](/blog/2016/03/27/tripleo-installer-the-good/). Overall, the way how TripleO configures the OpenStack cluster is rather less flexible. After spending time on customizing and patching TripleO we decided that there must be an easier way. Eventually, we implemented our own set of Ansible scripts that allow an additional fine-grained configuration of OpenStack nodes. After the `openstack overcloud deploy` command is complete we run our Ansible scripts to apply an additional configuration to the overcloud. There are two benefits to this approach. First, we don't have to patch TripleO scripts which will be upgraded in the next release of OpenStack. And second, we can keep using Ansible which is our favorite configuration tool.
 
@@ -27,7 +27,7 @@ In summary, we can depict our OpenStack maintenance process like this:
 
 {{< figure src="/images/posts/openstack_maintenance_process.svg" height="500" width="700" class="center" alt="OpenStack Maintenance Process" >}}
 
-## TripleO installer and the resulting downtime
+# TripleO installer and the resulting downtime
 
 On all our OpenStack nodes we use bonded network interfaces to protect the nodes against network failures. In network interface bonding a pair of physical network interfaces is combined into a single logical interface. This provides redundancy by allowing failover from one physical interface to another in the case of failure.
 
@@ -39,7 +39,7 @@ We were able to fix the networking issue on the first compute node quickly. Howe
 
 In the opposite case the update just stays hanging. It turned out that it was not possible to bring all the network interfaces on the second compute node up but eventually we were able to get at least the management interface working. This allowed us to re-run the overcloud update during which we fooled the TripleO installer to believe that the configuration of the problematic compute node was applied sucessfully. After exceeding the two-hour maintanance window by several hours we were finally done.
 
-## Conclusion
+# Conclusion
 
 Here I'd like to summarize our six-months long experience with the TripleO installer:
 

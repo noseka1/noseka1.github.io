@@ -11,7 +11,7 @@ For years a Jenkins server has been driving the software builds in our company. 
 
 Before we begin talking about OpenShift, let's briefly discuss our current build environment. In the center of our build environment there is a Jenkins server. In Jenkins, we maintain numerous jobs to build our software, run automated tests, drive various devops tasks and much more. Jenkins is our central place from where the automated processes are started and monitored. As Jenkins is greatly extensible via plugins, we were able to easily integrate Jenkins with other tools, too.
 
-## Building the OpenShift way
+# Building the OpenShift way
 
 {{< figure src="/images/posts/openshift_logo.gif" height="200" width="200" class="right" >}}
 
@@ -29,7 +29,7 @@ An alternative to using the Pipeline strategy in OpenShift would be defining the
 
 As I didn't really work with the OpenShift strategies much I'm not going to elaborate any further. Instead, in the next section, I'm going to mention two Jenkins plugins that we are successfully using to run builds on OpenShift.
 
-## Builds on Openshift driven by Jenkins
+# Builds on Openshift driven by Jenkins
 
 {{< figure src="/images/posts/jenkins_logo.png" height="200" width="200" class="right" >}}
 
@@ -45,6 +45,6 @@ Because the Jenkins workspace is created inside of the container, it will be del
 
 2. You can attach a volume with the *ReadWriteMany* capability to your slave pods and place your workspace on this volume. Eligible volume types are NFS, GlusterFS or CephFS. Using this method a Jenkins slave running on any node in the cluster can access the shared workspace. The downside is that the access is over the network and hence slower than an access to the local storage.
 
-## Conclusion
+# Conclusion
 
 In the this blog post we reviewed different approaches how to leverage an OpenShift cluster for software builds. On one hand, builds can be defined within OpenShift by creating the BuildConfig resources. This approach might be less flexible than using a full-fledged build server like Jenkins, however, one can be sure that the builds will work on any OpenShift cluster including the public cloud. On the other hand, we have seen that in an environment where Jenkins is already the king, we can leverage the Swarm or Kubernetes plugin to allow Jenkins to schedule build jobs on OpenShift.

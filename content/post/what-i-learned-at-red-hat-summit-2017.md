@@ -9,7 +9,7 @@ I had the great opportunity to visit the Red Hat Summit 2017. It was hosted in t
 
 <!--more-->
 
-## Major announcements
+# Major announcements
 
 {{< figure src="/images/posts/rh_summit.png" height="200" width="200" class="right" >}}
 
@@ -17,7 +17,7 @@ I had the great opportunity to visit the Red Hat Summit 2017. It was hosted in t
 
 **[Red Hat OpenShift.io](https://www.redhat.com/en/about/press-releases/red-hat-unveils-end-end-cloud-native-development-environment-red-hat-openshiftio).** [OpenShift.io](https://openshift.io/) is an online development environment for building container-based applications. OpenShift.io can create a project in GitHub for you to store your source code. The source code editing can be done in the integrated Eclipse Che. OpenShift.io can create a project in OpenShift Online in order to build your application and deploy it. Jenkins pipelines are used to orchestrate the CI/CD process. Currently, OpenShift.io is available in a limited developer preview. You can sign up at https://openshift.io
 
-## Sessions attended
+# Sessions attended
 - **The future Red Hat Middleware portfolio: Stacks and services and solutions**
   - Netflix OSS is interesting and Red Hat will support it because customers like it. However, some of the Netflix OSS features might be more efficiently implemented directly in Kubernetes instead of on top of Kubernetes. Netflix had to make architectural choices based on how AWS looked several years ago. AWS evolved since that time.
   - Architectural evolution: monolith -> n-tier architecture -> microservices.

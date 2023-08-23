@@ -13,7 +13,7 @@ Our application consists of multiple services that are deployed on multiple mach
 
 As of now, we deploy [Icinga](https://www.icinga.com/) along with our application to provide system-level monitoring. Icinga collects the information about the nodes and checks that our services are still running. However, we don't collect any application-level metrics that would allow us to better assess the performance of our system. For example, we would like to know how many requests are processed per second, average request latency, request error rate, what are the depths of the internal queues and so forth. Application metrics would be a welcome input to the auto-scaling decisions and we would like to feed them into our analytics engine as well.
 
-## Getting to know Prometheus
+# Getting to know Prometheus
 
 {{< figure src="/images/posts/prometheus_logo.png" height="130" width="130" class="right" >}}
 
@@ -34,25 +34,25 @@ Before jumping in and implementing our own solution for metrics collection and p
 13.  There is a great [guide](https://prometheus.io/docs/practices/naming/) that would help us when designing our custom metrics.
 14.  Prometheus is written in Go and comes in a form of statically-linked binaries. This makes the installation of Prometheus a breeze.
 
-## Instrumenting Java applications
+# Instrumenting Java applications
 
 In order to gather application metrics and to make them available to the Prometheus monitoring system, we would need to instrument our application services using Prometheus libraries. To get a clear idea, we created a proof-of-concept Java application instrumented using Prometheus. You can find it on [GitHub](https://github.com/noseka1/prometheus-poc).
 
 Alternatively, we are thinking about leveraging Dropwizard metrics library for instrumentation. The Dropwizard metrics library is rather popular and is not connected with any particular monitoring solution. We would still be able to expose the Dropwizard metrics to Prometheus using a wrapper [simpleclient_dropwizard](https://github.com/prometheus/client_java/tree/master/simpleclient_dropwizard).
 
-## Monitoring AWS Lambda functions
+# Monitoring AWS Lambda functions
 
 AWS Lambda functions are extremely short-lived processes. Prometheus won't be able to pull the application metrics from them. Instead, Lambdas will have to push their metrics to Prometheus. At the first glance, we thought that the Prometheus Pushgateway could help here, however, reading the Pushgateway's documentation more carefully we found that *the Pushgateway is explicitly not an aggregator or distributed counter but rather a metrics cache*. And that's a problem, as we would like to count how many Lambda instances are being invoked per second and so on.
 
 At the moment, we can see two approaches how to make the monitoring of Lambda functions work with Prometheus. Either, push the application metrics from the Lambda functions using a StatsD client. Prometheus' [statsd_exporter](https://github.com/prometheus/statsd_exporter) would play a role of a StastD server and make the metrics available to Prometheus. Or, the second approach would be to create our own metrics aggregator that would receive the metrics from Lambda functions in the Prometheus format, aggregate them and expose them to the Prometheus server.
 
-## Alternatives
+# Alternatives
 
 Besides using Prometheus, we were also thinking about other solutions for application metrics. As we already deploy Icinga for the system-level monitoring, it would make sense to use it for application metrics, too. We really like Icinga, it's a great monitoring software. Unfortunately, Icinga is based on the node and services model where a statically configured set of nodes are running services on them. This doesn't really fit with the modern containerized deployments where containers are dynamically scheduled on the cluster nodes and are also scaled up and down. Also, Prometheus server supports all sorts of metric queries and aggregations. Icinga is lacking this feature altogether. That's why we're leaning towards replacing Icinga with Prometheus for system-level as well as application-level monitoring.
 
 [Hawkular](http://www.hawkular.org/) seems to be another modern monitoring project we would like to take a closer look at. In contrast to Prometheus project which is developed by many parties, it seems that Hawkular project is mostly driven by Red Hat.
 
-## Conclusion
+# Conclusion
 
 Prometheus is a modern monitoring system. It was the first system we evaluated as we were trying to find a good solution for application metrics. In addition to application-level metrics, we could use Prometheus to collect system-level metrics as well. This would make Prometheus a single monitoring solution for our application. The only bigger issue for us is the absence of the AWS Lambda monitoring story.
 

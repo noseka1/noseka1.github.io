@@ -13,7 +13,7 @@ OpenShift 4.1 is the first GA release in the OpenShift 4 series. It is a signifi
 
 I essentially followed the [guide](https://docs.openshift.com/container-platform/4.1/installing/installing_bare_metal/installing-bare-metal.html) for installing the OpenShift cluster on bare metal and I recommend that you read this guide first. After you make yourself familiar with the bare metal installation process, read on to learn the details on how I made this process work on Libvirt and KVM.
 
-## Deployment overview
+# Deployment overview
 
 First, let's take a look at the diagram showing the deployment of the OpenShift cluster on Libvirt/KVM. In addition to the OpenShift cluster nodes, the diagram also depicts supplementary pieces of the user-provisioned infrastructure that you will need to deploy:
 
@@ -33,7 +33,7 @@ Note that the virtual machines are deployed across two Libvirt networks: `opensh
 
 After reviewing the big picture, let's roll up our sleeves and get to work. We are going to deal with the HTTP server first.
 
-## Setting up HTTP server
+# Setting up HTTP server
 
 The OpenShift installation process assumes installation on empty virtual machines with no operating system pre-installed. There are two provisioning methods available to choose from. You can either provision OpenShift nodes by booting from an ISO image or you can leverage the PXE boot. I find the PXE boot option to take a bit more effort to configure and hence went with the ISO image method.
 
@@ -44,7 +44,7 @@ Using the ISO image method, you are supposed to boot the virtual machines using 
 
 You are expected to host the aforementioned files on an HTTP server that is reachable from the OpenShift nodes during the provisioning process. To meet this requirement, I installed an Apache HTTP server on my Fedora host machine and copied the disk image and ignition files to the `/var/www/html` directory which is the default `DocumentRoot` directory on a Fedora host.
 
-## Addressing OpenShift DNS requirements
+# Addressing OpenShift DNS requirements
 
 OpenShift [requires](https://docs.openshift.com/container-platform/4.1/installing/installing_bare_metal/installing-bare-metal.html#installation-dns-user-infra_installing-bare-metal) a set of records to be configured in your DNS. In addition to simple A records, you must also configure a wildcard DNS record that points to the load balancer and an SRV DNS record for each of the etcd nodes.
 
@@ -143,7 +143,7 @@ Note the `<forwarder addr='192.168.130.10'/>` setting which allows all DNS reque
 
 With the DNS configuration out of the way, let's continue with deploying a load balancer in the next section.
 
-## Setting up a load balancer
+# Setting up a load balancer
 
 Installing OpenShift on a user-provisioned infrastructure requires you to provision a load balancer. The details on how the load balancer should be configured can be found in the [networking requirements](https://docs.openshift.com/container-platform/4.1/installing/installing_bare_metal/installing-bare-metal.html#installation-network-user-infra_installing-bare-metal) section of the OpenShift installation guide.
 
@@ -210,7 +210,7 @@ backend router_http
 
 With the load balancer in place, we will move on to creating OpenShift virtual machines in the next section.
 
-## Creating OpenShift virtual machines
+# Creating OpenShift virtual machines
 
 The official installation guide [defines](https://docs.openshift.com/container-platform/4.1/installing/installing_bare_metal/installing-bare-metal.html#machine-requirements_installing-bare-metal) minimum machine requirements for installing an OpenShift cluster as follows:
 
@@ -242,7 +242,7 @@ Note that the above memory requirements allow you to properly deploy the OpenShi
 
 This concludes the user-provisioned infrastructure setup. At this point, we have HTTP server, DNS server, load balancer and a set of empty virtual machines in place. Let's dive into the OpenShift installation in the next section.
 
-## Installing OpenShift 4.1
+# Installing OpenShift 4.1
 
 The installation of OpenShift 4 starts with crafting an installation configuration file. You can use the `install-config.yaml` configuration file that I created, just remember to replace the placeholders with your own pull secret and public SSH key:
 
@@ -304,7 +304,7 @@ Finally, we can use our ignition files to kick off the OpenShift installation pr
 
 Note that after you bootstrap the master machine, you should shut down the bootstrap machine. Only after that, you should boot up the worker machine. On startup, the worker node registers with the master node and forms an OpenShift cluster.
 
-## Conclusion
+# Conclusion
 
 In this blog post, we discussed how to deploy OpenShift 4.1 into the Libvirt/KVM-based virtualized environment. We created and configured a bunch of user-provisioned infrastructure which was a prerequisite for the OpenShift installation. With the user-provisioned infrastructure in place, we followed the OpenShift bare metal deployment guide to create an OpenShift cluster.
 

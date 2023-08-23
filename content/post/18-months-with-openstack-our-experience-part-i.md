@@ -9,7 +9,7 @@ It has been 18 months since we deployed OpenStack cloud in our company. In this 
 
 <!--more-->
 
-## Introduction
+# Introduction
 
 Right at the beginning, I'd like to say that our company is not a cloud provider. We didn't build a cloud to provide a service to customers. Instead, we built a private cloud to support our engineering team in their software development efforts. Our OpenStack is running development machines, build machines and test machines. The requirements on the availability and reliability of our OpenStack cluster are therefore lower than the requirements that a public cloud would have to meet.
 
@@ -19,7 +19,7 @@ We started evaluating OpenStack around the Kilo release and ended up going with 
 
 However, nothing can scare away a proficent software practitioner. Eventually, we got the job done and the invested effort did pay off.
 
-## OpenStack essentials
+# OpenStack essentials
 
 [OpenStack](https://www.openstack.org/) is an open-source infrastructure-as-a-service (IaaS) cloud platform. It's important to understand that OpenStack itself is only a controlling layer that relies on other software projects to provide the implementation of the underlying functionality. For instance, OpenStack can spin up virtual machines, however, you would not find any code in the OpenStack project that would actually implement a hypervisor. Instead, OpenStack integrates with an existing hypervisor software to do the job. A very popular choice of the hypervisor used along with OpenStack is [KVM](https://www.linux-kvm.org) and so when the user creates a virtual machine on OpenStack, OpenStack merely calls the KVM hypervisor to spin up the virtual machine. The same holds true for other areas of OpenStack functionality like networking and storage where OpenStack drives the underlying networking and storage software to do the actual job.
 
@@ -38,7 +38,7 @@ Additionally, project [Heat](https://wiki.openstack.org/wiki/Heat), [Swift](http
 
 OpenStack was designed for massive scale deployments as you can tell if you look at the [OpenStack architecture diagram](https://docs.openstack.org/arch-design/design.html). Each OpenStack project consists of multiple services (daemons) that can be deployed on separate physical machines allowing OpenStack to scale out. OpenStack services communicate with each other over the network using RESTful APIs. In addition, some of the projects like Nova, Neutron and Cinder chose to leverage a message broker for internal communication. The high number of services that form an OpenStack deployment contributes to its operational complexity.
 
-## Getting started with OpenStack
+# Getting started with OpenStack
 
 If you are new to OpenStack, a great place to start learning OpenStack is the [DevStack project](https://docs.openstack.org/devstack/latest/). DevStack allows you to create an all-in-one deployment of OpenStack. With DevStack you can access debug logs of individual OpenStack services as well as easily restart OpenStack services after you changed their configuration. It took me a while to figure out which configuration option affects which OpenStack service and how OpenStack services communicate with each other. I learned a lot by re-deploying DevStack many times, trying to make the individual OpenStack features work properly.
 
@@ -50,13 +50,13 @@ OpenStack is written using a beautiful idiomatic Python code which was most of t
 
 If you are getting started with OpenStack, prepare for a steep learning curve. Apart from studying the OpenStack project documentation, you will have to refer to the documentation of the technologies that you integrate with OpenStack, too. For instance, I spend quite a bit of time studying the documentation of [RabbitMQ](https://www.rabbitmq.com/documentation.html), [libvirt](https://libvirt.org/docs.html), [Open vSwitch](http://docs.openvswitch.org), and [Ceph](http://docs.ceph.com).
 
-## Choosing an OpenStack distribution
+# Choosing an OpenStack distribution
 
 There are several OpenStack distributions available out there. For us the choice was pretty straight forward. As we are a Red Hat shop, we went with [RDO](https://www.rdoproject.org/) installed on top of RHEL7. I spent large amounts of time working with RDO and yeah, it was challenging, at least in its Mitaka release. For further details on our experience with OpenStack RDO, you can refer to articles: [1](/blog/2016/03/27/tripleo-installer-the-good/), [2](/blog/2017/01/15/tripleo-installer-production-ready). Due to the complexity of OpenStack, it is rather difficult to create a tool to manage its life-cycle and I'm certain that further development effort will have to be spent before reaching perfection.
 
 By the way, some OpenStack distributions come with a GUI-based installer. As there are dozens of configuration parameters to set during the installation, I don't see the point of using a graphical interface to do this. Instead, a well commented configuration file seems more desirable to me. Does the GUI-based installer enable product managers to make a check mark on their data sheet? I would say yes, but you can safely ignore it when choosing your OpenStack distribution.
 
-## Choosing server hardware
+# Choosing server hardware
 
 We started with a small OpenStack deployment comprised of 3 controller nodes, 2 compute nodes and 3 Ceph nodes. Over time, we added further nodes to meet the growing demand and ended up with the current size of the cluster being 3 controller nodes, 13 compute nodes and 7 Ceph nodes. Majority of the nodes are HP ProLiant DL360 Gen9 machines with the following hardware parameters:
 
@@ -68,7 +68,7 @@ We started with a small OpenStack deployment comprised of 3 controller nodes, 2 
 
 From our experience, each of the compute nodes can run up to 40-50 virtual machines using the default OpenStack RDO settings: cpu_allocation_ratio=16.0, ram_allocation_ratio=1.0 and disk_allocation_ratio=1.0. Our current limit preventing us to achieve even higher density is the amount of provisioned RAM on the nodes. In the future, we are considering adding more RAM to the compute nodes or increasing the ram_allocation_ratio.
 
-## Deployment overview
+# Deployment overview
 
 Finally, we are going to take a look at the high-level overview of our OpenStack deployment. In the diagram below you can see the OpenStack projects that we chose for the deployment:
 
@@ -82,7 +82,7 @@ Let me comment on some of the projects we deployed:
 * **[Manila](https://docs.openstack.org/manila).** While not depicted in the diagram, we also deployed OpenStack Manila. Manila is a shared file system service and we use it to provision NFS shares. Manila project started as a code copy of the Cinder project and perhaps that's why it was pretty stable and usable soon after its inception. I wrote an [article](/blog/2016/05/22/test-driving-openstack-manila/) about Manila at the time we were evaluating it.
 * **[Designate](https://docs.openstack.org/designate).**  Designate is a DNS as a service for OpenStack. After evaluating this project, we realized that for our simple purpose Designate was too involved. We ended up writing a Python script that dynamically registers OpenStack virtual machines with our internal DNS server. This script works reliably ever since and you can read about it in this [blog post](/blog/2015/05/31/openstack-dynamic-dns-updates).
 
-## Conclusion
+# Conclusion
 
 In this post, we described some of our experience with planning the OpenStack cloud and deploying it. In the [second](/blog/2018/03/08/18-months-with-openstack-our-experience-part-ii/) blog post, we are going to share the lessons learned when operating OpenStack.
 

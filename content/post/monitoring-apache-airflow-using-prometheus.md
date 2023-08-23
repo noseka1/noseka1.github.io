@@ -9,7 +9,7 @@ This blog covers a proof of concept, which shows how to monitor Apache Airflow u
 
 <!--more-->
 
-## Airflow monitoring diagram
+# Airflow monitoring diagram
 
 Let's discuss the big picture first. Apache Airflow can send [metrics](https://airflow.apache.org/docs/1.10.12/metrics.html) using the statsd protocol. These metrics would normally be received by a [statsd server](https://github.com/statsd/statsd) and stored in a backend of choice. Our goal though, is to send the metrics to [Prometheus](https://prometheus.io/). How can the statsd metrics be sent to Prometheus? It turns out that the Prometheus project comes with a [statsd_exporter](https://github.com/prometheus/statsd_exporter) that functions as a bridge between statsd and Prometheus. The statsd_exporter receives statsd metrics on one side and exposes them as Prometheus metrics on the other side. The Prometheus server can then scrape the metrics exposed by the statsd_exporter. Overall, the Airflow monitoring diagram looks as follows:
 
@@ -25,7 +25,7 @@ The remaining sections of this blog will create the setup depicted in the above 
 
 By the end of the blog, you should be able to watch the Airflow metrics in the Grafana dashboard. Follow me to the next section, where we are going to start by installing Apache Airflow.
 
-## Enabling statsd metrics on Airflow
+# Enabling statsd metrics on Airflow
 
 In this tutorial, I am using Python 3 and Apache Airflow version 1.10.12. First, create a Python virtual environment where Airflow will be installed:
 
@@ -84,7 +84,7 @@ $ airflow scheduler
 
 At this point, the Airflow is running and sending statsd metrics to `localhost:8125`.  In the next section, we will spin up statsd_exporter, which will collect statsd metrics and export them as Prometheus metrics.
 
-## Converting statsd metrics to Prometheus metrics
+# Converting statsd metrics to Prometheus metrics
 
 Let's start this section by installing statsd_exporter. If you have the Golang environment properly set up on your machine, you can install statsd_exporter by simply issuing:
 
@@ -142,7 +142,7 @@ airflow_dag_loading_duration_example_branch_dop_operator_v3_count 6
 ...
 {{< / highlight >}}
 
-## Collecting metrics using Prometheus
+# Collecting metrics using Prometheus
 
 After completing the previous section, the Airflow metrics are now available in the Prometheus format. As a next step, we are going to deploy the Prometheus server that will collect these metrics. You can install the Prometheus server by running the command:
 
@@ -169,13 +169,13 @@ $ prometheus --config.file prometheus.yml
 
 You can now use your browser to go to the Prometheus built-in dashboard at http://localhost:9090/graph and check out the Airflow metrics.
 
-## Displaying metrics in Grafana
+# Displaying metrics in Grafana
 
 Finally, we are going to display the Airflow metrics using Grafana. Interestingly enough, I was not able to find any pre-existing Grafana dashboard for Airflow monitoring. So, I went ahead and created a basic dashboard that you can find on [GitHub](https://github.com/noseka1/monitoring-apache-airflow-using-prometheus). This dashboard may be a good start for you. If you make further improvements to the dashboard that you'd like to share with the community, I would be happy to receive a pull request. Currently, the dashboard looks like this:
 
 {{< figure src="/images/posts/airflow_grafana_dashboard.png" class="center" >}}
 
-## Conclusion
+# Conclusion
 
 In this post, we deployed a proof of concept of Airflow monitoring using Prometheus. We deployed and configured Airflow to send metrics. We leveraged statsd_exporter to convert the metrics to the Prometheus format. We collected the metrics and saved them in Prometheus. Finally, we displayed the metrics on the Grafana dashboard. This proof of concept was spurred by my search for a way to monitor Apache Airflow, and it may be a good starting point for you. If you make further improvements to the dashboard that you’d like to share with the community, I would be happy to receive a pull request.
 

@@ -42,6 +42,6 @@ As you can see, I'm not really registering the OpenStack nodes with the Red Hat 
 
 After the installation of the overcloud has completed I realized that some of the OpenStack processes on the overcloud nodes were segfaulting. After switching SELinux from enforcing to permissive mode everything started working as expected.
 
-## A final note
+# A final note
 
 The deployment of OpenStack is rather an involved process even when leveraging the tools like RDO Manager. To truly automate the installation in my specific environment I use a set of Ansible scripts to drive the RDO manager installation. Now that Red Hat acquired Ansible I'm wondering if we're going to get an even better OpenStack installation experience on Red Hat based distributions.

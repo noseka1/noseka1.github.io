@@ -9,7 +9,7 @@ Do you work on a development team that is distributed across several time zones?
 
 <!--more-->
 
-## Pay attention to the commit timestamps
+# Pay attention to the commit timestamps
 
 Let's assume that two developers work in the same Git repository. The first developer Prasad is located in Bangalore, India. His colleague Joe is located in San Diego, US. The Git log they created looks as follows:
 
@@ -39,7 +39,7 @@ Git orders the commits based on the commit timestamps with the most recent commi
 
 In the commit logs, Git displays the timestamp in the format *localtime + timezone offset*. When reading the timestamps it's important to take the timezone offset into account. Using the timezone offset you can convert the timestamp of the `Commit 2` and `Commit 3` into the UTC time in order to compare them. Because the `Commit 2` was made at 21:45 +0530 (= 16:15 UTC) and `Commit 3` was made at 11:41 -0800 (= 19:41 UTC) the `Commit 3` was created after the commits `Commit 1` and `Commit 2` and the chronological order displayed by Git is indeed correct.
 
-## Check the time settings on the developer machines
+# Check the time settings on the developer machines
 
 The timestamp recorded in the Git commit is based solely on the current time on the machine where the commit was created. Even if you have a corporate Git server where you push all your commits to you have to know that the Git server doesn't modify the timestamps in any way. You have to encourage your developers to have the time on their machines set correctly. This includes the correct local time as well as the time zone. On the Linux machines equipped with [systemd](https://www.freedesktop.org/wiki/Software/systemd/) these time settings can be changed using the `timedatectl` command. Use `date` command to validate your settings:
 
@@ -49,7 +49,7 @@ Mon Jan  2 20:33:04 PST 2017
 {{< / highlight >}}
 The output shows my correct local time and the correct time zone (PST) as I'm located on the west coast of the US.
 
-## Author date and commit date
+# Author date and commit date
 
 In the aforementioned example with the `git log` command I simplified the situation a little bit. There are actually two different timestamps recorded by Git for each commit: the *author date* and the *commit date*. When the commit is created both the timestamps are set to the current time of the machine where the commit was made. The author date denotes the time when the commit was originally made and it never changes. The commit date is updated every time the commit is being modified for example when rebasing or cherry-picking.
 

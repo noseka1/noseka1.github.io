@@ -9,7 +9,7 @@ Categories = [ "devops" ]
 
 <!--more-->
 
-## Create a separate account for Ansible
+# Create a separate account for Ansible
 
 {{< figure src="/images/posts/ansible_logo.png" height="150" width="150" class="right" >}}
 
@@ -25,7 +25,7 @@ Furthermore, any time Ansible uses `sudo` to execute a task, an additional log m
 
 In the cloud, we either use custom images that already contain the `ansible` account or we create the `ansible` account on the first boot using a cloud-init script. Using a dedicated `ansible` account instead of the `ec2-user`, `cloud-user`, `centos` and other image accounts streamlines our management efforts.
 
-## Report changes made on the target machine accurately
+# Report changes made on the target machine accurately
 
 When Ansible executes a playbook, it highlights all configuration changes made to the target machine while bringing it to the desired state described in the playbook. Administrator can review the reported changes to verify that they meet his expectations.  If no changes had to be made to the target machine, Ansible should report `changed=0` after the playbook execution completes.
 
@@ -58,7 +58,7 @@ We modified the shell script to print `CHANGED` to the standard output if and on
 
 It would be great if Ansible would come up with a mechanism to determine whether a shell script made changes to the target machine or not. In the meanwhile, the above pattern works very well for us.
 
-## Skip completed tasks
+# Skip completed tasks
 
 Ansible playbook may be executed multiple times against the same target machine. During each run Ansible must be able to determine which tasks should be executed and which tasks should be skipped because they were already completed in the previous run. Think about the scenario where we are configuring a Docker storage. In the following code, we are invoking the `docker-storage-setup` command on the target machine:
 
@@ -88,7 +88,7 @@ If you would run the above command the second time, it would fail because the Do
 
 The gist of the above code is simple. After we have successfully configured the Docker storage we create a stamp file. Because the stamp file exists, Ansible will skip the Docker storage configuration in all the following playbook runs. The stamp file is created in a well defined location. Should we want to re-run the Docker storage configuration in the future, we can just remove the stamp file before executing the playbook.
 
-## Backporting Ansible modules
+# Backporting Ansible modules
 
 For the task at hand, it is always preferable to leverage a dedicated Ansible module before falling back on generic `command` or `shell` modules. In our Ansible practice, we came into situations where the Ansible module we would like to use was available only in the newer versions of Ansible or that the module in our version of Ansible was buggy. As the interface between Ansible core and the Ansible modules is pretty stable, here is my advice: just copy the desired module from the newer version of Ansible and drop it into the `library` directory next to your playbook. This `library` directory is a location where you can put your custom modules. Moreover, any custom module having the same name will override a module distributed with Ansible. This is how our `library` directory currently looks like:
 
@@ -103,7 +103,7 @@ win_reg_stat.py
 
 We are using Ansible version 2.2.1.0 which doesn't contain `nsupdate` and `win_reg_stat` modules. Also, we found the `win_get_url` module in version 2.2.1.0 to be buggy. Adding a handful of modules to the `library` directory avoids the need to upgrade to the next version of Ansible. From past experience we know that porting our Ansible code base to the next version of Ansible requires a considerable effort.
 
-## Conclusion
+# Conclusion
 
 In this article, we shared some of the Ansible practices we found useful. We recommended to create a dedicated `ansible` account on each machine that is managed by Ansible. We described how to inform Ansible whether a script did or did not make any changes to the target machine. We showed you how to prevent a repeated execution of Ansible tasks by creating a custom stamp file. Lastly, we demonstrated that backporting Ansible modules is not that complicated as it may sound.
 

@@ -8,7 +8,7 @@ Where do you look when your server application doesn't work as expected? Applica
 
 <!--more-->
 
-## 1) Use SLF4J logging facade
+# 1) Use SLF4J logging facade
 
 There are different Java logging frameworks out there: java.util.logging, Log4j, Log4j2 and Logback to name the most popular ones. [SLF4J](http://www.slf4j.org/ "Simple Logging Facade for Java (SLF4J)") is a thin facade that can talk to all of these logging frameworks. You can write your code using the SLF4J API and plugin in the desired logging framework at deployment time. Instead of tying yourself to Log4j framework like this code example does:
 
@@ -46,7 +46,7 @@ In the second example you can see no `org.apache.log4j` package dependencies. At
 
 If you're writing a library and need to do logging you should definitely consider using SLF4J. Having your library depend on a particular logging framework will not make your users happy if they prefer to deploy a different logging framework. Even when writing a stand-alone application you might come to the point when you need to break it up into libraries when it gets bigger. Save your time and use SLF4J up front.
 
-## 2) Keep the logging performance in mind
+# 2) Keep the logging performance in mind
 
 You can improve the performance of your logging code by embracing the following programming idioms.
 
@@ -77,7 +77,7 @@ if (log.isDebugEnabled()) {
 }
 {{< / highlight >}}
 
-## 3) Log Java exceptions
+# 3) Log Java exceptions
 
 Even if you'd like to ignore Java exceptions at some places, do at least log it before you ignore it. Logging frameworks can log the stack trace of the Java exception nicely. The code in the following example catches and logs a `NullPointerException`:
 
@@ -111,7 +111,7 @@ java.lang.NullPointerException: My exception to be logged
 	at LogException.main(LogException.java:13) ~[bin/:na]
 {{< / highlight >}}
 
-## 4) Mark and filter your log messages
+# 4) Mark and filter your log messages
 
 Java logging frameworks allow you to filter log messages based on the logger name and the message log level. Logback and Log4j2 frameworks come with an additional filtering facility: Markers. You can tag your log messages with user-defined markers in order to filter them later on. In our example, we want to store the timing messages in a separate log file for later processing. In order to accomplish this we'll mark timing messages with the `time` marker. You can see the definition of the `time` marker at line 19 and logging of the marked message at line 20:
 
@@ -177,7 +177,7 @@ You will find only the marked timing message in the `/tmp/logger.out` log file:
 22:55:48 [main] INFO  MarkerApp:20 - Request processing took 12.09897 ms
 {{< / highlight >}}
 
-## 5) Leverage diagnostic context in multithreaded applications
+# 5) Leverage diagnostic context in multithreaded applications
 
 Most server applications need to handle multiple clients simultaneously. Typically, the server application allocates a separate thread to handle a single client request. In such a system different threads handle different client requests in parallel and the log messages written by the threads interleave. In order to differentiate log messages from different threads from each other a diagnostic context comes in handy. Diagnostic context is a map associated with a particular thread. Each thread maintains its own map. You can store arbitrary key-value pairs in the map and in turn lay out your log messages to include the values from the map.
 

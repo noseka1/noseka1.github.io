@@ -9,7 +9,7 @@ In this blog post, I am going to show you how to use Tilt to facilitate local Op
 
 <!--more-->
 
-## How does Tilt facilitate local development?
+# How does Tilt facilitate local development?
 
 The diagram below depicts a development workflow orchestrated by Tilt. After you execute the `tilt up` command on your development machine, Tilt will keep running while performing the following actions:
 
@@ -22,7 +22,7 @@ The diagram below depicts a development workflow orchestrated by Tilt. After you
 
 Tilt helps the developer automate many of the manual steps made during the development of containerized applications. It speeds up the edit-compile-run loop considerably. Interested to trying it out? Follow me to the next section, where we will implement the workflow depicted in the above diagram.
 
-## Using Tilt for developing a sample application
+# Using Tilt for developing a sample application
 
 In this section, we are going to use Tilt to orchestrate the development of a sample application. As I didn't want to reinvent the wheel by designing a custom application, I grabbed the Plain Old Static HTML example that comes with Tilt and can be found on [GitHub](https://github.com/tilt-dev/tilt-example-html/tree/faad605963b396b0863151802544fb01f6b414c6/0-base). This example is described in the Tilt's [documentation](https://docs.tilt.dev/example_static_html.html) and you may already be familiar with it. It consists of a very simple shell script that serves a static HTML. In contrast to Tilt's example which leverages Docker and upstream Kubernetes, I will be using developer tools from the Red Hat's portfolio:
 
@@ -122,7 +122,7 @@ $ curl localhost:8000
 
 To experience how Tilt facilitates the local development, change the content of the `index.html` file. After you save your changes, Tilt will instantly re-run the loop and deploy the updated application.
 
-## Conclusion
+# Conclusion
 
 In this blog, we described how Tilt can facilitate the local development of containerized applications. We demonstrated Tilt's capabilities in a practical example that showed Tilt working along with buildah and CodeReady Containers. In this introductory article, we were able to only scratch the surface. There is much more that Tilt has to offer, including live updates that can update the application without restarting the container, and which can drastically speed up the edit-compile-run loop. I encourage you to read through [Tilt's documentation](https://docs.tilt.dev/) to learn more about this tool.
 

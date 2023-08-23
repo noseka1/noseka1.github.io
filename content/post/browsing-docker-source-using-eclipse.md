@@ -9,7 +9,7 @@ Do you like Docker technology and want to learn more about it? There's no better
 
 <!--more-->
 
-## Installing the Go programming language
+# Installing the Go programming language
 
 The Go programming language is relatively young and sees a lot of development. Within the past two years there was a major release available every half a year. To keep up with the latest state of art it's better to install Go packages directly from the project's [download site](https://golang.org/dl/ "Go Downloads") instead of trying to make use of the packages coming with your Linux distribution. Currently, Docker requires Go version 1.4 or later. Before you start the installation, make sure that there are no Go packages installed on your system. The following command will uninstall all Go packages from your Debian-based Linux:
 
@@ -31,7 +31,7 @@ The `/usr/local/go/bin` includes the Go tool (the `go` command). We'll use this 
 $ export PATH=$PATH:/usr/local/go/bin
 {{< / highlight >}}
 
-## Creating a Go workspace
+# Creating a Go workspace
 
 The Go *workspace* is a directory with three subdirectories:
 
@@ -53,7 +53,7 @@ At the same time, we've included the workspace's `bin` directory into our path v
 
 Furher information on the Go code organization and workspaces can be found [here](http://golang.org/doc/code.html "How to Write Go Code").
 
-## Building Docker from source
+# Building Docker from source
 
 So far, we've defined the location of our Go workspace. Now we're going to download the latest Docker code and build it. The Go tool can directly download the Docker Git repository and save it into our workspace:
 
@@ -70,7 +70,7 @@ $ GOPATH=$HOME/go:$HOME/go/src/github.com/docker/docker/vendor ./hack/make.sh dy
 
 Docker comes with a set of dependencies directly checked into the Docker Git repository. You can find them in the `vendor` directory. This directory is actually a Go workspace which we only needed to include in our `GOPATH` when we triggered the build. If everything went fine, you can find some generated source files in the `autogen` directory and the freshly built Docker executables in the `bundles` directory.
 
-## Creating an Eclipse project
+# Creating an Eclipse project
 
 In this section, we're going to install a Go language plug-in into Eclipse IDE and create a Docker project. The [GoClipse](https://github.com/GoClipse/goclipse "GoClipse") plug-in brings Go language support into Eclipse. The minimum installation requirements for this plug-in are: Eclipse 4.5 (Mars) running on Java 8 or later. You can follow the installation instructions available [here](https://github.com/GoClipse/goclipse/blob/latest/documentation/Installation.md "GoClipse installation") to get the plug-in installed.
 
@@ -82,7 +82,7 @@ Instead of using the default location, let Eclipse create the project in your Go
 
 {{< figure src="/images/posts/eclipse_go2.png" class="center" >}}
 
-## Code navigation and auto-completion
+# Code navigation and auto-completion
 
 In this final section, we're going to make navigation and auto-completion in Eclipse work. The `Open Definition` navigation in Eclipse (keyboard shorcut F3) requires the Go `oracle` tool to be installed. Whenever you open the definition of the entity under the cursor, Eclipse will call the `oracle` tool in order to obtain the information about the navigation target.
 

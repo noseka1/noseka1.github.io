@@ -11,7 +11,7 @@ Roughly a year ago, my boss offered to me a Red Hat Learning Subscription. Becau
 
 In Wikipedia, you can find a great [overview](https://en.wikipedia.org/wiki/Red_Hat_Certification_Program) of the Red Hat certification program. To achieve the Red Hat Certified Architect level, you have to pass seven exams in total. The certification path starts with the RHCSA and RHCE exams. After becoming RHCE, you will have to pass five more exams based on your choice to obtain the RHCA certificate.
 
-## Starting off with RHCSA and RHCE
+# Starting off with RHCSA and RHCE
 
 {{< figure src="/images/posts/rhcsa_logo.png" height="130" width="130" class="right" >}}
 
@@ -23,7 +23,7 @@ About two weeks after passing the RHCSA, I took the next exam - the Red Hat Cert
 
 You can find further details about my RHCSA/RHCE experience in [this](/blog/2016/11/07/rhcsa-slash-rhce-exam-experience/) blog post.
 
-## Climbing to the top
+# Climbing to the top
 
 {{< figure src="/images/posts/rhca_logo.png" height="130" width="130" class="right" >}}
 
@@ -37,7 +37,7 @@ The last two exams on my journey were the Red Hat Certificate of Expertise in At
 
 Red Hat maintains a web page showing a track record of each Red Hat Certified Professional. The list of my Red Hat certifications can be found on this [Verify a Red Hat Certified Professional](https://www.redhat.com/rhtapps/certification/verify/?certId=160-216-727) page.
 
-## What's next?
+# What's next?
 
 The RHCA status doesn't last forever as I learned on the Red Hat web page describing how to [stay current](http://servicesblog.redhat.com/2016/09/23/stay-current/). In order for my RHCA to stay current, I must maintain five eligible credentials beyond the RHCE level. Certificates that I obtained beyond the RHCE are valid for three years. That means that I must take five exams every three years in order to maintain my RHCA status. Those five exams can be the same five exams I already passed before or I can pick any other exams from the selection of exams eligible for RHCA. Besides that, as a RHCA I'm entitled to a 50 percent discount on the [Red Hat Learning Subscription - Standard](https://www.redhat.com/en/about/videos/red-hat-learning-subscription-standard). This subscription includes all the prep materials and five first exam attempts.
 

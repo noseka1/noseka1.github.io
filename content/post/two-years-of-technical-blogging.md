@@ -15,13 +15,13 @@ It seems to me that in the developer community the introverted authors prevail a
 
 {{< figure src="/images/posts/octopress_github.png" height="200" width="200" class="right" >}}
 
-## Getting my blog started
+# Getting my blog started
 
 Coming late to the game, there were plenty of technical blogs out there to draw inspiration from. I quickly settled on [Octopress](http://octopress.org/) as the engine for my blog. Octopress is a blog generator. I can write articles using the Markdown format and Octopress generates the entire website for me. As the generated website is completely static I'm hosting it on GitHub. No PHP or MySQL databases are needed to run my blog. Currently, the development of the Octopress engine is stalled for more than a year, however, I still like to ride this horse even when it might be dead.
 
 Before I get going I typically need to read at least one book on the subject. Regarding technical blogging, I would recommend the [Technical Blogging](http://technicalblogging.com/book/) book from The Pragmatic Programmers. I read the first several chapters before creating this blog and it was a great eye opener for me.
 
-## Why is technical blogging fun?
+# Why is technical blogging fun?
 
 Technical blogging takes some effort, however, I'm really enjoying it. Here are my top five reasons why I like technical blogging:
 
@@ -31,6 +31,6 @@ Technical blogging takes some effort, however, I'm really enjoying it. Here are 
 4.  *Blog is a documentation you can refer to in the future.* It happened to me several times that I had to come back to my own article to refresh my memory on the subject.
 5.  *Blogging advances your writing skills.* Concise and easy to understand written communication is certainly appreciated by other developers on your team.
 
-## Let me know how I'm doing
+# Let me know how I'm doing
 
 Feedback is always greatly appreciated. If you find some time, I would be happy to hear how I'm doing as a blogger. You can leave your comments in the comment section below.

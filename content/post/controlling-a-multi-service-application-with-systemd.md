@@ -27,7 +27,7 @@ Required service startup order:
 
 {{< figure src="/images/posts/systemd_startup_dependencies.svg" height="300" width="400" class="center" alt="Service startup order" >}}
 
-## Creating the systemd unit files
+# Creating the systemd unit files
 
 Let's begin creating the systemd unit files. First, we'll define a pseudo-service called `app`. This service doesn't run any deamon. Instead, it will allow us to start/stop the three application services at once.
 
@@ -103,7 +103,7 @@ Restart=on-failure
 WantedBy=app.service
 {{< / highlight-caption >}}
 
-## Adding the application services to systemd
+# Adding the application services to systemd
 
 After we finished the creation of the four systemd unit files, we need to copy them to the systemd configuration directory:
 
@@ -130,7 +130,7 @@ app.service            disabled
 {{< / highlight >}}
 
 
-## Testing the application services
+# Testing the application services
 
 After all the hard work we're now ready to exercise our configuration. First, let's enable all the application services:
 
@@ -204,7 +204,7 @@ $ sudo systemctl mask app-component2
 
 This way, the service `app-component2` remains disabled no matter what.
 
-## Conclusion
+# Conclusion
 
 systemd provides a feature-rich service manager. Instead of implementing a home-grown solution you might want to think about using systemd to control your application services. Some of the benefits of opting for systemd are:
 

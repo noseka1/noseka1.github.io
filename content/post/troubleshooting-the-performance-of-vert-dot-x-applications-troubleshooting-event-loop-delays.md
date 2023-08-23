@@ -11,7 +11,7 @@ In the [previous entry](/blog/2019/07/22/troubleshooting-the-performance-of-vert
 
 The event loop thread model is vastly different from the thread-per-request model employed by standard JEE or Spring frameworks. From my experience I can report that it takes developers some time to wrap their heads around it and that at the beginning they tend to make the mistake of introducing blocking calls into the event loop's code path. In the following sections, we will discuss several techniques of how to troubleshoot such situations.
 
-## Blocked thread checker
+# Blocked thread checker
 
 Vert.x comes with a built-in mechanism to detect delays on event loop and worker threads by checking the execution time of handlers that you registered with the Vert.x APIs. This mechanism operates in two steps. In the first step, Vert.x saves the timestamp of the moment when a handler starts executing. This *start timestamp* is saved to a storage attached to the thread that is executing the handler. Whenever the execution of the handler has completed the timestamp is reset. In the second step, Vert.x periodically checks the timestamps using a dedicated thread called [`vertx-blocked-thread-checker`](https://github.com/eclipse-vertx/vert.x/blob/master/src/main/java/io/vertx/core/impl/BlockedThreadChecker.java). This thread is spawned by Vert.x during the creation of the Vert.x instance for example when you call `Vertx.vertx()`. The vertx-blocked-thread-checker thread can be seen in [VisualVM](https://visualvm.github.io/):
 
@@ -94,7 +94,7 @@ WorkerExecutor executor = vertx.createSharedWorkerExecutor("mypool", 20, 10, Tim
 
 The good thing about the blocked thread checker is that it is able to detect thread delays regardless of whether they were caused by a call to a blocking API or by executing a compute intensive task. As such it can serve as a good indicator that there is something seriously wrong with your application.
 
-## Inspecting stack traces
+# Inspecting stack traces
 
 Some event loop delays can be so subtle that they can go unnoticed by the blocked thread checker. Imagine a situation where you have a handler that causes a very short delay.  The blocked thread checker won't catch this short delay because it is not long enough to reach the threshold. However, if this handler is called very frequently, the aggregate delay caused by this handler can have a great impact on the performance of your application. How to uncover this kind of issue?
 
@@ -104,7 +104,7 @@ A good option is to analyze Java thread dumps by hand. You can refer to [this ar
   <iframe width="560" height="315" src="https://www.youtube.com/embed/xxLVQMssLCk" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 </div>
 
-## Conclusion
+# Conclusion
 
 In this article, we talked about the blocked thread checker as a first indicator of the event loop delays. Next, I showed you in the video how to troubleshoot event loop delays in practice using VisualVM.
 

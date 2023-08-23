@@ -15,7 +15,7 @@ In the real world, companies don't deploy a single OpenShift cluster but run mul
 
 As there are plenty of reasons to use multiple OpenShift clusters, there is a need to create CI/CD pipelines that work across those clusters. The next sections are going to design such pipelines.
 
-## CI/CD pipeline using Jenkins
+# CI/CD pipeline using Jenkins
 
 Jenkins is a legend among CI/CD tools. I remember meeting Jenkins back in the day when it was called Hudson but that's old history. How can we build a Jenkins pipeline that spans multiple OpenShift clusters? An important design goal for the pipeline is to achieve a single dashboard that can display output of all jobs involved in the pipeline. I gave it some thought and realized that achieving a single dashboard pretty much implies using a single Jenkins master. This Jenkins master is connected with each of the OpenShift clusters. During the pipeline execution, Jenkins master can run individual tasks on any of the clusters. The job output logs are collected and sent to the master as usual. If we consider having three OpenShift clusters Dev, Test, and Prod, the following diagram depicts the approach:
 
@@ -47,7 +47,7 @@ OpenShift comes with a Jenkins template which can be found in the `openshift` pr
 
 One last point I wanted to discuss is security. As long as the Jenkins master can spin up worker pods on OpenShift, it can execute arbitrary code on those workers. The OpenShift cluster has no means to control what code the Jenkins worker will run. The job definition is managed by Jenkins and it is solely up to the access controls in Jenkins to enforce which job is allowed to execute on which cluster.
 
-## Kubernetes-native Tekton pipeline
+# Kubernetes-native Tekton pipeline
 
 In this section, we are going to use Tekton to implement the CI/CD pipeline. In contrast to Jenkins, Tekton is a Kubernetes-native solution. It is implemented using Kubernetes building blocks and it is tightly integrated with Kubernetes. A single Kubernetes cluster is a natural boundary for Tekton. So, how can we build a Tekton pipeline that spans multiple OpenShift clusters?
 
@@ -82,7 +82,7 @@ Note that this example is showing a cascading execution of Tekton pipelines. Ano
 
 Before moving on to the final section of this blog, let's briefly discuss the pipeline composition in terms of security. As a Kubernetes-native solution, Tekton's access control is managed by RBAC. Before the task running on a local cluster can trigger a pipeline on a remote cluster, it has to be granted appropriate permissions. These permissions are defined by the remote cluster. This way a remote cluster running in a higher environment (Prod) can impose access restrictions on the tasks running in the lower environment (Test). For example, a Prod cluster will allow the Test cluster to only trigger pre-defined production pipelines. The Test cluster won't have permissions to create new pipelines in the Prod cluster.
 
-## Conclusion
+# Conclusion
 
 This blog showed how to create CI/CD pipelines that span multiple OpenShift clusters using Jenkins and Tekton. It designed the pipelines and discussed some of the security aspects. The execute-remote-pipeline Tekton task was used to compose pipelines located on different OpenShift clusters into a single pipeline.
 

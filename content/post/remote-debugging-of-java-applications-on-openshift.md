@@ -19,7 +19,7 @@ I am going to use OpenShift v3.11 that I installed using Minishift and a test ap
 
 {{< figure src="/images/posts/remote_debugging_of_java_applications_on_openshift.svg" class="center" >}}
 
-## Hello world application
+# Hello world application
 
 For those of you who want to follow along, let's set up a test application which we will use for debugging. If you already have your Java application running on OpenShift, you can jump ahead to the next section.
 
@@ -123,7 +123,7 @@ hello-world-1-build   0/1       Completed    0          6m
 hello-world-1-dw5lf   1/1       Running      0          42s
 {{< / highlight >}}
 
-## Enabling Debug and JMX ports on JVM
+# Enabling Debug and JMX ports on JVM
 
 In the following, I am going to use OpenJDK 1.8. Note that the available JVM options may vary depending on the version of Java  platform you are using.
 
@@ -183,7 +183,7 @@ Picked up JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,address
 
 This verifies that our JVM options are in effect and the debug port and JMX ports are open. How are we going to connect to these ports? Let's set up port forwarding on the local machine next.
 
-## Setting up port forwarding
+# Setting up port forwarding
 
 OpenShift features [port forwarding](https://docs.okd.io/latest/dev_guide/port_forwarding.html) that allows you to connect to an arbitrary port of a pod running on OpenShift. Port forwarding doesn't require you to define any additional objects like Service or Route to enable it. What you need though is to start a port forwarding proxy on your local machine. Issue the following command on your local machine to start the proxy and forward the three ports 8000, 3000, and 3001 to the remote pod running on OpenShift:
 
@@ -202,7 +202,7 @@ Forwarding from 127.0.0.1:3001 -> 3001
 
 Note that the proxy keeps running on the foreground.
 
-## Attaching to the JVM running on OpenShift
+# Attaching to the JVM running on OpenShift
 
 Having our port-forwarding proxy all set, let's fire up a debugger and attach it to our application. Note that we instruct the debugger to connect to the localhost on port 8000. This port is in turn forwarded to the port 8000 on the JVM:
 
@@ -238,7 +238,7 @@ Works like a charm, doesn't it?
 
 {{< figure src="/images/posts/visualvm_attached.png" class="center" >}}
 
-## Conclusion
+# Conclusion
 
 In this blog post, we were able to attach a debugger and VisualVM to the Java application running on OpenShift. We didn't need to deploy Jolokia proxy or create additional Service or Route objects to make our setup work. Instead, we leveraged the port-forwarding feature already available in OpenShift. The demonstrated method has additional security benefits as we are not exposing any additional ports of the application container.
 

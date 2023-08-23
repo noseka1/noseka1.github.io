@@ -9,13 +9,13 @@ On September 21, 2018 I spoke at the [Red Hat Training Partner & Instructor Conf
 
 <!--more-->
 
-## Why was I invited to speak at this conference?
+# Why was I invited to speak at this conference?
 
 In this conference, Red Hat shares updates on their learning and certification programs, as well as the current status and trends. This conference is geared towards Red Hat’s training partners, instructors, and Red Hat Academy representatives.
 
 To date, one of my most popular blog posts has been [How I Became a Red Hat Certified Architect in One Year](/blog/2017/08/01/how-i-became-a-red-hat-certified-architect-in-one-year/). In this post I described my path through the Red Hat certification process, using the Red Hat Learning Subscription ([RHLS](https://www.redhat.com/en/services/training/learning-subscription)), to achieve the Red Hat Certified Architect title. As a result of this, the conference organizers invited me to speak and give a customer testimonial about my experience.
 
-## What did I talk about?
+# What did I talk about?
 
 I shared a little bit about my background, my personal certification path using the RHLS, offered a couple of suggestions for improvement of RHLS, and also listed reasons why I would recommend the RHLS to others:
 
@@ -26,7 +26,7 @@ I shared a little bit about my background, my personal certification path using 
 * Cost effectiveness
 * After becoming RHCA I used RHLS to evaluate other Red Hat products
 
-## What did I learn at the conference?
+# What did I learn at the conference?
 
 I learned that Red Hat builds their learning platform themselves. Additionally, changes have been made such that the proctoring of the exams will be handled directly by Red Hat, instead of leveraging a third party.
 

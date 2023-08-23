@@ -11,7 +11,7 @@ At Red Hat summit I learned about the new project [ansible-container](https://ww
 
 The ansible-container is a very young project. The first release 0.1.0 came out on July 28, 2016. The project's Git repository is hosted on [GitHub](https://github.com/ansible/ansible-container). Additionaly, there's a repository with examples of how to use ansible-container available [here](https://github.com/ansible/ansible-container-examples).
 
-## How ansible-container works
+# How ansible-container works
 
 Here is how you build Docker containers with ansible-container. After crafting your Ansible playbook, you run the command `ansible-container build` which roughly executes these steps:
 
@@ -24,7 +24,7 @@ Besides building one Docker image at a time, it's rather straight forward to bui
 
 After your images are built, you can start them as containers on the local machine using the `ansible-container run` command. And finally, the `ansible-container shipit` command can help you to deploy your containers to Kubernetes or OpenShift.
 
-## Evaluating ansible-container
+# Evaluating ansible-container
 
 Software development in our company is organized in a way that can probably be found in many other places, too. We maintain base software libraries in a project called *platform*. On top of *platform*, many different product components are developed. We distribute our software in the form of RPM packages. As a first step on our way towards containers, we are going to install the RPMs on top of the Docker base images.
 
@@ -36,6 +36,6 @@ After spending a week with ansible-container, we decided that we are not going t
 
 3. The ansible-container project shows its potential while it's still in its infancy. The builds with ansible-container take longer than the Dockerfile builds that leverage caching of image layers. The build specification file `container.yml` is not flexible enough for us. For example, it's not easy to build only a subset of the declared containers. Also it's not possible to build in one pass containers which inherit from each other.
 
-## Conclusion
+# Conclusion
 
 The ansible-container project is definitely very promising and we will keep our eye on it. For now, we're moving forward with generating and running Dockerfiles.

@@ -11,7 +11,7 @@ KubeCon + CloudNativeCon North America 2017 took place in Austin, Texas on Decem
 
 {{< figure src="/images/posts/kubecon_2017.png" height="500" width="200" class="center" >}}
 
-## Keynotes
+# Keynotes
 
 * **Keynote: A Community of Builders**
   * Linux Foundation created a [Introduction to Kubernetes](https://www.edx.org/course/introduction-kubernetes-linuxfoundationx-lfs158x) course available to everybody who wants to learn Kubernetes. The course is provided free of charge on the edX platform.
@@ -26,7 +26,7 @@ KubeCon + CloudNativeCon North America 2017 took place in Austin, Texas on Decem
   * With the recent announcements of [Amazon EC2 Bare Metal instances](https://aws.amazon.com/about-aws/whats-new/2017/11/announcing-amazon-ec2-bare-metal-instances-preview/) and [Amazon Elastic Container Service for Kubernetes](https://aws.amazon.com/blogs/aws/amazon-elastic-container-service-for-kubernetes/), there are now four first-class deployment entities available on AWS: bare metal, VMs, containers and functions.
   * Amazon ECS for Kubernetes will leverage IAM to authenticate identities and the Kubernetes' RBAC for authorization. Pods will be assigned IAM roles in order for them to be able to talk to other AWS services, e.g. S3.
 
-## Sessions attended
+# Sessions attended
 
 * **Embedding the Containerd Runtime for Fun and Profit**
   * ShiftFS is trying to solve the problem with the access (uid/gid) to a single file system from two containers running in different user namespaces.

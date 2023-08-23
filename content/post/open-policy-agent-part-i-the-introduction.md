@@ -9,7 +9,7 @@ Recently I was looking for a way to implement access control for microservices. 
 
 <!--more-->
 
-## What is Open Policy Agent?
+# What is Open Policy Agent?
 
 Open Policy Agent (OPA) is a policy engine that can be used to implement fine-grained access control for your application. For example, you can use OPA to implement [authorization](https://www.openpolicyagent.org/docs/latest/http-api-authorization/) across microservices. However, there is much more that can be accomplished with OPA. For your inspiration, there are several open-source projects that integrate with OPA to implement fine-grained access control like [Docker](https://github.com/open-policy-agent/opa-docker-authz), [Istio](https://github.com/open-policy-agent/opa-istio-plugin) and [others](https://github.com/open-policy-agent/contrib). Furthermore, OPA as a general-purpose policy engine, can be leveraged in use cases beyond access control, for instance to make advanced pod placement decisions in [Kubernetes](https://github.com/open-policy-agent/opa-kube-scheduler).
 
@@ -19,7 +19,7 @@ OPA can be deployed as a standalone service along with your microservices. In or
 
 OPA is written in the Go language and its source code is available on [GitHub](https://github.com/open-policy-agent/opa) under the Apache License 2.0. The Open Policy Agent project is hosted by [CNCF](https://www.cncf.io/) as an incubating project.
 
-## Making policy decisions
+# Making policy decisions
 
 In this section, I am going to explain how OPA works. Don't worry if everything is not clear to you right away. In the following section, we are going to work through a practical example which will help clarify the details.
 
@@ -35,11 +35,11 @@ In order to make a policy decision, all three inputs (data, query input, and the
 
 That is how OPA works from a high-level perspective. In the next section, we will dive into a practical example.
 
-## Hands-on tutorial
+# Hands-on tutorial
 
 This section is a hands-on tutorial where I will walk you through an example of working with OPA. Although, all sorts of access control models can be implemented using OPA, the goal of this exercise is to implement access control using an Access Control List (ACL). So, let's get started!
 
-### Creating data
+## Creating data
 
 Access control list specifies which users have access to the application as well as what operations they are allowed to invoke. For the purposes of this tutorial, I came up with a simple ACL definition:
 
@@ -59,7 +59,7 @@ According to this ACL, a user named `alice` was granted `read` and `write` acces
 
 Note that later on we are going to inject this access control list as *data* into OPA to allow it to make policy decisions based on this list. How did we know what the structure of the ACL document looks like? As a matter of fact, OPA doesn't prescribe how you should structure your data. It only requires the data to be in a JSON format. The recommendation is to structure your data in a way that makes it easy to write policy rules against it. I followed this recommendation and the above access control list is what I came up with.
 
-### Defining query input
+## Defining query input
 
 Next, we are going to define a structure of the *query input*. On each access to our application, we are going to ask OPA whether the given access is authorized or not. To answer that question, OPA needs to know the name of the user that is trying to access the application and the operation that the user is trying to invoke. Here is a sample query input that conveys the two query arguments to OPA :
 
@@ -74,7 +74,7 @@ Next, we are going to define a structure of the *query input*. On each access to
 
 You can interpret this query input as the question: "Is user *alice* allowed *write* access to the application?". Note that it's up to you how you structure your query input. OPA's only requirement is for the input to be in the JSON format.
 
-### Writing Rego policy
+## Writing Rego policy
 
 After we decided how our data and the query input look like, we can create a *policy* that implements the ACL semantics. Using the Rego language, let's create a policy with two rules `allow` and `whocan`:
 
@@ -103,7 +103,7 @@ The second rule in our policy is the `whocan` rule. This rule takes the operatio
 
 You can save the above policy as a file called `myapi-policy.rego`. We are going to upload it into OPA in just a moment. At this point, both the ACL file `myapi-acl.json` we created earlier and the policy file  `myapi-policy.rego` are sitting in our working directory. It's now time to put OPA to work!
 
-### Starting up Open Policy Agent service
+## Starting up Open Policy Agent service
 
 You can grab the OPA binary for your  platform (Linux, MacOS, or Windows) from [GitHub](https://github.com/open-policy-agent/opa/releases). After downloading the binary, start the OPA service by issuing the command:
 
@@ -127,7 +127,7 @@ Next, upload the policy file `myapi-policy.rego` into OPA by issuing:
 $ curl -X PUT http://localhost:8181/v1/policies/myapi --data-binary @myapi-policy.rego
 {{< / highlight >}}
 
-### Invoking policy queries
+## Invoking policy queries
 
 Finally, if everything went well, we are now ready to issue our first  query.
 
@@ -173,7 +173,7 @@ $ curl -X POST http://localhost:8181/v1/data/myapi/policy/whocan \
 }
 {{< / highlight >}}
 
-## Conclusion
+# Conclusion
 
 In this article, we took an initial look at Open Policy Agent. After discussing how OPA works, we went through an example of implementing an Access Control List policy. In the [next entry](/blog/2019/10/27/open-policy-agent-part-ii-developing-policies/) to this series, we are going to dive deeper into developing policies with OPA.
 

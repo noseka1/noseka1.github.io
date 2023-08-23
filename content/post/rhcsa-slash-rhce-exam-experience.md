@@ -11,7 +11,7 @@ Today was the great day when I passed the RHCE certification exam. If you're thi
 
 The RHCSA/RHCE certification is a part of the [Red Hat Certification Program](https://en.wikipedia.org/wiki/Red_Hat_Certification_Program). You have to pass two practical exams, RHCSA (Red Hat Certified System Administrator) and RHCE (Red Hat Certified Engineer).
 
-## Modus operandi
+# Modus operandi
 
 Both the RHCSA and RHCE exams are hands on. You will be presented with one or more RHEL7 virtual machines and a list of Linux configuration tasks. Your goal is to set up the virtual machines as described in the tasks. After your exam is finished, the Red Hat test automation will reboot the virtual machines and run the grading scripts that will compute your score. An hour or two after the exam end you will receive your exam results in the email.
 
@@ -21,7 +21,7 @@ If you're a hiring manager searching for the Linux talent, you should know that:
 
 >Job candidates that passed the RHCSA/RHCE certification really demonstrated their Linux administration skills at some point.
 
-## Tips
+# Tips
 
 You can find a ton of tips for the RHCSA/RHCE exams on the Internet already. I'd like to share some more advice here.
 
@@ -48,6 +48,6 @@ If it is feasible for you, make yourself a favor and buy the [Red Hat Learning S
 
 I found the Red Hat learning materials to be of a high quality. Besides the prep for the exam, I'm using them to learn about further technologies from the Red Hat portfolio.
 
-## Is the RHCSA/RHCE for me?
+# Is the RHCSA/RHCE for me?
 
 In my opinion, the RHCSA/RHCE is one of the best Linux certifications available. If you mean it with Linux seriously - and it doesn't necessarily have to be the Red Hat flavor of Linux - go get certified!

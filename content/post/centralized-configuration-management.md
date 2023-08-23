@@ -13,13 +13,13 @@ Our existing application is a [SOA-based](https://en.wikipedia.org/wiki/Service-
 
 With the growing number of services and the need to deploy our application into dynamic cloud environments, a centralized configuration management became a necessity.
 
-## Looking for a solution
+# Looking for a solution
 
 It would be possible to leverage the standard DevOps tools like Puppet, Chef or Ansible to manage the configuration files on each of the deployed nodes. For bare metal deployments or when deploying on virtual machines in the cloud, these tools could do a decent job. However, on our way to the cloud, we’re looking at containerizing all of our services. Furthermore, down the road we would also like to leverage serverless architecture as well. For updating a handful of configuration files inside of a Docker container, Puppet, Chef or Ansible just seem too heavy. Needless to say that these tools would not be usable when considering serverless architecture.
 
 When searching for a solution, we came across the [confd](https://github.com/kelseyhightower/confd) and [consul-template](https://github.com/hashicorp/consul-template) projects. Both tools are based on the same principle. First, the values of the configuration options are persisted in a backend store. While consul-template can store values in Consul only, confd supports a host of different backends like Consul, etcd, Redis or DynamoDB. Second, a set of templates on the filesystem is populated with the values from the backend store and hence forming valid configuration files. These configuration files are then consumed by the application. We drew a great deal of inspiration from this approach.
 
-## Our approach
+# Our approach
 
 Our centralized configuration management consists of two components: *CCS* (Centralized Configuration Store) which is a Consul cluster holding the configuration data, and *CCT* (Centralized Configuration Tool) which is a command-line client. CCT implements two functions. First, it allows the operator to query and modify the configuration values persisted in CCS. Second, it syncs up the configuration files on the local filesystem with their state in CCS. The following diagram depicts the components involved in the centralized configuration management:
 
@@ -43,7 +43,7 @@ Next, let's review an example scenario where an operator wants to modify a confi
 
 Overall, CCS is a single source of truth for the application configuration. This is in contrast with the confd or consul-template approach where the configuration values are stored in the backend while the templates are stored on the filesystem. When a new release of the application is deployed, having all configuration data in one place makes the upgrade of the configuration data easier.
 
-## Future directions
+# Future directions
 
 It was important to us to introduce the centralized configuration management into our existing application without breaking the existing operational workflows. For example, operators should be able to edit the configuration files as they did in the previous versions of our application. Also, as the configuration files are written to the filesystem, the existing services continue to work without any modification from the previous versions. Hence the centralized configuration management can be deployed as a truly optional component on top of the existing application.
 

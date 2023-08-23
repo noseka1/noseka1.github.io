@@ -17,7 +17,7 @@ After installing Manila, the following Manila services are running on the contro
 * *openstack-manila-scheduler* makes provisioning decisions when creating a new share.
 * *openstack-manila-share* comes with a host of drivers to talk to the storage systems.
 
-## Configuring the generic share driver
+# Configuring the generic share driver
 
 In order for Manila to allocate shares on Cinder volumes, we'll have to configure Manila to use the *generic* share driver. For that we'll add a new Manila backend `generic_backend` into `/etc/manila/manila.conf`:
 
@@ -53,7 +53,7 @@ Finally, we have to generate a public/private key pair and tell Manila about it 
 
 In order to make our generic backend available to the Manila users, we're going to define a `generic` share type next.
 
-## Defining a share type
+# Defining a share type
 
 The *share type* has a similar purpose as the *volume type* in Cinder. It defines the backend used for the share creation. If there are multiple share backends available, an OpenStack administrator can define a separate share type for each of them. When creating a new share, the user can choose which share type to allocate the storage from.
 
@@ -64,7 +64,7 @@ $ manila type-create generic True
 $ manila type-key generic set share_backend_name=generic_backend
 {{< / highlight >}}
 
-## Creating a share and mounting it
+# Creating a share and mounting it
 
 Finally, we're done with all the configuration and can start enjoying our share service. All the following commands are run as an ordinary tenant user.
 

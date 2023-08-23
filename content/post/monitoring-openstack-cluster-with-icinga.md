@@ -16,7 +16,7 @@ I found two very useful projects for monitoring the OpenStack APIs both hosted o
 * [OpenStack Nagios Plugins](https://github.com/cirrax/openstack-nagios-plugins)
 * [Monitoring for OpenStack](https://github.com/openstack/monitoring-for-openstack)
 
-## OpenStack Nagios Plugins
+# OpenStack Nagios Plugins
 
 [OpenStack Nagios Plugins](https://github.com/cirrax/openstack-nagios-plugins) provides a collection of checks for the OpenStack services Nova, Neutron, Cinder, Keystone and Ceilometer. Available plugins worked right away with my OpenStack Liberty cluster. The Nova Hypervisor check monitors the "virtual" CPU and memory usage across your compute nodes. The name virtual CPU is a little misleading here. In reality, the number of physical cores is monitored as the Nova API actually reports the number of physical cores. I stick to the OpenStack default settings that overcommit the CPUs by factor of 16 and the memory by factor of 1.5. To accommodate this fact, I changed the warning and critical ranges for the check_nova-hypervisors plugin as follows:
 
@@ -24,7 +24,7 @@ I found two very useful projects for monitoring the OpenStack APIs both hosted o
 check_nova-hypervisors --warn_memory_percent 0:135 --critical_memory_percent 0:142 --warn_vcpus_percent 0:1440 --critical_vcpus_percent 0:1520
 {{< / highlight >}}
 
-## Monitoring for OpenStack
+# Monitoring for OpenStack
 
 Plugins coming with the [Monitoring for OpenStack]((https://github.com/openstack/monitoring-for-openstack) project provide deeper checks of OpenStack functionality. I liked the following ones the best:
 
@@ -36,7 +36,7 @@ Plugins coming with the [Monitoring for OpenStack]((https://github.com/openstack
 
 Some of the plugins didn't work for me due to incompatibilities with the Liberty client APIs. If you encounter the same problem you can try out my fixed version of the plugins on GitHub [here](https://github.com/noseka1/monitoring-for-openstack).
 
-## Icinga 2 Screenshot
+# Icinga 2 Screenshot
 
 And this is how the OpenStack APIs service group looks in Icinga Web 2. Happy monitoring!
 

@@ -9,7 +9,7 @@ Red Hat is one of the most successful software companies that makes billions of 
 
 <!--more-->
 
-## Motivating and inspiring
+# Motivating and inspiring
 
 *  A company should have a purpose. The purpose is not a goal a company wants to achieve but the reason why it exists. For instance, Red Hat's mission statement says: *To be the catalyst in communities of customers, contributors, and partners creating better technology the open source way*. This statement enables Red Hat to attract the most talented people that share the belief that open source is fundamentally good for the world.
 
@@ -21,7 +21,7 @@ Red Hat is one of the most successful software companies that makes billions of 
 
 * As an employee, if your manager is not providing the appropriate context, ask for it. Most bosses are happy to share. They just haven’t yet figured out that it belongs to what they should be doing.
 
-## Getting things done
+# Getting things done
 
 * The Open organization embraces meritocracy where the leaders are chosen based on their contributions to the project, not based on their titles or longevity within the company.
 
@@ -29,7 +29,7 @@ Red Hat is one of the most successful software companies that makes billions of 
 
 * In the discussions, people argue and criticize not because they are trying to be difficult, but because they are so passionate about the subject. A debate involving multiple views from different people leads to better decisions made than a meeting where the goal for everyone is to be nice to each other, and every idea is treated as a good one.
 
-## Setting direction
+# Setting direction
 
 * The decisions that came from top down are typically harder to turn into real actions. The more open you make your decision-making process, the easier is to execute the decisions you made.
 

@@ -18,7 +18,7 @@ The tree view in the generated HTML output looks as follows:
 
 {{< figure src="/images/posts/doxygen_treeview.png" class="center" >}}
 
-## Doxygen pages
+# Doxygen pages
 
 Pages in Doxygen are used for documentation that is not directly attached to the source code entity like class, file or member. They will typically contain a longer description of your project. You can refer to any source code entity from within the page if required.
 
@@ -33,7 +33,7 @@ The page hierarchy is created by the repetitive use of the Doxygen tag `@subpage
 * Page @subpage subpage_3
 {{< / highlight >}}
 
-## Doxygen modules
+# Doxygen modules
 
 A larger software project typically consists of multiple modules. A module implements a particular project functionality. Doxygen cannot know which classes, files or namespaces belong to which module in your project. If you want to structure your documentation based on modules you'll need to tag each class, file or namespace with the module name. This allows Doxygen to understand your modularized design and generate the documentation accordingly.
 
@@ -70,6 +70,6 @@ namespace myproject {
 #endif
 {{< / highlight-caption >}}
 
-## Namespaces, classes and files
+# Namespaces, classes and files
 
 Doxygen automatically generates a list of namespaces, classes and files for you.

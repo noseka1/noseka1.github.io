@@ -11,7 +11,7 @@ In the [previous part](/blog/2019/06/30/troubleshooting-the-performance-of-vert-
 
 The causes of event loop delays can be divided into two categories. The first category contains event loop delays caused by a handler calling a blocking API. The second category covers delays caused by a handler code taking a great amount of CPU time to complete. Let's start with the first category and talk about blocking API calls.
 
-## Working with blocking APIs
+# Working with blocking APIs
 
 Calling a blocking API on the event loop thread is especially hurtful for the performance of your application and you should avoid it at all cost. When you call a blocking API from the event loop thread, the event loop thread will be put to sleep, i.e. it will relinquish the CPU. The duration of the sleep can be rather long in comparison to how much work the event loop thread could have accomplished if it would remain executing on the CPU. This is going to result in a serious decrease of the throughput of your application. In addition to impacting the throughput, the latency of your application is going to raise, too. Because as the event loop thread is sleeping no processing is taking place and so all the outstanding work is going to be pushed back by the duration of the sleep.
 
@@ -109,7 +109,7 @@ Working ...
 Received reply 'OK' on vert.x-eventloop-thread-0
 {{< / highlight >}}
 
-## Executing compute intensive tasks
+# Executing compute intensive tasks
 
 What is a compute intensive task? It is a task that makes heavy use of CPU and memory. Common examples of compute intensive tasks are parsing, encryption, compression and others. Executing compute intensive task within the event loop handler doesn't affect the throughput of your application because the event loop thread is busy doing useful work which would need to be done anyway. However, as the event loop thread is kept busy, other handlers on the event loop will be processed with a delay. How can we improve the situation and allow other handlers to be processed in a timely fashion?
 
@@ -137,7 +137,7 @@ vertx.setTimer(delay, timerId -> {
 
 You may encounter scenarios where you won't be able to chunk up the compute intensive task. For example, the compute intensive task's code is contained within a third-party library and executes all at once. In this case, you will have to defer to running this task on a worker thread and incur the cost of context switching. The operating system scheduler will periodically preempt the compute intensive task to prevent it from hogging the CPU and giving your event loop threads a chance to run.
 
-## Conclusion
+# Conclusion
 
 In this article, we discussed how to work with blocking APIs in Vert.x. A blocking API call has to be made on a worker thread and not on an event loop thread. Futhermore, we described a technique that allows you to execute compute intensive tasks on the event loop without considerably delaying the processing of other tasks on the same event loop.
 

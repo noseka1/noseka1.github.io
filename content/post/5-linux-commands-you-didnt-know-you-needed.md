@@ -9,7 +9,7 @@ When preparing for the RHCSA and RHCE exams, I found several useful commands I w
 
 <!--more-->
 
-## findmnt
+# findmnt
 
 The `findmnt` command is part of the essential package *util-linux* and hence is available on pretty much all Linux systems. It can print all mounted filesystems in the tree-like format. I found the output of `findmnt` command more readable than the output provided by the more popular `mount` command. This is an example of how the filesystem mounts on a Ceph node look like:
 
@@ -53,7 +53,7 @@ TARGET                           SOURCE     FSTYPE     OPTIONS
 └─/var/lib/ceph/osd/ceph-7       /dev/sde1  xfs        rw,noatime,seclabel,attr2,inode64,logbsize=256k,sunit=512,swidth=512,noquota
 {{< / highlight >}}
 
-## ss
+# ss
 
 The `ss` (soscket statistics) command is a replacement for the good old `netstat` command. It comes in the *iproute* package which is an essential part of all modern Linux distributions. I found `ss` command available on systems where the `netstat` command was missing. Here is a sample output of the `ss` command running on my Linux desktop:
 
@@ -69,7 +69,7 @@ LISTEN     0      128         :::22                      :::*                   
 
 I'm switching from using the `netstat` command to `ss`. What about you?
 
-## ip
+# ip
 
 After years of using the `ifconfig` utility, it took me some effort to move to its modern replacement - the `ip` command. Recently, I discovered two useful features of the `ip` utility.
 
@@ -101,7 +101,7 @@ $ ip route get 192.168.0.1
 
 When sending a packet to the target destination `192.168.0.1`, the kernel will route the packet via the `enp0s31f6` interface. The IP `10.5.0.1` is my default route.
 
-## lscpu
+# lscpu
 
 On modern machines the output of `cat /proc/cpuinfo` can be really long. To find out what CPU configuration a machine comes with I prefer to use the `lscpu` command. This is an example output of the `lscpu` command running on an OpenStack compute node:
 
@@ -134,7 +134,7 @@ NUMA node1 CPU(s):     1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31
 
 In the above output, the interesting lines are the `Socket(s)`, `Core(s) per socket`, `Thread(s) per core` and `CPU(s)`. In our case, we're looking at a machine with 2 physical CPUs (Sockets), each of them having 8 physical cores (Cores per socket). Each of the physical cores has 2 processing threads (Threads per core) aka logical CPUs due to the Hyper-Threading technology. In total, there are 32 logical CPUs available to the Linux scheduler to schedule a task on.
 
-## lspci
+# lspci
 
 The last command in our overview is the `lspci` command. If you ever wondered which kernel driver is controlling your hardware device, you can find out with:
 

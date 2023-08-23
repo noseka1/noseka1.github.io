@@ -19,7 +19,7 @@ In addition to the Linux host, you will also need to download the CRC distributi
 
 CRC comes with excellent documentation which is being expanded with every new release. You can find it [here](https://code-ready.github.io/crc/).
 
-## CodeReady Containers deployment overview
+# CodeReady Containers deployment overview
 
 From a high-level perspective, CRC creates a virtual machine that runs a single-node OpenShift cluster. This node plays the role of a master and a worker node at the same time. No OpenShift installation takes place while deploying CRC. Instead, CRC launches OpenShift from a pre-installed virtual machine image. The diagram below depicts the CRC deployment:
 
@@ -33,7 +33,7 @@ How about the integrated image registry? The image registry in OpenShift is back
 
 The last thing to note in the diagram is the DNS configuration. Why is this needed? CRC configures the DNS resolution on the Linux host so that the connections to the endpoints `api.crc.testing` and `*.apps-crc.testing` are routed to the OpenShift instance. NetworkManager, which is a requirement for CRC to work, is used to achieve this DNS configuration. CRC instructs the NetworkManager to spin up a dnsmasq instance, which forwards the DNS queries for the OpenShift endpoints to the second dnsmasq instance which was deployed inside the virtual machine. This second dnsmasq instance actually resolves the queries.
 
-## Configuring CodeReady Containers
+# Configuring CodeReady Containers
 
 In this section, we are going to review several CRC configuration options that you may want to customize. By default, the CRC virtual machine is provisioned with 4 vCPUs, 8790 MiB RAM, and 31 GiB disk space. Depending on your use case, you may want to increase these values. On my desktop, I like to bump up the number of vCPUs to 10. Using the `crc` command, it can be accomplished this way:
 
@@ -73,7 +73,7 @@ $ ./crc config --help
 
 With the CRC configuration squared away, we are ready to prepare the Linux host for launching an OpenShift cluster.
 
-## Setting up CodeReady Containers
+# Setting up CodeReady Containers
 
 In this section, we are going to prepare the Linux host for launching the CRC virtual machine. Note that this is a one-time setup. Go ahead and issue the following command to begin the setup process:
 
@@ -161,7 +161,7 @@ This network will be hosting the CRC virtual machine. This virtual machine will 
 
 Creating the libvirt network was the last setup step that I wanted to discuss. In the next section, we are going to create and launch the CRC virtual machine.
 
-## Starting CodeReady Containers
+# Starting CodeReady Containers
 
 After the `./crc setup` completes, issue the following command to create and start the CRC virtual machine:
 
@@ -261,7 +261,7 @@ $ tree --noreport .crc/machines
 
 Congratulations, your OpenShift instance is now up and running!
 
-## CodeReady Containers convenience commands
+# CodeReady Containers convenience commands
 
 In this section, I would like to mention a couple of commands that are useful when working with CRC. First, you can open OpenShift Web Console in the default browser by issuing:
 
@@ -284,7 +284,7 @@ $ ssh -i ~/.crc/machines/crc/id_ecdsa core@api.crc.testing
 {{< / highlight >}}
 The `core` user has full administrative privileges via sudo.
 
-## Conclusion
+# Conclusion
 
 This blog covered the deployment of CodeReady Containers to a Linux host. We began by reviewing the prerequisites that are needed to deploy CRC. In the deployment overview section, we showed how CRC interacts with libvirt to spin up  the OpenShift virtual machine. We also discussed the DNS configuration made by CRC. Before deploying CRC, we customized the CRC configuration and provided the virtual machine with additional resources beyond the factory defaults. We discussed the CRC setup and start phases in great detail. Finally, I shared some of the convenience commands I like to use.
 
