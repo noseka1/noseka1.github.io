@@ -12,7 +12,7 @@ Let's review some basic means that Doxygen provides to structure your documentat
 In order to demonstrate Doxygen features I created a sample project. You can check out the project source code and the generated HTML ouput at:
 
 * [Source code on GitHub](https://github.com/noseka1/structure-of-doxygen-doc "structure-of-doxygen-doc")
-* [The generated HTML output](https://noseka1.github.com/structure-of-doxygen-doc/)
+* [The generated HTML output](http://alesnosek.com/structure-of-doxygen-doc/)
 
 The tree view in the generated HTML output looks as follows:
 
