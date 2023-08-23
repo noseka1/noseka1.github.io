@@ -9,6 +9,8 @@ This year's [Red Hat Summit](https://www.redhat.com/en/summit) is going to be ho
 
 The session takes place on May 24, 11:30 a.m - 12:15 p.m in the Boston Convention and Exhibition Center in Boston. If you happen to be at the session, I would enjoy meeting you.
 
+**Update 06/06/2023:** The session recording can be found on [YouTube](https://www.youtube.com/watch?v=djhOSlwa7Ag).
+
 {{< figure src="/images/posts/red_hat_summit_2023.png" >}}
 
 <!--more-->
