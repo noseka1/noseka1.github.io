@@ -50,5 +50,5 @@ customCSS = ["css/custom.css" ]
 
 [[menu.main]]
   Name = "Archives"
-  URL = "/post"
+  URL = "/blog/archives"
   weight = 0
