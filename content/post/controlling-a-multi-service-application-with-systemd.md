@@ -31,7 +31,7 @@ Required service startup order:
 
 Let's begin creating the systemd unit files. First, we'll define a pseudo-service called `app`. This service doesn't run any deamon. Instead, it will allow us to start/stop the three application services at once.
 
-{{< highlight-caption lang="ini" linenos="table" title="app.service" >}}
+{{< highlight-caption lang="ini" options="linenos=table" title="app.service" >}}
 [Unit]
 Description=Application
 
@@ -50,7 +50,7 @@ WantedBy=multi-user.target
 
 In the next step, we'll create systemd unit files for the three services that constitute our application. I included some explanatory comments in the first `app-component1` service definition. The definitions of the remaining two services `app-component2` and `app-component3` follow the same schema.
 
-{{< highlight-caption lang="ini" linenos="table" title="app-component1.service" >}}
+{{< highlight-caption lang="ini" options="linenos=table" title="app-component1.service" >}}
 [Unit]
 Description=Application Component 1
 # When systemd stops or restarts the app.service, the action is propagated to this unit
@@ -71,7 +71,7 @@ WantedBy=app.service
 
 The definition of the service `app-component2` resembles the definition of service `app-component1`:
 
-{{< highlight-caption lang="ini" linenos="table" title="app-component2.service" >}}
+{{< highlight-caption lang="ini" options="linenos=table" title="app-component2.service" >}}
 [Unit]
 Description=Application Component 2
 PartOf=app.service
@@ -87,7 +87,7 @@ WantedBy=app.service
 
 We would like the service `app-component3` to start after the service `app-component2`. Systemd provides the directive `After` to configure the start ordering. Note that we don't use a `Wants` directive to create a dependency of `app-component3` on `app-component2`. This `Wants` dependency would instruct systemd to start the `app-component2` whenever the `app-component3` should be started. The `app-component2` would be started even in the case that it was disabled before. This is however not what we wanted as we require the user to be able to permanently disable any of the components. If `app-component2` is not enabled, systemd should just skip it when starting the application services.
 
-{{< highlight-caption lang="ini" linenos="table" title="app-component3.service" >}}
+{{< highlight-caption lang="ini" options="linenos=table" title="app-component3.service" >}}
 [Unit]
 Description=Application Component 3
 PartOf=app.service

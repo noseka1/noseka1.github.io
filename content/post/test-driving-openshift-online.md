@@ -104,7 +104,7 @@ Push successful
 
 The output of the build is a new `openshift-php-hello` Docker image. This image is automatically pushed into the integrated Docker registry by OpenShift. In the next step, we're going to create a DeploymentConfig file which describes how to deploy our brand new `openshift-php-hello` image on OpenShift. Create a file named `php-hello.yml` with the following content:
 
-{{< highlight-caption lang="yaml" linenos="table" title="php-hello.yml" >}}
+{{< highlight-caption lang="yaml" options="linenos=table" title="php-hello.yml" >}}
 kind: "DeploymentConfig"
 apiVersion: "v1"
 metadata:

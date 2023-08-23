@@ -13,7 +13,7 @@ There are several ways how to expose your application running on the Kubernetes 
 
 The `hostNetwork` setting applies to the Kubernetes pods. When a pod is configured with `hostNetwork: true`, the applications running in such a pod can directly see the network interfaces of the host machine where the pod was started. An application that is configured to listen on all network interfaces will in turn be accessible on all network interfaces of the host machine. Here is an example definition of a pod that uses host networking:
 
-{{< highlight-caption lang="yaml" linenos="table" title="influxdb-hostnetwork.yml" >}}
+{{< highlight-caption lang="yaml" options="linenos=table" title="influxdb-hostnetwork.yml" >}}
 apiVersion: v1
 kind: Pod
 metadata:
@@ -47,7 +47,7 @@ What is the host networking good for? For cases where a direct access to the hos
 
 The `hostPort` setting applies to the Kubernetes containers. The container port will be exposed to the external network at *<hostIP\>:<hostPort\>*, where the *hostIP* is the IP address of the Kubernetes node where the container is running and the *hostPort* is the port requested by the user. Here comes a sample pod definition:
 
-{{< highlight-caption lang="yaml" linenos="table" title="influxdb-hostport.yml" >}}
+{{< highlight-caption lang="yaml" options="linenos=table" title="influxdb-hostport.yml" >}}
 apiVersion: v1
 kind: Pod
 metadata:
@@ -69,7 +69,7 @@ What is the hostPort used for? For example, the nginx based [Ingress controller]
 
 The `NodePort` setting applies to the Kubernetes services. By default Kubernetes services are accessible at the ClusterIP which is an internal IP address reachable from inside of the Kubernetes cluster only. The ClusterIP enables the applications running within the pods to access the service. To make the service accessible from outside of the cluster a user can create a service of type NodePort. At first, let's review the definition of the pod that we'll expose using a NodePort service:
 
-{{< highlight-caption lang="yaml" linenos="table" title="influxdb-pod.yml" >}}
+{{< highlight-caption lang="yaml" options="linenos=table" title="influxdb-pod.yml" >}}
 apiVersion: v1
 kind: Pod
 metadata:
@@ -86,7 +86,7 @@ spec:
 
 When creating a NodePort service, the user can specify a port from the range 30000-32767, and each Kubernetes node will proxy that port to the pods selected by the service. A sample definition of a NodePort service looks as follows:
 
-{{< highlight-caption lang="yaml" linenos="table" title="influxdb-nodeport.yml" >}}
+{{< highlight-caption lang="yaml" options="linenos=table" title="influxdb-nodeport.yml" >}}
 kind: Service
 apiVersion: v1
 metadata:
@@ -112,7 +112,7 @@ The NodePort service represents a static endpoint through which the selected pod
 
 The `LoadBalancer` setting applies to the Kubernetes service. In order to be able to create a service of type LoadBalancer, a cloud provider has to be enabled in the configuration of the Kubernetes cluster. As of version 1.6, Kubernetes can provision load balancers on AWS, Azure, CloudStack, GCE and OpenStack. Here is an example definition of the LoadBalancer service:
 
-{{< highlight-caption lang="yaml" linenos="table" title="influxdb-loadbalancer.yml" >}}
+{{< highlight-caption lang="yaml" options="linenos=table" title="influxdb-loadbalancer.yml" >}}
 kind: Service
 apiVersion: v1
 metadata:
@@ -212,7 +212,7 @@ The Kubernetes Ingress provides features typical for a load balancer: HTTP routi
 
 Let's expose our InfluxDB application to the outside world via Ingress. An example Ingress definition looks like this:
 
-{{< highlight-caption lang="yaml" linenos="table" title="influxdb-ingress.yml" >}}
+{{< highlight-caption lang="yaml" options="linenos=table" title="influxdb-ingress.yml" >}}
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:

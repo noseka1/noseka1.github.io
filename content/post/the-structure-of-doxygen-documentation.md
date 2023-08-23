@@ -39,7 +39,7 @@ A larger software project typically consists of multiple modules. A module imple
 
 You can start with a definition of your modules and their parent-child relationship in a separate Doxygen file. A module is defined using `@defgroup` Doxygen tag. In our example, we're defining a parent module `My Project Modules` with two submodules `Math library` and `Misc library`:
 
-{{< highlight-caption lang="c" linenos="table" title="doxygen/group_defs.dox" >}}
+{{< highlight-caption lang="c" options="linenos=table" title="doxygen/group_defs.dox" >}}
 /**
  * @defgroup group_main My Project Modules
  * @brief All project modules
@@ -55,7 +55,7 @@ You can start with a definition of your modules and their parent-child relations
 
 Later in the source code, you can associate a class, file or a namespace with a module by using a Doxygen tag `@ingroup`:
 
-{{< highlight-caption lang="c" linenos="table" title="src/math/factorial.h" >}}
+{{< highlight-caption lang="c" options="linenos=table" title="src/math/factorial.h" >}}
 #ifndef MYPROJECT_MATH_FACTORIAL_H
 #define MYPROJECT_MATH_FACTORIAL_H
 

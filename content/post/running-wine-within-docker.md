@@ -15,7 +15,7 @@ Docker is not part of the stable Jessie distribution, however, you can install i
 
 We start off with creating a Docker image based on the `debian:wheezy` image from the official Docker repositories. We'll install the 32-bit Wine package on it. The Wine application is a graphical application and hence requires access to the X server. Setting the environmet variable `DISPLAY=:0` instructs the application to access the local X server. The complete `Dockerfile` to build our Wine image looks as follows:
 
-{{< highlight-caption lang="docker" linenos="table" title="Dockerfile" >}}
+{{< highlight-caption lang="docker" options="linenos=table" title="Dockerfile" >}}
 FROM debian:wheezy
 RUN dpkg --add-architecture i386
 RUN apt-get update

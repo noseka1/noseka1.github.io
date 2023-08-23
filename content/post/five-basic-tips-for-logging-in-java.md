@@ -12,7 +12,7 @@ Where do you look when your server application doesn't work as expected? Applica
 
 There are different Java logging frameworks out there: java.util.logging, Log4j, Log4j2 and Logback to name the most popular ones. [SLF4J](http://www.slf4j.org/ "Simple Logging Facade for Java (SLF4J)") is a thin facade that can talk to all of these logging frameworks. You can write your code using the SLF4J API and plugin in the desired logging framework at deployment time. Instead of tying yourself to Log4j framework like this code example does:
 
-{{< highlight-caption lang="java" linenos="table" title="Log4jApp.java" >}}
+{{< highlight-caption lang="java" options="linenos=table" title="Log4jApp.java" >}}
 import org.apache.log4j.Logger;
 
 public class Log4jApp {
@@ -27,7 +27,7 @@ public class Log4jApp {
 
 Write your application using the SLF4J API:
 
-{{< highlight-caption lang="java" linenos="table" title="Slf4jApp.java" >}}
+{{< highlight-caption lang="java" options="linenos=table" title="Slf4jApp.java" >}}
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,7 +81,7 @@ if (log.isDebugEnabled()) {
 
 Even if you'd like to ignore Java exceptions at some places, do at least log it before you ignore it. Logging frameworks can log the stack trace of the Java exception nicely. The code in the following example catches and logs a `NullPointerException`:
 
-{{< highlight-caption lang="java" linenos="table" title="LogException.java" >}}
+{{< highlight-caption lang="java" options="linenos=table" title="LogException.java" >}}
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -115,7 +115,7 @@ java.lang.NullPointerException: My exception to be logged
 
 Java logging frameworks allow you to filter log messages based on the logger name and the message log level. Logback and Log4j2 frameworks come with an additional filtering facility: Markers. You can tag your log messages with user-defined markers in order to filter them later on. In our example, we want to store the timing messages in a separate log file for later processing. In order to accomplish this we'll mark timing messages with the `time` marker. You can see the definition of the `time` marker at line 19 and logging of the marked message at line 20:
 
-{{< highlight-caption lang="java" linenos="table" title="MarkerApp.java" >}}
+{{< highlight-caption lang="java" options="linenos=table" title="MarkerApp.java" >}}
 mport org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
@@ -142,7 +142,7 @@ public class MarkerApp {
 
 In the logging configuration file we'll create two log appenders. The console appender sends all logging messages to the console output. In addition, the file appender logs only the messages marked with the `time` marker into the `/tmp/logger.out` log file.
 
-{{< highlight-caption lang="xml" linenos="table" title="log4j2.marker.xml" >}}
+{{< highlight-caption lang="xml" options="linenos=table" title="log4j2.marker.xml" >}}
 <Configuration>
     <Appenders>
         <Console name="console" target="SYSTEM_OUT">
@@ -183,7 +183,7 @@ Most server applications need to handle multiple clients simultaneously. Typical
 
 In the following example we want to log the name of the user on behalf of which we're doing some processing. In order to accomplish this we store the name of the user in the map under the key `user` before we start the processing. After the processing is complete we clear the map to get it ready for the next user.
 
-{{< highlight-caption lang="java" linenos="table" title="MdcApp.java" >}}
+{{< highlight-caption lang="java" options="linenos=table" title="MdcApp.java" >}}
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -210,7 +210,7 @@ public class MdcApp {
 
 In the logging configuration we need to configure the `PatternLayout` to include the `user` value from the map. The `%X{user}` formatting sequence does exactly that.
 
-{{< highlight-caption lang="xml" linenos="table" title="log4j2.mdc.xml" >}}
+{{< highlight-caption lang="xml" options="linenos=table" title="log4j2.mdc.xml" >}}
 <Configuration>
     <Appenders>
         <Console name="console" target="SYSTEM_OUT">

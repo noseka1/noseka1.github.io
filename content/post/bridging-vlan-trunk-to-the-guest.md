@@ -15,7 +15,7 @@ Our host and guest machines are running RHEL7. We're using Linux bridges and [li
 
 On the host, the physical interface `enp3s0f0` is a trunk interface including VLANs with tags 408, 410 and 412. We'll create a new Linux bridge and add the `enp3s0f0` to this bridge. The virtual machines created by libvirt will also be connected to this bridge. The configuration of the `enp3s0f0` physical interface looks as follows:
 
-{{< highlight-caption lang="shell" linenos="table" title="/etc/sysconfig/network-scripts/ifcfg-enp3s0f0" >}}
+{{< highlight-caption lang="shell" options="linenos=table" title="/etc/sysconfig/network-scripts/ifcfg-enp3s0f0" >}}
 TYPE=Ethernet
 BOOTPROTO=none
 DEVICE=enp3s0f0
@@ -25,7 +25,7 @@ BRIDGE=br-enp3s0f0
 
 Please, note that there's no IP address configuration (neither static nor via DHCP) for the `enp3s0f0` interface. The `enp3s0f0` interface is a trunk interface and hence the IP configuration would make no sense here. The `BRIDGE` configuration variable connects the physical interface to the `br-enp3s0f0` bridge. To create the `br-enp3s0f0` bridge the following configuration file is needed:
 
-{{< highlight-caption lang="shell" linenos="table" title="/etc/sysconfig/network-scripts/ifcfg-br-enp3s0f0" >}}
+{{< highlight-caption lang="shell" options="linenos=table" title="/etc/sysconfig/network-scripts/ifcfg-br-enp3s0f0" >}}
 TYPE=Bridge
 BOOTPROTO=none
 DEVICE=br-enp3s0f0
@@ -43,7 +43,7 @@ $ sudo systemctl restart network
 
 Next, we're going to tell libvirt that there's an existing bridge `br-enp3s0f0` we'd like our virtual machines be connected to. First, let's create a libvirt network definition file named just `bridge.xml`:
 
-{{< highlight-caption lang="xml" linenos="table" title="bridge.xml" >}}
+{{< highlight-caption lang="xml" options="linenos=table" title="bridge.xml" >}}
 <network>
   <name>br-enp3s0f0</name>
   <forward mode='bridge'/>
@@ -93,7 +93,7 @@ When creating a new guest (domain) in libvirt, you will need to attach the domai
 
 After the guest machine boots up successfully, you can create VLAN subinterfaces in order to obtain access to the individual VLANs within the guest. First, let's check the configuration of the VLAN trunk interface `eth0` inside the guest:
 
-{{< highlight-caption lang="shell" linenos="table" title="/etc/sysconfig/network-scripts/ifcfg-eth0" >}}
+{{< highlight-caption lang="shell" options="linenos=table" title="/etc/sysconfig/network-scripts/ifcfg-eth0" >}}
 TYPE=Ethernet
 BOOTPROTO=none
 DEVICE=eth0
@@ -102,7 +102,7 @@ ONBOOT=yes
 
 Finally, we can create VLAN subinterfaces to access individual VLANs available in the `eth0` trunk. For example, to access VLAN 408 and obtain the IP configuration via DHCP you can create a new cofiguration file `ifcfg-eth0.408`:
 
-{{< highlight-caption lang="shell" linenos="table" title="/etc/sysconfig/network-scripts/ifcfg-eth0.408" >}}
+{{< highlight-caption lang="shell" options="linenos=table" title="/etc/sysconfig/network-scripts/ifcfg-eth0.408" >}}
 BOOTPROTO=dhcp
 DEVICE=eth0.408
 ONBOOT=yes
@@ -119,7 +119,7 @@ $ sudo systemctl restart network
 
 When experimenting with the Linux bridge configuration I made this observation: *If there's a VLAN subinterface defined for a specific VLAN on the host machine, this specific VLAN won't be accessible inside the guest.* For example, when I created the following VLAN 408 subinterface on the host:
 
-{{< highlight-caption lang="shell" linenos="table" title="/etc/sysconfig/network-scripts/ifcfg-enp3s0f0.408" >}}
+{{< highlight-caption lang="shell" options="linenos=table" title="/etc/sysconfig/network-scripts/ifcfg-enp3s0f0.408" >}}
 BOOTPROTO=none
 DEVICE=enp3s0f0.408
 ONBOOT=yes

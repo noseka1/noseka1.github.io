@@ -11,7 +11,7 @@ The Simple Logging Facade for Java (SLF4J) serves as a simple abstraction for va
 
 Following is a Java code of our logging application `LogApp`. Note that it uses SLF4J API classes to do the logging. The jar file `slf4j-api-1.7.12.jar` is the only compile time dependency.
 
-{{< highlight-caption lang="java" linenos="table" title="LogApp.java" >}}
+{{< highlight-caption lang="java" options="linenos=table" title="LogApp.java" >}}
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,14 +55,14 @@ SLF4J Simple logger
 
 The SLF4J comes with a Simple logger implemenation. Simple logger provides only basic functionality. It read its configuration from a `simplelogger.properties` file that must be included on the classpath. There's no way to specify a different location of the configuration file.
 
-{{< highlight-caption lang="properties" linenos="table" title="simplelogger.properties - Output to console" >}}
+{{< highlight-caption lang="properties" options="linenos=table" title="simplelogger.properties - Output to console" >}}
 org.slf4j.simpleLogger.logFile=System.out
 org.slf4j.simpleLogger.defaultLogLevel=debug
 org.slf4j.simpleLogger.showDateTime=true
 org.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss.SSS
 {{< / highlight-caption >}}
 
-{{< highlight-caption lang="properties" linenos="table" title="simplelogger.properties - Output to file" >}}
+{{< highlight-caption lang="properties" options="linenos=table" title="simplelogger.properties - Output to file" >}}
 org.slf4j.simpleLogger.logFile=/tmp/logger.out
 org.slf4j.simpleLogger.defaultLogLevel=debug
 org.slf4j.simpleLogger.showDateTime=true
@@ -80,7 +80,7 @@ JDK 1.4 logger (java.util.logging)
 
 The java.util.logging package was introduced in JDK 1.4. The default `logging.properties` configuration file that comes with JRE (`jre/lib/logging.properties`) specifies a ConsoleHandler that routes logging to System.err. There's no way how to configure the JDK 1.4 logger to log to standard output instead of standard error output unless you do the configuration programmaticaly. You can specify the location of your JDK 1.4 logging configuration file in `java.util.logging.config.file` Java property.
 
-{{< highlight-caption lang="properties" linenos="table" title="jdk14.stderr.properties - Output to console" >}}
+{{< highlight-caption lang="properties" options="linenos=table" title="jdk14.stderr.properties - Output to console" >}}
 handlers=java.util.logging.ConsoleHandler
 .level=FINE
 java.util.logging.ConsoleHandler.level=FINE
@@ -89,7 +89,7 @@ java.util.logging.ConsoleHandler.formatter=java.util.logging.SimpleFormatter
 java.util.logging.SimpleFormatter.format=%1$tT [%2$s] %4$s - %5$s %6$s%n
 {{< / highlight-caption >}}
 
-{{< highlight-caption lang="properties" linenos="table" title="jdk14.file.properties - Output to file" >}}
+{{< highlight-caption lang="properties" options="linenos=table" title="jdk14.file.properties - Output to file" >}}
 handlers=java.util.logging.FileHandler
 .level=FINE
 java.util.logging.FileHandler.level=FINE
@@ -118,7 +118,7 @@ log4j:WARN See http://logging.apache.org/log4j/1.2/faq.html#noconfig for more in
 
 The following are the sample Log4j configuration files. Note that the `log4j.configuration` Java property that specifies the location of the configuration file must be a URL. In the example below the `/tmp/log4j.stdout.properties` location has to be prepended with `file:` to form a URL.
 
-{{< highlight-caption lang="properties" linenos="table" title="log4j.stdout.properties - Output to console" >}}
+{{< highlight-caption lang="properties" options="linenos=table" title="log4j.stdout.properties - Output to console" >}}
 log4j.rootLogger=DEBUG, stdout
 log4j.appender.stdout=org.apache.log4j.ConsoleAppender
 log4j.appender.stdout.Target=System.out
@@ -126,7 +126,7 @@ log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
 log4j.appender.stdout.layout.ConversionPattern=%d{HH:mm:ss} [%t] %-5p %c{1}:%L - %m%n
 {{< / highlight-caption >}}
 
-{{< highlight-caption lang="properties" linenos="table" title="log4j.file.properties - Output to file" >}}
+{{< highlight-caption lang="properties" options="linenos=table" title="log4j.file.properties - Output to file" >}}
 log4j.rootLogger=DEBUG, file
 log4j.appender.file=org.apache.log4j.FileAppender
 log4j.appender.file.File=/tmp/logger.out
@@ -144,7 +144,7 @@ Logback
 -------
 With no configuration provided Logback defaults to printing all log messages on the console standard output. The `logback-classic` jar package that comes with Logback includes the `org.slf4j.impl.StaticLoggerBinder` class that serves as an adaptor to SLF4J framework. Therefore no extra SLF4J adaptor jar is needed on the runtime classpath. You can specify the location of your Logback configuration file in the `logback.configurationFile` Java property.
 
-{{< highlight-caption lang="xml" linenos="table" title="logback.stdout.xml - Output to console" >}}
+{{< highlight-caption lang="xml" options="linenos=table" title="logback.stdout.xml - Output to console" >}}
 <configuration>
   <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
     <Target>System.out</Target>
@@ -158,7 +158,7 @@ With no configuration provided Logback defaults to printing all log messages on 
 </configuration>
 {{< / highlight-caption >}}
 
-{{< highlight-caption lang="xml" linenos="table" title="logback.file.xml - Output to file" >}}
+{{< highlight-caption lang="xml" options="linenos=table" title="logback.file.xml - Output to file" >}}
 <configuration>
   <appender name="file" class="ch.qos.logback.core.FileAppender">
     <File>/tmp/logger.out</File>
@@ -188,7 +188,7 @@ ERROR StatusLogger No log4j2 configuration file found. Using default configurati
 22:09:13.052 [main] ERROR LogApp - Error message
 {{< / highlight >}}
 
-{{< highlight-caption lang="xml" linenos="table" title="log4j2.stdout.xml - Output to console" >}}
+{{< highlight-caption lang="xml" options="linenos=table" title="log4j2.stdout.xml - Output to console" >}}
 <Configuration>
     <Appenders>
         <Console name="console" target="SYSTEM_OUT">
@@ -203,7 +203,7 @@ ERROR StatusLogger No log4j2 configuration file found. Using default configurati
 </Configuration>
 {{< / highlight-caption >}}
 
-{{< highlight-caption lang="xml" linenos="table" title="log4j2.file.xml - Output to file" >}}
+{{< highlight-caption lang="xml" options="linenos=table" title="log4j2.file.xml - Output to file" >}}
 <Configuration>
     <Appenders>
         <File name="file" fileName="/tmp/logger.out" append="true">

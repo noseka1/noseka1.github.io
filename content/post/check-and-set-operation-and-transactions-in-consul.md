@@ -130,7 +130,7 @@ true
 
 [Transactions](https://www.consul.io/api/txn.html) in Consul manage updates or selects of multiple keys within a single, atomic transaction. A list of operations that will be executed in the transaction is specified in the body of the HTTP request. First, let's create a list of operations and save it as a file `transaction1.txt`:
 
-{{< highlight-caption lang="shell" linenos="table" title="transaction1.txt" >}}
+{{< highlight-caption lang="shell" options="linenos=table" title="transaction1.txt" >}}
 [
   {
     "KV": {
@@ -186,7 +186,7 @@ Next, let's see what happens if one of the operations in the transaction fails. 
 
 Let's submit the transaction to Consul:
 
-{{< highlight-caption lang="shell" linenos="table" title="transaction2.txt" >}}
+{{< highlight-caption lang="shell" options="linenos=table" title="transaction2.txt" >}}
 [
   {
     "KV": {
