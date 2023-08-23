@@ -13,7 +13,7 @@ In EC2 and OpenStack cloud environments *user data* can be passed to the cloud i
 
 [Cloud-Init](https://cloudinit.readthedocs.org/en/latest/ "Cloud-Init documentation") is a tool that handles early initialization of a cloud instance. The `cloud-init` RPM package should be installed on the disk image which the cloud instance is going to boot up from. The package installs init scripts into `/etc/rc.d/init.d` that makes Cloud-Init run early during the system initialization. Cloud-Init obtains user data passed to it by the cloud software and executes them. User data contains a set of configuration tasks for the cloud instance. For example, Cloud-Init can update machine's hostname, configure `/etc/hosts`, create users, configure SSH authorized keys, resize filesystems, manage disk mounts, run user-defined scripts and [much more](https://cloudinit.readthedocs.org/en/latest/topics/examples.html "Cloud config examples").
 
->Even if you're not running your virtual machines in the cloud environment it's worth it to deploy Clout-Init.
+>Even if you're not running your virtual machines in the cloud environment it's worth it to deploy Cloud-Init.
 
 Every cloud software comes with its own mechanism of how to pass the user data to the cloud instance. For example, EC2 provides a *magic IP* from which the instance can download its user data. OpenStack cloud attaches a special *config drive* to the cloud instance containing the user data to be consumed by Clout-Init. In order to pass the user data to our virtual machine let's go the OpenStack way and assemble a minimum config drive.
 

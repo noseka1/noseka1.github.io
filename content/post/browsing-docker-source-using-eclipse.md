@@ -1,5 +1,5 @@
 +++
-title = "Browsing Docker Source Using Eclipse"
+title = "Browsing Docker Source using Eclipse"
 date = "2015-07-19"
 slug = "2015/07/19/browsing-docker-source-using-eclipse"
 Categories = [ "development" ]

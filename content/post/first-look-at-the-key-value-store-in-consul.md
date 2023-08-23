@@ -1,5 +1,5 @@
 +++
-title = "First Look at the Key Value Store in Consul"
+title = "First Look at the Key-Value Store in Consul"
 date = "2017-07-15"
 slug = "2017/07/15/first-look-at-the-key-value-store-in-consul"
 Categories = [ "devops", "cloud" ]

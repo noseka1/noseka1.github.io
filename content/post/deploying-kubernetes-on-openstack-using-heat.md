@@ -1,5 +1,5 @@
 +++
-title = "Deploying Kubernetes on Openstack Using Heat"
+title = "Deploying Kubernetes on Openstack using Heat"
 date = "2016-06-26"
 slug = "2016/06/26/deploying-kubernetes-on-openstack-using-heat"
 Categories = [ "cloud", "devops" ]
@@ -171,7 +171,7 @@ All pods should be running. The network topology of the Kubernetes cluster as di
 
 ## Accessing the Kubernetes cluster
 
-** Update 9/5/2016 **
+**Update 9/5/2016:**
 
 At first, we will copy the `kubectl` client binary from the Kubernetes installer machine onto the remote host from where we are going to access our Kubernetes cluster:
 {{< highlight shell "linenos=table" >}}

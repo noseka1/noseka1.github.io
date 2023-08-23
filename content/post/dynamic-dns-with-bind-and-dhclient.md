@@ -1,5 +1,5 @@
 +++
-title = "Dynamic DNS with Bind and Dhclient"
+title = "Dynamic DNS with BIND and dhclient"
 date = "2015-05-02"
 slug = "2015/05/02/dynamic-dns-with-bind-and-dhclient"
 Categories = [ "devops" ]
@@ -13,10 +13,9 @@ Examples in this article work on RHEL6 that comes with BIND 9. You'll need to ha
 Dynamic DNS with BIND
 ---------------------
 
-date = "our"
-slug = "our/dynamic-dns-with-bind-and-dhclient"
+In our example we're going to configure the BIND server to accept DNS updates for `somedomain.com` zone from any client. In production environment you'd use encryption keys to secure the access to the DNS server. You can read more on the secure configuration in [this](http://linux.yyz.us/nsupdate/ "nsupdate: Painless Dynamic DNS") excellent article. To allow any client to update the `somedomain.com` zone add the `allow-update { 0/0; };` option into your `/etc/named.conf` file:
 
-{{< highlight dns "linenos=table" >}}
+{{< highlight plaintext "linenos=table" >}}
 zone "somedomain.com" in {
         type master;
         file "db.somedomain.com";

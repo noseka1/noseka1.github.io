@@ -1,5 +1,5 @@
 +++
-title = "5 Linux Commands You Didnt Know You Needed"
+title = "5 Linux Commands You Didn't Know You Needed"
 date = "2016-11-01"
 slug = "2016/11/01/5-linux-commands-you-didnt-know-you-needed"
 Categories = [ "devops" ]

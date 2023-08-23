@@ -1,5 +1,5 @@
 +++
-title = "Configuring Envoy to Audo Discover Pods on Kubernetes"
+title = "Configuring Envoy to Auto-Discover Pods on Kubernetes"
 date = "2019-08-19"
 slug = "2019/08/19/configuring-envoy-to-audo-discover-pods-on-kubernetes"
 Categories = [ "cloud", "devops" ]
